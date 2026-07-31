@@ -1,14 +1,18 @@
 # SkillAtlas
 
-Pick a career or skill, get an adaptive roadmap built from a real prerequisite
-graph, work through concepts with curated resources and quizzes, and watch your
-readiness for actual job roles move as you go.
+Choose a domain, choose a pace, and get a route built from a real prerequisite
+graph. Every step comes with sources to learn from, points for finishing it, and
+a project you build and run **inside the app** — no local toolchain. A companies
+section then shows what specific employers actually test, with every question
+traceable to its source.
 
 - **Frontend** — Next.js 16 (App Router) + React 19 + Tailwind v4 + shadcn/Base UI
 - **Backend** — FastAPI + SQLAlchemy 2.0 + Alembic
 - **Database** — SQLite by default (zero setup); Postgres by changing one env var
 - **AI tutor** — local Ollama (`qwen2.5:7b` + `nomic-embed-text`) with RAG over the
   concept content, and a deterministic retrieval fallback when Ollama is off
+- **Build environment** — Pyodide, sql.js and a sandboxed iframe, all served from
+  `public/` so projects run in the browser with no network and no setup
 
 No Docker, Neo4j or Redis required. The knowledge graph lives in relational
 tables and is traversed in Python (`backend/app/services/graph.py`).
@@ -85,10 +89,42 @@ weeks of `daily_hours × 7`, never splitting a concept across a week boundary.
 Because order is preserved, a prerequisite always lands in the same week or an
 earlier one. The result is persisted, so progress means something.
 
-**Progress and XP.** Quizzes are graded server-side (the API never sends which
-option is correct until you submit). A failed attempt records nothing and
-returns explanations. Passing awards XP scaled by effort × score, advances the
-level and streak, evaluates badges, and unlocks dependent concepts.
+**Progress and points.** Quizzes are graded server-side (the API never sends
+which option is correct until you submit). A failed attempt records nothing and
+returns explanations. Passing awards points scaled by effort × score, advances
+the level and streak, evaluates badges, and unlocks dependent concepts. Every
+award is written to a `points_events` ledger, so the dashboard can show *what*
+paid out rather than a total that moves on its own — and a test asserts the
+ledger sums to the profile.
+
+**Projects.** Each concept ends in something you build. Projects carry starter
+files and automated tests, and run in the learner's browser: Python under
+Pyodide in a terminable Web Worker, SQL under sql.js, and HTML/CSS/JS in an
+iframe sandboxed with `allow-scripts` and no `allow-same-origin`. The worker is
+the point — a learner *will* write an infinite loop, and terminating a worker is
+the only reliable way back.
+
+Because execution is client-side, the pass/fail signal is **reported by the
+client**. The server records every submission in full, rejects a green run that
+does not use the API the brief required (`must_contain`), and pays out at most
+once per project — but it cannot re-run the code, and the UI says so rather than
+implying an authority it does not have.
+
+`backend/scripts/verify_projects.py` runs every project against a reference
+solution *and* checks that the starter files fail, so no brief can ship that is
+impossible to pass or that passes on arrival.
+`frontend/scripts/check-python-harness.mjs` runs the shipped harness and every
+Python project against a real Pyodide under Node — which is how a bug that
+scored every *passing* test as a failure (Python's `None` crosses the FFI as
+JavaScript's `undefined`, not `null`) was caught without opening a browser.
+
+**Companies.** Pick a company, see its roles, and for each role: what to focus
+on, previous interview questions, and previous exam and online-assessment
+questions. A role's focus areas point at concepts in the same graph, so
+readiness is computed from work you actually completed and the gap can be added
+to your route in one click. Every question stores the public source it was
+written from, and every company stores a `fetched_on` date the UI displays, so
+stale data is visible rather than silently trusted.
 
 **Readiness.** `role_skills` weights each concept per role, so readiness is
 `Σ(weight of completed) / Σ(weight of all)`. "Biggest gaps" shows exactly how
@@ -101,49 +137,62 @@ middleware) does an optimistic cookie check; the API authorises for real.
 
 ## Content
 
-Learning content is authored as YAML in `backend/app/seed/tracks/` — **every
-one of the 27 domains has a curated route; nothing says "coming soon"**.
+Learning content is authored as YAML under `backend/app/seed/` — **every one of
+the 27 domains has a curated route; nothing says "coming soon"**.
 
 | | |
 |---|---|
 | Domains | 27 |
 | Tracks | 27 |
-| Concepts | 108 (~3,535 hours) |
-| Curated resource links | 357 |
-| Quiz questions | 324 |
-| Interview questions | 115 |
+| Concepts | 109 (~3,605 hours) |
+| Curated resource links | 362 |
+| Quiz questions | 328 |
+| Interview questions | 118 |
 | Job roles measured | 31 |
+| Buildable projects | 15 (77 automated tests) |
+| Companies | 10 (13 roles, 55 sourced questions) |
+
+Projects currently cover the backend track end to end — one per concept. The
+other tracks have concepts and resources but no projects yet; the machinery is
+content-driven, so adding them is YAML authoring rather than code.
 
 Concepts are shared across tracks by slug reference rather than duplicated —
 `programming-language-python` and `containers-docker` each appear in several
 routes — which is what makes this one graph instead of parallel lists.
 
-**Adding a track is content work, not code**: drop a YAML file into
-`app/seed/tracks/`, re-run the seeder, and it appears everywhere.
+**Adding a track, a project or a company is content work, not code**: drop a
+YAML file into `app/seed/tracks/`, `app/seed/projects/` or
+`app/seed/companies/`, re-run the seeder, and it appears everywhere.
 
 ```powershell
 .env\Scripts\python.exe -m app.seed.loader     # idempotent; safe to re-run
 ```
 
 The loader validates as it goes: unknown domains and prerequisites, duplicate
-concept definitions, quiz questions without exactly one correct answer, and
-prerequisite cycles all fail the seed rather than corrupting the graph.
+concept definitions, quiz questions without exactly one correct answer,
+prerequisite cycles, projects with no tests or no entry file, a test whose kind
+does not match its runtime, a focus area pointing at a concept that does not
+exist, and **any company question without a source URL** all fail the seed
+rather than corrupting the content.
 
 ## Tests
 
 ```powershell
 cd backend
-.\venv\Scripts\python.exe -m pytest tests        # 82 tests
-.\venv\Scripts\python.exe scripts\smoke.py       # end-to-end, needs both servers up
+.\venv\Scripts\python.exe -m pytest tests              # 111 tests
+.\venv\Scripts\python.exe scripts\verify_projects.py   # every project is passable
+.\venv\Scripts\python.exe scripts\smoke.py             # end-to-end, needs both servers up
 
 cd ..\frontend
 npx tsc --noEmit
+node scripts/check-python-harness.mjs             # the harness, under real Pyodide
 npm run build
 ```
 
-`scripts/smoke.py` walks the product the way a person does — signup → roadmap
-→ locked concept → study → complete → dashboard → tutor → community — through
-the frontend BFF with real cookies.
+`scripts/smoke.py` walks the product the way a person does — signup → roadmap →
+locked concept → study → complete → **build a project** → **points ledger** →
+**companies** → dashboard → tutor → community — through the frontend BFF with
+real cookies.
 
 ## Using Postgres instead of SQLite
 
@@ -164,18 +213,20 @@ No application code changes; the models avoid SQLite-only SQL.
 backend/
   app/
     main.py config.py database.py security.py deps.py
-    models/      identity, knowledge graph, progress, community
+    models/      identity, knowledge graph, progress, projects, companies
     schemas/     Pydantic request/response DTOs
-    routers/     auth content roadmaps progress dashboard chat community
+    routers/     auth content roadmaps progress projects companies dashboard chat community
     services/    graph roadmap gamification readiness rag llm/
-    seed/        tracks/*.yaml domains.yaml roles.yaml + loader
+    seed/        tracks/ projects/ companies/ + domains.yaml roles.yaml + loader
   alembic/       migrations
   tests/         pytest suite
-  scripts/       smoke.py
+  scripts/       smoke.py, verify_projects.py
 frontend/
+  public/        pyodide/ and sqljs/ runtimes, copied from node_modules
+  scripts/       copy-wasm-assets.mjs, check-python-harness.mjs
   src/
     app/         pages + BFF route handlers under app/api
     proxy.ts     route guard (Next 16's renamed middleware)
-    components/  UI
+    components/  UI, plus workspace/ — the in-browser build environment
     lib/         api client, session, DAL, types
 ```

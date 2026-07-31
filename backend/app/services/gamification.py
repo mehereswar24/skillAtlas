@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -237,8 +237,15 @@ def award_badge(db: Session, user_id: int, slug: str) -> UserBadge | None:
         badge_name=definition.name,
         description=definition.description,
         icon=definition.icon,
+        # Set in Python rather than relying on the column's server default.
+        # A server default is only applied by the INSERT, so a caller that
+        # serialises the badge before the flush sees `awarded_at=None` and the
+        # response model rejects it — which is exactly how awarding a badge on
+        # project submission returned a 500.
+        awarded_at=datetime.now(timezone.utc),
     )
     db.add(badge)
+    db.flush()
     return badge
 
 

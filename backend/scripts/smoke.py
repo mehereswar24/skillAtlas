@@ -141,7 +141,88 @@ class Smoke:
         status, unlocked = self.request("GET", "/concepts/rest-api-design")
         self.check("previously locked concept is now open", not unlocked["is_locked"])
 
-        print("\n5. Dashboard reflects the work")
+        print("\n5. Build a project")
+        status, project = self.request("GET", "/projects/http-message-parser")
+        self.check("project served with its brief", status == 200 and bool(project["tests"]))
+        self.check(
+            "the worked solution is withheld until you pass",
+            project["solution_md"] is None,
+        )
+
+        files = [{"path": f["path"], "content": f["content"]} for f in project["files"]]
+        status, held = self.request(
+            "POST",
+            "/projects/http-message-parser/submit",
+            {
+                "files": [{"path": files[0]["path"], "content": "pass"}],
+                "results": [{"test_id": t["id"], "passed": True} for t in project["tests"]],
+            },
+        )
+        self.check(
+            "a green run that ignores the brief is held back",
+            status == 201 and not held["passed"] and bool(held["rejected_reason"]),
+        )
+
+        status, shipped = self.request(
+            "POST",
+            "/projects/http-message-parser/submit",
+            {
+                "files": files,
+                "results": [{"test_id": t["id"], "passed": True} for t in project["tests"]],
+            },
+        )
+        self.check(
+            "project points awarded",
+            shipped["passed"] and shipped["xp_earned"] == project["xp_reward"],
+            f"+{shipped['xp_earned']} points",
+        )
+        self.check("solution revealed on a pass", bool(shipped["solution_md"]))
+
+        status, again = self.request(
+            "POST",
+            "/projects/http-message-parser/submit",
+            {
+                "files": files,
+                "results": [{"test_id": t["id"], "passed": True} for t in project["tests"]],
+            },
+        )
+        self.check("resubmitting does not pay twice", again["xp_earned"] == 0)
+
+        print("\n6. Points ledger explains the total")
+        status, ledger = self.request("GET", "/progress/points")
+        self.check("ledger populated", status == 200 and len(ledger) >= 3)
+        status, me = self.request("GET", "/auth/me")
+        total = sum(event["points"] for event in ledger)
+        self.check(
+            "ledger sums to the profile total",
+            total == me["profile"]["xp"],
+            f"{total} vs {me['profile']['xp']}",
+        )
+
+        print("\n7. Companies")
+        status, companies = self.request("GET", "/companies")
+        self.check("companies listed", status == 200 and len(companies) > 0, f"{len(companies)}")
+        status, role = self.request("GET", "/companies/google/roles/software-engineer")
+        self.check("role readiness computed", status == 200 and role["total_weight"] > 0,
+                   f"{role['readiness_percent']}% ready")
+        self.check(
+            "every question cites a source",
+            all(q["source_url"].startswith("http") for q in role["questions"]),
+        )
+        mapped = [a for a in role["focus_areas"] if a["concept_slug"]]
+        self.check("focus areas link into the graph", len(mapped) > 0, f"{len(mapped)} mapped")
+        status, extended = self.request(
+            "POST",
+            "/companies/nvidia/roles/deep-learning-engineer/add-to-roadmap",
+            {"concept_slugs": []},
+        )
+        scheduled = {i["concept"]["slug"] for w in extended["weeks"] for i in w["items"]}
+        self.check(
+            "a role's gaps can be added to the route",
+            status == 200 and "deep-learning-foundations" in scheduled,
+        )
+
+        print("\n8. Dashboard reflects the work")
         status, dash = self.request("GET", "/dashboard")
         stats = dash["stats"]
         # Two studied here, plus the one declared as prior knowledge at step 3 —
@@ -152,7 +233,14 @@ class Smoke:
             f"{stats['concepts_completed']} (2 studied + 1 prior knowledge)",
         )
         self.check("hours counted", stats["hours_invested"] > 0, f"{stats['hours_invested']}h")
-        self.check("xp matches", stats["xp"] == second["total_xp"])
+        # Compared against a freshly read profile, not the snapshot taken at
+        # signup: concepts and the project in step 5 have both paid out since.
+        _, current = self.request("GET", "/auth/me")
+        self.check(
+            "xp matches the profile",
+            stats["xp"] == current["profile"]["xp"],
+            f'{stats["xp"]} vs {current["profile"]["xp"]}',
+        )
         junior = next(
             (r for r in dash["roles"] if r["slug"] == "junior-backend-developer"), None
         )
@@ -167,7 +255,7 @@ class Smoke:
             any(p["minutes"] > 0 for p in dash["velocity"]),
         )
 
-        print("\n6. AI tutor")
+        print("\n9. AI tutor")
         status, tutor = self.request("GET", "/chat/status")
         self.check("tutor reachable", status == 200, f"mode: {tutor['mode']}")
         answer, sources = self.ask("Why do caches serve stale data?")
@@ -178,7 +266,7 @@ class Smoke:
             f"sources: {', '.join(sources) or 'none'}",
         )
 
-        print("\n7. Community")
+        print("\n10. Community")
         status, post = self.request(
             "POST",
             "/community/posts",
