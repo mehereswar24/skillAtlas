@@ -39,7 +39,12 @@ class UserProfile(Base):
     current_track_id: Mapped[int | None] = mapped_column(
         ForeignKey("tracks.id", ondelete="SET NULL"), nullable=True
     )
+    # `pace` is the label the learner chose; `daily_hours` is what it means and
+    # stays the unit the scheduler packs weeks against.
+    pace: Mapped[str] = mapped_column(String(20), default="steady", nullable=False)
     daily_hours: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
+    # Projected finish date for the current roadmap, recomputed when it is built.
+    target_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     xp: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     level: Mapped[int] = mapped_column(Integer, default=1, nullable=False)

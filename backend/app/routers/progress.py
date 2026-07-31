@@ -11,6 +11,7 @@ from app.models.progress import (
     STATUS_COMPLETED,
     STATUS_IN_PROGRESS,
     DailyActivity,
+    PointsEvent,
     UserBadge,
     UserProgress,
     UserRoadmapItem,
@@ -21,6 +22,7 @@ from app.schemas.progress import (
     BadgeOut,
     CompleteRequest,
     CompletionResult,
+    PointsEventOut,
     ProgressOut,
     QuizReview,
 )
@@ -297,6 +299,22 @@ def list_badges(user: CurrentUser, db: DbSession):
         .order_by(UserBadge.awarded_at.desc())
     ).all()
     return [BadgeOut.model_validate(b) for b in badges]
+
+
+@router.get("/points", response_model=list[PointsEventOut])
+def points_ledger(
+    user: CurrentUser,
+    db: DbSession,
+    limit: int = Query(50, ge=1, le=500),
+):
+    """The itemised statement behind the XP total, newest first."""
+    rows = db.scalars(
+        select(PointsEvent)
+        .where(PointsEvent.user_id == user.id)
+        .order_by(PointsEvent.created_at.desc(), PointsEvent.id.desc())
+        .limit(limit)
+    ).all()
+    return [PointsEventOut.model_validate(r) for r in rows]
 
 
 @router.get("/activity", response_model=list[ActivityPoint])

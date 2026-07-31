@@ -23,6 +23,9 @@ STATUS_IN_PROGRESS = "in-progress"
 STATUS_COMPLETED = "completed"
 STATUS_SKIPPED = "skipped"
 
+# What a points event was earned for.
+POINTS_KINDS = ("concept", "project", "badge")
+
 
 class UserRoadmap(Base):
     """A generated plan. Persisting this is what makes progress meaningful."""
@@ -115,6 +118,30 @@ class DailyActivity(Base):
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     concepts_completed: Mapped[int] = mapped_column(Integer, default=0)
     xp_earned: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class PointsEvent(Base):
+    """Append-only ledger of every point the learner has earned.
+
+    ``UserProfile.xp`` is the running total; this is the itemised statement
+    behind it, so the UI can say *what* paid out rather than just showing a
+    number that moves on its own.
+    """
+
+    __tablename__ = "points_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(20), index=True)
+    # Slug of whatever earned it: a concept, a project or a badge.
+    ref_slug: Mapped[str] = mapped_column(String(160), default="")
+    label: Mapped[str] = mapped_column(String(200), default="")
+    points: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
 
 
 class UserBadge(Base):

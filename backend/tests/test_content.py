@@ -145,8 +145,10 @@ def test_keyword_ranking_prefers_the_concept_that_covers_the_whole_question(db):
     """
     results = _keyword_search(db, "how do I prevent SQL injection", k=5)
     top = [r.concept_slug for r in results]
-    assert top[0] in {"auth-and-security", "offensive-security-basics"}
-    assert "customer-discovery" not in top
+    # The two security concepts must lead; anything matching only the
+    # incidental word may appear further down but must not outrank them.
+    assert set(top[:2]) == {"auth-and-security", "offensive-security-basics"}
+    assert "customer-discovery" not in top[:3]
 
 
 def test_stopwords_do_not_dominate_retrieval(db):

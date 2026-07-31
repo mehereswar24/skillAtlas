@@ -10,13 +10,18 @@ from __future__ import annotations
 
 import itertools
 import os
+import shutil
 import tempfile
 from pathlib import Path
 
 import pytest
 
 # Point the app at a throwaway database before anything imports app.config.
-_TMP_DB = Path(tempfile.gettempdir()) / "skillatlas_test.db"
+# A per-process directory: SQLite in WAL mode leaves -wal and -shm sidecars, and
+# a shared filename means a crashed run leaves a locked file that fails the next
+# one with PermissionError on Windows.
+_TMP_DIR = Path(tempfile.mkdtemp(prefix="skillatlas-test-"))
+_TMP_DB = _TMP_DIR / "skillatlas_test.db"
 os.environ["DATABASE_URL"] = f"sqlite:///{_TMP_DB.as_posix()}"
 os.environ["SECRET_KEY"] = "test-secret-key-not-used-anywhere-real"
 
@@ -30,8 +35,6 @@ from app.seed.loader import seed_all  # noqa: E402
 
 @pytest.fixture(scope="session", autouse=True)
 def _database():
-    if _TMP_DB.exists():
-        _TMP_DB.unlink()
     Base.metadata.create_all(engine)
 
     with SessionLocal() as session:
@@ -40,7 +43,9 @@ def _database():
     yield
 
     engine.dispose()
-    _TMP_DB.unlink(missing_ok=True)
+    # Remove the whole directory so the WAL sidecars go with it. Failure to
+    # clean up must not fail the suite — the OS clears temp eventually.
+    shutil.rmtree(_TMP_DIR, ignore_errors=True)
 
 
 @pytest.fixture

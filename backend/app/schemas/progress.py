@@ -67,3 +67,16 @@ class ActivityPoint(BaseModel):
     minutes: int
     concepts: int
     xp: int
+
+
+class PointsEventOut(BaseModel):
+    """One line of the points statement."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str
+    ref_slug: str
+    label: str
+    points: int
+    created_at: datetime

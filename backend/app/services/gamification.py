@@ -18,9 +18,11 @@ from app.models.content import Concept, TrackConcept
 from app.models.progress import (
     STATUS_COMPLETED,
     DailyActivity,
+    PointsEvent,
     UserBadge,
     UserProgress,
 )
+from app.models.project import SUBMISSION_PASSED, ProjectSubmission
 from app.models.user import UserProfile
 
 # Levelling curve: advancing from level L to L+1 costs 100*L XP, so the
@@ -132,6 +134,54 @@ def record_activity(
 
 
 # --------------------------------------------------------------------------
+# points ledger
+# --------------------------------------------------------------------------
+
+
+def record_points(
+    db: Session,
+    user_id: int,
+    kind: str,
+    *,
+    ref_slug: str,
+    label: str,
+    points: int,
+) -> PointsEvent:
+    """Write one line of the points statement.
+
+    Every XP mutation goes through here, so the ledger always sums to
+    ``UserProfile.xp`` and the dashboard can explain where a number came from.
+    """
+    event = PointsEvent(
+        user_id=user_id,
+        kind=kind,
+        ref_slug=ref_slug,
+        label=label,
+        points=points,
+    )
+    db.add(event)
+    return event
+
+
+def award_points(
+    db: Session,
+    profile: UserProfile,
+    user_id: int,
+    kind: str,
+    *,
+    ref_slug: str,
+    label: str,
+    points: int,
+) -> PointsEvent:
+    """Add points to the profile and log why, in one step."""
+    profile.xp += points
+    profile.level = level_for_xp(profile.xp)
+    return record_points(
+        db, user_id, kind, ref_slug=ref_slug, label=label, points=points
+    )
+
+
+# --------------------------------------------------------------------------
 # badges
 # --------------------------------------------------------------------------
 
@@ -157,6 +207,14 @@ BADGES: dict[str, BadgeDef] = {
         BadgeDef("track-complete", "Track Complete", "Finished every concept in a track.", "Trophy"),
         BadgeDef("level-five", "Level Five", "Reached level 5.", "Star"),
         BadgeDef("level-ten", "Level Ten", "Reached level 10.", "Sparkles"),
+        BadgeDef("first-build", "First Build", "Shipped your first project.", "Hammer"),
+        BadgeDef("builder-ten", "Builder", "Shipped 10 projects.", "Wrench"),
+        BadgeDef(
+            "flawless-build",
+            "Flawless Build",
+            "Passed every test on a project's first submission.",
+            "Zap",
+        ),
     ]
 }
 
@@ -190,11 +248,28 @@ def evaluate_badges(
     profile: UserProfile,
     *,
     last_quiz_score: float | None = None,
+    flawless_build: bool = False,
     today: date | None = None,
 ) -> list[UserBadge]:
     """Check every badge rule and award whatever is newly earned."""
     today = today or date.today()
     earned: list[UserBadge] = []
+
+    projects_passed = (
+        db.scalar(
+            select(func.count(func.distinct(ProjectSubmission.project_id))).where(
+                ProjectSubmission.user_id == user_id,
+                ProjectSubmission.status == SUBMISSION_PASSED,
+            )
+        )
+        or 0
+    )
+    if projects_passed >= 1:
+        earned.append(award_badge(db, user_id, "first-build"))
+    if projects_passed >= 10:
+        earned.append(award_badge(db, user_id, "builder-ten"))
+    if flawless_build:
+        earned.append(award_badge(db, user_id, "flawless-build"))
 
     completed_count = (
         db.scalar(
@@ -287,8 +362,15 @@ def apply_completion(
     level_before = profile.level
 
     xp = xp_for_concept(concept.est_hours, quiz_score)
-    profile.xp += xp
-    profile.level = level_for_xp(profile.xp)
+    award_points(
+        db,
+        profile,
+        user_id,
+        "concept",
+        ref_slug=concept.slug,
+        label=f"Completed {concept.name}",
+        points=xp,
+    )
 
     update_streak(profile, today)
     record_activity(
