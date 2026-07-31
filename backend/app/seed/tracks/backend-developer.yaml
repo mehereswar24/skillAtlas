@@ -324,6 +324,171 @@ concepts:
           For a million-row export, the generator keeps memory flat while the
           list would not fit.
 
+  # ---------------------------------------------------------------- 3
+  - slug: data-structures-algorithms
+    name: Data Structures & Algorithms
+    domain: backend
+    est_hours: 70
+    difficulty: intermediate
+    prerequisites:
+      - programming-language-python
+    summary: >-
+      The complexity vocabulary, the handful of structures everything is built
+      from, and the four patterns that solve most interview problems.
+    content_md: |
+      Every technical interview at a large company is, in part, this subject —
+      and the reason is not hazing. Choosing a hash map over a list is the
+      difference between a page that loads and a page that times out, and the
+      person who can reason about that in an interview is the person who can
+      reason about it at 2am.
+
+      **Complexity is about growth, not speed.** O(n) says the work grows in
+      proportion to the input; it says nothing about whether the constant is a
+      microsecond or a minute. An O(n²) loop over 50 items beats an O(n log n)
+      one that allocates. Measure before you optimise — but know which curve
+      you are on before you ship something to a million rows.
+
+      **The structures.** Arrays give O(1) indexing and O(n) insertion in the
+      middle. Hash maps give O(1) average lookup and destroy your cache
+      locality. Balanced trees give O(log n) with *ordering*, which is why a
+      database index is a B-tree and not a hash. Heaps give you the smallest
+      item in O(log n) without sorting everything. Graphs are the shape of most
+      real problems once you look: dependencies, social connections, routes,
+      and — as your roadmap here proves — curricula.
+
+      **The patterns.** Most interview problems are one of four things wearing
+      a costume:
+
+      - **Two pointers / sliding window** — for anything about contiguous runs
+        or pairs in sorted data. Turns an O(n²) scan into O(n).
+      - **Hashing for memory** — trade space to avoid a rescan. "Have I seen
+        this before?" is almost always a set.
+      - **Breadth-first and depth-first search** — BFS finds the shortest path
+        in an unweighted graph; DFS is the natural fit for exhaustive
+        exploration and for anything recursive.
+      - **Dynamic programming** — when the problem has overlapping subproblems
+        and an optimal substructure. Write the recursion first, then memoise
+        it. Almost nobody writes the bottom-up table first, and pretending
+        otherwise is why DP feels impossible.
+
+      **Sorting** you will rarely implement and constantly rely on. Know that
+      comparison sorts cannot beat O(n log n), that Python's `sort` is Timsort
+      and is stable, and that "sort first" is a legitimate opening move that
+      costs you O(n log n) and often collapses the rest of the problem.
+
+      **How to practise.** Solving 500 problems badly teaches less than solving
+      50 well: for each one, write the brute force, state its complexity, then
+      find what the brute force wastes and remove it. That last step is the
+      whole skill, and it is the one interviewers are actually watching for.
+    resources:
+      - kind: book
+        title: "Grokking Algorithms — the illustrated introduction"
+        url: https://www.manning.com/books/grokking-algorithms-second-edition
+        provider: Manning
+        is_free: false
+        duration_min: 720
+      - kind: course
+        title: "MIT 6.006 — Introduction to Algorithms (full lectures)"
+        url: https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/
+        provider: MIT OpenCourseWare
+        duration_min: 2400
+      - kind: doc
+        title: "Python TimeComplexity — the cost of every built-in operation"
+        url: https://wiki.python.org/moin/TimeComplexity
+        provider: Python Wiki
+        duration_min: 20
+      - kind: article
+        title: "Tech Interview Handbook — the algorithms cheatsheet"
+        url: https://www.techinterviewhandbook.org/algorithms/study-cheatsheet/
+        provider: Tech Interview Handbook
+        duration_min: 90
+      - kind: course
+        title: "NeetCode 150 — the problem set worth doing, grouped by pattern"
+        url: https://neetcode.io/practice
+        provider: NeetCode
+        duration_min: 3000
+    quiz:
+      - prompt: Why is a database index a B-tree rather than a hash table?
+        explanation: >-
+          A hash gives O(1) equality lookups but no ordering, so it cannot
+          answer range queries or ORDER BY. A B-tree keeps keys sorted, which
+          is what makes `WHERE created_at > ?` fast.
+        options:
+          - text: "A B-tree keeps keys ordered, so it can answer range queries as well as equality"
+            correct: true
+          - text: "B-trees use less memory in every case"
+          - text: "Hash tables cannot store integers"
+          - text: "B-trees give O(1) lookups"
+      - prompt: You need the 10 largest items from a stream of 10 million. What is the right structure?
+        explanation: >-
+          A min-heap of size 10: push each item, pop when it exceeds 10. O(n
+          log 10) and constant memory, versus O(n log n) and 10M of memory for
+          a full sort.
+        options:
+          - text: "A min-heap capped at 10 elements"
+            correct: true
+          - text: "Sort the whole stream and take the last 10"
+          - text: "A hash map keyed by value"
+          - text: "A balanced binary search tree of all 10 million"
+      - prompt: What distinguishes a problem that dynamic programming solves from one it does not?
+        explanation: >-
+          DP needs overlapping subproblems (the same sub-answer is needed more
+          than once) and optimal substructure (the optimal whole is built from
+          optimal parts). Without overlap, plain recursion or a greedy pass is
+          the right tool.
+        options:
+          - text: "Overlapping subproblems plus optimal substructure"
+            correct: true
+          - text: "The input is always an array"
+          - text: "The answer is always a number"
+          - text: "It can be solved recursively"
+      - prompt: BFS or DFS for the shortest path in an unweighted graph?
+        explanation: >-
+          BFS explores in order of distance, so the first time it reaches a
+          node it has done so by the fewest edges. DFS can reach the same node
+          by a longer path first.
+        options:
+          - text: "BFS — it visits nodes in increasing order of distance"
+            correct: true
+          - text: "DFS — it explores deeper first, so it finds the target sooner"
+          - text: "Either; they give the same path"
+          - text: "Neither; you need Dijkstra for any shortest path"
+    interview:
+      - question: What is the difference between O(n) and Θ(n), and does it matter in an interview?
+        difficulty: medium
+        answer_md: |
+          O(n) is an upper bound: the algorithm grows *at most* proportionally
+          to n. Θ(n) is a tight bound: it grows exactly proportionally, above
+          and below. Strictly, an O(n²) algorithm is also O(n³).
+
+          In practice interviewers say "O" and mean "Θ" — they want the tight
+          bound. Answering "it's O(n²)" for something that is Θ(n log n) is
+          technically true and will still be marked down, so give the tight
+          bound and say which case you mean: best, average or worst.
+      - question: Why is `list.insert(0, x)` in Python O(n), and what should you use instead?
+        difficulty: easy
+        answer_md: |
+          A Python list is a contiguous array of pointers. Inserting at the
+          front has to shift every existing element one slot right, which is
+          O(n) — and doing it in a loop is the classic accidental O(n²).
+
+          Use `collections.deque`, which is a doubly linked list of blocks and
+          gives O(1) `appendleft` and `popleft`. This is exactly the structure
+          behind a BFS queue.
+      - question: You have a function that is O(n log n) but slow in production. What do you do?
+        difficulty: hard
+        answer_md: |
+          Complexity describes growth, not wall-clock time, so the first move
+          is to *measure* rather than to reach for a better curve.
+
+          Profile it. The usual culprits are constant factors that big-O hides:
+          allocating inside the loop, a comparison function doing real work,
+          cache misses from pointer-chasing, or an O(1) operation that is
+          actually a database round trip. Only when the profile shows the
+          algorithm itself dominating is a different algorithm the answer —
+          and often the real fix is to stop calling it, by caching or by
+          pushing the work into the query.
+
   # ---------------------------------------------------------------- 4
   - slug: relational-databases-sql
     name: Relational Databases & SQL

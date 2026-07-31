@@ -1,0 +1,229 @@
+company:
+  slug: tcs
+  name: Tata Consultancy Services
+  industry: IT Services (India)
+  hq: Mumbai, India
+  website: https://www.tcs.com/careers
+  icon: Building2
+  fetched_on: 2026-07-31
+  sort_order: 10
+  description: >-
+    India's largest IT employer, hiring at a scale no product company matches.
+    Entry is through the National Qualifier Test — a single standardised exam
+    that most of the selection actually happens in.
+  hiring_process_md: |
+    TCS is the clearest example of a hiring process where **the exam matters
+    more than the interview**. The NQT filters hundreds of thousands of
+    candidates down; the interview that follows is comparatively short and
+    conversational.
+
+    **The shape of it**
+
+    1. **TCS NQT** — roughly three hours, in English, in two parts:
+       - *Foundation section (~75 min)*: verbal ability, numerical ability,
+         reasoning ability.
+       - *Advanced section (~115 min)*: advanced quantitative and reasoning,
+         plus 2–3 hands-on coding questions.
+       Your score bands you: Ninja, Digital or Prime, and the band determines
+       the role and the salary you are offered.
+    2. **Technical interview (30–60 min)** — core subjects and, heavily, your
+       final-year project.
+    3. **Managerial and HR rounds** — increasingly merged into a single panel
+       with the technical round rather than held separately.
+
+    **Where candidates lose it.** Two places, consistently. The aptitude
+    sections are speed tests as much as ability tests — practice against the
+    clock or the section timer will beat you. And the technical round is
+    dominated by *your own project*: an interviewer who finds you cannot
+    explain the thing on your CV stops trusting the rest of it.
+
+  resources:
+    - kind: careers
+      title: "TCS Careers — off-campus and NQT"
+      url: https://www.tcs.com/careers
+    - kind: prep
+      title: "TCS NQT hiring process — PrepInsta"
+      url: https://prepinsta.com/tcs-nqt/hiring-process/
+    - kind: prep
+      title: "TCS NQT hiring process, exam pattern and eligibility — Unstop"
+      url: https://unstop.com/blog/tcs-nqt-hiring-process
+    - kind: prep
+      title: "TCS interview experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/tcs-interview-experience-for-digital-role-2026-graduate-on-campus/
+
+roles:
+  - slug: ninja-digital
+    title: Systems Engineer (Ninja / Digital)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://prepinsta.com/tcs-nqt/hiring-process/
+    description: >-
+      The mass-hire fresher role. The NQT score decides the band; the interview
+      confirms you can talk about what you built.
+    focus_md: |
+      **Treat the NQT as the whole selection, because in effect it is.**
+
+      For the Foundation section, the highest-leverage preparation is not
+      learning new mathematics — it is timed practice on the standard topics
+      until they are automatic: percentages, ratios, time-speed-distance,
+      time-and-work, profit-and-loss, permutations, series, and the usual
+      reasoning families (blood relations, seating, coding-decoding, syllogism).
+      Sectional timing means you cannot bank saved minutes from an easy
+      section, so pace within each one.
+
+      For the Advanced section, the coding questions are moderate — arrays,
+      strings, simple recursion, basic patterns — and are usually answered in
+      C, C++, Java or Python. Practise typing complete, compiling programs
+      including input parsing, because that is what the environment demands and
+      it is where time disappears.
+
+      For the interview: be able to draw your final-year project's
+      architecture, name what *you* wrote as opposed to your teammates, and
+      justify one technology choice. Then revise OOP, DBMS and OS basics —
+      that trio is asked more than anything else.
+    focus_areas:
+      - { concept: quantitative-aptitude, label: "Quantitative aptitude & reasoning", weight: 5,
+          notes: "The Foundation section. A speed test as much as an ability test — practise against a timer." }
+      - { concept: programming-language-python, label: "One programming language", weight: 5,
+          notes: "The coding section expects complete, compiling programs including input parsing." }
+      - { concept: data-structures-algorithms, label: "Basic data structures", weight: 4,
+          notes: "Arrays, strings, recursion and simple patterns. Moderate difficulty, not competitive programming." }
+      - { concept: relational-databases-sql, label: "DBMS fundamentals", weight: 4,
+          notes: "Normalisation, keys, joins and ACID come up in almost every technical round." }
+      - { concept: data-modeling, label: "OOP concepts", weight: 4,
+          notes: "Inheritance, polymorphism, abstraction — asked directly, often as definitions." }
+      - { concept: exam-strategy, label: "Exam technique", weight: 3,
+          notes: "No negative marking but sectional cutoffs, so leave nothing blank." }
+      - { concept: internet-and-http, label: "Networking basics", weight: 2 }
+    questions:
+      - kind: exam
+        round: aptitude
+        topic: Exam pattern
+        difficulty: easy
+        year: 2026
+        question: >-
+          How is the NQT structured, and what does the structure imply for how
+          you should attempt it?
+        answer_md: |
+          Roughly 180 minutes, English, split into a Foundation section (about
+          75 minutes: verbal, numerical, reasoning) and an Advanced section
+          (about 115 minutes: advanced quantitative and reasoning, plus 2–3
+          coding questions).
+
+          Two structural facts should shape your attempt. **Sectional timing**
+          means unused minutes in an easy section do not carry over — so pace
+          within each section rather than across the paper. And there is
+          **no negative marking** but there *are* sectional cutoffs, which
+          means leaving a question blank is strictly worse than guessing, and
+          it means a strong section cannot rescue a failed one.
+        source_name: PrepInsta — TCS NQT hiring process
+        source_url: https://prepinsta.com/tcs-nqt/hiring-process/
+
+      - kind: exam
+        round: aptitude
+        topic: Time and work
+        difficulty: medium
+        question: >-
+          A can finish a job in 12 days and B in 18. They work together for 4
+          days, then A leaves. How long does B take to finish the rest?
+        answer_md: |
+          Work with rates rather than days — this is the habit that makes the
+          whole topic fast.
+
+          A does 1/12 per day, B does 1/18. Together: 1/12 + 1/18 = 5/36 per
+          day. In 4 days they complete 20/36 = 5/9. The remainder is 4/9, and B
+          alone does 1/18 per day, so B needs (4/9) ÷ (1/18) = **8 days**.
+
+          Under time pressure, use an LCM total instead of fractions: call the
+          job 36 units, A is 3 units/day, B is 2, together 5. Four days is 20
+          units, 16 remain, B takes 8 days. Same answer, no fractions.
+        source_name: PrepInsta — TCS NQT quantitative aptitude
+        source_url: https://prepinsta.com/tcs-nqt/
+
+      - kind: online-assessment
+        round: coding
+        topic: Strings
+        difficulty: medium
+        question: >-
+          Read a sentence from standard input and print each word reversed
+          while keeping the word order and the original spacing.
+        answer_md: |
+          Straightforward once you notice the spacing requirement, which is the
+          part that trips people: `split()` collapses runs of whitespace, so
+          rebuilding with `' '.join(...)` silently changes the output and fails
+          the hidden tests.
+
+          Split on a single space (`s.split(' ')`) so empty strings survive
+          between consecutive spaces, reverse each token, and join back with a
+          single space.
+
+          The wider lesson for the NQT coding section: read the sample output
+          character by character. Most failures there are formatting, not
+          logic.
+        source_name: PrepInsta — TCS NQT coding questions
+        source_url: https://prepinsta.com/tcs-nqt/
+        year: 2025
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What is normalisation, and when would you deliberately not normalise?
+        answer_md: |
+          Normalisation organises tables so that each fact lives in exactly one
+          place, removing the update, insert and delete anomalies that
+          redundancy causes. 1NF: atomic values. 2NF: no partial dependency on
+          part of a composite key. 3NF: no transitive dependency between
+          non-key attributes.
+
+          The second half is what separates a memorised answer from an
+          understood one. You denormalise deliberately when read performance
+          matters more than write simplicity — a reporting table, a cached
+          aggregate, a column duplicated to avoid a join on a hot path. The
+          cost you accept is that you now own keeping the copies in step.
+        source_name: GeeksforGeeks — TCS interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/tcs-interview-experience-for-digital-role-2026-graduate-on-campus/
+
+      - kind: interview
+        round: technical
+        topic: Programming fundamentals
+        difficulty: easy
+        question: >-
+          What is a null pointer, and how is it different from an uninitialised
+          pointer?
+        answer_md: |
+          A null pointer holds a defined value that points to nothing, and
+          comparing against it is well-defined — that is what makes
+          `if (p != NULL)` a valid check.
+
+          An uninitialised pointer holds whatever was in that memory, which
+          could be any address. Dereferencing it is undefined behaviour, and
+          the dangerous part is that it often appears to *work*: the garbage
+          address happens to be readable, so the bug survives testing and
+          crashes in production.
+
+          Hence the habit of initialising pointers to NULL at declaration, and
+          setting them back to NULL after freeing.
+        source_name: PrepInsta — TCS technical interview questions
+        source_url: https://prepinsta.com/tcs-nqt/hiring-process/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Are you willing to relocate, and are you comfortable with a service
+          bond?
+        answer_md: |
+          Asked in nearly every TCS HR round, and it is a genuine question
+          rather than a trap — mass hiring means allocation across cities, and
+          a candidate who says no at the offer stage has cost them a slot.
+
+          Answer honestly. If you have a real constraint, say it plainly along
+          with what you *can* do; inventing flexibility you do not have gets
+          discovered within months. If you are flexible, say so directly rather
+          than hedging, because hedging reads as a soft no.
+        source_name: Unstop — TCS NQT hiring process
+        source_url: https://unstop.com/blog/tcs-nqt-hiring-process

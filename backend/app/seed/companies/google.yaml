@@ -1,0 +1,341 @@
+# Google.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: google
+  name: Google
+  industry: Big Tech
+  hq: Mountain View, California
+  website: https://www.google.com/about/careers/
+  icon: Search
+  fetched_on: 2026-07-31
+  sort_order: 1
+  description: >-
+    Search, Android, Cloud and YouTube. Hires generalist engineers against a
+    company-wide bar rather than to a specific team — you are matched to a team
+    after you pass.
+  hiring_process_md: |
+    Google's process is unusual in one structural way: **you interview for
+    Google, not for a team.** A hiring committee that never met you reads the
+    written feedback from your interviews and decides; team matching happens
+    afterwards. Two consequences follow, and both should change how you
+    prepare.
+
+    First, the interviewer's *written notes* are the artefact that gets judged,
+    not their impression of you. Everything you reason out loud that they do
+    not write down effectively did not happen. Narrate.
+
+    Second, breadth beats depth in a niche. There is no "we needed a Kafka
+    person" to fall back on.
+
+    **The shape of it**
+
+    1. **Recruiter call** — background, level, timing.
+    2. **Phone/video technical screens (usually two, 45 min each)** — data
+       structures and algorithms in a shared editor.
+    3. **Onsite loop (4–5 rounds, 45 min each)** — two to three coding rounds,
+       one system design round for anyone above entry level, and one
+       "Googleyness and leadership" behavioural round.
+    4. **Hiring committee** — reviews the packet. Then team matching, then an
+       offer.
+
+    **What they say they are grading.** Google publishes its rubric areas:
+    coding, data structures and algorithms, computer science fundamentals, and
+    Googleyness and leadership. In practice the coding rounds mark you on
+    getting to a working solution, stating its complexity, and handling edge
+    cases without being prompted.
+
+  resources:
+    - kind: careers
+      title: "How we hire — Google Careers"
+      url: https://www.google.com/about/careers/applications/how-we-hire
+    - kind: prep
+      title: "Software Engineer interview prep guide — Google Careers"
+      url: https://www.google.com/about/careers/applications/candidate-prep/swe
+    - kind: prep
+      title: "Google interview questions and experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/google-recruitment-process/
+    - kind: blog
+      title: "Google Research blog"
+      url: https://research.google/blog/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer (L3/L4)
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.google.com/about/careers/applications/candidate-prep/swe
+    description: >-
+      The generalist engineering role. Graded on algorithmic problem solving,
+      CS fundamentals and the ability to think out loud under time pressure.
+    focus_md: |
+      **Weight your preparation like the loop is weighted.** Three of the five
+      rounds are coding; that is where the offer is won or lost. But candidates
+      who *only* grind problems fail the round they did not prepare for, which
+      at L4 is system design and, more often than people expect, the
+      behavioural round.
+
+      Two habits move the needle more than volume:
+
+      - **State the complexity before you are asked.** It is an explicit rubric
+        line, and volunteering it reads as fluency rather than recall.
+      - **Talk through the brute force first, then improve it.** Silence while
+        you think of the clever answer looks identical to being stuck, and the
+        interviewer is writing notes the whole time.
+
+      For system design at L4, you are not expected to have run a system at
+      scale — you are expected to reason about trade-offs out loud: what you
+      cache and why it can go stale, where the write bottleneck is, what breaks
+      first at 10x.
+    focus_areas:
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+          notes: "Three of five rounds. Graphs, trees, hashing, two-pointer and DP are the recurring shapes." }
+      - { concept: system-design-basics, label: "System design", weight: 4,
+          notes: "One full round from L4 upward. Trade-offs out loud, not memorised architectures." }
+      - { concept: programming-language-python, label: "One language, fluently", weight: 4,
+          notes: "You pick it. Fluent beats broad — you cannot look up syntax in the round." }
+      - { concept: relational-databases-sql, label: "Databases and indexing", weight: 3,
+          notes: "Comes up inside design rounds: what to index, where the read amplification is." }
+      - { concept: caching-strategies, label: "Caching and invalidation", weight: 3 }
+      - { concept: internet-and-http, label: "How the web actually works", weight: 2,
+          notes: "Latency budgets, DNS, TLS handshakes — the substrate every design answer sits on." }
+      - { label: "Googleyness & leadership", weight: 3,
+          notes: "A graded round, not a formality. Have three stories with a concrete result and what you would change." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Arrays & hashing
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an array of integers and a target, return the indices of the
+          two numbers that add to the target. Then extend it: what changes if
+          the array is already sorted, and what changes if you need all pairs
+          rather than one?
+        answer_md: |
+          The hash-map pass is O(n) time and O(n) space: for each value, look
+          for `target - value` in a dict of everything seen so far.
+
+          **Sorted** changes the answer: two pointers from both ends run in
+          O(n) time and O(1) space, because you know which way to move.
+
+          **All pairs** is where most candidates stumble — you now have to
+          handle duplicates. Sort, then two-pointer, and skip equal neighbours
+          after each match. The follow-up is the actual question; the first
+          part is warm-up.
+        source_name: GeeksforGeeks — Google SDE sheet
+        source_url: https://www.geeksforgeeks.org/dsa/google-sde-sheet-interview-questions-and-answers/
+
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        year: 2025
+        question: >-
+          You are given a grid where each cell is land or water. Count the
+          number of distinct islands. Follow-up: the grid does not fit in
+          memory — now what?
+        answer_md: |
+          The core is a flood fill: scan cells, and on the first unvisited land
+          cell run BFS or DFS marking the whole component, incrementing a
+          counter once per component. O(rows × cols).
+
+          The follow-up is the point. Streaming the grid row by row turns it
+          into a union-find problem: keep the labels of the previous row only,
+          union horizontally within the row and vertically against the row
+          above, and count distinct roots at the end. This is the shape of the
+          real question — the interviewer is checking whether you can move from
+          "algorithm on a whiteboard" to "algorithm under a memory constraint".
+        source_name: GeeksforGeeks — Google interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/google-interview-experience-for-swe/
+
+      - kind: interview
+        round: coding
+        topic: Dynamic programming
+        difficulty: hard
+        question: >-
+          Given a string, find the length of the longest substring with no
+          repeating characters. Walk through your reasoning from brute force to
+          final.
+        answer_md: |
+          Brute force checks every substring: O(n³), or O(n²) if you carry a
+          set. Say this out loud first — it costs ten seconds and demonstrates
+          the improvement you are about to make.
+
+          The sliding window is O(n): keep a map of character → last index,
+          advance the right edge, and when you see a repeat, jump the left edge
+          to `max(left, last_index + 1)`. The `max` is the subtle part —
+          without it, a repeat that is already behind the window drags the
+          window backwards.
+        source_name: Tech Interview Handbook — algorithms cheatsheet
+        source_url: https://www.techinterviewhandbook.org/algorithms/study-cheatsheet/
+
+      - kind: interview
+        round: system-design
+        topic: Scale & caching
+        difficulty: hard
+        question: >-
+          Design a URL shortener that serves 100,000 redirects per second.
+          Where does it break first, and what do you do about it?
+        answer_md: |
+          Reads dominate writes by orders of magnitude, and that asymmetry
+          should drive the whole design. The redirect path should be a cache
+          lookup, not a database read.
+
+          Sketch: a key generator (base62 over a counter, or a hash with
+          collision retry), a key-value store for the mapping, and a cache in
+          front of it. Redirects are 301 (permanent, cacheable by the browser)
+          or 302 (temporary, so you keep the click analytics) — say which and
+          why, because that trade-off is the question inside the question.
+
+          What breaks first is the write path if you use a single counter.
+          Range-allocate ID blocks per server, or use a distributed sequence.
+        source_name: interviewing.io — Google interview guide
+        source_url: https://interviewing.io/guides/hiring-process/google
+
+      - kind: interview
+        round: technical
+        topic: CS fundamentals
+        difficulty: medium
+        question: >-
+          Why is a hash table's lookup "O(1) average" rather than just O(1),
+          and when does that distinction bite you in production?
+        answer_md: |
+          O(1) holds while the load factor is low and the hash distributes
+          well. Adversarial or clustered keys collapse every key into one
+          bucket, and lookup degrades to O(n) — this is a real denial-of-service
+          vector, which is why language runtimes randomise their hash seeds.
+
+          It also bites on resize: an insert that triggers a rehash is O(n),
+          so the *amortised* cost is O(1) but a single call can spike. That is
+          why latency-sensitive code presizes its maps.
+        source_name: Google Careers — SWE interview prep guide
+        source_url: https://www.google.com/about/careers/applications/candidate-prep/swe
+
+      - kind: interview
+        round: managerial
+        topic: Googleyness & leadership
+        difficulty: medium
+        question: >-
+          Tell me about a time you disagreed with a technical decision your
+          team made. What did you do, and what happened?
+        answer_md: |
+          The trap is telling a story where you were right and everyone else
+          eventually agreed. That answers "are you smart" — which they already
+          know from the coding rounds — rather than "are you someone to work
+          with".
+
+          Structure it: the decision, why you disagreed *in terms of impact
+          rather than taste*, what evidence you brought, what the team decided,
+          and how you behaved afterwards. A story where you lost the argument
+          and committed fully is often stronger than one where you won.
+        source_name: Google Careers — how we hire
+        source_url: https://www.google.com/about/careers/applications/how-we-hire
+
+  - slug: site-reliability-engineer
+    title: Site Reliability Engineer
+    level: mid
+    maps_to_role: devops-engineer
+    sort_order: 2
+    source_url: https://www.google.com/about/careers/applications/how-we-hire
+    description: >-
+      The role that invented the title. Half software engineering, half
+      operations, judged on whether you can reason about failure quantitatively.
+    focus_md: |
+      SRE loops keep the coding rounds — you are expected to clear the same
+      algorithmic bar as a SWE — and replace some of the design rounds with
+      troubleshooting and non-abstract large system design.
+
+      The distinguishing skill is **quantitative reasoning about failure**.
+      "Add a retry" is a junior answer; "add a retry with jitter, because
+      synchronised retries from 10,000 clients are how a blip becomes an
+      outage" is the answer they are listening for. Error budgets, percentile
+      latency, and the difference between availability and reliability are the
+      vocabulary of the whole loop.
+    focus_areas:
+      - { concept: observability, label: "SLOs, error budgets and alerting", weight: 5,
+          notes: "The SRE book is effectively the syllabus. Know why you alert on burn rate, not on errors." }
+      - { concept: linux-and-shell, label: "Linux internals and the shell", weight: 5,
+          notes: "Troubleshooting rounds are live: strace, /proc, load average, what the OOM killer does." }
+      - { concept: system-design-basics, label: "Large system design", weight: 4 }
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 4,
+          notes: "The coding bar is not lowered for SRE." }
+      - { concept: incident-response, label: "Incident response and postmortems", weight: 4,
+          notes: "Blameless postmortems are a cultural expectation, and they will ask about one you wrote." }
+      - { concept: containers-docker, label: "Containers", weight: 3 }
+      - { concept: kubernetes-orchestration, label: "Orchestration at scale", weight: 3 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Troubleshooting
+        difficulty: hard
+        question: >-
+          A service's p99 latency has tripled but its p50 is unchanged and the
+          error rate is flat. Where do you look?
+        answer_md: |
+          A moved p99 with a still p50 means *some* requests got much slower
+          while most did not — so look for something that affects a subset.
+
+          Candidates worth naming: a cache that lost a hot shard (misses now
+          hit the database); garbage collection or lock contention (bimodal by
+          nature); one bad replica taking a share of traffic; a slow dependency
+          on a code path only some requests take; retries, which are invisible
+          in the error rate precisely because they succeed on the second try.
+
+          The method matters more than the list: segment the latency histogram
+          by endpoint, host, and dependency until the subset reveals itself.
+          Averages hide this entirely, which is why you keep histograms.
+        source_name: interviewing.io — Google interview guide
+        source_url: https://interviewing.io/guides/hiring-process/google
+
+      - kind: interview
+        round: technical
+        topic: Reliability maths
+        difficulty: medium
+        question: >-
+          Your service has a 99.9% availability SLO over 30 days. How much
+          downtime is that, and what does an error budget let you do that a
+          "zero outages" target does not?
+        answer_md: |
+          99.9% of 30 days is about 43 minutes of allowed unavailability.
+
+          The interesting half is the second question. A zero-outage target is
+          not achievable and, worse, it makes every release an argument. An
+          error budget turns reliability into a *currency*: if you have budget
+          left, you ship faster; if you have burned it, feature work stops and
+          reliability work starts. It aligns the people who want to ship and
+          the people who want stability behind one number instead of two
+          opinions.
+        source_name: Google SRE book — service level objectives
+        source_url: https://sre.google/sre-book/service-level-objectives/
+
+      - kind: interview
+        round: coding
+        topic: Systems programming
+        difficulty: medium
+        question: >-
+          Write a rate limiter that allows N requests per second per client.
+          Then tell me what happens at the boundary between two windows.
+        answer_md: |
+          A fixed window (a counter per client per second) is four lines and
+          has a real flaw: a client can send N requests at 0.999s and N more at
+          1.001s — 2N in a two-millisecond span, while never exceeding the
+          limit as counted.
+
+          The fixes worth knowing: a **sliding window log** (timestamps, exact,
+          O(N) memory per client), a **sliding window counter** (weighted blend
+          of the current and previous window, approximate and cheap), and a
+          **token bucket** (refill at a steady rate, allow a configured burst)
+          — which is what most production limiters actually use because burst
+          tolerance is usually a feature rather than a bug.
+        source_name: Google SRE book — handling overload
+        source_url: https://sre.google/sre-book/handling-overload/

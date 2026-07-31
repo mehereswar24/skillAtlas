@@ -1,0 +1,313 @@
+company:
+  slug: amazon
+  name: Amazon
+  industry: Big Tech
+  hq: Seattle, Washington
+  website: https://www.amazon.jobs/
+  icon: Package
+  fetched_on: 2026-07-31
+  sort_order: 2
+  description: >-
+    Retail, AWS, devices and logistics. The most behaviourally structured loop
+    in big tech — roughly half of your evaluation is against sixteen written
+    Leadership Principles.
+  hiring_process_md: |
+    Amazon is the company where **preparing only the technical half will lose
+    you the offer**. Every interviewer is assigned specific Leadership
+    Principles to probe, they write up your answers against those principles,
+    and the debrief argues from those notes.
+
+    **The shape of it**
+
+    1. **Online assessment** — for university and early-career roles: two
+       timed coding problems plus a work-style survey.
+    2. **Phone screen** — one coding problem and one or two behavioural
+       questions.
+    3. **The loop (4–5 rounds)** — coding and system design whiteboarding for
+       technical roles, with behavioural questions threaded through every
+       round rather than isolated in one.
+    4. **The Bar Raiser** — one interviewer from outside the hiring team,
+       trained over months, with an effective veto. Their job is to check you
+       would raise the average of the team you are joining, not merely clear it.
+
+    **STAR, then the part everyone forgets.** Situation, Task, Action, Result —
+    with the Result quantified. Amazon interviewers explicitly look for what
+    *you* did, not what your team did, so a story told entirely in "we" reads
+    as someone who cannot be assessed. Have two or three stories mapped to each
+    principle before you walk in, and expect follow-up questions that dig two
+    or three levels down into your specific decisions.
+
+  resources:
+    - kind: careers
+      title: "Your complete guide to the Amazon interview process"
+      url: https://www.aboutamazon.com/news/workplace/amazon-interview-guide
+    - kind: prep
+      title: "Software development interview topics — amazon.jobs"
+      url: https://www.amazon.jobs/content/en/how-we-hire/interview-prep/software-development-topics
+    - kind: careers
+      title: "What is an Amazon Bar Raiser?"
+      url: https://blog.aboutamazon.com/working-at-amazon/hire-power-how-amazonians-raise-the-bar-with-every-interview
+    - kind: prep
+      title: "Amazon's Leadership Principles: interview strategies from a manager"
+      url: https://www.aboutamazon.com/news/workplace/amazon-leadership-principles-interview
+
+roles:
+  - slug: sde-1
+    title: Software Development Engineer I
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.amazon.jobs/content/en/how-we-hire/interview-prep/software-development-topics
+    description: >-
+      The graduate and early-career engineering role. Coding, basic design, and
+      a genuinely heavy behavioural component.
+    focus_md: |
+      Split your preparation roughly **60 technical / 40 behavioural**, which
+      is more behavioural time than any other big-tech loop deserves and
+      exactly what this one needs.
+
+      On the technical side Amazon publishes its own topic list: data
+      structures, algorithms, object-oriented design, databases, and — for
+      anyone touching AWS teams — distributed systems basics. Problems skew
+      practical over exotic: expect trees, graphs, heaps and hash maps rather
+      than competitive-programming trickery.
+
+      On the behavioural side, write out the stories. Not bullet points —
+      actual prose, with numbers in the Result. The follow-ups ("what would
+      you do differently", "how did you know that was the right trade-off",
+      "what did the data say") are where unprepared candidates unravel,
+      because you cannot improvise a specific metric you never had.
+    focus_areas:
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+          notes: "Practical over exotic. Trees, graphs, heaps, hash maps, two-pointer." }
+      - { label: "The 16 Leadership Principles", weight: 5,
+          notes: "Two or three quantified STAR stories each. This is roughly half the evaluation." }
+      - { concept: data-modeling, label: "Object-oriented and data modelling", weight: 4,
+          notes: "'Design a parking lot / library system' style rounds are common at SDE-1." }
+      - { concept: system-design-basics, label: "System design basics", weight: 3,
+          notes: "Lighter than at SDE-2, but you should be able to sketch a queue-backed service." }
+      - { concept: relational-databases-sql, label: "Databases", weight: 3 }
+      - { concept: async-and-message-queues, label: "Queues and async work", weight: 3,
+          notes: "Amazon's architecture is queue-shaped; SQS semantics come up constantly." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: medium
+        year: 2025
+        question: >-
+          The online assessment gives you two timed problems in about 105
+          minutes with no interviewer. What changes about how you should solve
+          them compared with a live round?
+        answer_md: |
+          Three things, and each costs candidates offers:
+
+          **Hidden tests decide it, not your explanation.** There is nobody to
+          give partial credit for a good approach. A correct O(n²) that passes
+          every case beats an elegant O(n) that fails on the empty input.
+
+          **Read the constraints first.** They tell you the intended
+          complexity: n ≤ 10⁵ means O(n log n); n ≤ 20 is a hint that
+          exponential or bitmask is expected.
+
+          **Write the edge cases before the clever part** — empty input, single
+          element, all-equal elements, integer overflow. These are the tests
+          you cannot see and the ones that most often fail.
+        source_name: GeeksforGeeks — preparing for the Amazon SDE interview
+        source_url: https://www.geeksforgeeks.org/blogs/how-to-prepare-for-amazon-software-development-engineering-interview/
+
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        question: >-
+          Given a binary tree, return its level-order traversal as a list of
+          levels. Then: return only the rightmost node of each level.
+        answer_md: |
+          BFS with a queue, processing one level at a time — capture
+          `len(queue)` at the top of each iteration and pop exactly that many,
+          which is what separates the levels cleanly.
+
+          The follow-up is the same traversal taking the last node of each
+          level. Worth saying out loud: you can also do it with a DFS that
+          visits right before left and records a node whenever the current
+          depth first exceeds the number of results collected. Offering both
+          and naming when each is preferable (BFS is clearer; DFS uses O(h)
+          rather than O(width) memory) is the answer that scores.
+        source_name: amazon.jobs — software development interview topics
+        source_url: https://www.amazon.jobs/content/en/how-we-hire/interview-prep/software-development-topics
+
+      - kind: interview
+        round: technical
+        topic: Object-oriented design
+        difficulty: medium
+        question: >-
+          Design the classes for a parking lot: multiple levels, several
+          vehicle sizes, and pricing by duration.
+        answer_md: |
+          The point is not the class diagram; it is whether you ask about
+          requirements before drawing one. How many levels? Do motorcycles fit
+          in car spaces? Is pricing per hour or per started hour?
+
+          A defensible sketch: `ParkingLot` holds `Level`s, each holding
+          `Spot`s with a `SpotSize`. A `Ticket` links a `Vehicle` to a `Spot`
+          with an entry time. Pricing goes behind a `PricingStrategy`
+          interface, because "pricing changes" is the requirement most likely
+          to arrive later.
+
+          Say why the strategy is separate. Interviewers are checking whether
+          you know *which* axis of change to design for, not whether you can
+          recite the pattern names.
+        source_name: GeeksforGeeks — preparing for the Amazon SDE interview
+        source_url: https://www.geeksforgeeks.org/blogs/how-to-prepare-for-amazon-software-development-engineering-interview/
+
+      - kind: interview
+        round: managerial
+        topic: Customer Obsession
+        difficulty: medium
+        question: >-
+          Tell me about a time you had to choose between what a customer asked
+          for and what you believed they needed.
+        answer_md: |
+          Customer Obsession is the first principle and the most commonly
+          probed, and the most common failure is answering it as Deliver
+          Results — "the customer wanted X, I shipped X, they were happy."
+
+          A strong answer shows you found out what the request was *for*: you
+          talked to them, or looked at the usage data, and discovered the
+          underlying need differed from the stated ask. Then quantify the
+          outcome, and be honest if you were partly wrong. Amazon's own
+          interviewers say they want the specifics of your decision, including
+          the ones that did not work out.
+        source_name: aboutamazon.com — Leadership Principles interview strategies
+        source_url: https://www.aboutamazon.com/news/workplace/amazon-leadership-principles-interview
+
+      - kind: interview
+        round: managerial
+        topic: Dive Deep / Ownership
+        difficulty: medium
+        question: >-
+          Describe the hardest bug you have debugged. How did you find it?
+        answer_md: |
+          This is Dive Deep, and it rewards specificity in a way that generic
+          answers cannot fake. Name the symptom, the false hypotheses you
+          eliminated and how, the tool that finally showed you the truth, and
+          the fix — then, critically, what you changed so the *class* of bug
+          could not recur.
+
+          That last part is Ownership. A story that ends at "and I fixed it" is
+          half an answer; one that ends at "and I added the metric that would
+          have caught it in an hour instead of three days" is the whole one.
+        source_name: aboutamazon.com — job interview tips from Bar Raisers
+        source_url: https://www.aboutamazon.com/news/workplace/amazon-job-interview-questions-tips-bar-raisers
+
+  - slug: sde-2
+    title: Software Development Engineer II
+    level: mid to senior
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://www.amazon.jobs/content/en/how-we-hire/interview-prep/software-development-topics
+    description: >-
+      Owns services end to end. The loop shifts weight from coding onto system
+      design and onto Leadership Principles about ambiguity and scope.
+    focus_md: |
+      The coding bar does not drop, but it stops being where the decision is
+      made. Two things move to the centre:
+
+      **System design becomes a full round with real depth.** Expect to be
+      pushed on the parts candidates skip: how the data is partitioned, what
+      happens when a partition is hot, how you migrate the schema without
+      downtime, what is idempotent and what is not.
+
+      **The behavioural questions change shape.** At SDE-1 they ask what you
+      did; at SDE-2 they ask about scope, ambiguity and influence — decisions
+      made without complete information, and work delivered through people you
+      do not manage. Have Sesame stories about projects you *scoped*, not just
+      ones you completed.
+    focus_areas:
+      - { concept: system-design-basics, label: "System design, in depth", weight: 5,
+          notes: "Partitioning, hot keys, idempotency, zero-downtime migration." }
+      - { concept: async-and-message-queues, label: "Queues, retries and idempotency", weight: 5,
+          notes: "At-least-once delivery is Amazon's default assumption. Know what that forces on consumers." }
+      - { label: "Leadership Principles at scope", weight: 5,
+          notes: "Ambiguity, disagreement, influence without authority. Different stories from SDE-1." }
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 4 }
+      - { concept: observability, label: "Operating what you build", weight: 4,
+          notes: "Amazon teams carry pagers. Expect questions about an outage you owned." }
+      - { concept: caching-strategies, label: "Caching", weight: 3 }
+      - { concept: data-modeling, label: "Data modelling and access patterns", weight: 4,
+          notes: "DynamoDB thinking: design the table from the queries, not from the entities." }
+    questions:
+      - kind: interview
+        round: system-design
+        topic: Distributed systems
+        difficulty: hard
+        question: >-
+          Design an order-processing pipeline that must never lose an order and
+          must never charge a customer twice.
+        answer_md: |
+          These two requirements pull against each other, and saying so is the
+          first mark.
+
+          "Never lose" pushes you to at-least-once delivery: persist the order
+          before acknowledging, retry until acknowledged. "Never charge twice"
+          then becomes *your* problem, because at-least-once guarantees
+          duplicates.
+
+          The answer is idempotency, and you should name the mechanism: an
+          idempotency key generated by the client, stored with the payment
+          attempt, and checked inside the same transaction that records the
+          charge. A duplicate delivery finds the key and returns the original
+          result rather than charging again.
+
+          Then the failure modes: what if the process dies between charging and
+          recording? (Record intent first, reconcile after.) What about a
+          poison message? (Dead-letter queue after N receives, alarm on depth.)
+        source_name: amazon.jobs — software development interview topics
+        source_url: https://www.amazon.jobs/content/en/how-we-hire/interview-prep/software-development-topics
+
+      - kind: interview
+        round: system-design
+        topic: Data modelling
+        difficulty: hard
+        question: >-
+          You need to store and query 10 billion order records. Walk me through
+          your partition key choice.
+        answer_md: |
+          The trap is partitioning by something with a skewed distribution —
+          `order_date` is the classic, because today's partition takes every
+          write while yesterday's takes none.
+
+          Reason from the access patterns instead: if the dominant query is
+          "orders for this customer, newest first", then `customer_id` as the
+          partition key with `order_date` as the sort key gives you that in one
+          query. Then check the tail: a customer with a million orders is a hot
+          partition, so you may need to shard the key (`customer_id#bucket`).
+
+          Say what you lose. This layout makes "all orders in the last hour
+          across all customers" expensive — that becomes a secondary index or
+          a stream into an analytics store, and naming the cost is the part
+          that separates a design answer from a recitation.
+        source_name: GeeksforGeeks — preparing for the Amazon SDE interview
+        source_url: https://www.geeksforgeeks.org/blogs/how-to-prepare-for-amazon-software-development-engineering-interview/
+
+      - kind: interview
+        round: managerial
+        topic: Bias for Action / Are Right, A Lot
+        difficulty: hard
+        question: >-
+          Tell me about a decision you made with incomplete information that
+          turned out to be wrong.
+        answer_md: |
+          The Bar Raiser is usually the one asking this, and a candidate who
+          cannot produce a genuine failure reads as either inexperienced or not
+          self-aware — both are rejections.
+
+          Give a real one. Say what information you had, why the decision was
+          reasonable *at the time* with that information, how you discovered it
+          was wrong, how fast you reversed, and what you changed about how you
+          decide. The "how fast you reversed" is Bias for Action; the "what you
+          changed" is Learn and Be Curious. Do not soften it into a
+          disguised strength.
+        source_name: aboutamazon.com — job interview tips from Bar Raisers
+        source_url: https://www.aboutamazon.com/news/workplace/amazon-job-interview-questions-tips-bar-raisers
