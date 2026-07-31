@@ -1,0 +1,1955 @@
+# Projects for the backend-developer track — one per concept.
+#
+# Every project runs in the learner's browser under Pyodide, so it must be
+# pure Python with no network and no filesystem beyond what the starter files
+# provide. That constraint is a feature: it forces each brief onto the *logic*
+# of the concept (routing, schema design, cache eviction, retry policy) rather
+# than onto installing a framework.
+#
+# `tests[].code` is a block of Python executed against the learner's module
+# namespace. It passes if nothing raises, so plain `assert` statements are the
+# whole vocabulary. `hidden: true` keeps a test collapsed in the UI until the
+# project passes — it is a nudge against writing to the test, not a secret,
+# since the browser has to receive the code to run it.
+#
+# `must_contain` lists substrings the submission must include. Use it only
+# where the brief genuinely requires an approach, never as a style check.
+
+projects:
+  # ------------------------------------------------------------------ HTTP
+  - slug: http-message-parser
+    concept: internet-and-http
+    title: Parse a raw HTTP request
+    tagline: Turn bytes off the wire into a method, path, headers and body.
+    runtime: python
+    difficulty: beginner
+    est_minutes: 45
+    xp_reward: 120
+    brief_md: |
+      Every web framework you will ever use starts by doing exactly this.
+      Before you reach for one, do it by hand once — afterwards the framework's
+      request object stops being magic.
+
+      Implement `parse_request(raw)` in `solution.py`. It takes a complete HTTP
+      request as a single string and returns a dict:
+
+      ```python
+      {
+        "method": "GET",
+        "path": "/users",
+        "query": {"page": "2"},          # parsed from the path, values as strings
+        "version": "HTTP/1.1",
+        "headers": {"host": "example.com"},   # header names lowercased
+        "body": "",
+      }
+      ```
+
+      Rules that matter, and that the tests check:
+
+      - The request line is `METHOD SP TARGET SP VERSION`, terminated by CRLF.
+      - Headers are `Name: value`, one per line, with surrounding whitespace on
+        the value stripped. **Header names are case-insensitive** — lowercase
+        them so `Content-Type` and `content-type` are the same key.
+      - A blank line (`\r\n\r\n`) separates headers from the body. Everything
+        after it is the body, verbatim — do not strip it.
+      - A request with no query string gets `{}`, not `None`.
+    must_contain:
+      - "def parse_request"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def parse_request(raw: str) -> dict:
+              """Parse a raw HTTP/1.1 request into its parts.
+
+              Args:
+                  raw: the complete request, headers and body, CRLF-separated.
+
+              Returns:
+                  dict with method, path, query, version, headers and body.
+              """
+              # Split off the body first: the blank line is the boundary.
+              raise NotImplementedError("Start here")
+    tests:
+      - name: Parses the request line
+        code: |
+          r = parse_request("GET /users HTTP/1.1\r\nHost: example.com\r\n\r\n")
+          assert r["method"] == "GET", f"method was {r['method']!r}"
+          assert r["path"] == "/users", f"path was {r['path']!r}"
+          assert r["version"] == "HTTP/1.1", f"version was {r['version']!r}"
+      - name: Lowercases header names
+        code: |
+          r = parse_request("GET / HTTP/1.1\r\nContent-Type: application/json\r\nHOST: a.com\r\n\r\n")
+          assert r["headers"]["content-type"] == "application/json"
+          assert r["headers"]["host"] == "a.com"
+      - name: Splits the query string out of the path
+        code: |
+          r = parse_request("GET /search?q=http&page=2 HTTP/1.1\r\nHost: a.com\r\n\r\n")
+          assert r["path"] == "/search", f"path was {r['path']!r}"
+          assert r["query"] == {"q": "http", "page": "2"}, r["query"]
+      - name: Keeps the body byte-for-byte
+        code: |
+          body = '{"name": "  spaced  "}'
+          r = parse_request("POST /users HTTP/1.1\r\nHost: a.com\r\n\r\n" + body)
+          assert r["body"] == body, f"body was {r['body']!r}"
+      - name: A request with no query gets an empty dict
+        hidden: true
+        code: |
+          r = parse_request("GET /health HTTP/1.1\r\nHost: a.com\r\n\r\n")
+          assert r["query"] == {}, f"expected {{}}, got {r['query']!r}"
+          assert r["body"] == ""
+    solution_md: |
+      ```python
+      def parse_request(raw: str) -> dict:
+          head, _, body = raw.partition("\r\n\r\n")
+          request_line, *header_lines = head.split("\r\n")
+          method, target, version = request_line.split(" ", 2)
+
+          path, _, query_string = target.partition("?")
+          query = {}
+          for pair in filter(None, query_string.split("&")):
+              key, _, value = pair.partition("=")
+              query[key] = value
+
+          headers = {}
+          for line in header_lines:
+              name, _, value = line.partition(":")
+              headers[name.strip().lower()] = value.strip()
+
+          return {
+              "method": method, "path": path, "query": query,
+              "version": version, "headers": headers, "body": body,
+          }
+      ```
+
+      `str.partition` is the tool of choice here: it always returns three parts,
+      so a missing `?` or `:` needs no special case.
+
+  # ------------------------------------------------------------------- git
+  - slug: commit-graph-walker
+    concept: git-version-control
+    title: Find the merge base
+    tagline: Implement the graph algorithm behind every `git merge`.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 130
+    brief_md: |
+      "Merge conflict" makes sense the moment you see that a repository is a
+      directed acyclic graph and a merge is a three-way diff against the
+      *common ancestor* of two commits.
+
+      You get a commit graph as `{commit: [parent, ...]}` — the same shape git
+      stores. Implement two functions in `solution.py`:
+
+      - `ancestors(graph, commit)` — every commit reachable from `commit` by
+        following parents, **including `commit` itself**.
+      - `merge_base(graph, a, b)` — the *lowest* common ancestor: a commit that
+        is an ancestor of both and has no descendant that is also an ancestor
+        of both. Return `None` when the histories are unrelated.
+
+      The graph can contain merge commits (two parents), so a naive "walk up
+      one line" will not do. Watch for the diamond in the last test: the answer
+      is the *nearest* shared commit, not the root.
+    must_contain:
+      - "def ancestors"
+      - "def merge_base"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def ancestors(graph: dict, commit: str) -> set:
+              """Every commit reachable from `commit`, including itself."""
+              raise NotImplementedError
+
+
+          def merge_base(graph: dict, a: str, b: str):
+              """The lowest common ancestor of `a` and `b`, or None."""
+              raise NotImplementedError
+      - path: fixtures.py
+        readonly: true
+        content: |
+          # A linear history with one branch that was merged back in.
+          #
+          #   A - B - C ------- F
+          #        \           /
+          #         D ----- E -
+          #
+          LINEAR = {"A": [], "B": ["A"], "C": ["B"], "D": ["D0"], "D0": []}
+
+          BRANCHED = {
+              "A": [],
+              "B": ["A"],
+              "C": ["B"],
+              "D": ["B"],
+              "E": ["D"],
+              "F": ["C", "E"],
+          }
+    tests:
+      - name: Ancestors include the commit itself
+        code: |
+          from fixtures import BRANCHED
+          assert ancestors(BRANCHED, "A") == {"A"}
+          assert ancestors(BRANCHED, "C") == {"A", "B", "C"}
+      - name: Ancestors follow both parents of a merge
+        code: |
+          from fixtures import BRANCHED
+          assert ancestors(BRANCHED, "F") == {"A", "B", "C", "D", "E", "F"}
+      - name: The merge base of two branches is where they diverged
+        code: |
+          from fixtures import BRANCHED
+          assert merge_base(BRANCHED, "C", "E") == "B", merge_base(BRANCHED, "C", "E")
+      - name: Unrelated histories have no merge base
+        code: |
+          from fixtures import LINEAR
+          assert merge_base(LINEAR, "C", "D") is None
+      - name: The base is the nearest common ancestor, not the root
+        hidden: true
+        code: |
+          from fixtures import BRANCHED
+          assert merge_base(BRANCHED, "F", "C") == "C"
+          assert merge_base(BRANCHED, "B", "A") == "A"
+    solution_md: |
+      ```python
+      def ancestors(graph, commit):
+          seen, stack = set(), [commit]
+          while stack:
+              node = stack.pop()
+              if node in seen:
+                  continue
+              seen.add(node)
+              stack.extend(graph.get(node, []))
+          return seen
+
+
+      def merge_base(graph, a, b):
+          common = ancestors(graph, a) & ancestors(graph, b)
+          if not common:
+              return None
+          # "Lowest" = no other common ancestor is a descendant of it, i.e. it
+          # is not an ancestor of any *other* common ancestor.
+          return next(
+              c for c in common
+              if not any(c in ancestors(graph, o) - {o} for o in common)
+          )
+      ```
+
+      Git calls this the merge base and computes it the same way, just with a
+      generation-number optimisation so it does not walk the whole history.
+
+  # ---------------------------------------------------------------- python
+  - slug: retry-with-backoff
+    concept: programming-language-python
+    title: A retry decorator with exponential backoff
+    tagline: The utility every service ends up writing — write it properly once.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 120
+    brief_md: |
+      Networks fail. The difference between a service that survives a blip and
+      one that pages you is usually thirty lines of retry logic — and the
+      details are easy to get subtly wrong.
+
+      Write `retry` in `solution.py`, a decorator factory:
+
+      ```python
+      @retry(attempts=3, base_delay=0.5, retry_on=(ConnectionError,))
+      def fetch(): ...
+      ```
+
+      Requirements:
+
+      - Call the function; return its value on success.
+      - On an exception listed in `retry_on`, wait and try again, up to
+        `attempts` **total** calls (not attempts *after* the first).
+      - Delay before retry *n* (1-indexed) is `base_delay * 2 ** (n - 1)` —
+        0.5s, 1s, 2s. Record it by calling `sleep(delay)`, which the tests
+        replace with a spy. Do not call `time.sleep` directly.
+      - An exception **not** in `retry_on` propagates immediately, with no
+        sleeping and no further attempts.
+      - When every attempt fails, re-raise the last exception.
+      - `functools.wraps` so the decorated function keeps its name and docstring.
+    must_contain:
+      - "functools.wraps"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import functools
+          import time
+
+
+          def sleep(seconds: float) -> None:
+              """Indirection so tests can observe the delays without waiting."""
+              time.sleep(seconds)
+
+
+          def retry(attempts: int = 3, base_delay: float = 0.5, retry_on=(Exception,)):
+              """Return a decorator retrying `retry_on` with exponential backoff."""
+              raise NotImplementedError
+    tests:
+      - name: A successful call is not retried
+        code: |
+          import solution
+          calls = []
+          solution.sleep = lambda s: calls.append(s)
+
+          @solution.retry(attempts=3)
+          def ok():
+              return 42
+
+          assert ok() == 42
+          assert calls == [], f"slept {calls} on a success"
+      - name: Retries until it succeeds
+        code: |
+          import solution
+          delays = []
+          solution.sleep = lambda s: delays.append(s)
+          state = {"n": 0}
+
+          @solution.retry(attempts=4, base_delay=0.5, retry_on=(ConnectionError,))
+          def flaky():
+              state["n"] += 1
+              if state["n"] < 3:
+                  raise ConnectionError("boom")
+              return "ok"
+
+          assert flaky() == "ok"
+          assert state["n"] == 3, f"called {state['n']} times"
+          assert delays == [0.5, 1.0], f"delays were {delays}"
+      - name: Gives up after `attempts` total calls and re-raises
+        code: |
+          import solution
+          solution.sleep = lambda s: None
+          state = {"n": 0}
+
+          @solution.retry(attempts=3, retry_on=(ConnectionError,))
+          def always_fails():
+              state["n"] += 1
+              raise ConnectionError("nope")
+
+          try:
+              always_fails()
+          except ConnectionError as exc:
+              assert str(exc) == "nope"
+          else:
+              raise AssertionError("should have re-raised")
+          assert state["n"] == 3, f"made {state['n']} attempts, expected 3"
+      - name: An unlisted exception is not retried
+        code: |
+          import solution
+          delays = []
+          solution.sleep = lambda s: delays.append(s)
+          state = {"n": 0}
+
+          @solution.retry(attempts=3, retry_on=(ConnectionError,))
+          def wrong_error():
+              state["n"] += 1
+              raise ValueError("programmer error")
+
+          try:
+              wrong_error()
+          except ValueError:
+              pass
+          assert state["n"] == 1, "a ValueError must not be retried"
+          assert delays == []
+      - name: Keeps the wrapped function's identity
+        hidden: true
+        code: |
+          import solution
+          solution.sleep = lambda s: None
+
+          @solution.retry()
+          def documented():
+              """A docstring worth keeping."""
+              return 1
+
+          assert documented.__name__ == "documented", documented.__name__
+          assert documented.__doc__ == "A docstring worth keeping."
+    solution_md: |
+      ```python
+      def retry(attempts=3, base_delay=0.5, retry_on=(Exception,)):
+          def decorator(fn):
+              @functools.wraps(fn)
+              def wrapper(*args, **kwargs):
+                  for attempt in range(1, attempts + 1):
+                      try:
+                          return fn(*args, **kwargs)
+                      except retry_on:
+                          if attempt == attempts:
+                              raise
+                          sleep(base_delay * 2 ** (attempt - 1))
+              return wrapper
+          return decorator
+      ```
+
+      The `if attempt == attempts: raise` inside the handler is what makes the
+      last failure propagate untouched — no sleep after the final attempt, and
+      the original traceback is preserved.
+
+      In production you would add jitter (`delay * random.uniform(0.5, 1.5)`)
+      so a thousand clients do not retry in lockstep and re-flatten the service
+      they are waiting on.
+
+  # -------------------------------------------------------------------- SQL
+  - slug: orders-analytics-sql
+    concept: relational-databases-sql
+    title: Answer a business question in SQL
+    tagline: Joins, grouping and a window function against a real schema.
+    runtime: sql
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      A schema of customers, orders and order items is loaded for you — read
+      `schema.sql` to see it. Write **one** query in `query.sql`.
+
+      **The question:** for every customer who has placed at least one order,
+      return their name, how many orders they have placed, and their total
+      spend across all orders, ordered by total spend descending, then by name.
+
+      Spend for an order line is `quantity * unit_price`. Return exactly these
+      columns, in this order:
+
+      | name | order_count | total_spend |
+      |------|-------------|-------------|
+
+      Two traps the tests check:
+
+      - A customer with no orders must **not** appear.
+      - `order_count` is the number of distinct *orders*, not the number of
+        order *items*. A single order with three items counts once.
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: name, order_count, total_spend.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE customers (
+            id      INTEGER PRIMARY KEY,
+            name    TEXT NOT NULL,
+            country TEXT NOT NULL
+          );
+
+          CREATE TABLE orders (
+            id          INTEGER PRIMARY KEY,
+            customer_id INTEGER NOT NULL REFERENCES customers(id),
+            placed_on   TEXT NOT NULL
+          );
+
+          CREATE TABLE order_items (
+            id         INTEGER PRIMARY KEY,
+            order_id   INTEGER NOT NULL REFERENCES orders(id),
+            product    TEXT NOT NULL,
+            quantity   INTEGER NOT NULL,
+            unit_price REAL NOT NULL
+          );
+
+          INSERT INTO customers (id, name, country) VALUES
+            (1, 'Asha Menon',    'IN'),
+            (2, 'Bo Lindqvist',  'SE'),
+            (3, 'Carla Reyes',   'MX'),
+            (4, 'Dan Okafor',    'NG');   -- has never ordered
+
+          INSERT INTO orders (id, customer_id, placed_on) VALUES
+            (10, 1, '2026-01-04'),
+            (11, 1, '2026-02-11'),
+            (12, 2, '2026-02-14'),
+            (13, 3, '2026-03-02');
+
+          INSERT INTO order_items (id, order_id, product, quantity, unit_price) VALUES
+            (100, 10, 'Keyboard',  1, 4500.0),
+            (101, 10, 'Mouse',     2,  900.0),
+            (102, 11, 'Monitor',   1, 12000.0),
+            (103, 12, 'Headset',   1, 3000.0),
+            (104, 13, 'Laptop',    1, 68000.0),
+            (105, 13, 'Sleeve',    1, 1200.0);
+    tests:
+      - name: Returns the right customers, counts and totals
+        code: "{{query}}"
+        expected: |
+          [["Carla Reyes", 1, 69200.0],
+           ["Asha Menon", 2, 18300.0],
+           ["Bo Lindqvist", 1, 3000.0]]
+      - name: Customers with no orders are excluded
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE name = 'Dan Okafor'"
+        expected: '[[0]]'
+      - name: Orders are counted once regardless of item count
+        hidden: true
+        code: "SELECT order_count FROM ({{query}}) WHERE name = 'Carla Reyes'"
+        expected: '[[1]]'
+    solution_md: |
+      ```sql
+      SELECT
+        c.name                              AS name,
+        COUNT(DISTINCT o.id)                AS order_count,
+        SUM(oi.quantity * oi.unit_price)    AS total_spend
+      FROM customers c
+      JOIN orders o       ON o.customer_id = c.id
+      JOIN order_items oi ON oi.order_id = o.id
+      GROUP BY c.id, c.name
+      ORDER BY total_spend DESC, name;
+      ```
+
+      Two things carry the whole query. An **inner** `JOIN` (not `LEFT JOIN`)
+      is what drops Dan, who has no orders. And `COUNT(DISTINCT o.id)` is what
+      stops the join fan-out — once each order is repeated per item, a plain
+      `COUNT(*)` counts items and quietly reports the wrong number.
+
+  # ---------------------------------------------------------- data modeling
+  - slug: normalise-the-schema
+    concept: data-modeling
+    title: Normalise a spreadsheet into tables
+    tagline: Turn one wide, duplicated table into a schema that cannot lie.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 140
+    brief_md: |
+      You are handed a CSV export where every row repeats the customer's name
+      and the product's price. That redundancy is not just wasteful — it lets
+      the data contradict itself. Two rows can disagree about what a product
+      costs, and neither is "wrong" as far as the database is concerned.
+
+      Implement `normalise(rows)` in `solution.py`. Given a list of flat dicts:
+
+      ```python
+      {"order_id": 10, "customer": "Asha", "product": "Mouse",
+       "unit_price": 900.0, "quantity": 2}
+      ```
+
+      return three lists, keyed by entity, with surrogate integer ids assigned
+      **in order of first appearance, starting at 1**:
+
+      ```python
+      {
+        "customers": [{"id": 1, "name": "Asha"}],
+        "products":  [{"id": 1, "name": "Mouse", "unit_price": 900.0}],
+        "order_items": [
+          {"order_id": 10, "customer_id": 1, "product_id": 1, "quantity": 2}
+        ],
+      }
+      ```
+
+      Each customer and each product appears exactly once, no matter how many
+      rows mention them. `order_items` keeps one entry per input row, in input
+      order, referring to entities by id rather than by name.
+    must_contain:
+      - "def normalise"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def normalise(rows: list[dict]) -> dict:
+              """Split a flat export into customers, products and order items."""
+              raise NotImplementedError
+      - path: fixtures.py
+        readonly: true
+        content: |
+          ROWS = [
+              {"order_id": 10, "customer": "Asha", "product": "Mouse",
+               "unit_price": 900.0, "quantity": 2},
+              {"order_id": 10, "customer": "Asha", "product": "Keyboard",
+               "unit_price": 4500.0, "quantity": 1},
+              {"order_id": 11, "customer": "Bo", "product": "Mouse",
+               "unit_price": 900.0, "quantity": 1},
+              {"order_id": 12, "customer": "Asha", "product": "Monitor",
+               "unit_price": 12000.0, "quantity": 1},
+          ]
+    tests:
+      - name: Each customer appears once, in order of first appearance
+        code: |
+          from fixtures import ROWS
+          out = normalise(ROWS)
+          assert out["customers"] == [
+              {"id": 1, "name": "Asha"},
+              {"id": 2, "name": "Bo"},
+          ], out["customers"]
+      - name: Each product appears once, carrying its price
+        code: |
+          from fixtures import ROWS
+          out = normalise(ROWS)
+          assert out["products"] == [
+              {"id": 1, "name": "Mouse", "unit_price": 900.0},
+              {"id": 2, "name": "Keyboard", "unit_price": 4500.0},
+              {"id": 3, "name": "Monitor", "unit_price": 12000.0},
+          ], out["products"]
+      - name: Order items reference entities by id
+        code: |
+          from fixtures import ROWS
+          out = normalise(ROWS)
+          assert out["order_items"][0] == {
+              "order_id": 10, "customer_id": 1, "product_id": 1, "quantity": 2,
+          }, out["order_items"][0]
+          assert len(out["order_items"]) == 4
+      - name: No name or price leaks into the join table
+        hidden: true
+        code: |
+          from fixtures import ROWS
+          out = normalise(ROWS)
+          for item in out["order_items"]:
+              assert set(item) == {"order_id", "customer_id", "product_id", "quantity"}, item
+    solution_md: |
+      ```python
+      def normalise(rows):
+          customers, products, items = {}, {}, []
+
+          for row in rows:
+              name = row["customer"]
+              if name not in customers:
+                  customers[name] = {"id": len(customers) + 1, "name": name}
+
+              product = row["product"]
+              if product not in products:
+                  products[product] = {
+                      "id": len(products) + 1,
+                      "name": product,
+                      "unit_price": row["unit_price"],
+                  }
+
+              items.append({
+                  "order_id": row["order_id"],
+                  "customer_id": customers[name]["id"],
+                  "product_id": products[product]["id"],
+                  "quantity": row["quantity"],
+              })
+
+          return {
+              "customers": list(customers.values()),
+              "products": list(products.values()),
+              "order_items": items,
+          }
+      ```
+
+      Dicts preserve insertion order in Python 3.7+, so "in order of first
+      appearance" costs nothing extra. The real lesson is the shape: once
+      `unit_price` lives in exactly one row, no export can disagree with itself
+      about what a mouse costs.
+
+  # -------------------------------------------------------------- REST APIs
+  - slug: build-a-router
+    concept: rest-api-design
+    title: Build the router behind a REST framework
+    tagline: Path parameters, method dispatch and the right status codes.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 60
+    xp_reward: 150
+    brief_md: |
+      `@app.get("/users/{user_id}")` is a lookup table and a small matching
+      algorithm. Build both.
+
+      Implement the `Router` class in `solution.py`:
+
+      ```python
+      router = Router()
+
+      @router.route("GET", "/users/{user_id}")
+      def get_user(user_id):
+          return 200, {"id": user_id}
+
+      router.dispatch("GET", "/users/42")   # -> (200, {"id": "42"})
+      ```
+
+      Behaviour the tests require:
+
+      - A literal path matches exactly. `/users` does not match `/users/42`.
+      - `{name}` matches exactly one segment and is passed to the handler as a
+        keyword argument, **as a string**.
+      - No route matches the path → `(404, {"error": "Not Found"})`.
+      - The path matches but not for that method → `(405, {"error": "Method Not Allowed"})`.
+        This distinction is the one most hand-rolled routers get wrong, and it
+        is the difference between a client retrying and a client giving up.
+      - A more specific literal route wins over a parameterised one:
+        `/users/me` beats `/users/{user_id}` regardless of registration order.
+    must_contain:
+      - "class Router"
+      - "405"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class Router:
+              """A method + path router, the way a web framework does it."""
+
+              def __init__(self):
+                  self.routes = []
+
+              def route(self, method: str, path: str):
+                  """Decorator registering `path` for `method`."""
+                  raise NotImplementedError
+
+              def dispatch(self, method: str, path: str):
+                  """Return (status, body) for a request."""
+                  raise NotImplementedError
+    tests:
+      - name: Matches a literal path
+        code: |
+          r = Router()
+
+          @r.route("GET", "/health")
+          def health():
+              return 200, {"ok": True}
+
+          assert r.dispatch("GET", "/health") == (200, {"ok": True})
+      - name: Extracts a path parameter as a string
+        code: |
+          r = Router()
+
+          @r.route("GET", "/users/{user_id}")
+          def get_user(user_id):
+              return 200, {"id": user_id}
+
+          assert r.dispatch("GET", "/users/42") == (200, {"id": "42"})
+      - name: Unknown paths are 404
+        code: |
+          r = Router()
+
+          @r.route("GET", "/users/{user_id}")
+          def get_user(user_id):
+              return 200, {}
+
+          assert r.dispatch("GET", "/nope") == (404, {"error": "Not Found"})
+          assert r.dispatch("GET", "/users/1/posts") == (404, {"error": "Not Found"})
+      - name: A known path with the wrong method is 405, not 404
+        code: |
+          r = Router()
+
+          @r.route("GET", "/users/{user_id}")
+          def get_user(user_id):
+              return 200, {}
+
+          assert r.dispatch("DELETE", "/users/42") == (405, {"error": "Method Not Allowed"})
+      - name: A literal segment beats a parameter, whatever the order
+        hidden: true
+        code: |
+          r = Router()
+
+          @r.route("GET", "/users/{user_id}")
+          def get_user(user_id):
+              return 200, {"kind": "by-id"}
+
+          @r.route("GET", "/users/me")
+          def me():
+              return 200, {"kind": "me"}
+
+          assert r.dispatch("GET", "/users/me") == (200, {"kind": "me"})
+          assert r.dispatch("GET", "/users/7") == (200, {"kind": "by-id"})
+    solution_md: |
+      ```python
+      class Router:
+          def __init__(self):
+              self.routes = []
+
+          def route(self, method, path):
+              def decorator(fn):
+                  self.routes.append((method, path.strip("/").split("/"), fn))
+                  return fn
+              return decorator
+
+          def dispatch(self, method, path):
+              segments = path.strip("/").split("/")
+              path_matched = False
+              best = None
+
+              for route_method, pattern, fn in self.routes:
+                  params = _match(pattern, segments)
+                  if params is None:
+                      continue
+                  path_matched = True
+                  if route_method != method:
+                      continue
+                  # Fewer parameters = more specific; keep the best match.
+                  if best is None or len(params) < len(best[1]):
+                      best = (fn, params)
+
+              if best is not None:
+                  fn, params = best
+                  return fn(**params)
+              if path_matched:
+                  return 405, {"error": "Method Not Allowed"}
+              return 404, {"error": "Not Found"}
+
+
+      def _match(pattern, segments):
+          if len(pattern) != len(segments):
+              return None
+          params = {}
+          for part, value in zip(pattern, segments):
+              if part.startswith("{") and part.endswith("}"):
+                  params[part[1:-1]] = value
+              elif part != value:
+                  return None
+          return params
+      ```
+
+      Collecting `path_matched` separately from the method check is the whole
+      trick behind 405. Scoring by parameter count is how a real framework
+      makes `/users/me` win without depending on registration order.
+
+  # ------------------------------------------------------------- ORM + DDL
+  - slug: migration-planner
+    concept: orm-and-migrations
+    title: Diff two schemas into a migration
+    tagline: Work out what Alembic's autogenerate is actually doing.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      A migration tool is a schema differ plus a code generator. Build the
+      differ, and `alembic revision --autogenerate` stops being a black box.
+
+      Implement `plan_migration(current, target)` in `solution.py`. Both
+      arguments describe a schema as `{table: {column: type}}`. Return a list of
+      operation strings, in this exact order:
+
+      1. `CREATE TABLE <name>` — for tables only in `target`
+      2. `ADD COLUMN <table>.<column> <type>` — for new columns in a table that
+         exists in both
+      3. `ALTER COLUMN <table>.<column> <old> -> <new>` — where the type changed
+      4. `DROP COLUMN <table>.<column>` — for columns gone from `target`
+      5. `DROP TABLE <name>` — for tables gone from `target`
+
+      Within each group, sort alphabetically by table then column, so the plan
+      is deterministic — a migration tool that emits operations in a different
+      order on every run is unreviewable.
+
+      Destructive operations come last on purpose: if the additive half fails,
+      you have not yet thrown anything away.
+    must_contain:
+      - "def plan_migration"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def plan_migration(current: dict, target: dict) -> list[str]:
+              """Return the ordered operations that turn `current` into `target`."""
+              raise NotImplementedError
+    tests:
+      - name: A new table becomes CREATE TABLE
+        code: |
+          plan = plan_migration({}, {"users": {"id": "INTEGER"}})
+          assert plan == ["CREATE TABLE users"], plan
+      - name: New and dropped columns are detected
+        code: |
+          plan = plan_migration(
+              {"users": {"id": "INTEGER", "nickname": "TEXT"}},
+              {"users": {"id": "INTEGER", "email": "TEXT"}},
+          )
+          assert plan == [
+              "ADD COLUMN users.email TEXT",
+              "DROP COLUMN users.nickname",
+          ], plan
+      - name: A changed type becomes ALTER COLUMN
+        code: |
+          plan = plan_migration(
+              {"users": {"id": "INTEGER", "age": "TEXT"}},
+              {"users": {"id": "INTEGER", "age": "INTEGER"}},
+          )
+          assert plan == ["ALTER COLUMN users.age TEXT -> INTEGER"], plan
+      - name: Destructive operations sort last
+        code: |
+          plan = plan_migration(
+              {"old": {"id": "INTEGER"}, "users": {"id": "INTEGER", "gone": "TEXT"}},
+              {"new": {"id": "INTEGER"}, "users": {"id": "INTEGER", "added": "TEXT"}},
+          )
+          assert plan == [
+              "CREATE TABLE new",
+              "ADD COLUMN users.added TEXT",
+              "DROP COLUMN users.gone",
+              "DROP TABLE old",
+          ], plan
+      - name: An identical schema needs no migration
+        hidden: true
+        code: |
+          schema = {"users": {"id": "INTEGER", "email": "TEXT"}}
+          assert plan_migration(schema, dict(schema)) == []
+    solution_md: |
+      ```python
+      def plan_migration(current, target):
+          creates, adds, alters, drops, drop_tables = [], [], [], [], []
+
+          for table in sorted(set(target) - set(current)):
+              creates.append(f"CREATE TABLE {table}")
+          for table in sorted(set(current) - set(target)):
+              drop_tables.append(f"DROP TABLE {table}")
+
+          for table in sorted(set(current) & set(target)):
+              before, after = current[table], target[table]
+              for column in sorted(set(after) - set(before)):
+                  adds.append(f"ADD COLUMN {table}.{column} {after[column]}")
+              for column in sorted(set(before) & set(after)):
+                  if before[column] != after[column]:
+                      alters.append(
+                          f"ALTER COLUMN {table}.{column} "
+                          f"{before[column]} -> {after[column]}"
+                      )
+              for column in sorted(set(before) - set(after)):
+                  drops.append(f"DROP COLUMN {table}.{column}")
+
+          return creates + adds + alters + drops + drop_tables
+      ```
+
+      Note what this *cannot* see: a column renamed from `nickname` to `handle`
+      looks identical to a drop plus an add, and executing that plan destroys
+      the data. Every autogenerate tool has this blind spot, which is why you
+      read the generated migration before running it.
+
+  # ----------------------------------------------------------------- authn
+  - slug: password-and-token-guards
+    concept: auth-and-security
+    title: Verify a token without leaking secrets
+    tagline: Constant-time comparison, expiry, and the errors you must not give away.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 160
+    brief_md: |
+      Authentication bugs are rarely exotic. They are an `==` on a signature, an
+      expiry that is never checked, and an error message that tells an attacker
+      which half they got right.
+
+      Implement three functions in `solution.py`.
+
+      **`sign(payload, secret)`** — return `"<data>.<signature>"` where `data`
+      is the payload's items sorted and joined as `k=v` with `&`, and
+      `signature` is `hmac.new(secret, data, sha256).hexdigest()`.
+
+      **`constant_time_equal(a, b)`** — compare two strings without leaking
+      *where* they first differ through timing. Compare every character;
+      accumulate differences with `|=`; do not return early.
+
+      **`verify(token, secret, now)`** — return the payload dict, or raise
+      `AuthError`. Requirements:
+
+      - Malformed token (no `.`, or extra parts) → `AuthError("invalid token")`.
+      - Bad signature → `AuthError("invalid token")` — the **same** message.
+        A distinct "bad signature" error tells an attacker their payload
+        tampering was structurally accepted.
+      - Signature valid but `exp` is in the past → `AuthError("token expired")`.
+        This one *is* safe to distinguish: the holder already proved they have
+        a validly-signed token.
+      - Check the signature **before** parsing anything else. Never trust the
+        payload of an unverified token.
+    must_contain:
+      - "constant_time_equal"
+      - "|="
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import hashlib
+          import hmac
+
+
+          class AuthError(Exception):
+              """Raised for any token we refuse to accept."""
+
+
+          def sign(payload: dict, secret: str) -> str:
+              """Return '<data>.<signature>' for `payload`."""
+              raise NotImplementedError
+
+
+          def constant_time_equal(a: str, b: str) -> bool:
+              """Compare without leaking the position of the first difference."""
+              raise NotImplementedError
+
+
+          def verify(token: str, secret: str, now: int) -> dict:
+              """Return the payload, or raise AuthError."""
+              raise NotImplementedError
+    tests:
+      - name: A token it signed, it accepts
+        code: |
+          token = sign({"sub": "42", "exp": "2000"}, "s3cret")
+          assert verify(token, "s3cret", now=1000) == {"sub": "42", "exp": "2000"}
+      - name: Constant-time compare is still correct
+        code: |
+          assert constant_time_equal("abc", "abc") is True
+          assert constant_time_equal("abc", "abd") is False
+          assert constant_time_equal("abc", "abcd") is False
+          assert constant_time_equal("", "") is True
+      - name: A tampered payload is rejected
+        code: |
+          token = sign({"sub": "42", "exp": "2000"}, "s3cret")
+          data, _, signature = token.partition(".")
+          forged = data.replace("sub=42", "sub=1") + "." + signature
+          try:
+              verify(forged, "s3cret", now=1000)
+          except AuthError as exc:
+              assert str(exc) == "invalid token", str(exc)
+          else:
+              raise AssertionError("a forged token was accepted")
+      - name: A bad signature and a malformed token look identical
+        code: |
+          try:
+              verify("not-a-token", "s3cret", now=1000)
+          except AuthError as exc:
+              malformed = str(exc)
+          token = sign({"sub": "42", "exp": "2000"}, "s3cret")
+          try:
+              verify(token.split(".")[0] + ".deadbeef", "s3cret", now=1000)
+          except AuthError as exc:
+              bad_sig = str(exc)
+          assert malformed == bad_sig == "invalid token", (malformed, bad_sig)
+      - name: An expired token is rejected, and says so
+        hidden: true
+        code: |
+          token = sign({"sub": "42", "exp": "500"}, "s3cret")
+          try:
+              verify(token, "s3cret", now=1000)
+          except AuthError as exc:
+              assert str(exc) == "token expired", str(exc)
+          else:
+              raise AssertionError("an expired token was accepted")
+      - name: The wrong secret is rejected
+        hidden: true
+        code: |
+          token = sign({"sub": "42", "exp": "2000"}, "s3cret")
+          try:
+              verify(token, "different", now=1000)
+          except AuthError as exc:
+              assert str(exc) == "invalid token"
+          else:
+              raise AssertionError("a token signed with another key was accepted")
+    solution_md: |
+      ```python
+      def sign(payload, secret):
+          data = "&".join(f"{k}={v}" for k, v in sorted(payload.items()))
+          signature = hmac.new(
+              secret.encode(), data.encode(), hashlib.sha256
+          ).hexdigest()
+          return f"{data}.{signature}"
+
+
+      def constant_time_equal(a, b):
+          if len(a) != len(b):
+              return False
+          difference = 0
+          for x, y in zip(a, b):
+              difference |= ord(x) ^ ord(y)
+          return difference == 0
+
+
+      def verify(token, secret, now):
+          data, separator, signature = token.partition(".")
+          if not separator or "." in signature:
+              raise AuthError("invalid token")
+
+          expected = hmac.new(
+              secret.encode(), data.encode(), hashlib.sha256
+          ).hexdigest()
+          if not constant_time_equal(signature, expected):
+              raise AuthError("invalid token")
+
+          payload = dict(
+              pair.split("=", 1) for pair in data.split("&") if "=" in pair
+          )
+          if int(payload.get("exp", 0)) <= now:
+              raise AuthError("token expired")
+          return payload
+      ```
+
+      The length check in `constant_time_equal` does leak the length — that is
+      accepted practice, because a hex digest's length is fixed and public
+      anyway. In real code use `hmac.compare_digest`, which is this function
+      written in C; you have just implemented it so you know what it buys you.
+
+  # --------------------------------------------------------------- caching
+  - slug: lru-cache-with-ttl
+    concept: caching-strategies
+    title: An LRU cache that also expires
+    tagline: Eviction policy and staleness are different problems. Solve both.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      A cache with no bound eventually becomes a memory leak; a cache with no
+      expiry eventually serves a lie. Real caches need both, and the two
+      policies interact in ways worth feeling once.
+
+      Implement `LRUCache` in `solution.py`:
+
+      ```python
+      cache = LRUCache(capacity=2, ttl=60)
+      cache.set("a", 1, now=0)
+      cache.get("a", now=30)    # 1
+      cache.get("a", now=61)    # None — expired
+      ```
+
+      Requirements:
+
+      - `get` returns the value, or `None` if absent **or expired**.
+      - An entry expires when `now - stored_at >= ttl`.
+      - A `get` that hits counts as a use: it moves the key to most-recently-used.
+      - A `set` of an existing key updates the value *and* refreshes its
+        timestamp and recency.
+      - When a `set` would exceed `capacity`, evict the least-recently-used key
+        first.
+      - An expired entry must **not** be preferred for eviction over a live one
+        — but it also must not count against capacity when it is read. Simplest
+        correct approach: drop expired entries when you touch them.
+      - `cache.hits` and `cache.misses` count what they say. An expired read is
+        a miss.
+    must_contain:
+      - "class LRUCache"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          from collections import OrderedDict
+
+
+          class LRUCache:
+              """Least-recently-used eviction with per-entry expiry."""
+
+              def __init__(self, capacity: int, ttl: float):
+                  self.capacity = capacity
+                  self.ttl = ttl
+                  self.hits = 0
+                  self.misses = 0
+                  self._entries = OrderedDict()   # key -> (value, stored_at)
+
+              def get(self, key, now: float):
+                  raise NotImplementedError
+
+              def set(self, key, value, now: float) -> None:
+                  raise NotImplementedError
+    tests:
+      - name: Stores and returns a value
+        code: |
+          c = LRUCache(capacity=2, ttl=60)
+          c.set("a", 1, now=0)
+          assert c.get("a", now=10) == 1
+          assert c.hits == 1 and c.misses == 0, (c.hits, c.misses)
+      - name: A missing key is a miss
+        code: |
+          c = LRUCache(capacity=2, ttl=60)
+          assert c.get("nope", now=0) is None
+          assert c.misses == 1
+      - name: Entries expire at exactly ttl
+        code: |
+          c = LRUCache(capacity=2, ttl=60)
+          c.set("a", 1, now=0)
+          assert c.get("a", now=59) == 1
+          assert c.get("a", now=60) is None, "ttl is inclusive: now - stored >= ttl expires"
+      - name: Evicts the least recently used key
+        code: |
+          c = LRUCache(capacity=2, ttl=1000)
+          c.set("a", 1, now=0)
+          c.set("b", 2, now=1)
+          c.get("a", now=2)          # 'a' is now the most recently used
+          c.set("c", 3, now=3)       # evicts 'b'
+          assert c.get("a", now=4) == 1
+          assert c.get("b", now=4) is None, "'b' should have been evicted, not 'a'"
+          assert c.get("c", now=4) == 3
+      - name: Re-setting a key refreshes its expiry
+        hidden: true
+        code: |
+          c = LRUCache(capacity=2, ttl=60)
+          c.set("a", 1, now=0)
+          c.set("a", 2, now=50)
+          assert c.get("a", now=100) == 2, "the second set should have reset the clock"
+      - name: Capacity is never exceeded
+        hidden: true
+        code: |
+          c = LRUCache(capacity=3, ttl=1000)
+          for i in range(10):
+              c.set(f"k{i}", i, now=i)
+          assert len(c._entries) <= 3, f"held {len(c._entries)} entries"
+    solution_md: |
+      ```python
+      def get(self, key, now):
+          entry = self._entries.get(key)
+          if entry is None:
+              self.misses += 1
+              return None
+          value, stored_at = entry
+          if now - stored_at >= self.ttl:
+              del self._entries[key]      # drop it rather than let it linger
+              self.misses += 1
+              return None
+          self._entries.move_to_end(key)  # a hit is a use
+          self.hits += 1
+          return value
+
+
+      def set(self, key, value, now):
+          self._entries[key] = (value, now)
+          self._entries.move_to_end(key)
+          while len(self._entries) > self.capacity:
+              self._entries.popitem(last=False)   # least recently used
+      ```
+
+      `OrderedDict` is doing the work: `move_to_end` for recency,
+      `popitem(last=False)` for eviction, both O(1). `functools.lru_cache` in
+      the standard library is the same idea with a doubly linked list, and no
+      TTL — which is exactly why services keep writing this class.
+
+  # --------------------------------------------------------------- testing
+  - slug: fake-it-to-test-it
+    concept: backend-testing
+    title: Test the thing that talks to the network
+    tagline: Write a fake, not a mock, and watch the test get shorter.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 130
+    brief_md: |
+      The reason "I can't test this, it calls an API" is so common is that the
+      call is buried inside the logic. Pull it out behind an interface and the
+      test becomes trivial — and the design gets better as a side effect.
+
+      `service.py` (read-only) contains `sync_users`, which takes a `client`
+      object and a `store` object. Your job is in `solution.py`: write
+      `FakeClient` and `FakeStore` good enough to test it properly.
+
+      `FakeClient` must expose `fetch_users(page)` returning a page dict
+      `{"users": [...], "next_page": <int|None>}` from a list of pages given to
+      its constructor, and record the pages requested in `self.calls`.
+
+      `FakeStore` must expose `upsert(user)` and keep everything it received in
+      `self.saved`, plus `self.failures` — a set of user ids for which `upsert`
+      raises `RuntimeError`, so the retry path can be exercised.
+
+      Read `sync_users` carefully first. The tests check that your fakes are
+      faithful enough to catch its real behaviour: it follows pagination, it
+      skips users with no id, and it collects failures rather than aborting.
+    must_contain:
+      - "class FakeClient"
+      - "class FakeStore"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class FakeClient:
+              """Stands in for the HTTP client `sync_users` expects."""
+
+              def __init__(self, pages: list[dict]):
+                  self.pages = pages
+                  self.calls = []
+
+              def fetch_users(self, page: int) -> dict:
+                  raise NotImplementedError
+
+
+          class FakeStore:
+              """Stands in for the database `sync_users` writes to."""
+
+              def __init__(self, failures: set | None = None):
+                  self.saved = []
+                  self.failures = failures or set()
+
+              def upsert(self, user: dict) -> None:
+                  raise NotImplementedError
+      - path: service.py
+        readonly: true
+        content: |
+          def sync_users(client, store):
+              """Copy every user from `client` into `store`.
+
+              Returns (saved_count, failed_ids). A user with no id is skipped
+              silently — the upstream API sometimes emits placeholder rows.
+              A store failure is collected, not raised: one bad row must not
+              abandon the rest of the sync.
+              """
+              saved, failed = 0, []
+              page = 1
+
+              while page is not None:
+                  response = client.fetch_users(page)
+                  for user in response["users"]:
+                      if not user.get("id"):
+                          continue
+                      try:
+                          store.upsert(user)
+                          saved += 1
+                      except RuntimeError:
+                          failed.append(user["id"])
+                  page = response["next_page"]
+
+              return saved, failed
+    tests:
+      - name: The fake client serves a single page
+        code: |
+          from service import sync_users
+          client = FakeClient([{"users": [{"id": 1}, {"id": 2}], "next_page": None}])
+          store = FakeStore()
+          assert sync_users(client, store) == (2, [])
+          assert client.calls == [1], client.calls
+          assert store.saved == [{"id": 1}, {"id": 2}], store.saved
+      - name: Pagination is followed to the end
+        code: |
+          from service import sync_users
+          client = FakeClient([
+              {"users": [{"id": 1}], "next_page": 2},
+              {"users": [{"id": 2}], "next_page": 3},
+              {"users": [{"id": 3}], "next_page": None},
+          ])
+          store = FakeStore()
+          saved, failed = sync_users(client, store)
+          assert saved == 3 and failed == []
+          assert client.calls == [1, 2, 3], client.calls
+      - name: Users with no id are skipped
+        code: |
+          from service import sync_users
+          client = FakeClient([{"users": [{"id": 1}, {"name": "ghost"}, {"id": 0}], "next_page": None}])
+          store = FakeStore()
+          saved, failed = sync_users(client, store)
+          assert saved == 1, f"saved {saved}"
+          assert len(store.saved) == 1
+      - name: A store failure is collected, not fatal
+        hidden: true
+        code: |
+          from service import sync_users
+          client = FakeClient([{"users": [{"id": 1}, {"id": 2}, {"id": 3}], "next_page": None}])
+          store = FakeStore(failures={2})
+          saved, failed = sync_users(client, store)
+          assert saved == 2, f"saved {saved}"
+          assert failed == [2], failed
+          assert len(store.saved) == 2, "the failed upsert must not have been recorded"
+    solution_md: |
+      ```python
+      class FakeClient:
+          def __init__(self, pages):
+              self.pages = pages
+              self.calls = []
+
+          def fetch_users(self, page):
+              self.calls.append(page)
+              return self.pages[page - 1]
+
+
+      class FakeStore:
+          def __init__(self, failures=None):
+              self.saved = []
+              self.failures = failures or set()
+
+          def upsert(self, user):
+              if user["id"] in self.failures:
+                  raise RuntimeError(f"could not save {user['id']}")
+              self.saved.append(user)
+      ```
+
+      Note what you did *not* need: no `unittest.mock`, no patching, no
+      `assert_called_once_with`. A fake is an implementation of the same
+      interface, so the test reads like a description of behaviour rather than
+      a description of calls — and it does not break when you refactor the
+      internals.
+
+  # ------------------------------------------------------- async and queues
+  - slug: at-least-once-queue
+    concept: async-and-message-queues
+    title: A queue with visibility timeouts
+    tagline: Redelivery, idempotency and the dead-letter queue, in miniature.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 60
+    xp_reward: 170
+    brief_md: |
+      "At least once" delivery is the default of every real queue, and it is a
+      promise with teeth: your consumer *will* see the same message twice, and
+      it is your job to make that harmless.
+
+      Implement `MessageQueue` in `solution.py`.
+
+      - `publish(body)` → appends a message, returns its id (1-indexed).
+      - `receive(now)` → returns `(id, body)` for the oldest visible message and
+        makes it **invisible** until `now + visibility_timeout`. Returns `None`
+        when nothing is visible.
+      - `ack(message_id)` → deletes it permanently.
+      - A message received but not acked becomes visible again once its
+        timeout passes — that is redelivery.
+      - Each redelivery increments a receive count. Once a message has been
+        received `max_receives` times without an ack, `receive` must not return
+        it again; it moves to `self.dead_letters` instead. Without this, one
+        poison message blocks the queue forever.
+    must_contain:
+      - "class MessageQueue"
+      - "dead_letters"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class MessageQueue:
+              """An at-least-once queue with visibility timeouts and a DLQ."""
+
+              def __init__(self, visibility_timeout: float = 30, max_receives: int = 3):
+                  self.visibility_timeout = visibility_timeout
+                  self.max_receives = max_receives
+                  self.messages = []      # dicts: id, body, visible_at, receives
+                  self.dead_letters = []
+                  self._next_id = 1
+
+              def publish(self, body) -> int:
+                  raise NotImplementedError
+
+              def receive(self, now: float):
+                  raise NotImplementedError
+
+              def ack(self, message_id: int) -> None:
+                  raise NotImplementedError
+    tests:
+      - name: Publish then receive, oldest first
+        code: |
+          q = MessageQueue()
+          assert q.publish("first") == 1
+          assert q.publish("second") == 2
+          assert q.receive(now=0) == (1, "first")
+      - name: A received message is invisible to the next consumer
+        code: |
+          q = MessageQueue(visibility_timeout=30)
+          q.publish("only")
+          assert q.receive(now=0) == (1, "only")
+          assert q.receive(now=10) is None, "it should still be invisible"
+      - name: An unacked message comes back
+        code: |
+          q = MessageQueue(visibility_timeout=30)
+          q.publish("only")
+          q.receive(now=0)
+          assert q.receive(now=31) == (1, "only"), "redelivery after the timeout"
+      - name: An acked message never comes back
+        code: |
+          q = MessageQueue(visibility_timeout=30)
+          q.publish("only")
+          mid, _ = q.receive(now=0)
+          q.ack(mid)
+          assert q.receive(now=100) is None
+          assert q.messages == []
+      - name: A poison message ends up in the dead-letter queue
+        hidden: true
+        code: |
+          q = MessageQueue(visibility_timeout=10, max_receives=3)
+          q.publish("poison")
+          for t in (0, 11, 22):
+              assert q.receive(now=t) is not None, f"expected a redelivery at t={t}"
+          assert q.receive(now=33) is None, "a 4th delivery would block the queue forever"
+          assert [m["body"] for m in q.dead_letters] == ["poison"], q.dead_letters
+      - name: The DLQ does not swallow healthy messages
+        hidden: true
+        code: |
+          q = MessageQueue(visibility_timeout=10, max_receives=2)
+          q.publish("poison")
+          q.publish("fine")
+          q.receive(now=0)                     # poison, 1st
+          mid, body = q.receive(now=1)         # fine
+          assert body == "fine"
+          q.ack(mid)
+          q.receive(now=11)                    # poison, 2nd
+          assert q.receive(now=22) is None
+          assert len(q.dead_letters) == 1
+    solution_md: |
+      ```python
+      def publish(self, body):
+          message_id = self._next_id
+          self._next_id += 1
+          self.messages.append(
+              {"id": message_id, "body": body, "visible_at": 0, "receives": 0}
+          )
+          return message_id
+
+
+      def receive(self, now):
+          for message in self.messages:
+              if message["visible_at"] > now:
+                  continue
+              if message["receives"] >= self.max_receives:
+                  continue
+              message["receives"] += 1
+              if message["receives"] > self.max_receives:
+                  continue
+              message["visible_at"] = now + self.visibility_timeout
+              return message["id"], message["body"]
+          self._sweep_dead_letters()
+          return None
+      ```
+
+      The cleanest version increments first and checks the count when the
+      message next becomes visible: at that point it has been delivered
+      `max_receives` times with no ack, so it is moved to `dead_letters` and
+      skipped forever after.
+
+      Everything here — visibility timeout, receive count, DLQ — is exactly
+      what SQS gives you, and knowing the mechanism is what lets you answer
+      "why did my consumer process this twice?" without guessing.
+
+  # ------------------------------------------------------------- containers
+  - slug: dockerfile-linter
+    concept: containers-docker
+    title: Lint a Dockerfile
+    tagline: Encode the layer-caching rules you would otherwise learn by waiting.
+    runtime: python
+    difficulty: beginner
+    est_minutes: 40
+    xp_reward: 110
+    brief_md: |
+      Most slow Docker builds come from the same three mistakes, and all three
+      are mechanically detectable. Write the checker and you will never make
+      them again.
+
+      Implement `lint(dockerfile)` in `solution.py`. It takes the file as a
+      string and returns a list of findings, `{"line": <1-indexed>, "rule": <str>}`,
+      sorted by line number. Implement four rules:
+
+      - `no-latest-tag` — a `FROM` whose image has no tag, or the tag `latest`.
+        The build is not reproducible.
+      - `copy-before-install` — a `COPY . .` (or `ADD . .`) that appears
+        *before* a `RUN` installing dependencies. Every source edit then
+        invalidates the dependency layer and reinstalls the world.
+      - `apt-without-cleanup` — a `RUN` containing `apt-get install` but not
+        `rm -rf /var/lib/apt/lists`. The package index stays in the layer.
+      - `root-user` — no `USER` instruction anywhere in the file. Report it on
+        line 1.
+
+      Ignore blank lines and `#` comments, but **count them** — line numbers
+      refer to the original file.
+    must_contain:
+      - "def lint"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def lint(dockerfile: str) -> list[dict]:
+              """Return findings as [{"line": int, "rule": str}], sorted by line."""
+              raise NotImplementedError
+    tests:
+      - name: Flags an untagged base image
+        code: |
+          findings = lint("FROM python\nUSER app\n")
+          assert {"line": 1, "rule": "no-latest-tag"} in findings, findings
+          assert lint("FROM python:3.13-slim\nUSER app\n") == []
+      - name: Flags an explicit :latest
+        code: |
+          findings = lint("FROM node:latest\nUSER app\n")
+          assert {"line": 1, "rule": "no-latest-tag"} in findings, findings
+      - name: Flags copying source before installing dependencies
+        code: |
+          bad = "FROM python:3.13-slim\nCOPY . .\nRUN pip install -r requirements.txt\nUSER app\n"
+          assert {"line": 2, "rule": "copy-before-install"} in lint(bad), lint(bad)
+
+          good = "FROM python:3.13-slim\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nUSER app\n"
+          assert lint(good) == [], lint(good)
+      - name: Flags apt without cleanup
+        code: |
+          bad = "FROM debian:12\nRUN apt-get update && apt-get install -y curl\nUSER app\n"
+          assert {"line": 2, "rule": "apt-without-cleanup"} in lint(bad), lint(bad)
+
+          good = "FROM debian:12\nRUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*\nUSER app\n"
+          assert lint(good) == [], lint(good)
+      - name: Flags a container that runs as root
+        hidden: true
+        code: |
+          findings = lint("FROM python:3.13-slim\nCMD [\"python\", \"app.py\"]\n")
+          assert {"line": 1, "rule": "root-user"} in findings, findings
+      - name: Comments and blanks do not shift line numbers
+        hidden: true
+        code: |
+          text = "# base\n\nFROM node:latest\nUSER app\n"
+          assert {"line": 3, "rule": "no-latest-tag"} in lint(text), lint(text)
+    solution_md: |
+      ```python
+      def lint(dockerfile):
+          findings = []
+          seen_copy_all = None
+          has_user = False
+
+          for number, raw in enumerate(dockerfile.splitlines(), start=1):
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              instruction, _, rest = line.partition(" ")
+              instruction = instruction.upper()
+
+              if instruction == "FROM":
+                  image = rest.split()[0]
+                  tag = image.rpartition(":")[2] if ":" in image else ""
+                  if not tag or tag == "latest":
+                      findings.append({"line": number, "rule": "no-latest-tag"})
+              elif instruction in {"COPY", "ADD"} and rest.split() == [".", "."]:
+                  seen_copy_all = seen_copy_all or number
+              elif instruction == "RUN":
+                  if seen_copy_all and ("pip install" in rest or "npm " in rest):
+                      findings.append(
+                          {"line": seen_copy_all, "rule": "copy-before-install"}
+                      )
+                      seen_copy_all = None
+                  if "apt-get install" in rest and "/var/lib/apt/lists" not in rest:
+                      findings.append({"line": number, "rule": "apt-without-cleanup"})
+              elif instruction == "USER":
+                  has_user = True
+
+          if not has_user:
+              findings.append({"line": 1, "rule": "root-user"})
+          return sorted(findings, key=lambda f: f["line"])
+      ```
+
+      `hadolint` does exactly this with about eighty more rules. The value of
+      writing four of them yourself is that the layer-cache rule stops being a
+      thing you read and becomes a thing you can see.
+
+  # ------------------------------------------------------------------ CI/CD
+  - slug: pipeline-scheduler
+    concept: ci-cd
+    title: Schedule a pipeline's jobs
+    tagline: Topologically sort the stages, and refuse to run a cycle.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      A CI config is a dependency graph, and the runner's first job is to turn
+      it into waves of work that can run in parallel. You have already seen
+      this algorithm — it is the one that builds your roadmap.
+
+      Implement `schedule(jobs)` in `solution.py`. `jobs` maps a job name to
+      its list of dependencies. Return a list of **waves**: each wave is a
+      sorted list of job names that can run concurrently, and every job appears
+      in the earliest wave where all its dependencies are already complete.
+
+      ```python
+      schedule({"test": ["build"], "lint": [], "build": [], "deploy": ["test", "lint"]})
+      # [["build", "lint"], ["test"], ["deploy"]]
+      ```
+
+      Raise `ValueError("cycle detected")` when the graph cannot be scheduled.
+      A pipeline that silently drops the jobs it cannot order is worse than one
+      that refuses to start.
+    must_contain:
+      - "def schedule"
+      - "cycle detected"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def schedule(jobs: dict[str, list[str]]) -> list[list[str]]:
+              """Group jobs into waves that can run in parallel."""
+              raise NotImplementedError
+    tests:
+      - name: Independent jobs share the first wave
+        code: |
+          assert schedule({"a": [], "b": []}) == [["a", "b"]]
+      - name: Dependencies push a job into a later wave
+        code: |
+          waves = schedule({"test": ["build"], "lint": [], "build": [], "deploy": ["test", "lint"]})
+          assert waves == [["build", "lint"], ["test"], ["deploy"]], waves
+      - name: A job waits for its slowest dependency
+        code: |
+          waves = schedule({"a": [], "b": ["a"], "c": ["b"], "d": ["a", "c"]})
+          assert waves == [["a"], ["b"], ["c"], ["d"]], waves
+      - name: A cycle is refused, not ignored
+        code: |
+          try:
+              schedule({"a": ["b"], "b": ["a"]})
+          except ValueError as exc:
+              assert str(exc) == "cycle detected", str(exc)
+          else:
+              raise AssertionError("a cyclic pipeline was scheduled")
+      - name: An empty pipeline schedules nothing
+        hidden: true
+        code: |
+          assert schedule({}) == []
+      - name: A job depending on itself is a cycle
+        hidden: true
+        code: |
+          try:
+              schedule({"a": ["a"]})
+          except ValueError:
+              pass
+          else:
+              raise AssertionError("self-dependency should be a cycle")
+    solution_md: |
+      ```python
+      def schedule(jobs):
+          remaining = {name: set(deps) for name, deps in jobs.items()}
+          waves, done = [], set()
+
+          while remaining:
+              ready = sorted(
+                  name for name, deps in remaining.items() if deps <= done
+              )
+              if not ready:
+                  raise ValueError("cycle detected")
+              waves.append(ready)
+              done.update(ready)
+              for name in ready:
+                  del remaining[name]
+
+          return waves
+      ```
+
+      "No job is ready but jobs remain" is precisely the definition of a cycle
+      — you get the error detection for free from the scheduling loop, with no
+      separate depth-first search.
+
+  # --------------------------------------------------------- observability
+  - slug: slo-error-budget
+    concept: observability
+    title: Compute an SLO error budget
+    tagline: Percentiles and burn rate — the numbers that decide whether to page.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 130
+    brief_md: |
+      "The site feels slow" is not actionable. "We have burned 80% of this
+      month's error budget in four days" is. Implement the arithmetic behind
+      the second sentence.
+
+      Three functions in `solution.py`:
+
+      **`percentile(values, p)`** — the p-th percentile (0-100) using **nearest
+      rank**: sort ascending, take the value at index `ceil(p/100 * n) - 1`,
+      clamped to a valid index. p50 of `[1,2,3,4]` is `2`; p99 of any list is
+      its maximum. Average latency hides the tail; percentiles are what SLOs
+      are written against.
+
+      **`error_budget(total, failed, target)`** — with an availability target
+      like `0.999`, return `{"allowed": int, "used": int, "remaining": int,
+      "burned_percent": float}`. `allowed` is `total * (1 - target)` rounded
+      down. `remaining` never goes below 0. `burned_percent` is rounded to one
+      decimal, and is `100.0` when the budget is zero and anything failed.
+
+      **`should_page(budget, elapsed_fraction)`** — return True when
+      `burned_percent / 100` exceeds **twice** the fraction of the window that
+      has elapsed. That is the standard burn-rate alert: it fires on a budget
+      being consumed faster than the window allows, not on a single bad minute.
+    must_contain:
+      - "def percentile"
+      - "def error_budget"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import math
+
+
+          def percentile(values: list[float], p: float) -> float:
+              """The p-th percentile by nearest rank."""
+              raise NotImplementedError
+
+
+          def error_budget(total: int, failed: int, target: float) -> dict:
+              """How much of the failure allowance has been spent."""
+              raise NotImplementedError
+
+
+          def should_page(budget: dict, elapsed_fraction: float) -> bool:
+              """True when the budget is burning faster than 2x the window."""
+              raise NotImplementedError
+    tests:
+      - name: Percentiles use nearest rank
+        code: |
+          assert percentile([1, 2, 3, 4], 50) == 2, percentile([1, 2, 3, 4], 50)
+          assert percentile([1, 2, 3, 4], 100) == 4
+          assert percentile([5], 99) == 5
+      - name: The tail is not the mean
+        code: |
+          values = [10] * 99 + [5000]
+          assert percentile(values, 50) == 10
+          assert percentile(values, 99) == 10, "p99 of 100 samples is the 99th"
+          assert percentile(values, 100) == 5000
+      - name: Budget arithmetic
+        code: |
+          b = error_budget(total=100_000, failed=40, target=0.999)
+          assert b["allowed"] == 100, b
+          assert b["used"] == 40 and b["remaining"] == 60, b
+          assert b["burned_percent"] == 40.0, b
+      - name: A blown budget does not go negative
+        code: |
+          b = error_budget(total=1000, failed=50, target=0.99)
+          assert b["allowed"] == 10
+          assert b["remaining"] == 0, b
+          assert b["burned_percent"] == 500.0, b
+      - name: Paging is on burn rate, not on failures
+        hidden: true
+        code: |
+          # Half the budget gone, but 90% of the month elapsed: on track.
+          calm = error_budget(total=100_000, failed=50, target=0.999)
+          assert should_page(calm, elapsed_fraction=0.9) is False
+
+          # Half the budget gone in the first 10% of the month: page.
+          fast = error_budget(total=100_000, failed=50, target=0.999)
+          assert should_page(fast, elapsed_fraction=0.1) is True
+    solution_md: |
+      ```python
+      def percentile(values, p):
+          ordered = sorted(values)
+          rank = math.ceil(p / 100 * len(ordered))
+          return ordered[min(max(rank, 1), len(ordered)) - 1]
+
+
+      def error_budget(total, failed, target):
+          allowed = math.floor(total * (1 - target))
+          remaining = max(0, allowed - failed)
+          if allowed == 0:
+              burned = 100.0 if failed else 0.0
+          else:
+              burned = round(failed / allowed * 100, 1)
+          return {
+              "allowed": allowed, "used": failed,
+              "remaining": remaining, "burned_percent": burned,
+          }
+
+
+      def should_page(budget, elapsed_fraction):
+          return budget["burned_percent"] / 100 > 2 * elapsed_fraction
+      ```
+
+      The `2 *` is the part worth remembering. Alerting on "any errors" pages
+      you constantly; alerting on "budget exhausted" pages you once it is too
+      late. Burn rate catches the trajectory, which is the only alert a human
+      can actually act on.
+
+  # ---------------------------------------------------------- system design
+  - slug: consistent-hash-ring
+    concept: system-design-basics
+    title: A consistent hash ring
+    tagline: Add a server without reshuffling every key in the cache.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 60
+    xp_reward: 180
+    brief_md: |
+      Shard by `hash(key) % n` and adding one server remaps almost every key.
+      For a cache that means a near-total miss storm, and near-total miss
+      storms take databases down. Consistent hashing is the standard answer,
+      and it is small enough to write from scratch.
+
+      Implement `HashRing` in `solution.py`.
+
+      - `__init__(nodes, replicas=100)` — place each node at `replicas` points
+        around the ring. A point's position is `hash_key(f"{node}:{i}")` for
+        `i` in `range(replicas)`. `hash_key` is given to you — use it, so your
+        ring matches the tests.
+      - `get_node(key)` — hash the key, then return the node owning the first
+        ring position **clockwise** (i.e. the smallest position `>=` the key's
+        hash), wrapping to the first position when the key hashes past the end.
+      - `add_node(node)` / `remove_node(node)` — update the ring in place.
+
+      The virtual-node trick (`replicas`) is what keeps the distribution even.
+      With one point per node, a three-node ring routinely gives one node half
+      the keyspace.
+    must_contain:
+      - "class HashRing"
+      - "bisect"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import bisect
+          import hashlib
+
+
+          def hash_key(value: str) -> int:
+              """Stable 32-bit hash. Use this everywhere so positions match."""
+              digest = hashlib.md5(value.encode()).hexdigest()
+              return int(digest[:8], 16)
+
+
+          class HashRing:
+              """Consistent hashing with virtual nodes."""
+
+              def __init__(self, nodes: list[str] | None = None, replicas: int = 100):
+                  self.replicas = replicas
+                  self._positions = []          # sorted ring positions
+                  self._nodes = {}              # position -> node
+                  for node in nodes or []:
+                      self.add_node(node)
+
+              def add_node(self, node: str) -> None:
+                  raise NotImplementedError
+
+              def remove_node(self, node: str) -> None:
+                  raise NotImplementedError
+
+              def get_node(self, key: str):
+                  raise NotImplementedError
+    tests:
+      - name: An empty ring owns nothing
+        code: |
+          assert HashRing([]).get_node("anything") is None
+      - name: A single node owns every key
+        code: |
+          ring = HashRing(["a"], replicas=10)
+          assert all(ring.get_node(f"key-{i}") == "a" for i in range(50))
+      - name: Lookups are stable
+        code: |
+          ring = HashRing(["a", "b", "c"], replicas=50)
+          first = {f"key-{i}": ring.get_node(f"key-{i}") for i in range(200)}
+          again = {f"key-{i}": ring.get_node(f"key-{i}") for i in range(200)}
+          assert first == again
+          assert set(first.values()) == {"a", "b", "c"}, "all three nodes should get keys"
+      - name: Adding a node moves only a fraction of the keys
+        hidden: true
+        code: |
+          ring = HashRing(["a", "b", "c"], replicas=100)
+          keys = [f"key-{i}" for i in range(1000)]
+          before = {k: ring.get_node(k) for k in keys}
+
+          ring.add_node("d")
+          after = {k: ring.get_node(k) for k in keys}
+          moved = sum(1 for k in keys if before[k] != after[k])
+
+          # Ideally 1/4 of keys move. Modulo sharding would move ~3/4.
+          assert moved < len(keys) * 0.45, f"{moved}/1000 keys moved — too many"
+          assert moved > 0, "adding a node should move some keys"
+      - name: Removing a node re-homes only its keys
+        hidden: true
+        code: |
+          ring = HashRing(["a", "b", "c"], replicas=100)
+          keys = [f"key-{i}" for i in range(1000)]
+          before = {k: ring.get_node(k) for k in keys}
+
+          ring.remove_node("c")
+          after = {k: ring.get_node(k) for k in keys}
+
+          assert "c" not in set(after.values())
+          for k in keys:
+              if before[k] != "c":
+                  assert after[k] == before[k], f"{k} moved but did not have to"
+      - name: A key hashing past the last position wraps around
+        hidden: true
+        code: |
+          ring = HashRing(["a", "b"], replicas=5)
+          assert ring.get_node("k") in {"a", "b"}
+          assert ring._positions == sorted(ring._positions), "the ring must stay sorted"
+    solution_md: |
+      ```python
+      def add_node(self, node):
+          for i in range(self.replicas):
+              position = hash_key(f"{node}:{i}")
+              if position not in self._nodes:
+                  bisect.insort(self._positions, position)
+                  self._nodes[position] = node
+
+
+      def remove_node(self, node):
+          for i in range(self.replicas):
+              position = hash_key(f"{node}:{i}")
+              if self._nodes.get(position) == node:
+                  del self._nodes[position]
+                  index = bisect.bisect_left(self._positions, position)
+                  self._positions.pop(index)
+
+
+      def get_node(self, key):
+          if not self._positions:
+              return None
+          index = bisect.bisect_left(self._positions, hash_key(key))
+          if index == len(self._positions):
+              index = 0                      # wrap around the ring
+          return self._nodes[self._positions[index]]
+      ```
+
+      `bisect` on a sorted list gives O(log n) lookups, and the wrap is the one
+      line that makes it a ring rather than a line. This is, give or take
+      replication factor, how Cassandra and DynamoDB decide which node holds
+      your row.
