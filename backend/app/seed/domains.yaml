@@ -1,0 +1,203 @@
+# Top-level areas of study. `icon` is a lucide-react component name and `color`
+# a Tailwind class — the Explore page renders straight from these rows.
+#
+# `has_content` is NOT set here: the loader turns it on only for domains that
+# actually have a track, so the UI can honestly say "Coming soon" for the rest.
+
+domains:
+  # --- Technology ---
+  - slug: frontend
+    name: Frontend
+    category: Technology
+    icon: Monitor
+    color: text-blue-500
+    description: Build the interfaces people actually touch — HTML, CSS, JavaScript and modern component frameworks.
+
+  - slug: backend
+    name: Backend
+    category: Technology
+    icon: Server
+    color: text-green-500
+    description: Design the APIs, databases and services that power applications behind the scenes.
+
+  - slug: fullstack
+    name: Full Stack
+    category: Technology
+    icon: Layers
+    color: text-indigo-500
+    description: Own a feature end to end, from the database schema to the button the user clicks.
+
+  - slug: ai
+    name: Artificial Intelligence
+    category: Technology
+    icon: Cpu
+    color: text-purple-500
+    description: Build systems that learn — from classical models to deep learning and LLM applications.
+
+  - slug: ml
+    name: Machine Learning
+    category: Technology
+    icon: BrainCircuit
+    color: text-fuchsia-500
+    description: The mathematics, algorithms and evaluation discipline behind predictive models.
+
+  - slug: data
+    name: Data Science
+    category: Technology
+    icon: Database
+    color: text-yellow-500
+    description: Turn raw data into decisions with statistics, analysis and communication.
+
+  - slug: cloud
+    name: Cloud Computing
+    category: Technology
+    icon: Cloud
+    color: text-sky-500
+    description: Run software on someone else's computers, reliably and affordably.
+
+  - slug: cyber
+    name: Cybersecurity
+    category: Technology
+    icon: Shield
+    color: text-red-500
+    description: Find and fix the ways systems break under an adversary.
+
+  - slug: web3
+    name: Blockchain
+    category: Technology
+    icon: Blocks
+    color: text-orange-500
+    description: Distributed ledgers, smart contracts and the systems built on them.
+
+  - slug: mobile
+    name: Mobile Development
+    category: Technology
+    icon: Smartphone
+    color: text-pink-500
+    description: Ship apps to iOS and Android, natively or cross-platform.
+
+  - slug: game
+    name: Game Development
+    category: Technology
+    icon: Gamepad
+    color: text-violet-500
+    description: Engines, real-time rendering, physics and game feel.
+
+  - slug: devops
+    name: DevOps
+    category: Technology
+    icon: Network
+    color: text-teal-500
+    description: Automate the path from a commit to production, and keep it healthy there.
+
+  - slug: embedded
+    name: Embedded Systems
+    category: Technology
+    icon: Zap
+    color: text-amber-500
+    description: Software that runs on constrained hardware, close to the metal.
+
+  # --- Design ---
+  - slug: uiux
+    name: UI/UX Design
+    category: Design
+    icon: Layout
+    color: text-rose-500
+    description: Research, interaction design and interface craft that makes products usable.
+
+  - slug: graphic
+    name: Graphic Design
+    category: Design
+    icon: PenTool
+    color: text-emerald-500
+    description: Typography, layout, colour and brand systems.
+
+  # --- Engineering ---
+  - slug: mech
+    name: Mechanical Engineering
+    category: Engineering
+    icon: Wrench
+    color: text-slate-500
+    description: Mechanics, thermodynamics, materials and machine design.
+
+  - slug: civil
+    name: Civil Engineering
+    category: Engineering
+    icon: Building2
+    color: text-stone-500
+    description: Structures, geotechnics, transportation and construction management.
+
+  - slug: chemical
+    name: Chemical Engineering
+    category: Engineering
+    icon: FlaskConical
+    color: text-lime-500
+    description: Process design, reaction engineering and transport phenomena.
+
+  # --- Education ---
+  - slug: exams
+    name: Competitive Exams
+    category: Education
+    icon: GraduationCap
+    color: text-cyan-500
+    description: Structured preparation for GATE, UPSC, CAT and similar exams.
+
+  # --- Business ---
+  - slug: finance
+    name: Finance
+    category: Business
+    icon: DollarSign
+    color: text-green-600
+    description: Markets, valuation, accounting and personal investing.
+
+  - slug: marketing
+    name: Marketing
+    category: Business
+    icon: BarChart
+    color: text-blue-600
+    description: Positioning, channels, analytics and growth.
+
+  - slug: entrepreneur
+    name: Entrepreneurship
+    category: Business
+    icon: Briefcase
+    color: text-amber-600
+    description: Finding a problem worth solving and building a business around it.
+
+  # --- Creative ---
+  - slug: photo
+    name: Photography
+    category: Creative
+    icon: Camera
+    color: text-zinc-500
+    description: Exposure, composition, light and post-processing.
+
+  - slug: video
+    name: Video Editing
+    category: Creative
+    icon: Video
+    color: text-red-600
+    description: Story structure, pacing, colour and sound for moving images.
+
+  - slug: music
+    name: Music Production
+    category: Creative
+    icon: Music
+    color: text-indigo-400
+    description: Composition, recording, mixing and mastering.
+
+  # --- Languages ---
+  - slug: languages
+    name: Languages
+    category: Languages
+    icon: Globe
+    color: text-sky-400
+    description: Acquire a new language through structured practice and immersion.
+
+  # --- Health ---
+  - slug: fitness
+    name: Fitness & Nutrition
+    category: Health
+    icon: Dumbbell
+    color: text-orange-400
+    description: Training principles, programming and evidence-based nutrition.

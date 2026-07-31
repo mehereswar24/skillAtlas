@@ -1,0 +1,274 @@
+track:
+  slug: photography
+  title: Learn Photography
+  domain: photo
+  target_role: Photographer
+  difficulty: beginner
+  description: >-
+    Exposure, light and composition, then editing — the three things that
+    separate a snapshot from a photograph, whatever camera you own.
+
+concepts:
+  - slug: exposure-and-camera
+    name: Exposure & Camera Control
+    domain: photo
+    est_hours: 20
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Aperture, shutter speed and ISO — the triangle, and what each one costs
+      you besides brightness.
+    content_md: |
+      Three controls set brightness, and each has a side effect that is usually
+      the real reason to choose it.
+
+      **Aperture** (f-number) controls how much light enters and, crucially,
+      depth of field. A wide aperture (f/1.8) gives a shallow plane of focus and
+      a blurred background; a narrow one (f/11) keeps more sharp. Smaller
+      f-numbers mean wider openings, which is the counterintuitive part.
+
+      **Shutter speed** controls duration and therefore motion. Fast (1/1000s)
+      freezes; slow (1/15s) blurs movement and shows camera shake. The old rule
+      of thumb: hand-hold no slower than one over the focal length.
+
+      **ISO** is sensitivity. Raising it lets you shoot in less light and adds
+      noise. Modern sensors handle high ISO far better than they used to — a
+      slightly noisy sharp photo beats a clean blurred one every time.
+
+      **They trade against each other.** Open up a stop and you can halve the
+      shutter time. Deciding which control to spend your light on *is* the
+      photographic decision.
+
+      **Shoot raw** if you intend to edit: it keeps far more highlight and shadow
+      information than JPEG, which throws it away permanently.
+    resources:
+      - kind: doc
+        title: "Cambridge in Colour — photography tutorials"
+        url: https://www.cambridgeincolour.com/tutorials.htm
+        provider: Cambridge in Colour
+        duration_min: 300
+      - kind: course
+        title: "Exposure simulator — practise before you shoot"
+        url: https://www.canonoutsideofauto.ca/play/
+        provider: Canon
+        duration_min: 60
+      - kind: video
+        title: "Photography basics playlists"
+        url: https://www.youtube.com/@TonyAndChelsea
+        provider: YouTube
+        duration_min: 240
+    quiz:
+      - prompt: You want a blurred background. Which setting?
+        explanation: A wide aperture (low f-number) gives shallow depth of field.
+        options:
+          - text: "A wide aperture such as f/1.8"
+            correct: true
+          - text: "A narrow aperture such as f/16"
+          - text: "A high ISO"
+          - text: "A slow shutter speed"
+      - prompt: Photos of a running dog come out blurred. What do you change first?
+        explanation: Increase shutter speed to freeze motion, accepting higher ISO or a wider aperture to compensate.
+        options:
+          - text: "A faster shutter speed"
+            correct: true
+          - text: "A lower ISO"
+          - text: "A narrower aperture"
+          - text: "A longer lens"
+      - prompt: Why shoot raw rather than JPEG?
+        explanation: Raw preserves far more tonal information, so highlights and shadows can be recovered in editing.
+        options:
+          - text: "It retains much more highlight and shadow detail for editing"
+            correct: true
+          - text: "The files are smaller"
+          - text: "It applies sharpening automatically"
+          - text: "It is required for printing"
+    interview:
+      - question: Indoors at a party with no flash — what settings do you start from?
+        difficulty: easy
+        answer_md: |
+          Open the aperture as wide as the lens allows to gather light and
+          separate subjects from a messy background. Set shutter speed to the
+          slowest that still freezes people — around 1/125s for casual movement,
+          faster if anyone is dancing. Then raise ISO to whatever that requires
+          and accept the noise; noise is fixable in editing and motion blur is
+          not. If the light is truly hopeless, find a window, a lamp, or bounce a
+          flash off the ceiling rather than firing it directly.
+
+  - slug: light-and-composition
+    name: Light & Composition
+    domain: photo
+    est_hours: 25
+    difficulty: beginner
+    prerequisites:
+      - exposure-and-camera
+    summary: >-
+      Seeing light and arranging the frame — the part that actually makes
+      photographs good.
+    content_md: |
+      Technically correct photographs are easy. Interesting ones come from light
+      and arrangement.
+
+      **Light has direction, quality and colour.** Front light is flat and safe.
+      Side light reveals texture and shape. Back light produces silhouettes and
+      rim light. Quality is hard (small source, sharp shadows) or soft (large or
+      diffused source, gradual shadows) — which is why an overcast sky is a giant
+      softbox and midday sun is unflattering. Golden hour is beloved because it
+      is soft, directional and warm all at once.
+
+      **Composition is subtraction.** The most common improvement is removing
+      something. Get closer, change angle, wait for the distraction to leave.
+
+      **Guidelines, not rules.** Rule of thirds, leading lines, framing, symmetry,
+      and negative space. Learn them, then break them deliberately.
+
+      **Watch the background** — it ruins more photographs than any other single
+      factor. A pole growing out of someone's head is a step to the left away
+      from not existing.
+
+      **Perspective.** Shooting from eye level is a default, not a decision.
+      Kneel, climb, get close with a wide lens or compress with a long one; the
+      change in perspective is usually more interesting than the change in
+      subject.
+    resources:
+      - kind: book
+        title: "Understanding Exposure"
+        url: https://www.penguinrandomhouse.com/books/220725/understanding-exposure-fourth-edition-by-bryan-peterson/
+        provider: Bryan Peterson
+        is_free: false
+        duration_min: 300
+      - kind: doc
+        title: "Composition techniques"
+        url: https://www.cambridgeincolour.com/tutorials/composition.htm
+        provider: Cambridge in Colour
+        duration_min: 90
+      - kind: project
+        title: "One subject, twenty photographs — a perspective exercise"
+        url: https://www.magnumphotos.com/theory-and-practice/
+        provider: Magnum Photos
+        duration_min: 180
+    quiz:
+      - prompt: What makes light "soft"?
+        explanation: A large or diffused source relative to the subject produces gradual shadow transitions.
+        options:
+          - text: "A large or diffused source relative to the subject"
+            correct: true
+          - text: "Low intensity"
+          - text: "A warm colour temperature"
+          - text: "Being directly overhead"
+      - prompt: The single most common way to improve a composition is:
+        explanation: Remove something. Most weak photographs contain too much rather than too little.
+        options:
+          - text: "Remove distracting elements — get closer or change angle"
+            correct: true
+          - text: "Add a foreground object"
+          - text: "Increase saturation"
+          - text: "Use a wider lens"
+      - prompt: Why is midday sun considered difficult?
+        explanation: It is hard, overhead light producing harsh shadows under the eyes and nose and blown highlights.
+        options:
+          - text: "It is hard and overhead, producing harsh unflattering shadows"
+            correct: true
+          - text: "It is too warm in colour"
+          - text: "It requires a tripod"
+          - text: "Cameras cannot meter it"
+    interview:
+      - question: How would you improve someone's holiday snapshots without them buying anything?
+        difficulty: easy
+        answer_md: |
+          Three changes, in order of impact. First, light: shoot early or late
+          rather than at midday, and put the sun behind or to the side of the
+          subject rather than in their eyes. Second, get closer and check the
+          background — most snapshots are a small subject in a cluttered frame.
+          Third, change height: crouch or climb rather than shooting everything
+          from standing eye level. None of that needs equipment, and together they
+          change more than any camera upgrade would.
+
+  - slug: photo-editing-and-workflow
+    name: Editing & Workflow
+    domain: photo
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - light-and-composition
+    summary: >-
+      A repeatable develop process, colour and tone, and managing a library you
+      can still search in five years.
+    content_md: |
+      Editing is part of photography, not a rescue operation. The raw file is a
+      negative; developing it is where the intent is finished.
+
+      **Work in a consistent order** so results are repeatable: correct lens and
+      perspective, crop and straighten, set white balance, set exposure and
+      contrast, recover highlights and lift shadows, adjust colour, then sharpen
+      and reduce noise last — sharpening before noise reduction amplifies the
+      noise.
+
+      **Global before local.** Fix the whole image, then use masks for the parts
+      that still need attention. Modern subject and sky masking makes selective
+      work fast.
+
+      **Restraint.** The signatures of over-editing are crushed blacks, halos
+      around high-contrast edges, oversaturated skin, and heavy clarity that
+      makes everything look grubby. Step away and look again before exporting.
+
+      **Colour.** White balance sets the mood as much as accuracy — warm reads
+      inviting, cool reads clinical. Calibrate your monitor if colour matters,
+      and edit at a consistent brightness.
+
+      **Workflow.** Import with a consistent folder structure, back up in at
+      least two places with one off-site, keyword and rate as you go, and keep
+      export presets per destination. The library you cannot search is a library
+      you have effectively lost.
+    resources:
+      - kind: doc
+        title: "Adobe — Lightroom tutorials"
+        url: https://helpx.adobe.com/lightroom-cc/tutorials.html
+        provider: Adobe
+        duration_min: 240
+      - kind: doc
+        title: "Darktable — free raw developer documentation"
+        url: https://docs.darktable.org/usermanual/stable/en/
+        provider: darktable
+        duration_min: 300
+      - kind: doc
+        title: "Monitor calibration and colour management"
+        url: https://www.cambridgeincolour.com/tutorials/monitor-calibration.htm
+        provider: Cambridge in Colour
+        duration_min: 60
+    quiz:
+      - prompt: Why should sharpening come after noise reduction?
+        explanation: Sharpening amplifies whatever is present, including noise, so reducing noise first avoids emphasising it.
+        options:
+          - text: "Sharpening amplifies noise, so it must be reduced first"
+            correct: true
+          - text: "It is faster that way"
+          - text: "Sharpening changes the white balance"
+          - text: "Noise reduction removes sharpening"
+      - prompt: Which is a tell-tale sign of over-editing?
+        explanation: Halos along high-contrast edges come from excessive clarity, sharpening or HDR processing.
+        options:
+          - text: "Halos along high-contrast edges"
+            correct: true
+          - text: "A neutral white balance"
+          - text: "Visible grain"
+          - text: "A wide dynamic range"
+      - prompt: What is the minimum sensible backup strategy?
+        explanation: At least two copies, one of them off-site, so a single failure or theft does not lose the archive.
+        options:
+          - text: "Two copies, at least one off-site"
+            correct: true
+          - text: "One external drive"
+          - text: "The camera's memory card"
+          - text: "A single cloud folder"
+    interview:
+      - question: How do you develop a consistent personal style?
+        difficulty: medium
+        answer_md: |
+          Style comes from repeated decisions, not a preset. Shoot a lot in
+          similar conditions and notice what you keep returning to — a kind of
+          light, a distance from the subject, a colour temperature, a crop.
+          Then make those choices deliberately and build presets or a develop
+          starting point that encodes them, refined over time rather than
+          downloaded. Edit a body of work in one sitting so it hangs together,
+          and edit ruthlessly — a consistent style is as much about what you
+          discard as what you publish.

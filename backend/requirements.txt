@@ -1,0 +1,39 @@
+# SkillAtlas backend — Python 3.13
+# Install:  .\venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# --- web framework ---
+fastapi==0.140.13
+uvicorn[standard]==0.51.0
+python-multipart==0.0.20
+
+# --- config / validation ---
+pydantic==2.13.4
+pydantic-settings==2.7.1
+# EmailStr validation in app/schemas/auth.py
+email-validator==2.2.0
+python-dotenv==1.2.2
+
+# --- database ---
+SQLAlchemy==2.0.51
+alembic==1.14.1
+
+# --- auth ---
+# bcrypt is used directly (not via passlib, which is unmaintained and
+# breaks against bcrypt >= 4.1 with a __about__ AttributeError).
+bcrypt==4.2.1
+PyJWT==2.10.1
+
+# --- content seeding / AI ---
+PyYAML==6.0.2
+numpy==2.2.1
+httpx==0.28.1
+
+# --- tests ---
+pytest==8.3.4
+pytest-asyncio==0.25.2
+
+# NOTE: neo4j, redis and celery were removed. The knowledge graph is stored
+# relationally and traversed in Python (app/services/graph.py); there is no
+# broker available on this machine. Postgres support is retained through
+# SQLAlchemy — set DATABASE_URL and install psycopg2-binary to switch.
+# psycopg2-binary==2.9.12

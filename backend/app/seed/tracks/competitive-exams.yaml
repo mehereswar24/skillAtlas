@@ -1,0 +1,284 @@
+track:
+  slug: competitive-exams
+  title: Crack Competitive Exams
+  domain: exams
+  target_role: Exam Candidate
+  difficulty: intermediate
+  description: >-
+    A method rather than a syllabus: evidence-based study technique, aptitude
+    and reasoning, and the exam-day strategy that turns preparation into marks.
+    Applies to GATE, CAT, UPSC and similar exams.
+
+concepts:
+  - slug: study-technique
+    name: Evidence-Based Study Technique
+    domain: exams
+    est_hours: 20
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Retrieval practice, spaced repetition and interleaving — the methods that
+      actually work, and the popular ones that do not.
+    content_md: |
+      Most study time is wasted on techniques that feel productive and are not.
+      The research here is unusually clear.
+
+      **Retrieval practice beats review.** Testing yourself on material is
+      dramatically more effective than re-reading it. Re-reading produces
+      *fluency* — the comfortable feeling of recognition — which the brain
+      mistakes for knowledge. Close the book and write down what you remember;
+      the struggle is the mechanism, not a sign of failure.
+
+      **Spacing beats cramming.** The same total hours distributed over weeks
+      produce far more durable recall than a block the night before. Spaced
+      repetition software automates the schedule, expanding the interval each
+      time you succeed.
+
+      **Interleaving beats blocking.** Mixing problem types in a session is
+      harder and feels worse than doing twenty of the same type, and it produces
+      much better transfer — because on the exam you must first work out *which*
+      method applies, and blocked practice never trains that.
+
+      **Highlighting and re-reading are the two most popular and least effective
+      techniques.** So is passively watching lectures.
+
+      **Sleep is study time.** Consolidation happens overnight; a sacrificed
+      night of sleep costs more than the hours it bought.
+    resources:
+      - kind: book
+        title: "Make It Stick: The Science of Successful Learning"
+        url: https://www.hup.harvard.edu/books/9780674729018
+        provider: Brown, Roediger & McDaniel
+        is_free: false
+        duration_min: 600
+      - kind: doc
+        title: "The Learning Scientists — evidence-based strategies"
+        url: https://www.learningscientists.org/downloadable-materials
+        provider: The Learning Scientists
+        duration_min: 120
+      - kind: doc
+        title: "Anki — spaced repetition manual"
+        url: https://docs.ankiweb.net/
+        provider: Anki
+        duration_min: 120
+    quiz:
+      - prompt: Why is re-reading a chapter a poor use of study time?
+        explanation: It builds fluency that feels like knowledge but does not produce durable recall; retrieval practice does.
+        options:
+          - text: "It creates a feeling of familiarity that is mistaken for knowing"
+            correct: true
+          - text: "It takes too long"
+          - text: "It works only for maths"
+          - text: "It causes forgetting"
+      - prompt: What does interleaving train that blocked practice does not?
+        explanation: Choosing the right method for an unlabelled problem — exactly what an exam requires.
+        options:
+          - text: "Deciding which technique a problem calls for"
+            correct: true
+          - text: "Speed of arithmetic"
+          - text: "Handwriting"
+          - text: "Reading comprehension"
+      - prompt: Two candidates study 40 hours each — one over four weeks, one in four days. Who retains more?
+        explanation: Spacing produces substantially better long-term retention for the same total time.
+        options:
+          - text: "The one who spread it over four weeks"
+            correct: true
+          - text: "The one who crammed"
+          - text: "No difference"
+          - text: "Depends only on the subject"
+    interview:
+      - question: How would you plan six months of preparation for a competitive exam?
+        difficulty: medium
+        answer_md: |
+          Work backwards from the exam. Months 1-3: cover the syllabus once with
+          active recall and build a spaced-repetition deck as you go. Months 4-5:
+          topic-wise practice at exam difficulty, interleaved, with an error log
+          that records *why* each mistake happened — concept gap, careless slip,
+          or misread question — because the three need different fixes.
+          Month 6: full-length mocks under real timing at the same time of day as
+          the exam, followed by analysis that is longer than the mock itself.
+          Throughout: weekly review of the error log, sleep protected, and a
+          fixed weekly plan rather than deciding each morning.
+
+  - slug: quantitative-aptitude
+    name: Quantitative Aptitude & Reasoning
+    domain: exams
+    est_hours: 60
+    difficulty: intermediate
+    prerequisites:
+      - study-technique
+    summary: >-
+      Arithmetic, algebra, data interpretation and logical reasoning — done
+      fast, under pressure, without a calculator.
+    content_md: |
+      Aptitude sections test speed and accuracy on material that is not
+      intrinsically difficult. That makes technique worth more than talent.
+
+      **Arithmetic fluency.** Percentages, ratios, averages, time-speed-distance,
+      time-and-work, profit and loss. Learn squares to 30, cubes to 15, fraction
+      to percentage conversions, and multiplication shortcuts. Every second saved
+      on arithmetic is a second available for the hard question.
+
+      **Approximate deliberately.** Most options are far apart. Estimating to one
+      significant figure eliminates three choices in seconds — exact computation
+      is often wasted effort.
+
+      **Data interpretation** rewards reading the question before the chart.
+      Check units, scales and footnotes; the trap is usually there rather than in
+      the arithmetic.
+
+      **Logical reasoning.** Seating arrangements, blood relations, syllogisms,
+      series. Draw a diagram — trying to hold arrangements in your head is where
+      accuracy collapses.
+
+      **Question selection is the actual skill.** Every question is worth the
+      same, so the correct strategy is to take three easy marks rather than one
+      hard one. Scan, solve what is quick, mark the rest, and return. Knowing
+      when to abandon a question is worth more than any shortcut.
+
+      **Watch negative marking.** A wild guess is negative expected value; an
+      informed guess between two remaining options usually is not.
+    resources:
+      - kind: doc
+        title: "Khan Academy — arithmetic, algebra and ratios"
+        url: https://www.khanacademy.org/math
+        provider: Khan Academy
+        duration_min: 900
+      - kind: doc
+        title: "Art of Problem Solving — resources and practice"
+        url: https://artofproblemsolving.com/resources
+        provider: AoPS
+        duration_min: 600
+      - kind: project
+        title: "Timed sectional practice with an error log"
+        url: https://www.learningscientists.org/retrieval-practice
+        provider: The Learning Scientists
+        duration_min: 900
+    quiz:
+      - prompt: Under negative marking, when is guessing worthwhile?
+        explanation: Once you have eliminated options, the expected value of a guess turns positive; a blind guess across four options usually does not.
+        options:
+          - text: "After eliminating enough options that the expected value turns positive"
+            correct: true
+          - text: "Never"
+          - text: "Always — an attempt is better than a blank"
+          - text: "Only in the last five minutes"
+      - prompt: What is the highest-leverage habit in a timed aptitude section?
+        explanation: Question selection. All marks are equal, so spending time proportionally on easy questions maximises the score.
+        options:
+          - text: "Choosing which questions to attempt and when to abandon one"
+            correct: true
+          - text: "Solving every question in order"
+          - text: "Memorising more formulae"
+          - text: "Writing neatly"
+      - prompt: In data interpretation, where is the trap most often placed?
+        explanation: In the units, scale or footnote of the chart rather than in the arithmetic itself.
+        options:
+          - text: "In the units, axis scale or a footnote"
+            correct: true
+          - text: "In the arithmetic"
+          - text: "In the answer options"
+          - text: "In the chart colours"
+    interview:
+      - question: You consistently run out of time in the quantitative section. What do you change?
+        difficulty: medium
+        answer_md: |
+          Almost always a selection problem rather than a speed problem. Track
+          where the minutes go in a mock: candidates typically lose ten minutes
+          to two questions they refused to abandon. Impose a hard per-question
+          time limit and a two-pass strategy — first pass takes everything quick,
+          second pass returns to the marked ones. Separately, build arithmetic
+          fluency so routine calculation stops consuming attention, and practise
+          estimating rather than computing exactly. Then re-measure: accuracy per
+          minute is the metric, not questions attempted.
+
+  - slug: exam-strategy
+    name: Mock Tests & Exam Strategy
+    domain: exams
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - quantitative-aptitude
+    summary: >-
+      Simulating the real thing, analysing mocks properly, and managing nerves
+      on the day.
+    content_md: |
+      Preparation converts into marks only under exam conditions, and that is a
+      separate skill you have to practise.
+
+      **Mocks must be realistic** — full length, correct timing, same time of
+      day, no pauses, no phone. A mock taken comfortably in three sittings
+      measures nothing useful.
+
+      **The analysis matters more than the mock.** Spend longer reviewing than
+      taking it. For every wrong answer, classify the cause: concept not known,
+      concept known but misapplied, careless error, misread question, or ran out
+      of time. Each demands a different response, and lumping them together as
+      "silly mistakes" guarantees they repeat. Also review questions you got
+      right by guessing — those are unrecorded gaps.
+
+      **Track the trend, not the score.** One mock is noise. What matters is
+      accuracy and attempt rate moving over several.
+
+      **Exam day.** Sleep and food beat last-minute revision, which mostly
+      generates anxiety. Arrive early. Read instructions carefully — marking
+      schemes and section locks vary. Do a first pass for confidence and marks,
+      then return to the marked questions.
+
+      **Nerves are physiological.** Slow breathing genuinely lowers arousal. A
+      bad first section is recoverable; deciding it is not is what actually loses
+      the exam.
+    resources:
+      - kind: doc
+        title: "The Learning Scientists — retrieval and practice testing"
+        url: https://www.learningscientists.org/retrieval-practice
+        provider: The Learning Scientists
+        duration_min: 90
+      - kind: article
+        title: "Test anxiety: evidence-based approaches"
+        url: https://www.apa.org/topics/testing-assessment-measurement/test-anxiety
+        provider: APA
+        duration_min: 45
+      - kind: doc
+        title: "Anki — building a revision deck from your error log"
+        url: https://docs.ankiweb.net/getting-started.html
+        provider: Anki
+        duration_min: 60
+    quiz:
+      - prompt: What is the most valuable part of taking a mock test?
+        explanation: The structured analysis afterwards — the mock only generates the data.
+        options:
+          - text: "The analysis of what went wrong and why"
+            correct: true
+          - text: "The score"
+          - text: "The rank"
+          - text: "Finishing early"
+      - prompt: Why review questions you answered correctly by guessing?
+        explanation: A lucky guess hides a genuine gap that will not be lucky next time.
+        options:
+          - text: "A correct guess conceals a real knowledge gap"
+            correct: true
+          - text: "To improve your guessing"
+          - text: "It is not worth reviewing them"
+          - text: "To calculate the percentile"
+      - prompt: Your score drops on one mock. What should you conclude?
+        explanation: Very little. A single result is noise; the trend across several is the signal.
+        options:
+          - text: "Little — one result is noise, watch the trend"
+            correct: true
+          - text: "That preparation has failed"
+          - text: "To change the entire study plan"
+          - text: "To stop taking mocks"
+    interview:
+      - question: How should someone analyse a mock test?
+        difficulty: easy
+        answer_md: |
+          Go through every question, not only the wrong ones. Classify each error
+          by cause — unknown concept, misapplied concept, calculation slip,
+          misread question, time pressure — and record it in a running error log
+          with the topic. Concept gaps go back into the revision deck; careless
+          errors need a process change such as re-reading the question stem or
+          slowing down on the final step; time issues need a selection strategy
+          change. Review questions answered correctly by guessing as if they were
+          wrong. Then measure whether the same category shrinks in the next mock;
+          if it does not, the fix was wrong.

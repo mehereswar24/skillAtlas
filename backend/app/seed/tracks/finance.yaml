@@ -1,0 +1,281 @@
+track:
+  slug: finance
+  title: Master Finance & Investing
+  domain: finance
+  target_role: Financial Analyst
+  difficulty: beginner
+  description: >-
+    Read a set of accounts, value an asset, and build a personal portfolio on
+    evidence rather than tips — accounting, valuation and markets.
+
+concepts:
+  - slug: accounting-fundamentals
+    name: Reading Financial Statements
+    domain: finance
+    est_hours: 30
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      The three statements, how they connect, and the ratios that tell you
+      whether a business is healthy.
+    content_md: |
+      Three statements describe any business, and they are linked. If you cannot
+      articulate the links, you cannot read accounts.
+
+      **The balance sheet** is a snapshot: assets = liabilities + equity. It
+      shows what is owned and owed at a moment in time.
+
+      **The income statement** covers a period: revenue less costs equals profit.
+      It is prepared on an accruals basis — revenue is recognised when earned,
+      not when cash arrives.
+
+      **The cash flow statement** reconciles the two, splitting operating,
+      investing and financing flows. It matters most, because profit is an
+      opinion shaped by accounting policy while cash is a fact. A profitable
+      company with negative operating cash flow is a company in trouble.
+
+      **The links:** net income flows into retained earnings on the balance
+      sheet and is the starting line of the cash flow statement; the closing cash
+      balance is a balance sheet asset.
+
+      **Ratios in context.** Liquidity (current ratio), leverage (debt to
+      equity, interest cover), profitability (gross and net margin, return on
+      equity), efficiency (inventory and receivable days). A ratio means nothing
+      alone — compare against the company's own history and its competitors.
+    resources:
+      - kind: course
+        title: "Khan Academy — accounting and financial statements"
+        url: https://www.khanacademy.org/economics-finance-domain/core-finance/accounting-and-financial-stateme
+        provider: Khan Academy
+        duration_min: 300
+      - kind: doc
+        title: "SEC — how to read a 10-K"
+        url: https://www.sec.gov/oiea/investor-alerts-and-bulletins/how-read-10-k
+        provider: SEC
+        duration_min: 60
+      - kind: doc
+        title: "Investopedia — financial statement analysis"
+        url: https://www.investopedia.com/terms/f/financial-statement-analysis.asp
+        provider: Investopedia
+        duration_min: 90
+    quiz:
+      - prompt: A company reports strong profit but negative operating cash flow. What does that suggest?
+        explanation: Profit is being recognised without cash arriving — often ballooning receivables or inventory, and a classic warning sign.
+        options:
+          - text: "Earnings are not converting to cash — check receivables and inventory"
+            correct: true
+          - text: "The company is growing healthily"
+          - text: "It has repaid debt"
+          - text: "Nothing; the two are unrelated"
+      - prompt: The balance sheet equation is:
+        explanation: Assets equal liabilities plus equity, always, by construction.
+        options:
+          - text: "Assets = Liabilities + Equity"
+            correct: true
+          - text: "Assets = Revenue − Costs"
+          - text: "Equity = Assets + Liabilities"
+          - text: "Cash = Profit"
+      - prompt: Why is a single ratio meaningless in isolation?
+        explanation: Ratios only inform when compared against the company's own trend and its industry peers.
+        options:
+          - text: "It only informs when compared with history and peers"
+            correct: true
+          - text: "Ratios are always misleading"
+          - text: "They change daily"
+          - text: "They are not audited"
+    interview:
+      - question: How would you assess whether a company can survive a downturn?
+        difficulty: medium
+        answer_md: |
+          Start with liquidity and the debt maturity profile: how much cash, what
+          is undrawn, and when does debt fall due — a solvent company can still
+          fail if refinancing lands in a bad month. Check interest cover against
+          plausible earnings declines and whether covenants would be breached.
+          Look at the fixed versus variable cost split, because a high fixed-cost
+          base makes revenue falls hit disproportionately. Then examine operating
+          cash conversion and working capital: a business that consumes cash as
+          it shrinks is in a very different position from one that releases it.
+
+  - slug: valuation-and-corporate-finance
+    name: Valuation & Corporate Finance
+    domain: finance
+    est_hours: 35
+    difficulty: intermediate
+    prerequisites:
+      - accounting-fundamentals
+    summary: >-
+      Time value of money, discounted cash flow, multiples and cost of capital —
+      what an asset is actually worth.
+    content_md: |
+      Valuation rests on one idea: an asset is worth the present value of the
+      cash it will produce.
+
+      **Time value of money.** A pound today is worth more than a pound next
+      year, because it can be invested and because the future is uncertain.
+      Discounting converts future cash flows into today's terms; compounding runs
+      the other way. Everything else in finance is a variation on this.
+
+      **Discounted cash flow.** Project free cash flows, discount at a rate
+      reflecting risk, and add a terminal value. Be honest that the terminal
+      value usually dominates the result — which means a DCF is largely a
+      statement about assumptions, and small changes in the growth or discount
+      rate move the answer enormously. Always show a sensitivity table.
+
+      **Cost of capital.** WACC blends the cost of debt (cheaper, tax-deductible,
+      but adds fixed obligations) and equity (more expensive, no obligation).
+      Higher risk means a higher discount rate means a lower value.
+
+      **Relative valuation.** P/E, EV/EBITDA and similar multiples are fast and
+      only meaningful against genuinely comparable companies. A "cheap" multiple
+      is frequently cheap for a reason.
+
+      **Corporate finance decisions** — invest, finance, distribute — all reduce
+      to whether the return exceeds the cost of capital.
+    resources:
+      - kind: doc
+        title: "Aswath Damodaran — valuation resources and lectures"
+        url: https://pages.stern.nyu.edu/~adamodar/
+        provider: NYU Stern
+        duration_min: 900
+      - kind: course
+        title: "Khan Academy — time value of money and stocks"
+        url: https://www.khanacademy.org/economics-finance-domain/core-finance
+        provider: Khan Academy
+        duration_min: 480
+      - kind: doc
+        title: "CFI — DCF modelling guide"
+        url: https://corporatefinanceinstitute.com/resources/valuation/dcf-model-training-free-guide/
+        provider: CFI
+        duration_min: 180
+    quiz:
+      - prompt: What usually dominates the output of a DCF?
+        explanation: The terminal value — which is why the growth and discount rate assumptions matter more than the projected years.
+        options:
+          - text: "The terminal value"
+            correct: true
+          - text: "The first year's cash flow"
+          - text: "The tax rate"
+          - text: "Working capital"
+      - prompt: All else equal, a higher discount rate produces:
+        explanation: Future cash flows are discounted more heavily, so present value falls.
+        options:
+          - text: "A lower valuation"
+            correct: true
+          - text: "A higher valuation"
+          - text: "No change"
+          - text: "A higher terminal growth rate"
+      - prompt: A company trades at a much lower P/E than its peers. What should you conclude?
+        explanation: Nothing yet — it may be mispriced, or the market may be pricing in a real problem. Investigate before assuming a bargain.
+        options:
+          - text: "Nothing yet — it may be cheap for a good reason"
+            correct: true
+          - text: "It is definitely undervalued"
+          - text: "It is definitely overvalued"
+          - text: "Its earnings are fraudulent"
+    interview:
+      - question: Two analysts value the same company and differ by 40%. How is that possible?
+        difficulty: medium
+        answer_md: |
+          Entirely normal, and it comes from assumptions rather than arithmetic.
+          Small differences in the discount rate, terminal growth, margin
+          trajectory or capital intensity compound into large differences in
+          present value — particularly through the terminal value. There may also
+          be different treatments of debt, leases, options and non-operating
+          assets, or a different peer set for the multiple cross-check. This is
+          why a valuation should be presented as a range with a sensitivity
+          table, not a single number: the honest output is "what has to be true
+          for this price to make sense".
+
+  - slug: markets-and-personal-investing
+    name: Markets & Personal Investing
+    domain: finance
+    est_hours: 25
+    difficulty: beginner
+    prerequisites:
+      - accounting-fundamentals
+    summary: >-
+      Asset classes, diversification, fees and the behavioural traps that cost
+      ordinary investors most of their returns.
+    content_md: |
+      For a personal portfolio, the evidence is unusually consistent and
+      unusually boring.
+
+      **Asset classes.** Equities offer the highest long-run return with the
+      largest drawdowns. Bonds are steadier and sensitive to interest rates —
+      when rates rise, existing bond prices fall. Cash is safe nominally and
+      loses to inflation. Property and commodities behave differently again.
+
+      **Risk and return are linked.** Anything offering high return with low risk
+      is either misunderstood or a fraud. Diversification is the only genuine
+      free lunch: uncorrelated assets reduce volatility without proportionally
+      reducing expected return.
+
+      **Fees compound against you.** A 1% annual fee sounds trivial and consumes
+      roughly a quarter of a portfolio's value over thirty years. Broad low-cost
+      index funds beat most active funds over long periods, after fees, and the
+      few that win are not identifiable in advance.
+
+      **Time in the market.** Missing the best handful of days destroys long-run
+      returns, and those days cluster near the worst ones — which is precisely
+      why market timing fails.
+
+      **Behaviour is the biggest variable.** Loss aversion, recency bias,
+      overconfidence and herding cause most of the gap between fund returns and
+      investor returns. An automated, written plan exists to protect you from
+      yourself.
+
+      *This is educational material, not financial advice.*
+    resources:
+      - kind: book
+        title: "A Random Walk Down Wall Street"
+        url: https://wwnorton.com/books/9781324051138
+        provider: Burton Malkiel
+        is_free: false
+        duration_min: 900
+      - kind: doc
+        title: "Bogleheads — investing philosophy"
+        url: https://www.bogleheads.org/wiki/Bogleheads%C2%AE_investment_philosophy
+        provider: Bogleheads
+        duration_min: 180
+      - kind: doc
+        title: "Morningstar — behavioural gap research"
+        url: https://www.morningstar.com/lp/mind-the-gap
+        provider: Morningstar
+        duration_min: 60
+    quiz:
+      - prompt: Why does a 1% annual fee matter so much?
+        explanation: It compounds against the whole balance every year, consuming a large share of terminal wealth over decades.
+        options:
+          - text: "It compounds over decades and consumes a large share of final value"
+            correct: true
+          - text: "It is charged on gains only"
+          - text: "It triggers extra tax"
+          - text: "It only matters for small portfolios"
+      - prompt: Interest rates rise sharply. What happens to existing bond prices?
+        explanation: They fall, because new bonds pay more and the old ones must be repriced to compete.
+        options:
+          - text: "They fall"
+            correct: true
+          - text: "They rise"
+          - text: "They are unaffected"
+          - text: "They become cash"
+      - prompt: Why does market timing usually fail for individual investors?
+        explanation: The best days cluster near the worst, so exiting during turmoil reliably misses the recovery.
+        options:
+          - text: "The best days cluster near the worst, so selling in turmoil misses the rebound"
+            correct: true
+          - text: "Brokers forbid it"
+          - text: "Markets are perfectly efficient"
+          - text: "Taxes make it impossible"
+    interview:
+      - question: A friend asks what to do with savings they will need in two years. What framework applies?
+        difficulty: easy
+        answer_md: |
+          Time horizon dictates asset allocation. Money needed in two years should
+          not sit in equities, because a 30% drawdown at the wrong moment is not
+          recoverable on that timeline — cash or short-duration instruments are
+          appropriate even though they lose slowly to inflation. Establish the
+          emergency fund and clear high-interest debt first, since paying off 20%
+          debt is a guaranteed 20% return. Long-horizon money is where equity risk
+          is worth taking. And be clear this is a framework, not personalised
+          advice — a licensed adviser is the right answer for anything material.

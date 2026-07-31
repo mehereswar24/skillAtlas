@@ -1,0 +1,1560 @@
+track:
+  slug: backend-developer
+  title: Become a Backend Developer
+  domain: backend
+  target_role: Backend Developer
+  difficulty: beginner
+  description: >-
+    Go from "I can write a script" to shipping and operating production APIs.
+    You will learn how the web actually moves data, how to model and query a
+    relational database, how to design and secure an HTTP API, and how to test,
+    containerise, deploy and observe it.
+
+concepts:
+  # ---------------------------------------------------------------- 1
+  - slug: internet-and-http
+    name: Internet Basics & HTTP
+    domain: backend
+    est_hours: 20
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      How a request travels from a browser to your server and back: DNS, TCP,
+      TLS, and the shape of HTTP messages.
+    content_md: |
+      Every backend job is, at bottom, the job of answering HTTP requests
+      correctly and quickly. Before you can do that well you need an accurate
+      mental model of what happens between someone typing a URL and your code
+      running.
+
+      **The journey.** The browser resolves the hostname to an IP address via
+      DNS, opens a TCP connection to that address on a port (443 for HTTPS),
+      performs a TLS handshake to agree on encryption, and only then sends an
+      HTTP request. Your server reads it, does work, and writes a response back
+      over the same connection. HTTP/2 and HTTP/3 change how bytes are framed
+      and multiplexed, but the request/response semantics stay the same.
+
+      **The message.** A request is a method (`GET`, `POST`, `PUT`, `PATCH`,
+      `DELETE`), a path, headers, and an optional body. A response is a status
+      code, headers, and an optional body. Learn the status families properly —
+      `2xx` succeeded, `3xx` go elsewhere, `4xx` the caller made a mistake,
+      `5xx` you made a mistake. Getting this wrong is one of the most common
+      API design errors: returning `200 OK` with `{"error": ...}` inside makes
+      every client's error handling harder.
+
+      **Idempotency and safety** matter more than they sound. `GET` must not
+      change state — caches and crawlers assume it. `PUT` and `DELETE` should
+      be safe to retry, which is what lets clients recover from timeouts.
+
+      **Statelessness** is the property that makes horizontal scaling possible:
+      each request carries everything needed to serve it, so any server in a
+      pool can answer it. Sessions are then something you store deliberately
+      (in a cookie, a token, or shared storage) rather than something the
+      protocol gives you.
+    resources:
+      - kind: doc
+        title: "MDN — An overview of HTTP"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview
+        provider: MDN
+        duration_min: 45
+      - kind: doc
+        title: "MDN — HTTP response status codes"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+        provider: MDN
+        duration_min: 30
+      - kind: book
+        title: "High Performance Browser Networking (free online)"
+        url: https://hpbn.co/
+        provider: Ilya Grigorik
+        duration_min: 600
+      - kind: article
+        title: "How DNS works, illustrated"
+        url: https://howdns.works/
+        provider: DNSimple
+        duration_min: 20
+    quiz:
+      - prompt: A client sends a request for a resource that does not exist. What status code should the API return?
+        explanation: 404 tells the caller the resource is absent. 500 would wrongly blame the server, and 200 would hide the failure from generic client error handling.
+        options:
+          - text: "404 Not Found"
+            correct: true
+          - text: "200 OK with an error object in the body"
+          - text: "500 Internal Server Error"
+          - text: "403 Forbidden"
+      - prompt: Which HTTP method is expected to be safe, meaning it does not change server state?
+        explanation: GET is both safe and idempotent, which is why caches and prefetchers are free to issue it without asking.
+        options:
+          - text: "GET"
+            correct: true
+          - text: "POST"
+          - text: "PATCH"
+          - text: "DELETE"
+      - prompt: What does it mean that HTTP is a stateless protocol?
+        explanation: Statelessness is what lets you put many identical servers behind a load balancer — no request depends on which machine served the previous one.
+        options:
+          - text: "Each request carries all the information needed to process it; the protocol keeps no memory between requests"
+            correct: true
+          - text: "The server cannot store any data at all"
+          - text: "Connections are closed after every byte"
+          - text: "Cookies are forbidden"
+    interview:
+      - question: Walk me through what happens when I type a URL into my browser and press Enter.
+        difficulty: easy
+        answer_md: |
+          URL parsing → DNS resolution (browser cache, OS cache, resolver,
+          root/TLD/authoritative servers) → TCP handshake to the resolved IP →
+          TLS handshake for HTTPS → HTTP request sent → server processes it,
+          possibly hitting a cache, database or other services → response
+          returned → browser parses HTML, requests subresources, renders.
+          Good answers mention caching at several layers and keep-alive
+          connection reuse.
+      - question: What is the difference between PUT and PATCH?
+        difficulty: easy
+        answer_md: |
+          `PUT` replaces the resource with the representation you send and is
+          idempotent — sending it twice leaves the same state. `PATCH` applies
+          a partial modification and is not necessarily idempotent (a patch
+          like "increment by 1" is not). In practice, use `PUT` for full
+          replacement and `PATCH` for field-level updates.
+
+  # ---------------------------------------------------------------- 2
+  - slug: git-version-control
+    name: Version Control with Git
+    domain: backend
+    est_hours: 15
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Branching, merging, rebasing and resolving conflicts — plus the mental
+      model of commits as a directed graph of snapshots.
+    content_md: |
+      Git is non-negotiable, and most of the pain people have with it comes
+      from learning commands instead of the model.
+
+      **The model.** A commit is a full snapshot of the tree plus a pointer to
+      its parent(s). A branch is just a movable label pointing at one commit.
+      `HEAD` is a label pointing at your current branch. Almost every confusing
+      Git situation becomes obvious once you can draw that graph.
+
+      **The three areas.** Working directory (your files) → staging area /
+      index (`git add`) → repository (`git commit`). `git status` and
+      `git diff` / `git diff --staged` tell you exactly where a change is.
+
+      **Branching and integrating.** `git merge` creates a commit with two
+      parents and preserves the true history. `git rebase` replays your commits
+      on top of another branch, producing a linear history but rewriting commit
+      ids — which is why the rule is "never rebase commits that others have
+      already pulled".
+
+      **Conflicts** are not errors; they are Git telling you two changes
+      touched the same lines and it will not guess. Open the file, keep what
+      should survive, remove the markers, `git add`, continue.
+
+      **Recovery.** `git reflog` records where `HEAD` has been, so almost
+      nothing is truly lost — a "destroyed" branch is usually one
+      `git reset --hard <reflog-sha>` away. Knowing this turns Git from
+      frightening into safe.
+
+      Day to day, aim for small commits with messages that say *why*, feature
+      branches, and pull requests that are small enough to actually review.
+    resources:
+      - kind: book
+        title: "Pro Git (free, the reference)"
+        url: https://git-scm.com/book/en/v2
+        provider: Scott Chacon & Ben Straub
+        duration_min: 480
+      - kind: course
+        title: "Learn Git Branching — interactive visual exercises"
+        url: https://learngitbranching.js.org/
+        provider: learngitbranching
+        duration_min: 180
+      - kind: doc
+        title: "Atlassian Git tutorials"
+        url: https://www.atlassian.com/git/tutorials
+        provider: Atlassian
+        duration_min: 120
+      - kind: course
+        title: "GitHub Skills — hands-on courses"
+        url: https://skills.github.com/
+        provider: GitHub
+        duration_min: 120
+    quiz:
+      - prompt: What does `git rebase main` do to your feature branch?
+        explanation: Rebase replays your work onto a new base and creates new commit objects, which is why it must not be used on shared history.
+        options:
+          - text: "Replays your branch's commits on top of main, creating new commits with new hashes"
+            correct: true
+          - text: "Merges main into your branch with a merge commit"
+          - text: "Deletes your branch and recreates it from main"
+          - text: "Pushes your branch to the remote named main"
+      - prompt: You committed to the wrong branch and then reset it away. What is the first tool to reach for?
+        explanation: reflog records every position HEAD has held, including commits no branch points to any more.
+        options:
+          - text: "git reflog"
+            correct: true
+          - text: "git fsck --lost-found only"
+          - text: "Nothing — the commit is gone"
+          - text: "git clone the repository again"
+      - prompt: What is the staging area for?
+        explanation: Staging lets you compose a commit deliberately instead of committing everything you happen to have edited.
+        options:
+          - text: "Choosing exactly which changes go into the next commit"
+            correct: true
+          - text: "Storing remote branches locally"
+          - text: "Backing up uncommitted work to the server"
+          - text: "Resolving merge conflicts automatically"
+    interview:
+      - question: When would you use merge and when rebase?
+        difficulty: medium
+        answer_md: |
+          Merge when integrating a shared branch or when the true history
+          matters (release branches, long-lived collaboration) — it never
+          rewrites existing commits. Rebase to tidy your own local feature
+          branch before opening a PR, so reviewers see a clean linear series.
+          The hard rule: never rebase commits that have been pushed and pulled
+          by others, because rewritten hashes force everyone else to recover.
+
+  # ---------------------------------------------------------------- 3
+  - slug: programming-language-python
+    name: Python for Backend Engineering
+    domain: backend
+    est_hours: 60
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      The language itself plus the parts backend work leans on: data
+      structures, typing, exceptions, virtual environments, and async.
+    content_md: |
+      Backends get written in many languages; this track uses Python because
+      its ecosystem (FastAPI, SQLAlchemy, pytest) lets you see every backend
+      concept with very little ceremony. The concepts transfer directly to
+      Node, Go or Java.
+
+      **Core language.** Data types and the built-in structures (`list`,
+      `dict`, `set`, `tuple`) and their complexity — knowing that `dict` and
+      `set` lookups are O(1) while `list` membership is O(n) shapes real code.
+      Comprehensions, generators, `enumerate`/`zip`, unpacking, and f-strings
+      are the idioms reviewers expect.
+
+      **Functions and objects.** Default arguments (never mutable ones — the
+      default is created once, at definition time), `*args`/`**kwargs`,
+      closures, decorators, classes, `dataclasses`, and dunder methods.
+
+      **Errors.** Exceptions are control flow in Python. Catch the narrowest
+      exception you can, use `try/except/else/finally`, and define your own
+      exception types for your domain so callers can react precisely.
+
+      **Typing.** Modern backend Python is annotated: `list[str]`,
+      `str | None`, `Protocol`, generics. Annotations are what let FastAPI and
+      Pydantic validate requests and generate OpenAPI automatically, so they
+      earn their keep rather than being decoration.
+
+      **Environment.** `venv` per project, `pip install -r requirements.txt`,
+      and pinned versions. Understand why global installs cause dependency
+      conflicts.
+
+      **Async.** `async def` / `await`, the event loop, and the key rule that a
+      blocking call inside a coroutine stalls the whole loop. This is the
+      single most common performance bug in async Python services.
+    resources:
+      - kind: doc
+        title: "The Python Tutorial (official)"
+        url: https://docs.python.org/3/tutorial/
+        provider: Python Software Foundation
+        duration_min: 600
+      - kind: course
+        title: "CS50's Introduction to Programming with Python"
+        url: https://cs50.harvard.edu/python/
+        provider: Harvard
+        duration_min: 1800
+      - kind: book
+        title: "Automate the Boring Stuff with Python (free online)"
+        url: https://automatetheboringstuff.com/
+        provider: Al Sweigart
+        duration_min: 900
+      - kind: doc
+        title: "Real Python — tutorials by topic"
+        url: https://realpython.com/
+        provider: Real Python
+        duration_min: 300
+      - kind: project
+        title: "Build a CLI tool that reads an API and writes a report"
+        url: https://realpython.com/python-cli-tools/
+        provider: Real Python
+        duration_min: 240
+    quiz:
+      - prompt: "Why is `def f(items=[])` a bug?"
+        explanation: Default arguments are evaluated once when the function is defined, so every call without an argument shares and mutates the same list.
+        options:
+          - text: "The default list is created once at definition time and shared across every call"
+            correct: true
+          - text: "Python forbids mutable defaults and raises at runtime"
+          - text: "The list is recreated on each call, wasting memory"
+          - text: "It only breaks when the function is recursive"
+      - prompt: What happens if you call a blocking function like `time.sleep(5)` inside an `async def` handler?
+        explanation: The coroutine never yields control, so the event loop cannot serve any other request for those 5 seconds.
+        options:
+          - text: "The entire event loop is blocked and no other request is served during it"
+            correct: true
+          - text: "Python automatically runs it in a thread"
+          - text: "Only that request is delayed; others proceed normally"
+          - text: "It raises a RuntimeError"
+      - prompt: Which lookup is O(1) on average?
+        explanation: Sets and dicts are hash-based; membership in a list is a linear scan.
+        options:
+          - text: "`x in my_set`"
+            correct: true
+          - text: "`x in my_list`"
+          - text: "`my_list.index(x)`"
+          - text: "`sorted(my_list)`"
+    interview:
+      - question: What is a decorator and when have you used one?
+        difficulty: medium
+        answer_md: |
+          A decorator is a callable that takes a function and returns a
+          replacement, usually to add behaviour without editing the original —
+          `@app.get(...)` for routing, `@lru_cache` for memoisation,
+          or a custom `@requires_role("admin")`. A strong answer mentions
+          `functools.wraps` to preserve the wrapped function's metadata.
+      - question: Explain the difference between a list and a generator.
+        difficulty: easy
+        answer_md: |
+          A list materialises every element in memory immediately; a generator
+          produces values lazily one at a time and can be iterated only once.
+          For a million-row export, the generator keeps memory flat while the
+          list would not fit.
+
+  # ---------------------------------------------------------------- 4
+  - slug: relational-databases-sql
+    name: Relational Databases & SQL
+    domain: backend
+    est_hours: 40
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Tables, keys, joins, aggregation, indexes and transactions — the skills
+      that separate a query that works from one that works at scale.
+    content_md: |
+      Most backend bugs that reach production are data bugs, and most backend
+      performance problems are query problems. SQL is the highest-leverage
+      thing on this track.
+
+      **Structure.** Tables, rows, columns, data types, primary keys, foreign
+      keys, `NOT NULL` and `UNIQUE` constraints. Constraints are not
+      bureaucracy — they are the only place correctness can be guaranteed for
+      every writer, including the ones you did not write.
+
+      **Querying.** `SELECT ... WHERE ... ORDER BY ... LIMIT`, then joins
+      (`INNER`, `LEFT`, and why `RIGHT` is rare), `GROUP BY` with aggregates,
+      `HAVING` versus `WHERE`, subqueries and CTEs (`WITH`). Window functions
+      (`ROW_NUMBER`, `RANK`, `SUM() OVER`) are what let you answer "top N per
+      group" without a self-join.
+
+      **NULL** deserves its own paragraph: `NULL = NULL` is not true, it is
+      unknown. Use `IS NULL`. `COUNT(column)` skips nulls while `COUNT(*)` does
+      not. This single asymmetry causes an enormous number of wrong dashboards.
+
+      **Indexes.** An index is a sorted structure that turns a full scan into a
+      lookup. Index the columns you filter and join on; understand that every
+      index slows writes and costs storage, and that a query using a function
+      on an indexed column (`WHERE lower(email) = ...`) usually cannot use the
+      plain index. `EXPLAIN` / `EXPLAIN ANALYZE` is how you stop guessing.
+
+      **Transactions.** ACID, `BEGIN` / `COMMIT` / `ROLLBACK`, and isolation
+      levels. Know what a dirty read, non-repeatable read and phantom read are,
+      and that the default isolation level differs between databases.
+    resources:
+      - kind: course
+        title: "SQLBolt — interactive SQL lessons"
+        url: https://sqlbolt.com/
+        provider: SQLBolt
+        duration_min: 240
+      - kind: course
+        title: "Mode's SQL Tutorial (basic → advanced)"
+        url: https://mode.com/sql-tutorial/
+        provider: Mode
+        duration_min: 480
+      - kind: doc
+        title: "PostgreSQL Tutorial (official docs)"
+        url: https://www.postgresql.org/docs/current/tutorial.html
+        provider: PostgreSQL
+        duration_min: 300
+      - kind: book
+        title: "Use The Index, Luke! — SQL indexing and tuning (free)"
+        url: https://use-the-index-luke.com/
+        provider: Markus Winand
+        duration_min: 420
+    quiz:
+      - prompt: "Why does `WHERE salary <> NULL` return no rows?"
+        explanation: Comparisons with NULL evaluate to UNKNOWN, never true. Use `IS NOT NULL`.
+        options:
+          - text: "Any comparison with NULL yields UNKNOWN, so the row is never selected — you need `IS NOT NULL`"
+            correct: true
+          - text: "NULL is stored as an empty string and never matches"
+          - text: "`<>` is not valid SQL"
+          - text: "The optimiser rewrites it to FALSE for performance"
+      - prompt: What is the practical difference between `WHERE` and `HAVING`?
+        explanation: WHERE filters rows before grouping; HAVING filters groups after aggregation.
+        options:
+          - text: "`WHERE` filters rows before `GROUP BY`; `HAVING` filters the aggregated groups afterwards"
+            correct: true
+          - text: "They are interchangeable"
+          - text: "`HAVING` works only with `ORDER BY`"
+          - text: "`WHERE` cannot be used with joins"
+      - prompt: Adding an index to a heavily-written table has what main cost?
+        explanation: Every insert, update and delete must also maintain the index, and the index consumes storage.
+        options:
+          - text: "Writes get slower because the index must be maintained on every change"
+            correct: true
+          - text: "Reads get slower"
+          - text: "Transactions stop being atomic"
+          - text: "Foreign keys stop being enforced"
+    interview:
+      - question: You have a slow query. How do you diagnose it?
+        difficulty: medium
+        answer_md: |
+          Run `EXPLAIN ANALYZE` and read the plan: look for sequential scans on
+          large tables, bad row estimates, and nested loops over big inputs.
+          Check whether the filter and join columns are indexed and whether the
+          predicate is sargable (no functions wrapping the indexed column).
+          Consider selectivity, whether the query returns more data than needed,
+          and whether an N+1 pattern in the application is the real cause.
+      - question: Explain an N+1 query problem.
+        difficulty: medium
+        answer_md: |
+          You fetch N parent rows with one query, then issue one more query per
+          parent to load its children — N+1 round trips where 2 would do. Fix
+          with a join, an `IN (...)` batch fetch, or the ORM's eager loading
+          (`selectinload` / `joinedload` in SQLAlchemy).
+
+  # ---------------------------------------------------------------- 5
+  - slug: data-modeling
+    name: Schema Design & Normalization
+    domain: backend
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - relational-databases-sql
+    summary: >-
+      Turning a fuzzy domain into tables that stay correct as requirements
+      change — normal forms, relationships and deliberate denormalisation.
+    content_md: |
+      A schema is the longest-lived artefact in a system. Code gets rewritten;
+      data outlives it.
+
+      **Entities and relationships.** Identify the nouns, then the cardinality
+      between them: one-to-one, one-to-many, many-to-many. Many-to-many always
+      becomes a join table, and that join table is usually where the
+      interesting attributes live (a `track_concepts` row can carry ordering
+      and whether the concept is core).
+
+      **Normalization** is a sequence of guarantees, not a ritual. 1NF: no
+      repeating groups, one value per cell. 2NF: no non-key column depends on
+      part of a composite key. 3NF: no non-key column depends on another
+      non-key column. The practical payoff is that a fact is stored once, so it
+      cannot be updated in one place and go stale in another.
+
+      **Denormalisation** is a deliberate trade, made after measuring: a
+      `comment_count` column on a post avoids an aggregate on every page load,
+      at the cost of having to keep it correct. Write down the invariant and
+      enforce it in one place.
+
+      **Keys.** Surrogate keys (auto-increment or UUID) versus natural keys.
+      Surrogates are stable when the real-world identifier changes; natural
+      keys avoid a join. UUIDs distribute better but are wider and hurt index
+      locality unless you use a sortable variant.
+
+      **Soft deletes, timestamps and history.** `created_at` / `updated_at` on
+      nearly everything, and a decision about whether deletes are real. Audit
+      history is much easier to add up front than to reconstruct later.
+    resources:
+      - kind: doc
+        title: "PostgreSQL — Data Definition (constraints, keys, inheritance)"
+        url: https://www.postgresql.org/docs/current/ddl.html
+        provider: PostgreSQL
+        duration_min: 180
+      - kind: article
+        title: "A quick and practical guide to database normalization"
+        url: https://www.geeksforgeeks.org/dbms/normal-forms-in-dbms/
+        provider: GeeksforGeeks
+        duration_min: 60
+      - kind: book
+        title: "Database Design for Mere Mortals"
+        url: https://www.oreilly.com/library/view/database-design-for/9780136788041/
+        provider: Michael J. Hernandez
+        is_free: false
+        duration_min: 900
+      - kind: project
+        title: "Model a real domain: design the schema for a ride-hailing app"
+        url: https://github.com/donnemartin/system-design-primer#design-a-system-that-scales-to-millions-of-users-on-aws
+        provider: system-design-primer
+        duration_min: 180
+    quiz:
+      - prompt: Two students can enrol in many courses and each course has many students. How is this modelled?
+        explanation: Many-to-many relationships require a join table, which is also the natural home for attributes of the relationship such as enrolment date or grade.
+        options:
+          - text: "A join table `enrolments(student_id, course_id)` with a unique constraint on the pair"
+            correct: true
+          - text: "A comma-separated `course_ids` column on students"
+          - text: "A foreign key on students pointing at courses"
+          - text: "Duplicate the course row per student"
+      - prompt: What problem does third normal form (3NF) prevent?
+        explanation: When a non-key column depends on another non-key column, the same fact is stored redundantly and can be updated inconsistently.
+        options:
+          - text: "Update anomalies caused by a non-key column depending on another non-key column"
+            correct: true
+          - text: "Deadlocks between transactions"
+          - text: "Slow joins"
+          - text: "NULL values appearing in foreign keys"
+      - prompt: When is denormalisation a reasonable choice?
+        explanation: It is a measured performance trade, and it creates an invariant you must actively maintain.
+        options:
+          - text: "When a measured read path is too slow and you accept the duty of keeping the duplicated value correct"
+            correct: true
+          - text: "Always — normalized schemas are obsolete"
+          - text: "Whenever a query needs a join"
+          - text: "Only in NoSQL databases"
+    interview:
+      - question: How would you design the schema for a system where users follow each other?
+        difficulty: medium
+        answer_md: |
+          A `follows(follower_id, followee_id, created_at)` table with a
+          composite unique constraint and indexes in both directions —
+          `(follower_id, created_at)` to list who I follow and
+          `(followee_id, created_at)` to list my followers. Discuss whether
+          counts are denormalised onto the user row and how they are kept
+          consistent, and mention self-follow prevention as a constraint.
+
+  # ---------------------------------------------------------------- 6
+  - slug: rest-api-design
+    name: REST API Design
+    domain: backend
+    est_hours: 35
+    difficulty: intermediate
+    prerequisites:
+      - internet-and-http
+      - programming-language-python
+    summary: >-
+      Resource modelling, status codes, validation, pagination, versioning and
+      documentation — building an API other people can actually use.
+    content_md: |
+      An API is a user interface for programmers, and it is judged the same
+      way: is it predictable, does it fail clearly, can you learn it without
+      reading the source?
+
+      **Resources, not actions.** URLs name things (`/api/v1/roadmaps/12/items`)
+      and methods say what to do with them. If you find yourself writing
+      `/getUserRoadmap` you have put the verb in the wrong place. Nest only one
+      level deep — deeper nesting encodes assumptions that break.
+
+      **Say what happened.** `200` for a successful read, `201` plus a
+      `Location` header for a creation, `204` for a delete with no body, `400`
+      for malformed input, `401` unauthenticated, `403` authenticated but not
+      allowed, `404` absent, `409` conflict, `422` semantically invalid,
+      `429` rate limited. Return errors in a consistent envelope so clients can
+      handle them generically.
+
+      **Validate at the edge.** With FastAPI, a Pydantic model *is* the
+      contract: it parses, coerces, validates, documents and produces the
+      OpenAPI schema. Never trust a client-supplied id, role or price.
+
+      **Pagination** from day one — an unbounded list endpoint is a future
+      outage. Cursor pagination survives inserts better than offset pagination,
+      which can skip or repeat rows as data shifts.
+
+      **Versioning and change.** Additive changes are safe; removals and type
+      changes are not. Version in the path (`/api/v1/`) and treat a breaking
+      change as a new version rather than a surprise.
+
+      **Documentation** should be generated, not written by hand, so it cannot
+      drift — FastAPI gives you `/docs` for free from the same annotations that
+      do validation.
+    resources:
+      - kind: doc
+        title: "FastAPI Tutorial — User Guide"
+        url: https://fastapi.tiangolo.com/tutorial/
+        provider: FastAPI
+        duration_min: 480
+      - kind: doc
+        title: "Microsoft — RESTful web API design best practices"
+        url: https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design
+        provider: Microsoft
+        duration_min: 90
+      - kind: article
+        title: "REST API Tutorial — resource naming and status codes"
+        url: https://restfulapi.net/
+        provider: restfulapi.net
+        duration_min: 120
+      - kind: project
+        title: "Build a CRUD API with FastAPI, including pagination and errors"
+        url: https://fastapi.tiangolo.com/tutorial/sql-databases/
+        provider: FastAPI
+        duration_min: 300
+    quiz:
+      - prompt: A client sends a valid token but lacks permission for the resource. Which status?
+        explanation: 401 means "I do not know who you are"; 403 means "I know who you are and you may not do this".
+        options:
+          - text: "403 Forbidden"
+            correct: true
+          - text: "401 Unauthorized"
+          - text: "404 Not Found"
+          - text: "400 Bad Request"
+      - prompt: Why is cursor pagination usually better than offset pagination for a busy feed?
+        explanation: Offsets are positional, so rows inserted or deleted between requests shift the window and cause skipped or duplicated items.
+        options:
+          - text: "Offsets shift when rows are inserted or deleted, so pages can skip or repeat items"
+            correct: true
+          - text: "Cursors let clients jump to an arbitrary page number"
+          - text: "Offset pagination is not supported over HTTPS"
+          - text: "Cursors avoid the need for an index"
+      - prompt: Which of these is a backwards-compatible API change?
+        explanation: Adding an optional field does not break existing clients; renaming or removing one does.
+        options:
+          - text: "Adding a new optional field to a response"
+            correct: true
+          - text: "Renaming an existing response field"
+          - text: "Changing a field's type from string to integer"
+          - text: "Making a previously optional request field required"
+    interview:
+      - question: How do you design an endpoint that may take 30 seconds to complete?
+        difficulty: hard
+        answer_md: |
+          Do not hold the request open. Accept the work, return `202 Accepted`
+          with a job id and a status URL, process asynchronously, and let the
+          client poll or receive a webhook/SSE push when it finishes. Discuss
+          idempotency keys so a retry does not enqueue the job twice, and how
+          you surface failure states.
+      - question: What makes an API idempotent and why does it matter?
+        difficulty: medium
+        answer_md: |
+          Repeating the same request produces the same end state. It matters
+          because networks fail after the server acted but before the client
+          heard back — without idempotency the safe retry creates a duplicate
+          order. `PUT` and `DELETE` are idempotent by definition; `POST` is
+          made idempotent with a client-supplied idempotency key that the
+          server stores and de-duplicates against.
+
+  # ---------------------------------------------------------------- 7
+  - slug: orm-and-migrations
+    name: ORMs & Database Migrations
+    domain: backend
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - relational-databases-sql
+      - programming-language-python
+    summary: >-
+      Mapping tables to objects with SQLAlchemy, controlling what SQL gets
+      emitted, and evolving a schema safely with Alembic.
+    content_md: |
+      An ORM removes boilerplate; it does not remove the need to know SQL. The
+      engineers who get burned by ORMs are the ones who cannot see the queries
+      being generated.
+
+      **Mapping.** Models declare tables; relationships declare joins.
+      Understand lazy loading (the query fires when you touch the attribute,
+      which is how N+1 problems appear silently in a loop) versus eager loading
+      (`selectinload`, `joinedload`). Turn on SQL echo in development once and
+      watch what your endpoints actually emit — it is usually a surprise.
+
+      **The session** is a unit of work: it tracks changed objects and flushes
+      them in one transaction on commit. Know the difference between `flush`
+      (send SQL now, still in the transaction) and `commit` (make it durable),
+      and scope one session per request.
+
+      **Migrations.** Your schema needs to change on a database that already
+      holds data you cannot lose. Alembic records an ordered chain of revisions;
+      `alembic revision --autogenerate` diffs the models against the database
+      and `alembic upgrade head` applies the pending ones. Always read
+      autogenerated migrations before running them — autogenerate is good at
+      detecting new tables and columns, and bad at detecting renames (it will
+      cheerfully write a drop plus an add, destroying the data).
+
+      **Safe changes on live data.** Adding a nullable column is safe. Adding
+      a `NOT NULL` column without a default rewrites and locks the table. The
+      standard pattern is expand → migrate data → contract: add the new column,
+      backfill it, switch the code, then drop the old one in a later release.
+    resources:
+      - kind: doc
+        title: "SQLAlchemy 2.0 ORM Quick Start"
+        url: https://docs.sqlalchemy.org/en/20/orm/quickstart.html
+        provider: SQLAlchemy
+        duration_min: 120
+      - kind: doc
+        title: "SQLAlchemy — Relationship loading techniques"
+        url: https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html
+        provider: SQLAlchemy
+        duration_min: 90
+      - kind: doc
+        title: "Alembic Tutorial"
+        url: https://alembic.sqlalchemy.org/en/latest/tutorial.html
+        provider: Alembic
+        duration_min: 120
+      - kind: article
+        title: "Zero-downtime schema migrations (expand/contract)"
+        url: https://martinfowler.com/bliki/ParallelChange.html
+        provider: Martin Fowler
+        duration_min: 30
+    quiz:
+      - prompt: Iterating over 100 orders and reading `order.customer.name` on each fires 101 queries. What is this called and how do you fix it?
+        explanation: Lazy loading issues a query per attribute access; eager loading fetches the related rows in one or two statements.
+        options:
+          - text: "An N+1 query problem — fix it with eager loading such as `selectinload`"
+            correct: true
+          - text: "A deadlock — fix it by lowering the isolation level"
+          - text: "A cache miss — fix it with Redis"
+          - text: "Normal ORM behaviour that cannot be avoided"
+      - prompt: Why should you read an autogenerated migration before applying it?
+        explanation: Autogenerate cannot see intent. A rename looks exactly like a drop plus an add, which silently destroys the column's data.
+        options:
+          - text: "Autogenerate renders a column rename as a drop plus an add, which would lose the data"
+            correct: true
+          - text: "Migrations are written in raw SQL that Alembic cannot run"
+          - text: "It is required to make the migration reversible"
+          - text: "Because autogenerate never detects new tables"
+      - prompt: Which schema change is safest to run against a large live table?
+        explanation: A nullable column with no default is a metadata-only change on modern Postgres; a NOT NULL backfill rewrites rows and holds a lock.
+        options:
+          - text: "Adding a nullable column"
+            correct: true
+          - text: "Adding a NOT NULL column with no default"
+          - text: "Changing a column's type from text to integer"
+          - text: "Dropping a column still referenced by running code"
+    interview:
+      - question: When would you drop down to raw SQL instead of using the ORM?
+        difficulty: medium
+        answer_md: |
+          For queries the ORM expresses awkwardly or inefficiently — complex
+          window functions, recursive CTEs, bulk upserts, or a report joining
+          six tables with careful index hints. Also for one-off data migrations
+          where object materialisation would be wasteful. Keep such queries in
+          one place, parameterised (never string-formatted), and covered by
+          tests.
+
+  # ---------------------------------------------------------------- 8
+  - slug: auth-and-security
+    name: Authentication, Authorization & Security
+    domain: backend
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - rest-api-design
+    summary: >-
+      Password storage, sessions versus tokens, OAuth, and the OWASP failure
+      modes every backend must defend against.
+    content_md: |
+      Security is where "it works on my machine" is least acceptable, because
+      the failure is silent until it is catastrophic.
+
+      **Authentication is not authorization.** Authentication answers "who are
+      you", authorization answers "may you do this". They fail differently:
+      `401` versus `403`. Authorization must be checked on the server for every
+      request — hiding a button is not access control.
+
+      **Passwords.** Never store them, and never hash them with a fast
+      algorithm. Use bcrypt, scrypt or Argon2, which are deliberately slow and
+      salted per user. A leaked table of SHA-256 password hashes is a leaked
+      table of passwords.
+
+      **Sessions versus tokens.** A server-side session is a random id in a
+      cookie pointing at server state: easy to revoke, requires shared storage.
+      A JWT carries signed claims: stateless and scalable, but genuinely hard
+      to revoke before expiry — which is why access tokens should be short-lived
+      and paired with a refresh token you *can* revoke. Store tokens in
+      `HttpOnly`, `Secure`, `SameSite` cookies rather than `localStorage`, which
+      any injected script can read.
+
+      **The classic vulnerabilities.** SQL injection (fix: parameterised
+      queries, always). XSS (fix: escape output, Content-Security-Policy).
+      CSRF (fix: `SameSite` cookies and anti-CSRF tokens). IDOR — reading
+      `/invoices/123` when 123 is not yours (fix: authorize on the object, not
+      just the route). Mass assignment — binding a request body straight onto a
+      model and letting the caller set `is_admin` (fix: explicit input schemas).
+
+      **Operational hygiene.** Secrets in environment variables or a secret
+      manager, never in the repository. Rate limit authentication endpoints.
+      Log security events without logging the credentials themselves.
+    resources:
+      - kind: doc
+        title: "OWASP Top 10"
+        url: https://owasp.org/www-project-top-ten/
+        provider: OWASP
+        duration_min: 180
+      - kind: doc
+        title: "OWASP Authentication Cheat Sheet"
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html
+        provider: OWASP
+        duration_min: 90
+      - kind: article
+        title: "Introduction to JSON Web Tokens"
+        url: https://jwt.io/introduction
+        provider: jwt.io
+        duration_min: 30
+      - kind: book
+        title: "OAuth 2.0 Simplified (free online)"
+        url: https://www.oauth.com/
+        provider: Aaron Parecki
+        duration_min: 300
+    quiz:
+      - prompt: Why is SHA-256 the wrong choice for storing passwords?
+        explanation: Password hashes must be slow and salted. SHA-256 is designed to be fast, so an attacker can try billions of candidates per second on a GPU.
+        options:
+          - text: "It is fast by design, so offline brute-force against a leaked table is cheap"
+            correct: true
+          - text: "It is reversible"
+          - text: "It produces collisions for short inputs"
+          - text: "It cannot handle non-ASCII characters"
+      - prompt: What is the main operational drawback of stateless JWT access tokens?
+        explanation: Nothing is consulted at validation time, so a token stays valid until it expires — logout and ban do not take effect immediately.
+        options:
+          - text: "They cannot easily be revoked before they expire"
+            correct: true
+          - text: "They cannot carry user claims"
+          - text: "They require a database lookup on every request"
+          - text: "They only work over HTTP/2"
+      - prompt: A user changes the id in `/api/v1/invoices/4172` and sees someone else's invoice. What class of flaw is this?
+        explanation: Insecure Direct Object Reference — the route was authenticated but the object was never authorized against the caller.
+        options:
+          - text: "Broken object-level authorization (IDOR)"
+            correct: true
+          - text: "Cross-site scripting"
+          - text: "SQL injection"
+          - text: "CSRF"
+    interview:
+      - question: Design the authentication flow for a web app with a separate API.
+        difficulty: hard
+        answer_md: |
+          Password hashed with bcrypt/Argon2 on signup. Login returns a
+          short-lived access token and a longer-lived refresh token; the tokens
+          are set as `HttpOnly`, `Secure`, `SameSite=Lax` cookies by a
+          same-origin layer so browser JavaScript never touches them. The API
+          validates the access token per request and authorizes each object.
+          Refresh rotates and invalidates the previous refresh token so theft
+          is detectable. Add rate limiting on login, lockout/backoff after
+          repeated failures, and audit logging.
+      - question: How do you prevent SQL injection?
+        difficulty: easy
+        answer_md: |
+          Parameterised queries or an ORM that parameterises for you — never
+          string concatenation or f-strings with user input. Validate and
+          constrain input types, use least-privilege database accounts, and
+          treat any dynamic identifier (table/column names) as an allowlist
+          lookup rather than interpolation.
+
+  # ---------------------------------------------------------------- 9
+  - slug: caching-strategies
+    name: Caching Strategies
+    domain: backend
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - rest-api-design
+    summary: >-
+      Where to cache, which invalidation strategy to pick, and how to avoid
+      stampedes and stale reads.
+    content_md: |
+      Caching is the cheapest large performance win available and the easiest
+      way to serve confidently wrong data.
+
+      **Layers.** Browser cache → CDN → application cache (in-process or
+      Redis/Memcached) → database buffer pool. Each layer has its own
+      invalidation problem; the closer to the user, the faster and the harder
+      to purge.
+
+      **Patterns.** *Cache-aside* (read: check cache, miss → load from
+      database → populate) is the default and keeps the cache optional.
+      *Write-through* writes both together, keeping the cache fresh at the cost
+      of write latency. *Write-behind* buffers writes and risks loss on crash.
+
+      **Invalidation.** TTL is simple and self-healing but always serves data
+      up to the TTL stale. Explicit invalidation on write is fresh but easy to
+      forget in one code path. Versioned keys (`user:42:v7`) sidestep deletion
+      entirely by making the new key different.
+
+      **Failure modes worth knowing by name.** A *stampede* (or dogpile) is
+      when a popular key expires and a thousand concurrent requests all miss
+      and hit the database at once — mitigate with a lock, or by having one
+      request refresh while others serve slightly stale data. *Cache
+      penetration* is repeated lookups for a key that does not exist —
+      mitigate by caching the negative result. *Hot keys* concentrate traffic
+      on one node.
+
+      **HTTP caching** is caching you get without infrastructure: `Cache-Control`
+      for freshness, `ETag`/`If-None-Match` for revalidation, and `304 Not
+      Modified` to send no body at all.
+
+      Measure the hit rate. A cache below ~80% hit rate is often adding
+      complexity and latency rather than removing it.
+    resources:
+      - kind: doc
+        title: "Redis — Develop with Redis (data types and patterns)"
+        url: https://redis.io/docs/latest/develop/
+        provider: Redis
+        duration_min: 180
+      - kind: article
+        title: "AWS — Caching best practices"
+        url: https://aws.amazon.com/caching/best-practices/
+        provider: AWS
+        duration_min: 45
+      - kind: doc
+        title: "MDN — HTTP caching"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
+        provider: MDN
+        duration_min: 60
+      - kind: article
+        title: "Caching strategies and how to choose the right one"
+        url: https://codeahoy.com/2017/08/11/caching-strategies-and-how-to-choose-the-right-one/
+        provider: CodeAhoy
+        duration_min: 30
+    quiz:
+      - prompt: A popular cache key expires and a thousand requests hit the database simultaneously. What is this called?
+        explanation: A cache stampede (dogpile). Mitigations include a refresh lock, jittered TTLs, and serving stale-while-revalidate.
+        options:
+          - text: "A cache stampede"
+            correct: true
+          - text: "A cache hit"
+          - text: "Write-through caching"
+          - text: "A phantom read"
+      - prompt: Which pattern keeps the cache optional, so the system still works if the cache is down?
+        explanation: Cache-aside reads through to the database on a miss, so an unavailable cache degrades performance rather than correctness.
+        options:
+          - text: "Cache-aside (lazy loading)"
+            correct: true
+          - text: "Write-behind"
+          - text: "Write-through"
+          - text: "Read-through with no fallback"
+      - prompt: What does an `ETag` enable?
+        explanation: The client sends the ETag back in `If-None-Match`; if unchanged the server replies `304` with no body, saving bandwidth.
+        options:
+          - text: "Revalidation — the server can answer `304 Not Modified` with no body when the resource is unchanged"
+            correct: true
+          - text: "Encryption of the response body"
+          - text: "Automatic compression"
+          - text: "Server-side session storage"
+    interview:
+      - question: What would you cache in a social feed, and how would you invalidate it?
+        difficulty: hard
+        answer_md: |
+          Cache the rendered feed page per user with a short TTL, and the
+          underlying post objects separately with longer TTLs and versioned
+          keys so an edit invalidates by key change. Discuss fan-out on write
+          versus fan-out on read for celebrity accounts, negative caching for
+          deleted posts, and accepting bounded staleness — a feed that is 30
+          seconds behind is fine, a balance that is 30 seconds behind is not.
+
+  # ---------------------------------------------------------------- 10
+  - slug: backend-testing
+    name: Testing Backend Services
+    domain: backend
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - rest-api-design
+    summary: >-
+      Unit, integration and end-to-end tests with pytest; fixtures, test
+      databases, and what is actually worth mocking.
+    content_md: |
+      Tests are what let you change code quickly without fear. A test suite you
+      do not trust is worse than none, because it costs time and buys nothing.
+
+      **The shape.** Many fast unit tests over pure logic, fewer integration
+      tests that exercise real HTTP and a real (test) database, very few
+      end-to-end tests over the whole stack. Invert that pyramid and your suite
+      becomes slow and flaky.
+
+      **pytest in practice.** Plain functions with `assert`, fixtures for
+      setup, `@pytest.mark.parametrize` to turn five near-identical tests into
+      one, and `conftest.py` for shared fixtures. FastAPI's `TestClient` sends
+      real requests through the app without a running server, and
+      `app.dependency_overrides` swaps the database dependency for a test
+      session.
+
+      **Test data.** Use a real database of the same engine, migrated and
+      wrapped in a transaction that is rolled back per test, or a fresh SQLite
+      file per session. Testing against a different engine than production
+      hides dialect bugs, which is one reason to make production Postgres and
+      your test database Postgres too.
+
+      **What to mock.** Mock things you do not own and cannot control — payment
+      gateways, email providers, an LLM endpoint. Do not mock your own
+      database, because then you are testing your mock. Every mock is an
+      assumption about someone else's behaviour that can silently go stale.
+
+      **Good tests** name the behaviour, not the function
+      (`test_completing_last_concept_awards_track_badge`), assert on outcomes
+      rather than implementation, and fail with a message that tells you what
+      broke without opening a debugger.
+    resources:
+      - kind: doc
+        title: "pytest — Getting Started and How-to guides"
+        url: https://docs.pytest.org/en/stable/
+        provider: pytest
+        duration_min: 240
+      - kind: doc
+        title: "FastAPI — Testing"
+        url: https://fastapi.tiangolo.com/tutorial/testing/
+        provider: FastAPI
+        duration_min: 60
+      - kind: article
+        title: "The Practical Test Pyramid"
+        url: https://martinfowler.com/articles/practical-test-pyramid.html
+        provider: Martin Fowler
+        duration_min: 60
+      - kind: doc
+        title: "FastAPI — Testing a database with dependency overrides"
+        url: https://fastapi.tiangolo.com/advanced/testing-database/
+        provider: FastAPI
+        duration_min: 45
+    quiz:
+      - prompt: Which of these should you generally NOT mock?
+        explanation: Mocking your own database means your tests assert against your assumptions rather than real query behaviour, constraints and transactions.
+        options:
+          - text: "Your own database"
+            correct: true
+          - text: "A third-party payment gateway"
+          - text: "An outbound email provider"
+          - text: "A remote LLM API"
+      - prompt: Why should there be far more unit tests than end-to-end tests?
+        explanation: E2E tests are slow, flaky and hard to localise; unit tests are fast and point at the exact defect.
+        options:
+          - text: "Unit tests are fast and pinpoint failures; E2E tests are slow, flaky and vague about what broke"
+            correct: true
+          - text: "End-to-end tests cannot find real bugs"
+          - text: "Unit tests give higher coverage numbers"
+          - text: "CI systems cannot run browsers"
+      - prompt: What does `@pytest.mark.parametrize` do?
+        explanation: It runs the same test body across multiple input sets, each reported as a separate test case.
+        options:
+          - text: "Runs one test function against many input/expected pairs as separate cases"
+            correct: true
+          - text: "Runs tests in parallel across CPUs"
+          - text: "Skips a test unless an environment variable is set"
+          - text: "Retries a flaky test until it passes"
+    interview:
+      - question: How do you test code that depends on the current time?
+        difficulty: medium
+        answer_md: |
+          Inject the clock rather than calling `datetime.now()` deep inside the
+          logic — pass a `now` argument or a small `Clock` dependency you can
+          substitute in tests. Alternatively freeze time with a library like
+          `freezegun`. The general principle: push non-determinism (time,
+          randomness, network, filesystem) to the edges so the core is pure and
+          trivially testable.
+
+  # ---------------------------------------------------------------- 11
+  - slug: async-and-message-queues
+    name: Background Jobs & Message Queues
+    domain: backend
+    est_hours: 30
+    difficulty: advanced
+    prerequisites:
+      - rest-api-design
+    summary: >-
+      Moving slow work out of the request path with queues — delivery
+      guarantees, retries, idempotency and dead-letter handling.
+    content_md: |
+      The moment a request does something slow — send an email, transcode a
+      video, call a model — you need work that outlives the request.
+
+      **Producer / broker / consumer.** The API publishes a message describing
+      the work and returns immediately; a broker (RabbitMQ, Redis, SQS, Kafka)
+      holds it durably; a worker consumes and does the job. The API stays fast
+      and the work survives a deploy.
+
+      **Queues versus logs.** RabbitMQ-style queues deliver a message to one
+      consumer and forget it. Kafka is an append-only log: messages are
+      retained, consumers track their own offset, and multiple independent
+      consumer groups can read the same stream. Choose a log when several
+      systems need the same events or you need replay; choose a queue for
+      task distribution.
+
+      **Delivery guarantees.** At-most-once may drop, at-least-once may
+      duplicate, exactly-once is mostly a marketing claim across process
+      boundaries. In practice you take at-least-once and make consumers
+      **idempotent** — a job that has already run should detect that and do
+      nothing, usually via a natural key or a processed-ids table.
+
+      **Failure handling.** Retry with exponential backoff and jitter, cap the
+      attempts, then move the message to a dead-letter queue for inspection
+      rather than looping forever. Alert on dead-letter depth; a silently
+      growing DLQ is an outage nobody noticed.
+
+      **Practical rules.** Keep messages small — send an id, not a megabyte of
+      payload. Make jobs short and resumable. Never assume ordering unless the
+      broker guarantees it for your partitioning key.
+    resources:
+      - kind: doc
+        title: "RabbitMQ Tutorials (work queues, routing, RPC)"
+        url: https://www.rabbitmq.com/tutorials
+        provider: RabbitMQ
+        duration_min: 240
+      - kind: doc
+        title: "Apache Kafka — Introduction"
+        url: https://kafka.apache.org/intro
+        provider: Apache Kafka
+        duration_min: 90
+      - kind: doc
+        title: "Celery — First Steps"
+        url: https://docs.celeryq.dev/en/stable/getting-started/introduction.html
+        provider: Celery
+        duration_min: 120
+      - kind: article
+        title: "Exponential backoff and jitter"
+        url: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
+        provider: AWS Builders' Library
+        duration_min: 45
+    quiz:
+      - prompt: Your queue guarantees at-least-once delivery. What must the consumer be?
+        explanation: Duplicates are expected, so processing the same message twice must be harmless.
+        options:
+          - text: "Idempotent — reprocessing the same message must not change the outcome"
+            correct: true
+          - text: "Single-threaded"
+          - text: "Stateless"
+          - text: "Written in the same language as the producer"
+      - prompt: What is a dead-letter queue for?
+        explanation: Messages that keep failing are parked for human inspection instead of retrying forever and blocking the queue.
+        options:
+          - text: "Holding messages that exhausted their retries, so they can be inspected instead of looping forever"
+            correct: true
+          - text: "Storing messages that were delivered successfully"
+          - text: "Prioritising urgent messages"
+          - text: "Compressing old messages"
+      - prompt: When is Kafka a better fit than a task queue like RabbitMQ?
+        explanation: Kafka retains an ordered log that multiple consumer groups can read independently and replay.
+        options:
+          - text: "When several independent consumers need the same event stream, or you need replay"
+            correct: true
+          - text: "When you need messages deleted immediately after delivery"
+          - text: "When you have exactly one worker"
+          - text: "When messages must never be persisted"
+    interview:
+      - question: A user clicks "export my data" and the export takes two minutes. Design it.
+        difficulty: medium
+        answer_md: |
+          `POST /exports` validates, writes an `export_jobs` row as `queued`,
+          publishes a message with the job id, and returns `202` with the job
+          id and a status URL. A worker picks it up, marks `running`, streams
+          the export to object storage, stores the URL and marks `done`. The
+          client polls `GET /exports/{id}` or receives an SSE/webhook push.
+          Cover retries with backoff, idempotency via the job id, a DLQ for
+          repeated failures, and expiry of the generated file.
+
+  # ---------------------------------------------------------------- 12
+  - slug: containers-docker
+    name: Containers & Docker
+    domain: devops
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - programming-language-python
+    summary: >-
+      Packaging an application with its dependencies so it runs identically
+      everywhere — images, layers, Compose and image hygiene.
+    content_md: |
+      "Works on my machine" is a dependency problem, and containers solve it by
+      shipping the dependencies with the code.
+
+      **Images and containers.** An image is an immutable, layered filesystem
+      plus metadata; a container is a running instance of one. Layers are
+      cached and shared, which is why the order of instructions in a
+      Dockerfile determines build speed: copy your dependency manifest and
+      install dependencies *before* copying the source, so a code change does
+      not invalidate the dependency layer.
+
+      **A competent Dockerfile.** Pin a specific base image tag. Use
+      multi-stage builds so compilers and dev dependencies never reach the
+      final image. Run as a non-root user. Add a `.dockerignore` (missing it is
+      why images balloon — the whole `.git` directory and `node_modules` get
+      copied in). Set a `HEALTHCHECK`. Keep the final image small: smaller
+      images pull faster and have less to be vulnerable.
+
+      **Configuration and state.** Configuration comes from environment
+      variables, never baked into the image — the same image must be promotable
+      from staging to production. Containers are ephemeral: anything you want
+      to keep goes in a volume or an external service, and anything written to
+      the container filesystem disappears on restart.
+
+      **Compose** describes a multi-service local stack — API, database, cache
+      — in one file, with a private network where services address each other
+      by service name. It is the fastest way to give a new teammate a working
+      environment.
+
+      **Logs go to stdout/stderr**, not to files inside the container, so the
+      platform can collect them.
+    resources:
+      - kind: doc
+        title: "Docker — Get started"
+        url: https://docs.docker.com/get-started/
+        provider: Docker
+        duration_min: 180
+      - kind: course
+        title: "Docker Curriculum — a hands-on introduction"
+        url: https://docker-curriculum.com/
+        provider: Prakhar Srivastav
+        duration_min: 240
+      - kind: doc
+        title: "Dockerfile best practices"
+        url: https://docs.docker.com/build/building/best-practices/
+        provider: Docker
+        duration_min: 60
+      - kind: project
+        title: "Play with Docker — a free in-browser Docker playground"
+        url: https://labs.play-with-docker.com/
+        provider: Docker
+        duration_min: 120
+    quiz:
+      - prompt: Why copy `requirements.txt` and install dependencies before copying the rest of the source?
+        explanation: Layer caching. Dependencies change rarely, so that layer is reused and only the fast source-copy layer rebuilds.
+        options:
+          - text: "So the expensive dependency layer stays cached when only application code changes"
+            correct: true
+          - text: "Because Docker cannot copy directories after running pip"
+          - text: "To make the image run as non-root"
+          - text: "It has no effect; it is only convention"
+      - prompt: Where should configuration like database URLs come from?
+        explanation: The same image must be promotable across environments, so config is injected at runtime.
+        options:
+          - text: "Environment variables injected at runtime"
+            correct: true
+          - text: "Hardcoded in the Dockerfile"
+          - text: "A file committed inside the image"
+          - text: "The image tag"
+      - prompt: What happens to data written to a container's filesystem when it restarts?
+        explanation: The container layer is ephemeral; durable data needs a volume or an external service.
+        options:
+          - text: "It is lost unless it was written to a mounted volume"
+            correct: true
+          - text: "It is preserved automatically"
+          - text: "It is synced to the image"
+          - text: "It moves to the host's home directory"
+    interview:
+      - question: What is the difference between a container and a virtual machine?
+        difficulty: easy
+        answer_md: |
+          A VM virtualises hardware and runs a full guest OS with its own
+          kernel; a container is an isolated process on the host kernel using
+          namespaces and cgroups. Containers start in milliseconds and are far
+          lighter; VMs give stronger isolation and can run a different OS
+          kernel. Containers therefore share the host kernel's security
+          boundary, which is why you still avoid running them as root.
+
+  # ---------------------------------------------------------------- 13
+  - slug: ci-cd
+    name: CI/CD Pipelines
+    domain: devops
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - containers-docker
+      - backend-testing
+    summary: >-
+      Automating the path from commit to production — pipelines, environments,
+      deployment strategies and rollback.
+    content_md: |
+      CI/CD is the discipline that makes releasing boring, and boring releases
+      are how teams ship daily without fear.
+
+      **Continuous integration** means every push runs the same checks:
+      install, lint, type-check, test, build. The value is not the automation
+      itself but the *shared definition of "working"* — nobody argues about
+      whether it passes on their machine.
+
+      **A sane pipeline.** Trigger on push and pull request. Cache dependencies
+      to keep it under ten minutes; a slow pipeline gets bypassed. Fail fast —
+      lint before the long test suite. Build the container image once and
+      promote that exact artefact through environments rather than rebuilding
+      per stage, so what you tested is what you deploy.
+
+      **Continuous delivery versus deployment.** Delivery means every green
+      build is *releasable*; deployment means it is released automatically.
+      Most teams gate production behind an approval and deploy staging
+      automatically.
+
+      **Strategies.** Rolling replaces instances gradually. Blue-green runs two
+      environments and flips traffic, giving instant rollback. Canary sends a
+      small percentage of traffic to the new version and watches error rates
+      before proceeding. Whichever you choose, define what "rollback" means and
+      practise it before you need it — including the awkward case where a
+      migration already ran.
+
+      **Feature flags** decouple deploying code from releasing behaviour, which
+      is what makes trunk-based development and safe experimentation possible.
+
+      **Secrets** live in the CI provider's secret store, are masked in logs,
+      and never appear in the repository or in a pull request from a fork.
+    resources:
+      - kind: doc
+        title: "GitHub Actions documentation"
+        url: https://docs.github.com/en/actions
+        provider: GitHub
+        duration_min: 240
+      - kind: article
+        title: "Continuous Delivery"
+        url: https://martinfowler.com/bliki/ContinuousDelivery.html
+        provider: Martin Fowler
+        duration_min: 20
+      - kind: doc
+        title: "GitHub Actions — building and testing Python"
+        url: https://docs.github.com/en/actions/tutorials/build-and-test-code/python
+        provider: GitHub
+        duration_min: 60
+      - kind: article
+        title: "Blue-green deployment"
+        url: https://martinfowler.com/bliki/BlueGreenDeployment.html
+        provider: Martin Fowler
+        duration_min: 15
+    quiz:
+      - prompt: Why build the container image once and promote it across environments?
+        explanation: Rebuilding per environment can produce a different artefact than the one you tested, reintroducing the risk CI was meant to remove.
+        options:
+          - text: "So the artefact you tested is byte-for-byte the artefact you deploy"
+            correct: true
+          - text: "To save disk space in the registry"
+          - text: "Because Docker cannot build twice from the same Dockerfile"
+          - text: "To avoid needing environment variables"
+      - prompt: What distinguishes a canary deployment?
+        explanation: A small share of live traffic hits the new version first, so problems surface with limited blast radius.
+        options:
+          - text: "A small percentage of real traffic goes to the new version while metrics are watched"
+            correct: true
+          - text: "Two identical environments with an instant traffic flip"
+          - text: "Instances are replaced one at a time until all are new"
+          - text: "The release is deployed only on weekends"
+      - prompt: What do feature flags decouple?
+        explanation: Code can ship dark and be enabled later, so deployment risk and release risk are separated.
+        options:
+          - text: "Deploying code from releasing the behaviour to users"
+            correct: true
+          - text: "Building from testing"
+          - text: "Staging from production databases"
+          - text: "Frontend from backend repositories"
+    interview:
+      - question: Your deploy succeeded but error rates spiked. Walk me through what you do.
+        difficulty: medium
+        answer_md: |
+          Roll back first, diagnose second — restore service before curiosity.
+          Flip traffic to the previous version (blue-green) or redeploy the
+          last known-good image. Check whether a database migration ran, since
+          that can make rollback unsafe and may need a forward fix instead.
+          Then read the error signature, correlate with the deploy timestamp,
+          reproduce in staging, add a regression test, and write a blameless
+          postmortem asking why CI did not catch it.
+
+  # ---------------------------------------------------------------- 14
+  - slug: observability
+    name: Logging, Metrics & Observability
+    domain: devops
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - rest-api-design
+    summary: >-
+      Knowing what your service is doing in production — structured logs,
+      metrics, traces, SLOs and alerts that are worth waking up for.
+    content_md: |
+      Monitoring tells you *that* something is wrong. Observability is being
+      able to work out *why* without shipping new code to find out.
+
+      **Structured logs.** Log JSON, not prose. `logger.info("payment_failed",
+      extra={"user_id": 42, "amount": 19.99, "reason": "card_declined"})` is
+      queryable; `"Payment failed for user 42"` is not. Attach a request id to
+      every line so one user's journey can be reconstructed. Never log
+      passwords, tokens, or full card numbers — logs get shipped to third
+      parties and retained for years.
+
+      **Metrics** are cheap aggregates over time: request rate, error rate,
+      latency, saturation. Track latency as **percentiles**, never as a mean —
+      an average of 100 ms hides that your slowest 1% of users wait four
+      seconds. p50/p95/p99 tell the real story.
+
+      **Traces** follow one request across services, showing where the time
+      went. In a system with more than a couple of services this is usually the
+      fastest path from "it is slow" to "it is that query".
+
+      **SLIs, SLOs and error budgets.** An SLI is a measurement ("proportion of
+      requests served under 300 ms"), an SLO is the target ("99.5% over 30
+      days"), and the error budget is the allowed shortfall — which converts
+      reliability arguments into arithmetic instead of opinion.
+
+      **Alerting.** Alert on symptoms users feel (error rate, latency,
+      availability), not on causes (CPU at 80% might be perfectly healthy).
+      Every alert should be actionable and link to a runbook. Alert fatigue is
+      a real outage risk: if people learn to ignore pages, the important one
+      gets ignored too.
+    resources:
+      - kind: book
+        title: "Google SRE Book (free online)"
+        url: https://sre.google/sre-book/table-of-contents/
+        provider: Google
+        duration_min: 900
+      - kind: doc
+        title: "OpenTelemetry documentation"
+        url: https://opentelemetry.io/docs/
+        provider: OpenTelemetry
+        duration_min: 180
+      - kind: doc
+        title: "Prometheus — Overview and best practices"
+        url: https://prometheus.io/docs/introduction/overview/
+        provider: Prometheus
+        duration_min: 120
+      - kind: article
+        title: "Google SRE — Service Level Objectives"
+        url: https://sre.google/sre-book/service-level-objectives/
+        provider: Google
+        duration_min: 45
+    quiz:
+      - prompt: Why report latency as p95/p99 rather than an average?
+        explanation: Averages hide the tail. A small fraction of very slow requests can be invisible in the mean while ruining the experience for real users.
+        options:
+          - text: "Averages hide the slow tail that real users actually experience"
+            correct: true
+          - text: "Percentiles are cheaper to compute"
+          - text: "Averages cannot be graphed over time"
+          - text: "p99 is always lower than the mean"
+      - prompt: Which is the better thing to page a human about at 3am?
+        explanation: Alert on user-visible symptoms. High CPU may be normal; a spiking error rate never is.
+        options:
+          - text: "Error rate above the SLO threshold for five minutes"
+            correct: true
+          - text: "CPU utilisation above 80%"
+          - text: "A single failed request"
+          - text: "Disk usage growing at all"
+      - prompt: What is the main advantage of structured (JSON) logs?
+        explanation: Fields can be filtered, aggregated and joined; free text has to be parsed with fragile regexes.
+        options:
+          - text: "They can be queried and aggregated by field instead of parsed with regexes"
+            correct: true
+          - text: "They are smaller than plain text"
+          - text: "They are encrypted by default"
+          - text: "They avoid the need for log levels"
+    interview:
+      - question: A user reports the app is slow, but your dashboards look fine. What now?
+        difficulty: hard
+        answer_md: |
+          Dashboards showing aggregates can look fine while a segment suffers.
+          Check percentiles rather than means, then slice by region, device,
+          endpoint, tenant and account size. Use the request id or trace from
+          the user's report to find their actual requests. Consider whether the
+          slowness is client-side (bundle size, render) rather than server-side,
+          and whether a specific query degrades only for users with lots of
+          data — an N+1 that is invisible at ten rows and fatal at ten thousand.
+
+  # ---------------------------------------------------------------- 15
+  - slug: system-design-basics
+    name: System Design Foundations
+    domain: backend
+    est_hours: 40
+    difficulty: advanced
+    prerequisites:
+      - caching-strategies
+      - async-and-message-queues
+      - data-modeling
+    summary: >-
+      Scaling, replication, partitioning, consistency trade-offs and how to
+      reason out loud in a design interview.
+    content_md: |
+      System design is where every earlier concept has to be traded off against
+      the others. There is rarely a right answer, only a defensible one.
+
+      **Scaling.** Vertical (bigger machine) is simplest and hits a ceiling.
+      Horizontal (more machines) needs statelessness, a load balancer, and a
+      plan for shared state. Identify the actual bottleneck before scaling
+      anything — it is usually the database.
+
+      **Database scaling.** Read replicas absorb read load but introduce
+      replication lag, so a user can write and then not see their own write.
+      Sharding partitions data across nodes by a key; choosing that key badly
+      creates hot shards and makes cross-shard queries and joins painful.
+
+      **Consistency.** CAP says that under a network partition you choose
+      availability or consistency. Most real systems land on tunable
+      consistency: strong where it must be (payments, inventory), eventual
+      where it can be (feeds, counters, search indexes). "Eventually consistent"
+      is a product decision as much as a technical one.
+
+      **Reliability patterns.** Timeouts on every network call — an unbounded
+      wait is how one slow dependency takes down everything. Retries with
+      backoff and jitter. Circuit breakers to stop hammering a failing
+      dependency. Bulkheads to isolate resource pools. Graceful degradation:
+      serve a cached or reduced response rather than an error page.
+
+      **Estimation.** Practise back-of-the-envelope numbers: daily active users
+      → requests per second → storage per year. Interviewers care that you can
+      reason about magnitude, not that you memorised disk latencies.
+
+      **How to answer.** Clarify requirements and constraints, state your
+      assumptions, sketch the high-level components, go deep on one or two,
+      then name the trade-offs and what you would monitor. Saying "here is what
+      I would measure before deciding" is a strong answer, not a weak one.
+    resources:
+      - kind: doc
+        title: "The System Design Primer"
+        url: https://github.com/donnemartin/system-design-primer
+        provider: Donne Martin
+        duration_min: 1200
+      - kind: book
+        title: "Designing Data-Intensive Applications"
+        url: https://dataintensive.net/
+        provider: Martin Kleppmann
+        is_free: false
+        duration_min: 2400
+      - kind: video
+        title: "ByteByteGo — system design explainers"
+        url: https://www.youtube.com/@ByteByteGo
+        provider: YouTube
+        duration_min: 600
+      - kind: article
+        title: "AWS Builders' Library — timeouts, retries and backoff with jitter"
+        url: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
+        provider: AWS
+        duration_min: 45
+    quiz:
+      - prompt: A user updates their profile and immediately sees the old value. What is the most likely cause?
+        explanation: The write went to the primary and the read was served by a replica that had not caught up — replication lag.
+        options:
+          - text: "The read was served by a replica that has not caught up (replication lag)"
+            correct: true
+          - text: "The database is corrupted"
+          - text: "The write transaction rolled back silently"
+          - text: "The primary key collided"
+      - prompt: Why is a timeout required on every outbound network call?
+        explanation: Without one, threads or connections pile up waiting on a slow dependency until the whole service is exhausted — a cascading failure.
+        options:
+          - text: "Otherwise a slow dependency exhausts your connections and takes your service down with it"
+            correct: true
+          - text: "Because HTTP requires it"
+          - text: "To reduce bandwidth costs"
+          - text: "To make retries unnecessary"
+      - prompt: What does a circuit breaker do?
+        explanation: After repeated failures it stops sending traffic to the failing dependency for a period, failing fast and letting it recover.
+        options:
+          - text: "Stops calling a failing dependency for a while, failing fast instead of piling on"
+            correct: true
+          - text: "Encrypts traffic between services"
+          - text: "Balances load evenly across replicas"
+          - text: "Rolls back the last deployment automatically"
+    interview:
+      - question: Design a URL shortener.
+        difficulty: hard
+        answer_md: |
+          Clarify scale, read/write ratio, custom aliases, expiry and analytics.
+          Core: a `links(short_code, long_url, owner_id, created_at, expires_at)`
+          table with `short_code` as the key. Generate codes with base62 over a
+          counter or hash-plus-collision-check — discuss the trade-off
+          (sequential is dense but enumerable; random is unguessable but needs
+          a uniqueness check). Reads dominate massively, so cache aggressively
+          and serve `301`/`302` from the edge. Then cover sharding by code,
+          rate limiting, and how click analytics are written asynchronously so
+          they never slow the redirect.
+      - question: How would you scale a service that suddenly gets 10x traffic?
+        difficulty: hard
+        answer_md: |
+          Measure first: find whether the bottleneck is CPU, database,
+          downstream calls or a lock. Quick wins: add caching and a CDN, scale
+          out stateless app servers behind the load balancer, add read
+          replicas, and shed non-essential work into a queue. Then structural
+          work: index or rewrite the hot queries, add connection pooling,
+          consider sharding. Throughout, protect the system with rate limiting
+          and graceful degradation so the failure mode is a slower or reduced
+          service rather than a total outage.

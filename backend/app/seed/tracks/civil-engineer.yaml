@@ -1,0 +1,288 @@
+track:
+  slug: civil-engineer
+  title: Study Civil Engineering
+  domain: civil
+  target_role: Civil / Structural Engineer
+  difficulty: intermediate
+  description: >-
+    Structures, geotechnics and construction management — analysing loads,
+    understanding the ground you build on, and delivering a project on site.
+
+concepts:
+  - slug: statics-and-strength
+
+  - slug: structural-analysis
+    name: Structural Analysis & Design
+    domain: civil
+    est_hours: 50
+    difficulty: advanced
+    prerequisites:
+      - statics-and-strength
+    summary: >-
+      Load paths, determinate and indeterminate structures, and designing in
+      concrete and steel to code.
+    content_md: |
+      Structural engineering is the discipline of tracing every load safely to
+      the ground.
+
+      **The load path.** Roof to beam to column to foundation to soil. If you
+      cannot draw the path a load takes, the structure is not understood. Loads
+      are dead (permanent), live (occupancy), and environmental (wind, snow,
+      seismic), combined by code into the governing cases.
+
+      **Determinate versus indeterminate.** A determinate structure can be solved
+      with equilibrium alone. Indeterminate structures need compatibility of
+      deflections — harder to analyse, and much better in practice because they
+      have redundancy: losing one member need not mean collapse.
+
+      **Materials behave differently.** Concrete is strong in compression and
+      weak in tension, which is precisely why steel reinforcement is placed where
+      tension occurs — the tension face of a beam. Steel is strong in both but
+      buckles in slender compression members and loses strength in fire.
+      Timber is anisotropic and moisture-sensitive.
+
+      **Serviceability is not an afterthought.** A structure can be perfectly
+      safe and unusable: excessive deflection, cracking, or floors that vibrate
+      when people walk. Codes check both ultimate strength and serviceability,
+      and complaints in real buildings are usually about the latter.
+
+      **Codes encode hard-won failures.** Follow them, and understand why a
+      clause exists before proposing to deviate.
+    resources:
+      - kind: course
+        title: "MIT OCW — Mechanics and Design of Concrete Structures"
+        url: https://ocw.mit.edu/courses/1-054-mechanics-and-design-of-concrete-structures-spring-2004/
+        provider: MIT
+        duration_min: 1200
+      - kind: doc
+        title: "The Structural Engineer's resources (IStructE)"
+        url: https://www.istructe.org/resources/
+        provider: IStructE
+        duration_min: 300
+      - kind: video
+        title: "Practical Engineering — structures explained"
+        url: https://www.youtube.com/@PracticalEngineeringChannel
+        provider: YouTube
+        duration_min: 300
+    quiz:
+      - prompt: Why is steel reinforcement placed on the tension face of a concrete beam?
+        explanation: Concrete has very little tensile strength; the steel carries the tension while the concrete carries compression.
+        options:
+          - text: "Concrete is weak in tension, so steel carries it"
+            correct: true
+          - text: "To reduce the weight"
+          - text: "To improve fire resistance"
+          - text: "To speed up curing"
+      - prompt: What advantage does an indeterminate structure have?
+        explanation: Redundancy — load can redistribute if one member is lost, so failure is not necessarily progressive collapse.
+        options:
+          - text: "Redundancy: load can redistribute if a member fails"
+            correct: true
+          - text: "It is easier to analyse"
+          - text: "It uses less material always"
+          - text: "It needs no foundations"
+      - prompt: A floor meets all strength requirements but occupants complain it bounces. What has been missed?
+        explanation: A serviceability limit state — deflection and vibration — which is checked separately from ultimate strength.
+        options:
+          - text: "A serviceability check on deflection and vibration"
+            correct: true
+          - text: "The ultimate load combination"
+          - text: "The concrete grade"
+          - text: "The seismic category"
+    interview:
+      - question: How do you approach checking someone else's structural design?
+        difficulty: hard
+        answer_md: |
+          Start with the load path and the global stability, not the arithmetic —
+          a correct calculation of the wrong model is the dangerous failure. Check
+          the load cases and combinations against the code, the assumed support
+          conditions (are those really pins?), and the continuity assumptions.
+          Then sanity-check magnitudes with independent hand calculations and
+          rules of thumb; if a member is half the depth experience suggests,
+          find out why before accepting it. Finally check serviceability,
+          connections — which is where many failures actually occur — and
+          buildability.
+
+  - slug: geotechnics-and-materials
+    name: Geotechnics & Construction Materials
+    domain: civil
+    est_hours: 40
+    difficulty: advanced
+    prerequisites:
+      - statics-and-strength
+    summary: >-
+      Soil behaviour, bearing capacity, settlement, and the concrete and steel
+      that everything is built from.
+    content_md: |
+      Every structure ultimately rests on ground that the engineer did not
+      design and can only investigate.
+
+      **Soil is not a material with a datasheet.** It varies across a site and
+      with depth, and the site investigation — boreholes, sampling, in-situ
+      testing — is the only reliable source of truth. Skimping on investigation
+      is the classic false economy in civil work.
+
+      **Effective stress** is the central concept: soil strength depends on the
+      stress carried by the grain skeleton, not the total stress, because water
+      pressure carries part of the load. This is why a rise in the water table
+      can trigger a slope failure with no change in geometry.
+
+      **Bearing capacity and settlement** are separate checks. A foundation can
+      be safe against sudden shear failure and still settle unacceptably —
+      differential settlement across a building cracks it even when nothing is
+      structurally overloaded. Clays settle slowly through consolidation over
+      years; sands settle almost immediately.
+
+      **Concrete** gains strength as it cures and is specified by grade,
+      workability and durability requirements for the exposure. Its weakness is
+      reinforcement corrosion — which is why cover depth matters so much.
+      **Steel** is graded by yield strength and needs corrosion and fire
+      protection. Both have significant embodied carbon, which is now a design
+      criterion rather than an afterthought.
+    resources:
+      - kind: course
+        title: "MIT OCW — Soil Behavior"
+        url: https://ocw.mit.edu/courses/1-361-advanced-soil-mechanics-fall-2004/
+        provider: MIT
+        duration_min: 1200
+      - kind: doc
+        title: "Geotechnical engineering resources (ICE)"
+        url: https://www.ice.org.uk/knowledge-and-resources
+        provider: ICE
+        duration_min: 240
+      - kind: video
+        title: "Practical Engineering — geotechnical series"
+        url: https://www.youtube.com/@PracticalEngineeringChannel
+        provider: YouTube
+        duration_min: 240
+    quiz:
+      - prompt: Why can a rise in groundwater trigger a slope failure with no other change?
+        explanation: Pore water pressure reduces effective stress, and soil shear strength depends on effective stress.
+        options:
+          - text: "Higher pore pressure reduces effective stress and therefore shear strength"
+            correct: true
+          - text: "Water increases the total weight only"
+          - text: "It erodes the surface"
+          - text: "It reduces the friction angle permanently"
+      - prompt: A foundation is safe against bearing failure but the building cracks. What was missed?
+        explanation: Settlement — particularly differential settlement — is a separate limit state from bearing capacity.
+        options:
+          - text: "A settlement check, especially differential settlement"
+            correct: true
+          - text: "The concrete grade"
+          - text: "The wind load"
+          - text: "The reinforcement spacing"
+      - prompt: Why does concrete cover depth matter so much for durability?
+        explanation: Cover protects the reinforcement from carbonation and chloride ingress; corroding steel expands and spalls the concrete.
+        options:
+          - text: "It protects the reinforcement from corrosion, which would spall the concrete"
+            correct: true
+          - text: "It increases compressive strength"
+          - text: "It speeds up curing"
+          - text: "It reduces the concrete grade required"
+    interview:
+      - question: The site investigation budget is being cut. What do you say?
+        difficulty: medium
+        answer_md: |
+          That it is the cheapest risk reduction available on the project. Ground
+          conditions are the single largest source of construction claims and
+          overruns, and an unexpected soft layer or high water table discovered
+          during excavation costs far more than the boreholes that would have
+          found it. Quantify it: compare the investigation cost against the
+          contingency the design will otherwise need, since less information
+          forces more conservative — and more expensive — foundations. If the cut
+          is unavoidable, prioritise coverage at the most heavily loaded and most
+          variable parts of the site and document the residual risk explicitly.
+
+  - slug: construction-management
+    name: Construction Management
+    domain: civil
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites: []
+    summary: >-
+      Programme, cost, contracts and safety — delivering the design as a real
+      structure.
+    content_md: |
+      Design is a fraction of a civil project. Delivery is where money is made
+      and lost.
+
+      **Programme.** Break the work down, sequence it, and find the critical
+      path — the chain of activities where any delay delays the whole project.
+      Float is the slack elsewhere. Compressing a programme means either
+      resourcing the critical path harder or overlapping activities, and both
+      cost money or add risk.
+
+      **Cost.** Estimate from quantities and rates, track earned value against
+      spend, and manage change formally. Uncontrolled variations are the most
+      common route to a loss-making contract.
+
+      **Contracts** allocate risk, and understanding who carries which risk is
+      the actual skill. Who bears unforeseen ground conditions? Who owns the
+      design? Claims and disputes almost always trace back to that allocation and
+      to poor records — so contemporaneous site records are a commercial
+      instrument, not paperwork.
+
+      **Safety is the first duty.** Construction remains among the most dangerous
+      industries. Design out hazards where possible — the designer's decisions
+      determine much of the site risk — then manage what remains with method
+      statements, permits and competent supervision.
+
+      **Quality and handover.** Inspection and test plans, hold points, as-built
+      records and the operation and maintenance information the client will
+      depend on for decades.
+    resources:
+      - kind: doc
+        title: "Construction management resources (ICE)"
+        url: https://www.ice.org.uk/knowledge-and-resources
+        provider: ICE
+        duration_min: 240
+      - kind: doc
+        title: "Project Management Institute — practice standards"
+        url: https://www.pmi.org/learning/library
+        provider: PMI
+        duration_min: 300
+      - kind: doc
+        title: "HSE — construction health and safety guidance"
+        url: https://www.hse.gov.uk/construction/index.htm
+        provider: HSE
+        duration_min: 180
+    quiz:
+      - prompt: What is the critical path?
+        explanation: The longest chain of dependent activities — any delay on it delays the project completion date.
+        options:
+          - text: "The sequence of activities where any delay delays the whole project"
+            correct: true
+          - text: "The most expensive activities"
+          - text: "The activities with the most float"
+          - text: "The safety-critical work"
+      - prompt: Where does a designer have the greatest influence on site safety?
+        explanation: By designing hazards out — sequence, buildability, and eliminating work at height or in confined spaces.
+        options:
+          - text: "By eliminating hazards through design and buildability decisions"
+            correct: true
+          - text: "By writing method statements"
+          - text: "By attending site inductions"
+          - text: "By specifying more PPE"
+      - prompt: Why do contemporaneous site records matter commercially?
+        explanation: Claims turn on evidence of what happened and when; without records, entitlement is very hard to establish.
+        options:
+          - text: "Claims and disputes are decided on documented evidence"
+            correct: true
+          - text: "They are required for planning permission"
+          - text: "They replace the contract"
+          - text: "They reduce material cost"
+    interview:
+      - question: A project is four weeks behind. How do you recover it?
+        difficulty: hard
+        answer_md: |
+          First establish where the delay actually sits and whether it is on the
+          critical path — delay to an activity with float changes nothing.
+          Determine the cause and, contractually, who owns it, because that
+          decides whether recovery is at your cost and whether an extension of
+          time is due. Options: accelerate the critical path with more resource
+          or shifts, resequence to overlap activities, or descope. Each carries
+          cost and risk — overlapping design and construction raises rework risk,
+          and extended shifts raise safety and quality risk. Present the options
+          with costs to the client rather than absorbing the decision silently,
+          and record everything.

@@ -1,0 +1,374 @@
+track:
+  slug: devops-engineer
+  title: Become a DevOps Engineer
+  domain: devops
+  target_role: DevOps / Platform Engineer
+  difficulty: intermediate
+  description: >-
+    Own the path from a commit to production and the health of what runs there:
+    Linux, containers, orchestration, infrastructure as code, pipelines,
+    observability and incident response.
+
+concepts:
+  - slug: git-version-control
+  - slug: containers-docker
+  - slug: ci-cd
+  - slug: observability
+
+  - slug: linux-and-shell
+    name: Linux & the Shell
+    domain: devops
+    est_hours: 30
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Processes, permissions, networking and the command line — the substrate
+      everything else runs on.
+    content_md: |
+      Almost all server software runs on Linux, and almost all operational
+      debugging happens at a shell prompt.
+
+      **Filesystem and permissions.** The single tree, where things live
+      (`/etc` config, `/var/log` logs, `/proc` kernel state), and the
+      user/group/other permission triad. Most "permission denied" incidents are
+      a service running as the wrong user, not a broken program.
+
+      **Processes.** PIDs, parents and children, signals. `SIGTERM` asks a
+      process to shut down cleanly and `SIGKILL` does not ask — which is exactly
+      why a container that ignores `SIGTERM` gets killed mid-write during a
+      deploy. Know how to find what is using CPU (`top`), what is holding a port
+      (`ss -ltnp`) and what a process is doing (`strace`, `/proc`).
+
+      **Text as an interface.** `grep`, `awk`, `sed`, pipes and redirection.
+      Being able to turn a log file into a count grouped by error type in one
+      line is a genuine operational superpower.
+
+      **Networking basics.** Ports, DNS resolution, `curl -v` to see exactly what
+      was sent and received, and the difference between "connection refused"
+      (nothing listening) and "timeout" (something is silently dropping you) —
+      usually a firewall or security group.
+    resources:
+      - kind: course
+        title: "Linux Journey — learn Linux from the ground up"
+        url: https://linuxjourney.com/
+        provider: Linux Journey
+        duration_min: 480
+      - kind: book
+        title: "The Linux Command Line (free PDF)"
+        url: https://linuxcommand.org/tlcl.php
+        provider: William Shotts
+        duration_min: 900
+      - kind: doc
+        title: "ExplainShell — decode any command"
+        url: https://explainshell.com/
+        provider: ExplainShell
+        duration_min: 30
+    quiz:
+      - prompt: What is the practical difference between SIGTERM and SIGKILL?
+        explanation: SIGTERM can be caught and handled for a clean shutdown; SIGKILL cannot be caught, so work in flight is lost.
+        options:
+          - text: "SIGTERM can be handled for a graceful shutdown; SIGKILL cannot be caught"
+            correct: true
+          - text: "SIGKILL is slower"
+          - text: "SIGTERM only works on containers"
+          - text: "They are identical"
+      - prompt: A service is unreachable and you get a connection timeout rather than "connection refused". What does that suggest?
+        explanation: Refused means something actively rejected you; a timeout means packets are being dropped, typically by a firewall or security group.
+        options:
+          - text: "Traffic is being dropped by a firewall or security group"
+            correct: true
+          - text: "The process has crashed"
+          - text: "DNS is misconfigured"
+          - text: "The disk is full"
+      - prompt: Which command shows which process is listening on a port?
+        explanation: `ss -ltnp` lists listening TCP sockets with the owning process.
+        options:
+          - text: "ss -ltnp"
+            correct: true
+          - text: "ls -la"
+          - text: "chmod 755"
+          - text: "df -h"
+    interview:
+      - question: A server is at 100% CPU. Walk me through diagnosing it.
+        difficulty: medium
+        answer_md: |
+          Confirm with `top`/`htop` and check load average against core count.
+          Identify whether it is user or system time — heavy `sy` suggests
+          syscalls or IO wait rather than computation. Find the offending
+          process and thread, then look at what it is doing (`perf`, `strace`,
+          or the language's own profiler). Check whether it correlates with a
+          deploy, a traffic spike, or a cron job. Look at whether it is one hot
+          request path, an infinite retry loop, or GC pressure. Mitigate first
+          (scale out, shed load, roll back), diagnose properly after.
+
+  - slug: infrastructure-as-code
+    name: Infrastructure as Code
+    domain: devops
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - linux-and-shell
+    summary: >-
+      Declaring infrastructure in version control so environments are
+      reproducible, reviewable and disposable.
+    content_md: |
+      Clicking through a cloud console produces infrastructure nobody can
+      recreate, review or reason about. Infrastructure as code makes the
+      environment a reviewable artefact.
+
+      **Declarative beats imperative.** You describe the desired state; the tool
+      computes the difference and applies it. That makes the same run safe to
+      repeat — the property called **idempotence** — and lets you preview changes
+      with a plan before touching anything real.
+
+      **State is the sharp edge.** Terraform and friends keep a state file
+      mapping your declarations to real resources. It must be stored remotely
+      and locked, or two engineers applying at once will corrupt it. It also
+      frequently contains secrets, so it is sensitive data.
+
+      **Drift** is what happens when someone fixes something by hand in the
+      console. The next plan wants to undo their fix. The cultural rule matters
+      as much as the tooling: changes go through the code.
+
+      **Modules and environments.** Factor repeated patterns into modules and
+      parameterise per environment, so staging and production differ by
+      variables rather than by accumulated history.
+
+      **Immutable infrastructure.** Replace servers rather than patching them in
+      place. A rebuilt-from-code machine has no undocumented state on it, which
+      is what makes recovery predictable.
+    resources:
+      - kind: doc
+        title: "Terraform — tutorials"
+        url: https://developer.hashicorp.com/terraform/tutorials
+        provider: HashiCorp
+        duration_min: 360
+      - kind: doc
+        title: "Ansible — getting started"
+        url: https://docs.ansible.com/ansible/latest/getting_started/index.html
+        provider: Red Hat
+        duration_min: 180
+      - kind: article
+        title: "Infrastructure as Code"
+        url: https://martinfowler.com/bliki/InfrastructureAsCode.html
+        provider: Martin Fowler
+        duration_min: 20
+    quiz:
+      - prompt: Why must Terraform state be stored remotely with locking?
+        explanation: Two concurrent applies against the same state can corrupt it and orphan or duplicate real resources.
+        options:
+          - text: "Concurrent applies would otherwise corrupt it"
+            correct: true
+          - text: "Local files cannot be encrypted"
+          - text: "It makes plans faster"
+          - text: "The provider requires it"
+      - prompt: What is configuration drift?
+        explanation: Reality diverging from the declared state, usually because someone changed something by hand.
+        options:
+          - text: "Real infrastructure no longer matching what the code declares"
+            correct: true
+          - text: "A slow apply"
+          - text: "A version mismatch between modules"
+          - text: "Latency between regions"
+      - prompt: What does idempotence mean here?
+        explanation: Applying the same declaration repeatedly converges on the same state instead of stacking up changes.
+        options:
+          - text: "Applying the same configuration twice leaves the same end state"
+            correct: true
+          - text: "Every run creates new resources"
+          - text: "Changes cannot be rolled back"
+          - text: "State is stored locally"
+    interview:
+      - question: Someone changed a security group by hand to fix an outage. What do you do?
+        difficulty: medium
+        answer_md: |
+          Accept it during the incident — restoring service beats process. Then
+          reconcile deliberately: run a plan to see the drift, decide whether the
+          manual change was correct, and if so codify it and apply so the code
+          and reality agree. If it was wrong, revert through the code. Follow up
+          on why the code path was too slow to use under pressure — usually the
+          plan/apply cycle or approvals — because that is what will cause the
+          next hand-edit.
+
+  - slug: kubernetes-orchestration
+    name: Orchestration with Kubernetes
+    domain: devops
+    est_hours: 40
+    difficulty: advanced
+    prerequisites:
+      - containers-docker
+      - linux-and-shell
+    summary: >-
+      Running many containers reliably: the reconciliation loop, workloads,
+      services, config and the failure modes you will actually meet.
+    content_md: |
+      Kubernetes is a control loop. You declare the desired state; controllers
+      continuously work to make reality match. Almost everything confusing about
+      it becomes clearer once you stop thinking in commands and start thinking in
+      desired state.
+
+      **Objects.** A **Pod** is one or more containers sharing a network
+      namespace — the unit of scheduling, and usually not something you create
+      directly. A **Deployment** manages a ReplicaSet of identical pods and
+      handles rolling updates. A **Service** gives a stable address and load
+      balances across pods, because pod IPs churn. **Ingress** routes external
+      HTTP to Services.
+
+      **Config and secrets.** ConfigMaps and Secrets are injected as environment
+      variables or files. Note that Kubernetes Secrets are base64-encoded, not
+      encrypted, unless you enable encryption at rest — a very common false
+      assumption.
+
+      **Health and resources.** Liveness probes restart a wedged container;
+      readiness probes take it out of the load balancer until it can serve.
+      Requests and limits govern scheduling and throttling — a pod with no
+      memory limit can take down a node, and one with too low a limit gets
+      OOMKilled.
+
+      **The failure modes you will actually see:** `CrashLoopBackOff` (the
+      container exits immediately — read the logs), `ImagePullBackOff` (wrong
+      tag or missing credentials), and `Pending` (nothing can schedule it,
+      usually insufficient resources).
+    resources:
+      - kind: doc
+        title: "Kubernetes — concepts"
+        url: https://kubernetes.io/docs/concepts/
+        provider: Kubernetes
+        duration_min: 480
+      - kind: course
+        title: "Kubernetes the Hard Way"
+        url: https://github.com/kelseyhightower/kubernetes-the-hard-way
+        provider: Kelsey Hightower
+        duration_min: 480
+      - kind: doc
+        title: "kind — run a cluster locally in Docker"
+        url: https://kind.sigs.k8s.io/
+        provider: Kubernetes SIGs
+        duration_min: 60
+    quiz:
+      - prompt: What is the difference between a liveness and a readiness probe?
+        explanation: Liveness restarts an unhealthy container; readiness only removes it from service until it can handle traffic.
+        options:
+          - text: "Liveness restarts the container; readiness controls whether it receives traffic"
+            correct: true
+          - text: "They are the same with different names"
+          - text: "Readiness restarts the pod"
+          - text: "Liveness only runs at startup"
+      - prompt: A pod is stuck in CrashLoopBackOff. What is the first thing to check?
+        explanation: The container is exiting on start; its logs and exit code say why — usually bad config, a missing dependency, or a failing migration.
+        options:
+          - text: "The container logs and exit code"
+            correct: true
+          - text: "The node's disk space"
+          - text: "The Ingress rules"
+          - text: "The image registry region"
+      - prompt: Are Kubernetes Secrets encrypted by default?
+        explanation: They are base64-encoded in etcd. Encryption at rest must be enabled explicitly, and RBAC still governs who can read them.
+        options:
+          - text: "No — they are base64-encoded unless encryption at rest is enabled"
+            correct: true
+          - text: "Yes, always"
+          - text: "Only in managed clusters"
+          - text: "Only if stored as files"
+    interview:
+      - question: When is Kubernetes the wrong choice?
+        difficulty: medium
+        answer_md: |
+          When the operational cost exceeds the benefit — a small team with a
+          handful of services, no dedicated platform capacity, and no need for
+          sophisticated scheduling is usually better served by a managed
+          container platform or plain VMs. Kubernetes pays off with many
+          services, real elasticity requirements, multiple teams needing
+          isolation, or a genuine need for portability. The honest test: can you
+          name the specific problem it solves for you, and can someone debug it
+          at 3am?
+
+  - slug: incident-response
+    name: Incident Response & Reliability
+    domain: devops
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - observability
+    summary: >-
+      What to do when it breaks: roles, mitigation before diagnosis, error
+      budgets and blameless postmortems.
+    content_md: |
+      Reliability is not the absence of failure; it is how quickly and calmly you
+      recover from it.
+
+      **Mitigate first, diagnose second.** The instinct to understand before
+      acting is what turns a five-minute blip into an hour-long outage. Roll
+      back, fail over, shed load, disable the feature flag — restore service,
+      then investigate with the pressure off.
+
+      **Roles.** Even a small incident benefits from an incident commander who
+      coordinates and decides, someone doing the hands-on work, and someone
+      communicating outward. When everyone debugs and nobody coordinates, work
+      gets duplicated and customers hear nothing.
+
+      **SLIs, SLOs and error budgets** turn reliability from an argument into
+      arithmetic. If the SLO is 99.9% and you have spent the month's budget, that
+      is the objective signal to prioritise stability over features — and if you
+      have budget to spare, shipping faster is the right call.
+
+      **Blameless postmortems.** The question is what about the system allowed a
+      reasonable person to make that mistake — missing guardrail, confusing
+      interface, absent alert. Naming an individual guarantees the next person
+      hides the next incident. Every action item needs an owner and a date, or
+      the postmortem is theatre.
+
+      **Practise.** Run a game day. The procedure you have never rehearsed does
+      not work.
+    resources:
+      - kind: book
+        title: "Google SRE Book — incident management and postmortems"
+        url: https://sre.google/sre-book/managing-incidents/
+        provider: Google
+        duration_min: 180
+      - kind: doc
+        title: "PagerDuty Incident Response documentation"
+        url: https://response.pagerduty.com/
+        provider: PagerDuty
+        duration_min: 120
+      - kind: article
+        title: "Google SRE — Postmortem culture"
+        url: https://sre.google/sre-book/postmortem-culture/
+        provider: Google
+        duration_min: 45
+    quiz:
+      - prompt: Production is down after a deploy. What comes first?
+        explanation: Restore service — roll back — then investigate. Diagnosis with users affected is the expensive order.
+        options:
+          - text: "Roll back to restore service, then investigate"
+            correct: true
+          - text: "Find the root cause before changing anything"
+          - text: "Wait to see if it recovers"
+          - text: "Write the postmortem"
+      - prompt: What is an error budget?
+        explanation: The allowed shortfall against the SLO — spending it is the objective trigger to prioritise reliability work.
+        options:
+          - text: "The amount of unreliability the SLO permits over a window"
+            correct: true
+          - text: "The money spent on incidents"
+          - text: "The number of open bugs"
+          - text: "A cap on deploy frequency"
+      - prompt: Why are postmortems blameless?
+        explanation: Blame drives incidents underground. Systems, not individuals, are what you can actually fix.
+        options:
+          - text: "Because naming individuals hides future incidents and systems are what you can fix"
+            correct: true
+          - text: "Because nobody is ever at fault"
+          - text: "Because they are shared publicly"
+          - text: "To keep them short"
+    interview:
+      - question: How would you set an SLO for a new service?
+        difficulty: hard
+        answer_md: |
+          Start from what users notice: availability and latency on the critical
+          path, expressed as an SLI you can actually measure from their side
+          (proportion of successful requests under N ms). Pick a target that is
+          achievable and meaningful — 100% is neither, and an SLO nobody can meet
+          gets ignored. Set the window (28 or 30 days), derive the error budget,
+          and agree in advance what happens when it is exhausted. Review after a
+          quarter with real data; the first SLO is a hypothesis.

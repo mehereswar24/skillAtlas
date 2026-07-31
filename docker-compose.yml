@@ -1,0 +1,34 @@
+# OPTIONAL. SkillAtlas runs on SQLite by default and needs no containers at all.
+#
+# Use this only if you want Postgres instead of SQLite:
+#
+#   docker compose --profile postgres up -d
+#   # backend/.env:
+#   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/skillatlas
+#   pip install psycopg2-binary
+#   python -m alembic upgrade head
+#
+# The Neo4j and Redis services were removed: the knowledge graph is stored
+# relationally and traversed in app/services/graph.py, and there is no
+# background-worker queue to broker.
+
+services:
+  postgres:
+    image: postgres:16
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: skillatlas
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d skillatlas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

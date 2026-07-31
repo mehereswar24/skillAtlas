@@ -1,0 +1,280 @@
+track:
+  slug: game-developer
+  title: Become a Game Developer
+  domain: game
+  target_role: Game Developer
+  difficulty: intermediate
+  description: >-
+    Build games that feel good to play: the engine and game loop, the maths of
+    movement and collision, game feel and design, and shipping something small
+    and finished.
+
+concepts:
+  - slug: game-loop-and-engines
+    name: Game Loops & Engines
+    domain: game
+    est_hours: 30
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      The update/render cycle, delta time, scene graphs and what an engine
+      actually does for you.
+    content_md: |
+      Every game is the same loop: read input, update the world, draw it, repeat
+      — sixty times a second, forever.
+
+      **Delta time is the first thing to get right.** Moving an object by a fixed
+      amount per frame ties its speed to the frame rate, so the game runs faster
+      on a better machine. Multiply by the elapsed time instead. Physics usually
+      wants a *fixed* timestep run in a separate accumulator, because variable
+      steps make simulation unstable and non-deterministic.
+
+      **Entities and components.** Engines model the world as objects with
+      attached behaviour — Unity's GameObject/Component, Godot's node tree, or a
+      full entity-component-system where data and behaviour are separated for
+      cache efficiency and composability. Composition beats deep inheritance
+      hierarchies here even more than in ordinary software.
+
+      **What an engine gives you**: rendering, physics, audio, input across
+      devices, asset pipeline, scene serialisation, and an editor. Writing your
+      own teaches enormous amounts and finishes almost nothing.
+
+      **Choosing one.** Godot is free, open source and excellent for 2D. Unity
+      has the largest ecosystem and job market. Unreal leads on high-end 3D. For
+      learning, the correct answer is whichever has the tutorial you will
+      actually finish.
+    resources:
+      - kind: doc
+        title: "Godot — step by step tutorial"
+        url: https://docs.godotengine.org/en/stable/getting_started/step_by_step/index.html
+        provider: Godot
+        duration_min: 300
+      - kind: book
+        title: "Game Programming Patterns (free online)"
+        url: https://gameprogrammingpatterns.com/
+        provider: Robert Nystrom
+        duration_min: 600
+      - kind: article
+        title: "Fix Your Timestep!"
+        url: https://gafferongames.com/post/fix_your_timestep/
+        provider: Glenn Fiedler
+        duration_min: 30
+    quiz:
+      - prompt: Why multiply movement by delta time?
+        explanation: Otherwise speed depends on frame rate, so the game literally runs faster on faster hardware.
+        options:
+          - text: "So movement speed is independent of frame rate"
+            correct: true
+          - text: "To reduce memory usage"
+          - text: "To synchronise audio"
+          - text: "It is only needed in 3D"
+      - prompt: Why is a fixed timestep preferred for physics?
+        explanation: Variable steps make integration unstable and results non-deterministic, which breaks both simulation quality and replays.
+        options:
+          - text: "Variable steps make the simulation unstable and non-deterministic"
+            correct: true
+          - text: "It renders more frames"
+          - text: "It uses less CPU"
+          - text: "It is required by every engine"
+      - prompt: What does an entity-component-system optimise for?
+        explanation: Composition over inheritance, plus data laid out for cache-friendly iteration over many entities.
+        options:
+          - text: "Composable behaviour and cache-friendly iteration over many entities"
+            correct: true
+          - text: "Smaller binaries"
+          - text: "Simpler networking"
+          - text: "Automatic level generation"
+    interview:
+      - question: Your game runs at 60fps on your machine and 20fps on a tester's. How do you diagnose it?
+        difficulty: medium
+        answer_md: |
+          Profile rather than guess: find out whether you are CPU-bound or
+          GPU-bound first, since the fixes are entirely different. CPU side: too
+          many update calls, allocations causing garbage collection spikes,
+          physics bodies, or expensive per-frame logic that should be cached or
+          spread across frames. GPU side: overdraw, too many draw calls
+          (batch/instance them), oversized textures, expensive shaders,
+          resolution. Check whether the frame time is consistently bad or
+          spiking, because a stutter every two seconds is usually GC or asset
+          loading rather than raw throughput.
+
+  - slug: game-math-and-physics
+    name: Game Maths & Collision
+    domain: game
+    est_hours: 35
+    difficulty: intermediate
+    prerequisites:
+      - game-loop-and-engines
+    summary: >-
+      Vectors, transforms, collision detection and response — the maths you
+      genuinely use every day.
+    content_md: |
+      Game maths is small, concrete and used constantly. You do not need
+      analysis; you need fluency with vectors.
+
+      **Vectors** represent position, direction and velocity. Adding moves;
+      scaling changes magnitude. Normalising gives a pure direction — and
+      forgetting to normalise before scaling by speed is why diagonal movement is
+      classically faster than orthogonal movement in beginner code.
+
+      **Dot product** gives the cosine of the angle between two directions: use
+      it for "is the enemy in front of me?", field-of-view checks, and projecting
+      one vector onto another. **Cross product** (3D) gives a perpendicular
+      vector — surface normals, torque, and which side something is on.
+
+      **Transforms.** Translation, rotation and scale composed into a matrix, and
+      the hierarchy of local versus world space. Most "why is my object in the
+      wrong place?" bugs are a space confusion.
+
+      **Collision.** Broad phase (cheap spatial partitioning to find candidate
+      pairs) then narrow phase (exact test). AABB for axis-aligned boxes, circle
+      or sphere for the cheapest possible test, and the separating axis theorem
+      for convex polygons.
+
+      **Response is design, not physics.** Whether a collision stops, slides or
+      bounces is a gameplay decision; realistic simulation frequently feels
+      terrible to play.
+    resources:
+      - kind: book
+        title: "Immersive Math — linear algebra, interactive"
+        url: https://immersivemath.com/ila/
+        provider: Ström, Åström & Akenine-Möller
+        duration_min: 600
+      - kind: doc
+        title: "Red Blob Games — interactive explanations"
+        url: https://www.redblobgames.com/
+        provider: Amit Patel
+        duration_min: 300
+      - kind: article
+        title: "Collision detection for 2D games"
+        url: https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
+        provider: MDN
+        duration_min: 45
+    quiz:
+      - prompt: Diagonal movement is faster than straight movement in your game. What is wrong?
+        explanation: The input vector was not normalised, so moving on two axes gives a magnitude of about 1.41 rather than 1.
+        options:
+          - text: "The movement vector is not normalised before scaling by speed"
+            correct: true
+          - text: "Delta time is missing"
+          - text: "The frame rate is uncapped"
+          - text: "Collision is disabled diagonally"
+      - prompt: You want to know whether an enemy is within the player's forward cone. Which operation?
+        explanation: The dot product of the normalised facing direction and the direction to the enemy gives the cosine of the angle.
+        options:
+          - text: "Dot product of the facing direction and the direction to the enemy"
+            correct: true
+          - text: "Cross product"
+          - text: "Vector addition"
+          - text: "Matrix inversion"
+      - prompt: Why have a broad phase before exact collision tests?
+        explanation: Testing every pair is O(n²); spatial partitioning cheaply eliminates pairs that cannot possibly collide.
+        options:
+          - text: "Testing every pair exactly is quadratic and wasteful"
+            correct: true
+          - text: "Exact tests are inaccurate"
+          - text: "It renders the colliders"
+          - text: "It replaces physics"
+    interview:
+      - question: How would you implement a character that can walk up slopes but not walls?
+        difficulty: hard
+        answer_md: |
+          On each collision, take the surface normal and compare it against up
+          with a dot product; if the angle is below a walkable threshold, treat
+          it as ground and project the movement vector onto the surface plane so
+          the character slides along it rather than stopping. Above the
+          threshold, treat it as a wall: cancel the component of movement into
+          the surface but keep the tangential part so the player slides rather
+          than sticking. Add a small skin width and step-up height so tiny ledges
+          do not block movement, and separate the ground check from the collision
+          resolution so coyote time and jump logic stay readable.
+
+  - slug: game-feel-and-design
+    name: Game Feel & Scoping
+    domain: game
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - game-loop-and-engines
+    summary: >-
+      Why identical mechanics feel great or dead — and how to actually finish a
+      game.
+    content_md: |
+      Two games can have identical rules and feel completely different. The
+      difference is game feel, and it is craft rather than luck.
+
+      **Responsiveness first.** Input must register immediately. Buffer inputs a
+      few frames so a jump pressed just before landing still fires; allow coyote
+      time so a jump pressed just after leaving a ledge still works. Players do
+      not notice these individually — they notice their absence as "floaty" or
+      "unfair".
+
+      **Juice.** Screen shake, hit-stop (freezing for a few frames on impact),
+      particles, squash and stretch, and sound. Sound in particular does more for
+      impact than any visual effect; a punch without audio feels like nothing.
+      Animation should anticipate and follow through rather than snapping.
+
+      **Difficulty and feedback.** The player must always understand why they
+      failed. Telegraph attacks, make hitboxes generous in the player's favour,
+      and keep the failure loop short — restarting instantly is worth more than
+      any difficulty tuning.
+
+      **Scope is the actual skill.** Most games are never finished because they
+      were too big at the start. Build the smallest complete thing — one level,
+      one mechanic, a start screen and an ending — and finish it. A finished tiny
+      game teaches more than an abandoned ambitious one, and it is the only thing
+      you can show anyone.
+    resources:
+      - kind: book
+        title: "The Art of Game Design: A Book of Lenses"
+        url: https://www.oreilly.com/library/view/the-art-of/9781351803632/
+        provider: Jesse Schell
+        is_free: false
+        duration_min: 1200
+      - kind: video
+        title: "Game Maker's Toolkit — design analysis"
+        url: https://www.youtube.com/@GMTK
+        provider: YouTube
+        duration_min: 600
+      - kind: project
+        title: "Ship a small game for a game jam"
+        url: https://itch.io/jams
+        provider: itch.io
+        duration_min: 900
+    quiz:
+      - prompt: What is "coyote time"?
+        explanation: A short grace window after leaving a ledge during which a jump input still works — it makes controls feel fair.
+        options:
+          - text: "A grace period after leaving a platform during which jumping still works"
+            correct: true
+          - text: "A slow-motion effect on death"
+          - text: "The delay before enemies respawn"
+          - text: "Time between physics steps"
+      - prompt: Which single addition most improves the feel of an impact?
+        explanation: Sound. Audio feedback carries impact more than any single visual effect.
+        options:
+          - text: "A sound effect"
+            correct: true
+          - text: "More particles"
+          - text: "A higher frame rate"
+          - text: "A bigger hitbox"
+      - prompt: What is the most common reason hobby games are never finished?
+        explanation: Scope. The project was too large before the first mechanic was fun.
+        options:
+          - text: "The scope was too ambitious from the start"
+            correct: true
+          - text: "The wrong engine"
+          - text: "Insufficient maths"
+          - text: "Lack of art assets"
+    interview:
+      - question: Playtesters say your game is "boring" but cannot say why. How do you proceed?
+        difficulty: medium
+        answer_md: |
+          Stop asking for opinions and start watching. Record sessions and look
+          at where they hesitate, where they die, where they stop looking at the
+          screen. Check the basics first: is there a clear goal at every moment,
+          is feedback immediate, is the core action satisfying in isolation
+          (strip the game to just that verb and see). "Boring" usually means one
+          of: no meaningful choice, no perceptible progress, or the loop is too
+          long before the reward. Change one variable at a time and retest — and
+          weigh what players *do* far above what they say.

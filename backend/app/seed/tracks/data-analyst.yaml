@@ -1,0 +1,198 @@
+track:
+  slug: data-analyst
+  title: Become a Data Analyst
+  domain: data
+  target_role: Data Analyst
+  difficulty: beginner
+  description: >-
+    Turn raw data into decisions: SQL against real warehouses, analysis in
+    Python, honest statistics, dashboards people actually use, and the
+    experiment design that stops you shipping noise.
+
+concepts:
+  - slug: relational-databases-sql
+  - slug: programming-language-python
+  - slug: numpy-pandas
+  - slug: statistics-probability
+  - slug: data-visualization
+
+  - slug: analytics-engineering
+    name: Data Modelling for Analytics
+    domain: data
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - relational-databases-sql
+    summary: >-
+      Warehouses, star schemas, ELT and the transformation layer that turns raw
+      tables into numbers people can trust.
+    content_md: |
+      Analytics fails less often on technique than on definitions. If two
+      dashboards disagree about "active users", nobody trusts either.
+
+      **Warehouse, not application database.** Analytical queries scan huge
+      ranges of few columns; columnar warehouses (BigQuery, Snowflake, Redshift,
+      DuckDB) are built for that, and running them against the production
+      database punishes the application.
+
+      **ELT over ETL.** Load raw data first, transform inside the warehouse
+      where the compute is. The raw layer is your audit trail: when a metric
+      looks wrong, you can reconstruct it.
+
+      **Dimensional modelling.** Facts are events with measures (an order, a
+      session); dimensions are the things you slice by (customer, date, product).
+      A star schema is unfashionable and still the clearest way to let a
+      non-engineer answer their own question.
+
+      **One definition, one place.** Metric logic belongs in a shared,
+      version-controlled transformation layer, not copy-pasted into every
+      dashboard. That is the actual value of tools like dbt — tested,
+      documented, reviewable SQL.
+
+      **Test your data.** Not-null, unique, accepted values, referential
+      integrity, row-count anomalies. Silent data quality failures are worse
+      than a broken pipeline, because the dashboard keeps rendering.
+    resources:
+      - kind: doc
+        title: "dbt — Learn analytics engineering"
+        url: https://docs.getdbt.com/guides
+        provider: dbt Labs
+        duration_min: 300
+      - kind: book
+        title: "The Data Warehouse Toolkit (dimensional modelling)"
+        url: https://www.oreilly.com/library/view/the-data-warehouse/9781118530801/
+        provider: Kimball & Ross
+        is_free: false
+        duration_min: 1200
+      - kind: doc
+        title: "DuckDB — an analytics database you can run locally"
+        url: https://duckdb.org/docs/
+        provider: DuckDB
+        duration_min: 120
+    quiz:
+      - prompt: Why keep the raw loaded data rather than only the transformed tables?
+        explanation: The raw layer is the audit trail — it lets you reconstruct and correct a metric when the transformation turns out to be wrong.
+        options:
+          - text: "So a wrong transformation can be diagnosed and reprocessed"
+            correct: true
+          - text: "Because warehouses cannot delete rows"
+          - text: "It makes queries faster"
+          - text: "For regulatory reasons only"
+      - prompt: Two dashboards report different values for "active users". What is the root cause likely to be?
+        explanation: The metric is defined twice in two places. Definitions belong in one tested transformation layer.
+        options:
+          - text: "The definition is duplicated in each dashboard instead of shared"
+            correct: true
+          - text: "One dashboard is cached"
+          - text: "The warehouse is under-provisioned"
+          - text: "Different chart libraries"
+      - prompt: In a star schema, what is a fact table?
+        explanation: Facts record measurable events with numeric measures and foreign keys to dimensions.
+        options:
+          - text: "Events with numeric measures, joined out to descriptive dimensions"
+            correct: true
+          - text: "A lookup of customer names"
+          - text: "The raw ingested JSON"
+          - text: "A materialised view of a dashboard"
+    interview:
+      - question: A stakeholder says the revenue number "looks wrong". How do you respond?
+        difficulty: medium
+        answer_md: |
+          Ask what they expected and where that expectation comes from — often
+          the two numbers are both correct and answer different questions
+          (bookings vs recognised revenue, gross vs net, timezone or currency
+          boundaries). Then trace the number back through the transformation to
+          the raw source, checking for late-arriving data, a changed upstream
+          schema, duplicate rows from a broken join, and filter differences. Fix
+          the definition in the shared layer and add a test so the same class of
+          error is caught next time.
+
+  - slug: experiment-design
+    name: Experiment Design & Causal Thinking
+    domain: data
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - statistics-probability
+    summary: >-
+      A/B tests done properly: power, peeking, segmentation traps and knowing
+      when an experiment is not possible.
+    content_md: |
+      An experiment is the only reliable way to establish that a change caused
+      an outcome, and most experiments are run badly enough to be misleading.
+
+      **Randomise, and check the randomisation.** Assignment must be random at
+      the right unit — user, not session, or a single person's behaviour lands in
+      both arms. Sample ratio mismatch (getting 48/52 when you expected 50/50) is
+      a red flag that the assignment or logging is broken; the results are not
+      salvageable by adjusting for it.
+
+      **Power before you start.** Decide the minimum effect worth detecting and
+      compute the sample size and duration needed to see it. Running until the
+      result "looks significant" — peeking — inflates false positives enormously,
+      because with enough looks any noise crosses the threshold eventually. Fix
+      the horizon in advance, or use a sequential test designed for it.
+
+      **Watch the traps.** Novelty and primacy effects fade over weeks. Multiple
+      metrics and variants multiply false positives. Simpson's paradox means an
+      effect can reverse within every segment while appearing positive overall.
+
+      **When you cannot randomise** — pricing, one-off launches, anything
+      affecting everyone — quasi-experimental methods exist (difference in
+      differences, regression discontinuity, synthetic control), and every one of
+      them rests on assumptions you should state out loud.
+    resources:
+      - kind: book
+        title: "Trustworthy Online Controlled Experiments"
+        url: https://experimentguide.com/
+        provider: Kohavi, Tang & Xu
+        is_free: false
+        duration_min: 1200
+      - kind: doc
+        title: "Statistical power and sample size (Evan Miller's calculators)"
+        url: https://www.evanmiller.org/ab-testing/
+        provider: Evan Miller
+        duration_min: 60
+      - kind: article
+        title: "Google — Overlapping experiment infrastructure"
+        url: https://research.google/pubs/overlapping-experiment-infrastructure-more-better-faster-experimentation/
+        provider: Google Research
+        duration_min: 90
+    quiz:
+      - prompt: Why is stopping a test as soon as p < 0.05 a problem?
+        explanation: Repeatedly testing the same accumulating data inflates the false-positive rate far above the nominal 5%.
+        options:
+          - text: "Peeking repeatedly inflates the false-positive rate well beyond 5%"
+            correct: true
+          - text: "It reduces statistical power"
+          - text: "It biases the control group"
+          - text: "It is fine if the sample is large"
+      - prompt: Your A/B split was meant to be 50/50 but you observe 47/53. What does that mean?
+        explanation: Sample ratio mismatch signals broken assignment or logging; the experiment cannot be trusted.
+        options:
+          - text: "Assignment or logging is broken — the results are not trustworthy"
+            correct: true
+          - text: "It is normal variance; ignore it"
+          - text: "The treatment is working"
+          - text: "You should re-weight the results"
+      - prompt: An effect is positive overall but negative in every segment. This is:
+        explanation: Simpson's paradox, usually caused by unequal segment sizes between arms.
+        options:
+          - text: "Simpson's paradox"
+            correct: true
+          - text: "A novelty effect"
+          - text: "Regression to the mean"
+          - text: "Sample ratio mismatch"
+    interview:
+      - question: You cannot A/B test a price change. How do you measure its impact?
+        difficulty: hard
+        answer_md: |
+          Use a quasi-experimental design and be explicit about its assumptions.
+          Difference-in-differences against a comparable market or segment that
+          did not change, assuming parallel trends beforehand — which you should
+          plot and check. A synthetic control built from a weighted combination
+          of untreated units. Regression discontinuity if the change applies
+          above a threshold. Whatever you choose, pre-register the analysis,
+          check for confounders (seasonality, a competitor's move, a marketing
+          campaign), and report the uncertainty honestly rather than a single
+          number.

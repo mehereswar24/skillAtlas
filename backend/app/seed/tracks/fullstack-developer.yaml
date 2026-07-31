@@ -1,0 +1,295 @@
+track:
+  slug: fullstack-developer
+  title: Become a Full Stack Developer
+  domain: fullstack
+  target_role: Full Stack Engineer
+  difficulty: intermediate
+  description: >-
+    Own a feature from the database schema to the button the user clicks. This
+    route reuses the frontend and backend graphs and adds the parts that only
+    appear when you hold both ends: rendering strategy, end-to-end type safety
+    and shipping a whole product.
+
+concepts:
+  # Shared with the frontend and backend routes.
+  - slug: git-version-control
+  - slug: internet-and-http
+  - slug: html-css-foundations
+  - slug: javascript-essentials
+  - slug: react-fundamentals
+  - slug: typescript-for-apps
+  - slug: relational-databases-sql
+  - slug: rest-api-design
+  - slug: auth-and-security
+  - slug: containers-docker
+
+  - slug: rendering-strategies
+    name: Rendering Strategies
+    domain: fullstack
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - react-fundamentals
+      - internet-and-http
+    summary: >-
+      Client, server, static and streaming rendering — what each costs, and how
+      to choose per route rather than per app.
+    content_md: |
+      "Should this be server-rendered?" is a per-route question, and answering
+      it well is most of what distinguishes a full stack engineer from someone
+      who has learned two stacks separately.
+
+      **Client-side rendering** ships an empty shell and builds the page in the
+      browser. Cheap to host, great for a signed-in app behind a login, poor for
+      first paint and for anything a crawler must read.
+
+      **Server-side rendering** builds the HTML per request. Content appears
+      immediately and is personalised, at the cost of server work on every hit.
+
+      **Static generation** builds at deploy time and serves from a CDN. It is
+      unbeatable for content that changes rarely, and revalidation (rebuilding a
+      page in the background after a set time or on a webhook) gets you most of
+      the freshness without per-request cost.
+
+      **Streaming** sends the shell immediately and fills slower regions as
+      their data resolves, so one slow query no longer holds up the whole page.
+
+      **Hydration is the hidden cost.** Server-rendered HTML still ships the
+      JavaScript needed to make it interactive. Reducing how much of the page
+      needs hydrating — server components, islands, progressive enhancement — is
+      where the real wins are.
+
+      The honest default: static for marketing, server for personalised and
+      SEO-relevant pages, client for the deep interior of an authenticated app.
+    resources:
+      - kind: doc
+        title: "Next.js — Server and Client Components"
+        url: https://nextjs.org/docs/app/getting-started/server-and-client-components
+        provider: Vercel
+        duration_min: 90
+      - kind: doc
+        title: "web.dev — Rendering on the web"
+        url: https://web.dev/articles/rendering-on-the-web
+        provider: Google
+        duration_min: 60
+      - kind: doc
+        title: "Next.js — Caching and revalidating"
+        url: https://nextjs.org/docs/app/getting-started/caching-and-revalidating
+        provider: Vercel
+        duration_min: 60
+    quiz:
+      - prompt: A marketing page changes roughly once a week and must rank in search. Best strategy?
+        explanation: Static generation with periodic revalidation gives CDN speed and crawlable HTML without rebuilding on every request.
+        options:
+          - text: "Static generation with revalidation"
+            correct: true
+          - text: "Pure client-side rendering"
+          - text: "Server rendering on every request"
+          - text: "An iframe"
+      - prompt: What does streaming a server-rendered page achieve?
+        explanation: The shell is sent immediately and slow regions arrive as their data resolves, so one slow query no longer blocks first paint.
+        options:
+          - text: "The fast parts of the page paint before the slow data resolves"
+            correct: true
+          - text: "It removes the need for JavaScript"
+          - text: "It compresses the HTML"
+          - text: "It caches the page on the client"
+      - prompt: What is hydration?
+        explanation: Attaching client-side JavaScript behaviour to already-rendered HTML — which still costs download, parse and execution.
+        options:
+          - text: "Attaching interactivity to server-rendered HTML in the browser"
+            correct: true
+          - text: "Fetching data on the server"
+          - text: "Prefetching the next page"
+          - text: "Caching HTML on a CDN"
+    interview:
+      - question: How do you decide what runs on the server versus the client?
+        difficulty: hard
+        answer_md: |
+          Put on the server anything that needs secrets, touches the database
+          directly, or produces content that must be crawlable and fast on first
+          paint — and anything whose dependencies you would rather not ship to
+          the browser. Keep on the client only what genuinely needs
+          interactivity or browser APIs. Then check the boundary: data crossing
+          it must be serialisable, and every prop you pass down is bytes on the
+          wire.
+
+  - slug: end-to-end-type-safety
+    name: End-to-End Type Safety
+    domain: fullstack
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - typescript-for-apps
+      - rest-api-design
+    summary: >-
+      Making the database schema, the API contract and the UI types impossible
+      to drift apart.
+    content_md: |
+      The most common full stack bug is not a crash — it is a silent mismatch. A
+      column is renamed, the API keeps compiling, and a field quietly becomes
+      `undefined` three layers away.
+
+      **Generate, do not duplicate.** Every hand-written copy of a shape is a
+      copy that can go stale. The schema should have one source of truth and
+      everything else should be derived from it: types generated from the
+      database schema, request and response models generated from the API's
+      OpenAPI document, and client types generated from those.
+
+      **Validate at the boundary.** Types vanish at runtime. Anything crossing
+      a process boundary — an HTTP body, a query string, a webhook, a message
+      from a queue — must be parsed and validated, not asserted. Parse once at
+      the edge into a trusted shape, and the interior can be honest about
+      assuming it.
+
+      **Contract tests** are the cheap insurance: a test that fails when the
+      API's real response stops matching what the client expects. Without one,
+      the first thing that notices a breaking change is a user.
+
+      **Version deliberately.** Additive changes are safe; removals and type
+      changes are not. If you cannot coordinate a deploy of both sides, you need
+      a version, a feature flag, or a period where both shapes are accepted.
+    resources:
+      - kind: doc
+        title: "FastAPI — OpenAPI and generated clients"
+        url: https://fastapi.tiangolo.com/advanced/generate-clients/
+        provider: FastAPI
+        duration_min: 60
+      - kind: doc
+        title: "openapi-typescript — types from an OpenAPI schema"
+        url: https://openapi-ts.dev/
+        provider: openapi-ts
+        duration_min: 45
+      - kind: doc
+        title: "Zod — parsing at the boundary"
+        url: https://zod.dev/
+        provider: Zod
+        duration_min: 60
+    quiz:
+      - prompt: Why is validating an API response better than casting it?
+        explanation: Types are erased at runtime; only a parse actually checks that the data matches, and it fails at the boundary instead of deep in the UI.
+        options:
+          - text: "A cast checks nothing at runtime, so bad data surfaces far from its source"
+            correct: true
+          - text: "Casting is slower"
+          - text: "Validation reduces bundle size"
+          - text: "TypeScript forbids casts"
+      - prompt: What keeps client types from drifting from the API?
+        explanation: Generating them from the API's schema means a backend change regenerates the types and breaks the build immediately.
+        options:
+          - text: "Generating them from the API's OpenAPI schema"
+            correct: true
+          - text: "Copying the interfaces into the frontend repo"
+          - text: "Code review"
+          - text: "Using `any` at the boundary"
+      - prompt: Which API change is safe to deploy without coordinating the client?
+        explanation: Adding an optional field cannot break an existing consumer; renames and required fields can.
+        options:
+          - text: "Adding a new optional response field"
+            correct: true
+          - text: "Renaming an existing field"
+          - text: "Making an optional request field required"
+          - text: "Changing a field from string to number"
+    interview:
+      - question: Frontend and backend are separate repos and deploy independently. How do you keep them compatible?
+        difficulty: hard
+        answer_md: |
+          Publish the API contract as an artefact — an OpenAPI document versioned
+          with the backend — and generate the client types from it in CI so a
+          breaking change fails the frontend build rather than production. Add
+          contract tests that run the client's expectations against the real
+          API. Deploy backwards-compatibly: expand, migrate, then contract, so
+          there is always a window where both old and new clients work. Feature
+          flags let you ship the two sides in either order.
+
+  - slug: shipping-a-product
+    name: Shipping and Operating a Product
+    domain: fullstack
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - containers-docker
+      - auth-and-security
+    summary: >-
+      Environments, secrets, migrations, backups and the unglamorous list that
+      separates a demo from something people depend on.
+    content_md: |
+      The gap between "it works on my machine" and "other people rely on it" is
+      mostly a list of unexciting decisions.
+
+      **Environments.** At least local and production, ideally a staging that
+      resembles production. Configuration comes from the environment, never from
+      the repository, and the same build artefact is promoted between
+      environments rather than rebuilt.
+
+      **Secrets.** In a secret manager or the platform's encrypted variables. A
+      key committed to git is compromised even after you delete the commit —
+      rotate it, do not just remove it.
+
+      **Migrations on live data.** Additive first: add the column, backfill it,
+      switch the code, drop the old one in a later release. Never deploy a
+      schema change and the code that requires it in a way that leaves a window
+      where they disagree.
+
+      **Backups you have restored.** An untested backup is a hope. Restore one
+      into a scratch environment on a schedule; that is the only way to know the
+      procedure works and how long it takes.
+
+      **Know when it breaks before users tell you.** Error tracking, uptime
+      checks on the paths that matter, and alerts on symptoms rather than causes.
+
+      **A domain, TLS, and a rollback you have rehearsed.** All three are boring,
+      and all three are the difference between an incident and an outage.
+    resources:
+      - kind: doc
+        title: "The Twelve-Factor App"
+        url: https://12factor.net/
+        provider: Adam Wiggins
+        duration_min: 90
+      - kind: article
+        title: "Parallel Change (expand / migrate / contract)"
+        url: https://martinfowler.com/bliki/ParallelChange.html
+        provider: Martin Fowler
+        duration_min: 20
+      - kind: doc
+        title: "OWASP — Secrets management cheat sheet"
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_CheatSheet.html
+        provider: OWASP
+        duration_min: 60
+    quiz:
+      - prompt: You accidentally committed an API key and removed it in the next commit. What now?
+        explanation: The key is in history and possibly in clones, forks and caches. Rotation is the only real remediation.
+        options:
+          - text: "Rotate the key — deleting the commit does not un-leak it"
+            correct: true
+          - text: "Nothing; the commit is gone"
+          - text: "Force-push and move on"
+          - text: "Add it to .gitignore"
+      - prompt: What is the safe order for a column rename on a live table?
+        explanation: Expand, migrate, contract — there is never a moment where the running code and the schema disagree.
+        options:
+          - text: "Add the new column, backfill, switch the code, drop the old one later"
+            correct: true
+          - text: "Rename it in one migration during a deploy"
+          - text: "Drop and recreate the table"
+          - text: "Change it directly in production first"
+      - prompt: What makes a backup trustworthy?
+        explanation: Only a rehearsed restore proves the backup is complete, readable and recoverable within an acceptable time.
+        options:
+          - text: "Having restored it successfully into a scratch environment"
+            correct: true
+          - text: "Its file size looks right"
+          - text: "It runs nightly"
+          - text: "It is stored in two regions"
+    interview:
+      - question: Walk me through everything between merging a pull request and users seeing the change.
+        difficulty: medium
+        answer_md: |
+          CI runs lint, types and tests, then builds one artefact. That artefact
+          deploys to staging automatically and is smoke-tested. Migrations run
+          separately and additively, ahead of the code that needs them. Release
+          to production is gated by approval, rolled out gradually (canary or
+          blue-green) while error rate and latency are watched, with a rehearsed
+          rollback to the previous artefact. Feature flags let the code ship dark
+          and the behaviour be enabled independently. Afterwards: monitor, and
+          write the postmortem if anything went wrong.

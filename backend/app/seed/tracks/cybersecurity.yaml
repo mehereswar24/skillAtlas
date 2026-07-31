@@ -1,0 +1,286 @@
+track:
+  slug: cybersecurity
+  title: Learn Cybersecurity
+  domain: cyber
+  target_role: Security Engineer
+  difficulty: intermediate
+  description: >-
+    Find and fix the ways systems break under an adversary: the security model,
+    cryptography you can use correctly, offensive testing done lawfully, and
+    detection and response.
+
+concepts:
+  - slug: linux-and-shell
+  - slug: internet-and-http
+  - slug: auth-and-security
+
+  - slug: security-fundamentals
+    name: Security Fundamentals & Threat Modelling
+    domain: cyber
+    est_hours: 25
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      CIA, least privilege, defence in depth, and the structured way to work
+      out what you are actually defending against.
+    content_md: |
+      Security is risk management, not a checklist. The first question is always
+      "what are we protecting, from whom, and what happens if we fail?".
+
+      **The triad.** Confidentiality (only the right people can read it),
+      Integrity (it has not been altered), Availability (it is there when
+      needed). These trade against each other — an offline encrypted backup is
+      wonderfully confidential and completely unavailable.
+
+      **Principles that pay for themselves.** Least privilege: grant the minimum
+      and expand deliberately. Defence in depth: assume any one control fails.
+      Fail securely: an error should deny, not allow. No security through
+      obscurity: assume the attacker has read your source.
+
+      **Threat modelling.** Draw the system, mark the trust boundaries, and walk
+      STRIDE over each: Spoofing, Tampering, Repudiation, Information
+      disclosure, Denial of service, Elevation of privilege. Doing this on a
+      whiteboard for an hour finds more real risk than a scanner.
+
+      **The human layer.** Phishing and social engineering defeat more
+      organisations than exploits do. Technical controls that assume perfect user
+      behaviour are not controls.
+
+      **Legal and ethical footing.** Testing systems without written
+      authorisation is a crime in most jurisdictions, regardless of intent. Scope
+      and permission come before tooling — always.
+    resources:
+      - kind: doc
+        title: "OWASP Top 10"
+        url: https://owasp.org/www-project-top-ten/
+        provider: OWASP
+        duration_min: 180
+      - kind: doc
+        title: "OWASP Threat Modeling Cheat Sheet"
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html
+        provider: OWASP
+        duration_min: 90
+      - kind: doc
+        title: "NIST Cybersecurity Framework"
+        url: https://www.nist.gov/cyberframework
+        provider: NIST
+        duration_min: 120
+    quiz:
+      - prompt: What does "fail securely" mean in practice?
+        explanation: When a check errors, the safe outcome is to deny access rather than fall through to allowing it.
+        options:
+          - text: "An error in an authorisation check must deny, not permit"
+            correct: true
+          - text: "The system should never crash"
+          - text: "Errors should be hidden from users"
+          - text: "Backups must be encrypted"
+      - prompt: The "E" in STRIDE stands for:
+        explanation: Elevation of privilege — gaining rights beyond what was granted.
+        options:
+          - text: "Elevation of privilege"
+            correct: true
+          - text: "Encryption failure"
+          - text: "Exposure of data"
+          - text: "External dependency"
+      - prompt: What must come before any security testing of a system you do not own?
+        explanation: Written authorisation defining scope. Without it, testing is unlawful regardless of motive.
+        options:
+          - text: "Written authorisation with a defined scope"
+            correct: true
+          - text: "A vulnerability scanner licence"
+          - text: "A VPN"
+          - text: "A disclosure blog post"
+    interview:
+      - question: Threat model a login form for me.
+        difficulty: medium
+        answer_md: |
+          Assets: credentials, session tokens, the account itself. Boundaries:
+          browser → your server → identity store. Spoofing: credential stuffing
+          and phishing — mitigate with MFA, rate limiting, breached-password
+          checks. Tampering: request modification — TLS everywhere. Repudiation:
+          audit logging of auth events. Information disclosure: user enumeration
+          via differing error messages or response times, and password hashes at
+          rest. Denial of service: lockout policies that an attacker can weaponise
+          against real users — prefer exponential backoff. Elevation: session
+          fixation, token theft via XSS — HttpOnly cookies, rotation on login.
+
+  - slug: applied-cryptography
+    name: Applied Cryptography
+    domain: cyber
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - security-fundamentals
+    summary: >-
+      Hashing, symmetric and asymmetric encryption, TLS and certificates — what
+      each guarantees, and why you should never build your own.
+    content_md: |
+      You do not need to implement cryptography. You very much need to know
+      which primitive provides which guarantee, because using the wrong one is
+      indistinguishable from using none.
+
+      **Hashing** is one-way and gives integrity, not secrecy. SHA-256 for
+      integrity and fingerprints; **never** for passwords — those need a
+      deliberately slow, salted algorithm (bcrypt, scrypt, Argon2). Comparing
+      secrets must use a constant-time comparison, or the timing itself leaks.
+
+      **Symmetric encryption** (AES-GCM, ChaCha20-Poly1305) is fast and uses one
+      shared key. Use an authenticated mode: encryption without authentication
+      lets an attacker modify ciphertext undetected. Never reuse a nonce with the
+      same key — that single mistake breaks the whole scheme.
+
+      **Asymmetric encryption** (RSA, elliptic curve) solves key distribution and
+      enables signatures. It is slow, so in practice it is used to agree a
+      symmetric key — which is exactly what TLS does.
+
+      **TLS and certificates.** A certificate binds a public key to a name and is
+      vouched for by a chain up to a trusted root. Validating that chain, the
+      hostname and the expiry is what stops a machine-in-the-middle. Disabling
+      certificate verification "to make it work" removes the entire protection.
+
+      **Randomness.** Use the cryptographic generator (`secrets`, `crypto`), not
+      the statistical one. A predictable token is a token an attacker can guess.
+    resources:
+      - kind: doc
+        title: "OWASP Cryptographic Storage Cheat Sheet"
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html
+        provider: OWASP
+        duration_min: 60
+      - kind: course
+        title: "Cryptopals crypto challenges"
+        url: https://cryptopals.com/
+        provider: Cryptopals
+        duration_min: 900
+      - kind: article
+        title: "How does HTTPS actually work?"
+        url: https://howhttps.works/
+        provider: DNSimple
+        duration_min: 30
+    quiz:
+      - prompt: Why is unauthenticated encryption dangerous?
+        explanation: Without authentication an attacker can alter ciphertext and you cannot detect it. Use AES-GCM or similar AEAD modes.
+        options:
+          - text: "Ciphertext can be modified without detection"
+            correct: true
+          - text: "It is slower"
+          - text: "The key must be longer"
+          - text: "It cannot be decrypted"
+      - prompt: What happens if you reuse a nonce with the same key in AES-GCM?
+        explanation: Nonce reuse catastrophically breaks confidentiality and allows forgery — it is one of the few truly fatal mistakes.
+        options:
+          - text: "The scheme breaks — confidentiality and authenticity are both lost"
+            correct: true
+          - text: "Nothing; nonces are optional"
+          - text: "Performance degrades"
+          - text: "Only the first message is affected"
+      - prompt: Which generator should produce a session token?
+        explanation: A cryptographically secure RNG. Statistical RNGs like `random` are predictable from prior output.
+        options:
+          - text: "A cryptographically secure random generator such as `secrets`"
+            correct: true
+          - text: "`random.randint`"
+          - text: "The current timestamp"
+          - text: "A UUID version 1"
+    interview:
+      - question: Why is "we hash passwords with SHA-256 and a salt" still not good enough?
+        difficulty: medium
+        answer_md: |
+          The salt defeats precomputed rainbow tables, which is real progress —
+          but SHA-256 is designed to be fast, and modern GPUs compute billions of
+          hashes per second. A leaked table of salted SHA-256 hashes still yields
+          most real-world passwords to a targeted attack. Password hashing needs
+          a deliberately slow, memory-hard function with tunable cost: Argon2id
+          preferably, bcrypt or scrypt acceptably, so an attacker's throughput
+          collapses while a single login remains imperceptible.
+
+  - slug: offensive-security-basics
+    name: Offensive Security & Testing
+    domain: cyber
+    est_hours: 35
+    difficulty: advanced
+    prerequisites:
+      - security-fundamentals
+      - internet-and-http
+    summary: >-
+      Reconnaissance, common web vulnerability classes and responsible
+      disclosure — practised legally, in environments built for it.
+    content_md: |
+      Understanding how attacks work is what makes defence concrete. Practise it
+      only where you have explicit permission: your own lab, deliberately
+      vulnerable applications, or a scoped engagement or bug bounty.
+
+      **The phases.** Reconnaissance (what exists, what version, what is
+      exposed), enumeration (users, endpoints, parameters), exploitation, and —
+      in a real engagement — post-exploitation and reporting. Most value comes
+      from the first two; interesting findings are usually a forgotten subdomain
+      or an unauthenticated admin endpoint, not an exotic exploit.
+
+      **The classes worth knowing cold.** Injection (SQL, command, template)
+      where input is interpreted as code. Broken access control — the most common
+      real-world finding — where the route is authenticated but the object is not
+      authorised. XSS, where attacker content executes in another user's session.
+      SSRF, where you make the server fetch a URL you control, often reaching
+      internal metadata endpoints. Insecure deserialisation. Misconfiguration:
+      default credentials, exposed `.git`, verbose errors.
+
+      **Tools support judgement, they do not replace it.** Burp Suite for
+      intercepting and manipulating traffic, nmap for what is listening, and a
+      scanner to sweep the obvious — then a human to find the logic flaw no
+      scanner understands.
+
+      **Responsible disclosure.** Report privately, give a reasonable remediation
+      window, do not exfiltrate more than proves the issue, and never test
+      outside the agreed scope.
+    resources:
+      - kind: course
+        title: "PortSwigger Web Security Academy (free labs)"
+        url: https://portswigger.net/web-security
+        provider: PortSwigger
+        duration_min: 1800
+      - kind: doc
+        title: "OWASP Web Security Testing Guide"
+        url: https://owasp.org/www-project-web-security-testing-guide/
+        provider: OWASP
+        duration_min: 600
+      - kind: project
+        title: "TryHackMe — guided hands-on rooms"
+        url: https://tryhackme.com/
+        provider: TryHackMe
+        duration_min: 900
+    quiz:
+      - prompt: What is SSRF?
+        explanation: Server-Side Request Forgery — the attacker makes the server issue a request to a URL of their choosing, often reaching internal-only services.
+        options:
+          - text: "Tricking the server into making requests to a URL the attacker chooses"
+            correct: true
+          - text: "Forging a session cookie"
+          - text: "Injecting SQL through a form"
+          - text: "Stealing a CSRF token"
+      - prompt: Which vulnerability class is most commonly found in real applications?
+        explanation: Broken access control — routes are authenticated but individual objects are not authorised against the caller.
+        options:
+          - text: "Broken access control"
+            correct: true
+          - text: "Buffer overflow"
+          - text: "Weak cipher suites"
+          - text: "Insecure deserialisation"
+      - prompt: You find a serious flaw in a public site with no bug bounty. What do you do?
+        explanation: Report privately through a security contact, do not exploit further, and allow time to fix before any disclosure.
+        options:
+          - text: "Report it privately and allow a reasonable time to remediate"
+            correct: true
+          - text: "Post the details publicly to force a fix"
+          - text: "Extract data to prove the impact"
+          - text: "Sell it"
+    interview:
+      - question: How would you test an API for broken access control?
+        difficulty: hard
+        answer_md: |
+          Enumerate the endpoints and the object identifiers they accept. Create
+          two accounts and attempt every operation from account A against account
+          B's objects — read, update, delete — and check whether the response is
+          403 or, revealingly, 404 versus 200. Test horizontally (peer objects)
+          and vertically (does a normal user reach admin routes?). Try
+          manipulating role or tenant fields in request bodies, mass assignment,
+          and IDs in nested paths and filters. Confirm authorisation is enforced
+          server-side per object, not by hiding the button in the UI.

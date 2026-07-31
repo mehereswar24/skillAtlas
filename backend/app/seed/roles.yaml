@@ -1,0 +1,152 @@
+# Job roles the dashboard measures readiness against.
+#
+# readiness % = sum(weight of completed skills) / sum(weight of all skills)
+#
+# Weights are relative importance for *that role*, so the same concept can
+# matter a lot in one role and only a little in another. Keep them on a 1-5
+# scale: 5 = you will be asked about this in every interview, 1 = nice to have.
+
+roles:
+  - slug: junior-backend-developer
+    title: Junior Backend Developer
+    description: >-
+      Builds and maintains API endpoints under supervision. Expected to be
+      solid on HTTP, SQL and one language, and to write tests.
+    skills:
+      - { concept: internet-and-http, weight: 5 }
+      - { concept: git-version-control, weight: 5 }
+      - { concept: programming-language-python, weight: 5 }
+      - { concept: relational-databases-sql, weight: 5 }
+      - { concept: rest-api-design, weight: 4 }
+      - { concept: orm-and-migrations, weight: 3 }
+      - { concept: backend-testing, weight: 3 }
+      - { concept: auth-and-security, weight: 2 }
+      - { concept: containers-docker, weight: 2 }
+
+  - slug: backend-developer
+    title: Backend Developer
+    description: >-
+      Owns services end to end: designs the API and schema, ships it, secures
+      it and keeps it running.
+    skills:
+      - { concept: internet-and-http, weight: 4 }
+      - { concept: git-version-control, weight: 3 }
+      - { concept: programming-language-python, weight: 5 }
+      - { concept: relational-databases-sql, weight: 5 }
+      - { concept: data-modeling, weight: 4 }
+      - { concept: rest-api-design, weight: 5 }
+      - { concept: orm-and-migrations, weight: 4 }
+      - { concept: auth-and-security, weight: 5 }
+      - { concept: caching-strategies, weight: 3 }
+      - { concept: backend-testing, weight: 4 }
+      - { concept: async-and-message-queues, weight: 3 }
+      - { concept: containers-docker, weight: 3 }
+      - { concept: ci-cd, weight: 3 }
+      - { concept: observability, weight: 3 }
+      - { concept: system-design-basics, weight: 3 }
+
+  - slug: senior-backend-engineer
+    title: Senior Backend Engineer
+    description: >-
+      Designs systems, not just services. Judged on trade-off reasoning,
+      operational maturity and the ability to make other engineers effective.
+    skills:
+      - { concept: internet-and-http, weight: 3 }
+      - { concept: programming-language-python, weight: 4 }
+      - { concept: relational-databases-sql, weight: 5 }
+      - { concept: data-modeling, weight: 5 }
+      - { concept: rest-api-design, weight: 4 }
+      - { concept: orm-and-migrations, weight: 3 }
+      - { concept: auth-and-security, weight: 5 }
+      - { concept: caching-strategies, weight: 5 }
+      - { concept: backend-testing, weight: 4 }
+      - { concept: async-and-message-queues, weight: 5 }
+      - { concept: containers-docker, weight: 4 }
+      - { concept: ci-cd, weight: 4 }
+      - { concept: observability, weight: 5 }
+      - { concept: system-design-basics, weight: 5 }
+
+  - slug: devops-engineer
+    title: DevOps / Platform Engineer
+    description: >-
+      Owns the path from commit to production and the health of what runs
+      there.
+    skills:
+      - { concept: git-version-control, weight: 5 }
+      - { concept: containers-docker, weight: 5 }
+      - { concept: ci-cd, weight: 5 }
+      - { concept: observability, weight: 5 }
+      - { concept: internet-and-http, weight: 3 }
+      - { concept: auth-and-security, weight: 3 }
+      - { concept: system-design-basics, weight: 3 }
+      - { concept: programming-language-python, weight: 3 }
+      - { concept: caching-strategies, weight: 2 }
+
+  - slug: data-scientist
+    title: Data Scientist
+    description: >-
+      Answers questions with data and builds models that inform decisions.
+      Judged as much on statistical honesty as on modelling.
+    skills:
+      - { concept: programming-language-python, weight: 4 }
+      - { concept: numpy-pandas, weight: 5 }
+      - { concept: statistics-probability, weight: 5 }
+      - { concept: data-visualization, weight: 4 }
+      - { concept: classical-ml, weight: 5 }
+      - { concept: model-evaluation, weight: 5 }
+      - { concept: relational-databases-sql, weight: 4 }
+      - { concept: math-linear-algebra, weight: 3 }
+
+  - slug: machine-learning-engineer
+    title: Machine Learning Engineer
+    description: >-
+      Ships models into production and keeps them working — the intersection
+      of ML and software engineering.
+    skills:
+      - { concept: programming-language-python, weight: 5 }
+      - { concept: numpy-pandas, weight: 4 }
+      - { concept: math-linear-algebra, weight: 3 }
+      - { concept: math-calculus-optimization, weight: 3 }
+      - { concept: statistics-probability, weight: 3 }
+      - { concept: classical-ml, weight: 5 }
+      - { concept: model-evaluation, weight: 5 }
+      - { concept: deep-learning-foundations, weight: 4 }
+      - { concept: pytorch-fundamentals, weight: 4 }
+      - { concept: mlops-deployment, weight: 5 }
+      - { concept: ml-system-design, weight: 4 }
+      - { concept: containers-docker, weight: 4 }
+      - { concept: rest-api-design, weight: 3 }
+
+  - slug: ai-engineer
+    title: AI Engineer (LLM Applications)
+    description: >-
+      Builds products on top of foundation models: retrieval, tool use,
+      evaluation and the engineering that makes them reliable.
+    skills:
+      - { concept: programming-language-python, weight: 5 }
+      - { concept: rest-api-design, weight: 4 }
+      - { concept: nlp-transformers, weight: 5 }
+      - { concept: llm-engineering-rag, weight: 5 }
+      - { concept: pytorch-fundamentals, weight: 3 }
+      - { concept: deep-learning-foundations, weight: 3 }
+      - { concept: model-evaluation, weight: 4 }
+      - { concept: mlops-deployment, weight: 4 }
+      - { concept: caching-strategies, weight: 3 }
+      - { concept: containers-docker, weight: 3 }
+      - { concept: observability, weight: 3 }
+
+  - slug: computer-vision-engineer
+    title: Computer Vision Engineer
+    description: >-
+      Builds systems that interpret images and video, from training through to
+      deployment on real hardware.
+    skills:
+      - { concept: programming-language-python, weight: 5 }
+      - { concept: numpy-pandas, weight: 4 }
+      - { concept: math-linear-algebra, weight: 4 }
+      - { concept: deep-learning-foundations, weight: 5 }
+      - { concept: pytorch-fundamentals, weight: 5 }
+      - { concept: computer-vision, weight: 5 }
+      - { concept: model-evaluation, weight: 4 }
+      - { concept: mlops-deployment, weight: 3 }
+      - { concept: containers-docker, weight: 2 }

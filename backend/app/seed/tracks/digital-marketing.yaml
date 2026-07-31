@@ -1,0 +1,282 @@
+track:
+  slug: digital-marketing
+  title: Learn Digital Marketing
+  domain: marketing
+  target_role: Digital Marketer
+  difficulty: beginner
+  description: >-
+    Positioning, the channels that actually acquire customers, content and SEO,
+    and the analytics that tell you which half of the budget is working.
+
+concepts:
+  - slug: marketing-strategy
+    name: Positioning & Strategy
+    domain: marketing
+    est_hours: 25
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Segment, target, position — deciding who you are for and why they should
+      choose you, before spending anything on channels.
+    content_md: |
+      Most marketing that fails, fails before a single advert runs. Channel
+      tactics cannot rescue a product nobody can place.
+
+      **Segmentation and targeting.** Divide the market by need and behaviour,
+      not just demographics, and choose deliberately. "Everyone" is not a target
+      market; it is an absence of a decision, and it produces messaging that
+      resonates with nobody.
+
+      **Positioning** is the sentence a customer holds in their head: for *whom*,
+      in what *category*, offering what *benefit*, unlike which *alternative*.
+      The alternative is often "do nothing", which is the competitor most teams
+      forget.
+
+      **Jobs to be done.** People hire a product to make progress in their
+      situation. Understanding the job — and the anxiety and habit that resist
+      switching — produces better messaging than any list of features.
+
+      **The four Ps still hold.** Product, price, place and promotion must be
+      consistent; premium positioning with a budget price and a discount channel
+      simply confuses people.
+
+      **Brand versus performance.** Performance marketing harvests demand that
+      already exists; brand marketing creates it. Only doing performance produces
+      steadily rising acquisition costs, because you are competing for a fixed
+      pool of in-market buyers.
+    resources:
+      - kind: book
+        title: "Obviously Awesome (positioning)"
+        url: https://www.aprildunford.com/obviously-awesome
+        provider: April Dunford
+        is_free: false
+        duration_min: 300
+      - kind: doc
+        title: "Jobs to be Done — introduction"
+        url: https://jtbd.info/2-what-is-jobs-to-be-done-jtbd-a86e1a976a8a
+        provider: JTBD.info
+        duration_min: 45
+      - kind: doc
+        title: "HubSpot — marketing strategy resources"
+        url: https://blog.hubspot.com/marketing
+        provider: HubSpot
+        duration_min: 180
+    quiz:
+      - prompt: Which competitor do most positioning statements forget?
+        explanation: "Doing nothing" — the status quo is the most common alternative a buyer chooses.
+        options:
+          - text: "The status quo — doing nothing"
+            correct: true
+          - text: "The market leader"
+          - text: "Open-source alternatives"
+          - text: "International entrants"
+      - prompt: What is the consequence of only doing performance marketing?
+        explanation: You compete for the existing in-market pool, so acquisition costs rise over time with no demand being created.
+        options:
+          - text: "Acquisition costs rise as you compete for a fixed pool of in-market buyers"
+            correct: true
+          - text: "Brand awareness grows automatically"
+          - text: "Conversion rates fall to zero"
+          - text: "Nothing; it is strictly better"
+      - prompt: Why is "everyone" a bad target market?
+        explanation: Messaging that tries to speak to all segments speaks distinctly to none.
+        options:
+          - text: "Messaging aimed at everyone resonates with no one"
+            correct: true
+          - text: "It is too expensive"
+          - text: "Ad platforms forbid it"
+          - text: "It only works for consumer products"
+    interview:
+      - question: A product has good retention but almost no growth. Where do you look?
+        difficulty: medium
+        answer_md: |
+          Good retention means the product works for whoever is finding it, so the
+          problem is upstream: awareness, positioning or the acquisition channel.
+          Ask who the retained users are and what they have in common — often the
+          real segment is narrower and different from the assumed one, and the
+          messaging is aimed elsewhere. Check whether people can even articulate
+          what the product is; a positioning failure looks identical to a demand
+          failure. Then examine the funnel for a specific drop-off, and whether
+          any channel has been given enough time and budget to prove itself.
+
+  - slug: channels-and-acquisition
+    name: Channels & Paid Acquisition
+    domain: marketing
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - marketing-strategy
+    summary: >-
+      Search, social, email and partnerships — funnel economics, CAC and LTV,
+      and running paid media without wasting the budget.
+    content_md: |
+      A channel is a way of reaching people. Which one works depends entirely on
+      where your buyers already are and how they decide.
+
+      **The economics come first.** Customer acquisition cost must be recovered
+      from lifetime value, with margin left over. An LTV:CAC ratio around 3:1 is
+      a common healthy benchmark, and payback period matters as much as the
+      ratio — a business that takes two years to recover CAC needs a great deal
+      of capital regardless of how good the ratio eventually looks.
+
+      **Intent versus interruption.** Search captures existing intent and
+      converts well but is capped by demand and bid competition. Social
+      interrupts, so it must earn attention, but can create demand and reach
+      further.
+
+      **Email remains the highest-return channel** in most businesses because you
+      own the list, and the deliverability rules — permission, sensible cadence,
+      easy unsubscribe — are what keep it working.
+
+      **Test properly.** One variable, enough volume to be significant, and a
+      pre-agreed decision rule. Most "the channel does not work" conclusions are
+      drawn from spend too small to prove anything.
+
+      **Attribution is genuinely hard.** Last-click over-credits the final touch
+      and under-credits everything that created the demand. Use it as a directional
+      signal, and sanity-check with holdout tests rather than trusting the
+      dashboard.
+    resources:
+      - kind: doc
+        title: "Google — Skillshop (Ads certifications)"
+        url: https://skillshop.withgoogle.com/
+        provider: Google
+        duration_min: 600
+      - kind: doc
+        title: "Meta Blueprint — advertising courses"
+        url: https://www.facebookblueprint.com/
+        provider: Meta
+        duration_min: 480
+      - kind: article
+        title: "Unit economics: CAC, LTV and payback"
+        url: https://www.sequoiacap.com/article/company-metrics/
+        provider: Sequoia
+        duration_min: 45
+    quiz:
+      - prompt: What does an LTV:CAC ratio of 1:1 mean?
+        explanation: You spend as much to acquire a customer as they will ever be worth — the business cannot fund anything else.
+        options:
+          - text: "Acquisition consumes the entire lifetime value; there is no margin"
+            correct: true
+          - text: "Healthy, sustainable growth"
+          - text: "The product is priced too high"
+          - text: "Retention is excellent"
+      - prompt: Why is last-click attribution misleading?
+        explanation: It credits the final touchpoint entirely, ignoring everything that created awareness and consideration.
+        options:
+          - text: "It gives all credit to the last touch and none to what created the demand"
+            correct: true
+          - text: "It cannot track mobile"
+          - text: "It over-credits brand campaigns"
+          - text: "It requires cookies to work at all"
+      - prompt: Which channel typically has the highest return, and why?
+        explanation: Email — the audience is owned rather than rented, so there is no per-impression cost and no platform intermediary.
+        options:
+          - text: "Email, because you own the audience rather than renting it"
+            correct: true
+          - text: "Display advertising"
+          - text: "Billboards"
+          - text: "Podcast sponsorship"
+    interview:
+      - question: You have a small budget and no idea which channel will work. How do you proceed?
+        difficulty: medium
+        answer_md: |
+          Do not spread it thinly across five channels — none will get enough
+          volume to prove anything. Start where the evidence points: ask existing
+          customers how they found you and where they look for solutions.
+          Prioritise two candidates, and fund each with enough spend to reach
+          statistical significance on a defined metric within a defined window,
+          with a decision rule agreed in advance. Instrument properly before
+          spending, so you can attribute at all. Then double down on whichever
+          shows a viable CAC and payback, rather than declaring both "promising".
+
+  - slug: content-seo-and-analytics
+    name: Content, SEO & Analytics
+    domain: marketing
+    est_hours: 30
+    difficulty: intermediate
+    prerequisites:
+      - channels-and-acquisition
+    summary: >-
+      Earning organic traffic and measuring what it does — technical and
+      on-page SEO, content that serves intent, and analytics that inform.
+    content_md: |
+      Organic search compounds. It is slow, and it is the only acquisition
+      channel whose cost per visit falls over time.
+
+      **SEO has three parts.** Technical: the site must be crawlable, indexable,
+      fast and mobile-friendly, with sensible canonicals and structured data.
+      On-page: title, headings and content that match the searcher's intent.
+      Off-page: links and mentions that signal authority.
+
+      **Intent is the whole game.** A query is informational, navigational,
+      commercial or transactional, and a page that answers the wrong one will
+      never rank however well written. Look at what already ranks — that is the
+      search engine telling you what intent it thinks the query has.
+
+      **Content that earns links** is genuinely useful: original data, a tool, a
+      definitive explanation. Thin content produced at volume is now a liability
+      rather than a strategy.
+
+      **Analytics should answer questions.** Define the events that matter before
+      instrumenting, and separate acquisition (who arrived), activation (did they
+      get value), retention, revenue and referral. Vanity metrics — pageviews,
+      impressions, followers — feel good and inform nothing.
+
+      **Beware correlation.** Traffic rising alongside a campaign is not proof
+      the campaign caused it. Seasonality, PR and a competitor's outage all move
+      the same numbers.
+    resources:
+      - kind: doc
+        title: "Google Search Central — SEO starter guide"
+        url: https://developers.google.com/search/docs/fundamentals/seo-starter-guide
+        provider: Google
+        duration_min: 120
+      - kind: doc
+        title: "Ahrefs — SEO learning hub"
+        url: https://ahrefs.com/seo
+        provider: Ahrefs
+        duration_min: 300
+      - kind: doc
+        title: "Google Analytics 4 — skillshop course"
+        url: https://skillshop.withgoogle.com/analytics
+        provider: Google
+        duration_min: 240
+    quiz:
+      - prompt: How do you find out what intent a search engine assigns to a query?
+        explanation: Look at what currently ranks — the results are the engine's own answer to that question.
+        options:
+          - text: "Look at the pages already ranking for it"
+            correct: true
+          - text: "Check the keyword's search volume"
+          - text: "Count the ads"
+          - text: "Read the meta description guidelines"
+      - prompt: Which of these is a vanity metric?
+        explanation: Impressions correlate poorly with value; activation and retention tell you whether anything happened.
+        options:
+          - text: "Impressions"
+            correct: true
+          - text: "Activation rate"
+          - text: "Retention at 30 days"
+          - text: "Payback period"
+      - prompt: Traffic rose 20% during your campaign. What have you proven?
+        explanation: Nothing causally — seasonality, PR or external events can produce the same movement. A holdout or controlled test is needed.
+        options:
+          - text: "Nothing causal without a control or holdout"
+            correct: true
+          - text: "That the campaign worked"
+          - text: "That SEO improved"
+          - text: "That the product changed"
+    interview:
+      - question: Organic traffic dropped 40% overnight. How do you diagnose it?
+        difficulty: hard
+        answer_md: |
+          Establish first whether traffic actually fell or only the measurement
+          did — a broken analytics tag produces an identical chart. Then check
+          Search Console for indexing and manual actions, and whether the drop is
+          site-wide or confined to certain pages or queries. Look for a technical
+          cause: an accidental `noindex` or robots.txt change, a migration with
+          broken redirects, a server outage during crawling, or a certificate
+          error. If it is broad and gradual across the industry, it is likely an
+          algorithm update. Correlate the date with your own deploys first —
+          self-inflicted is the most common answer.

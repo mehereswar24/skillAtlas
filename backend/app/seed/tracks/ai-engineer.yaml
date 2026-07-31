@@ -1,0 +1,1465 @@
+track:
+  slug: ai-engineer
+  title: Become an AI Engineer
+  domain: ai
+  target_role: AI / Machine Learning Engineer
+  difficulty: intermediate
+  description: >-
+    Build, evaluate and ship machine learning systems. You will cover the maths
+    that makes models make sense, the Python data stack, classical ML and
+    honest evaluation, deep learning with PyTorch, transformers and LLM
+    applications, and the engineering that gets a model into production and
+    keeps it working.
+
+concepts:
+  # Shared with the Backend Developer track — defined there, referenced here.
+  - slug: programming-language-python
+
+  # ---------------------------------------------------------------- 1
+  - slug: math-linear-algebra
+    name: Linear Algebra for ML
+    domain: ml
+    est_hours: 50
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Vectors, matrices, and the geometric intuition behind every layer,
+      embedding and projection you will ever write.
+    content_md: |
+      Machine learning is linear algebra with a loss function bolted on. You do
+      not need to prove theorems, but you do need geometric intuition, because
+      without it every model is a black box you can only tune by guessing.
+
+      **Vectors and spaces.** A vector is a point or a direction; a dataset is a
+      cloud of points in a high-dimensional space. The dot product measures
+      alignment, and once you see that, cosine similarity — the thing that
+      powers semantic search and retrieval — stops being a formula and becomes
+      "how much do these two directions agree".
+
+      **Matrices as transformations.** A matrix does not just hold numbers; it
+      maps one space into another by rotating, scaling, shearing and
+      projecting. A neural network layer is exactly this: a linear map followed
+      by a non-linearity. Matrix multiplication is composition of those maps,
+      which is why shapes must line up and why shape errors are the most common
+      bug in ML code.
+
+      **Rank, span, and dimensionality.** Rank tells you how much independent
+      information a matrix actually carries. Real data often has far lower
+      intrinsic dimension than its column count, which is what dimensionality
+      reduction exploits.
+
+      **Eigenvectors and SVD.** Eigenvectors are the directions a
+      transformation only stretches, never rotates. Singular value
+      decomposition generalises this and underpins PCA, low-rank approximation,
+      recommendation systems and the "LoRA" style of efficient fine-tuning.
+
+      **Norms and distance.** L1 and L2 norms define both how far apart two
+      points are and how strongly regularisation penalises large weights —
+      the same object appearing in two places.
+
+      Work through this with a notebook open. Multiply matrices by hand once,
+      then in NumPy, and check the shapes every single time.
+    resources:
+      - kind: video
+        title: "3Blue1Brown — Essence of Linear Algebra"
+        url: https://www.3blue1brown.com/topics/linear-algebra
+        provider: 3Blue1Brown
+        duration_min: 240
+      - kind: book
+        title: "Mathematics for Machine Learning (free PDF)"
+        url: https://mml-book.github.io/
+        provider: Deisenroth, Faisal & Ong
+        duration_min: 1200
+      - kind: course
+        title: "MIT 18.06 Linear Algebra (OpenCourseWare)"
+        url: https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/
+        provider: MIT
+        duration_min: 1800
+      - kind: doc
+        title: "NumPy — linear algebra routines"
+        url: https://numpy.org/doc/stable/reference/routines.linalg.html
+        provider: NumPy
+        duration_min: 60
+    quiz:
+      - prompt: You multiply a matrix of shape (32, 128) by one of shape (128, 10). What is the result's shape?
+        explanation: Inner dimensions must match and cancel; the outer dimensions survive. This is the shape arithmetic behind every dense layer.
+        options:
+          - text: "(32, 10)"
+            correct: true
+          - text: "(128, 128)"
+          - text: "(32, 128)"
+          - text: "The multiplication is invalid"
+      - prompt: What does the cosine of the angle between two vectors measure?
+        explanation: Cosine similarity compares direction while ignoring magnitude, which is why it is the standard metric for comparing embeddings.
+        options:
+          - text: "How aligned their directions are, independent of their lengths"
+            correct: true
+          - text: "The Euclidean distance between them"
+          - text: "Their combined magnitude"
+          - text: "Whether they are linearly independent"
+      - prompt: What is an eigenvector of a matrix?
+        explanation: Under the transformation it keeps its direction and is only scaled, by the corresponding eigenvalue.
+        options:
+          - text: "A vector whose direction is unchanged by the transformation — only its length scales"
+            correct: true
+          - text: "The longest column of the matrix"
+          - text: "Any vector in the null space"
+          - text: "The first row of the identity matrix"
+    interview:
+      - question: Why is cosine similarity usually preferred over Euclidean distance for text embeddings?
+        difficulty: medium
+        answer_md: |
+          Embedding magnitude often reflects incidental properties such as
+          document length or token count rather than meaning, while direction
+          carries the semantics. Cosine ignores magnitude and compares
+          direction only. Note that for L2-normalised vectors the two are
+          monotonically related, so the choice matters most when vectors are
+          not normalised.
+
+  # ---------------------------------------------------------------- 2
+  - slug: math-calculus-optimization
+    name: Calculus & Optimization
+    domain: ml
+    est_hours: 40
+    difficulty: intermediate
+    prerequisites:
+      - math-linear-algebra
+    summary: >-
+      Derivatives, gradients, the chain rule and gradient descent — what
+      "training" actually is.
+    content_md: |
+      Training a model means searching for parameters that minimise a loss.
+      Calculus is the map that tells you which way is downhill.
+
+      **Derivatives and gradients.** A derivative is a rate of change; a
+      gradient is the vector of partial derivatives, pointing in the direction
+      of steepest increase. Gradient descent steps in the opposite direction.
+      That single idea trains essentially every model in modern ML.
+
+      **The chain rule** is backpropagation. A deep network is a composition of
+      functions, and the chain rule says the derivative of a composition is the
+      product of the derivatives. Backprop is just this applied efficiently,
+      reusing intermediate results instead of recomputing them. Once you see
+      that, vanishing and exploding gradients become obvious: multiply many
+      small numbers and you get zero; many large ones and you get infinity.
+
+      **Convexity.** A convex loss has one minimum and gradient descent will
+      find it. Neural network losses are non-convex, full of saddle points and
+      flat regions — which is why initialisation, learning rate and momentum
+      matter so much, and why you cannot prove you found the best solution.
+
+      **Optimisers.** Plain SGD is noisy but generalises well. Momentum
+      accumulates velocity to push through flat regions. Adam adapts a
+      per-parameter learning rate and is the pragmatic default, though
+      AdamW — Adam with decoupled weight decay — is usually the better choice
+      for transformers.
+
+      **The learning rate** is the hyperparameter that matters most. Too high
+      and the loss diverges; too low and training crawls or stalls in a bad
+      region. Warmup then decay is the standard schedule, and plotting the loss
+      curve tells you which failure you are looking at.
+    resources:
+      - kind: video
+        title: "3Blue1Brown — Essence of Calculus"
+        url: https://www.3blue1brown.com/topics/calculus
+        provider: 3Blue1Brown
+        duration_min: 240
+      - kind: video
+        title: "3Blue1Brown — Neural Networks (backpropagation series)"
+        url: https://www.3blue1brown.com/topics/neural-networks
+        provider: 3Blue1Brown
+        duration_min: 120
+      - kind: course
+        title: "Khan Academy — Multivariable calculus"
+        url: https://www.khanacademy.org/math/multivariable-calculus
+        provider: Khan Academy
+        duration_min: 900
+      - kind: article
+        title: "An overview of gradient descent optimization algorithms"
+        url: https://www.ruder.io/optimizing-gradient-descent/
+        provider: Sebastian Ruder
+        duration_min: 60
+    quiz:
+      - prompt: Your training loss oscillates wildly and then becomes NaN. What is the most likely cause?
+        explanation: A learning rate that is too large makes each step overshoot the minimum, amplifying the loss until it overflows.
+        options:
+          - text: "The learning rate is too high"
+            correct: true
+          - text: "The dataset is too small"
+          - text: "The model has too few parameters"
+          - text: "The batch size is not a power of two"
+      - prompt: Backpropagation is essentially an efficient application of which rule?
+        explanation: A network is a composition of functions; the chain rule gives the derivative of a composition, and backprop reuses intermediate results.
+        options:
+          - text: "The chain rule"
+            correct: true
+          - text: "The product rule"
+          - text: "L'Hôpital's rule"
+          - text: "Bayes' rule"
+      - prompt: Why do very deep plain networks suffer from vanishing gradients?
+        explanation: Gradients are products of many factors; when those factors are consistently below one, the product shrinks toward zero in early layers.
+        options:
+          - text: "Repeatedly multiplying many small derivatives drives the gradient toward zero in early layers"
+            correct: true
+          - text: "The optimiser runs out of memory"
+          - text: "Weights are initialised to zero"
+          - text: "The loss function is convex"
+    interview:
+      - question: What is the difference between SGD, momentum and Adam?
+        difficulty: medium
+        answer_md: |
+          SGD steps directly along the noisy minibatch gradient. Momentum adds
+          an exponentially weighted average of past gradients, damping
+          oscillation and carrying the optimiser through flat regions. Adam
+          combines momentum with a per-parameter adaptive step size scaled by
+          the running estimate of the squared gradient. Adam converges fast and
+          needs less tuning, but well-tuned SGD with momentum often generalises
+          slightly better on vision tasks; AdamW is the standard for
+          transformers because it decouples weight decay from the adaptive step.
+
+  # ---------------------------------------------------------------- 3
+  - slug: statistics-probability
+    name: Statistics & Probability
+    domain: ml
+    est_hours: 40
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Distributions, sampling, hypothesis testing and Bayes — the discipline
+      that stops you fooling yourself with data.
+    content_md: |
+      Most bad ML is not bad modelling; it is bad inference. Statistics is what
+      keeps you honest about what your numbers actually support.
+
+      **Distributions.** Normal, Bernoulli, binomial, Poisson, exponential and
+      the long-tailed distributions that real user data actually follows. Know
+      mean, median, variance and skew, and why the median is the honest summary
+      of income, latency or session length.
+
+      **Sampling and the CLT.** The central limit theorem says means of samples
+      are approximately normal regardless of the underlying distribution, which
+      is what makes confidence intervals possible. Sampling bias is the failure
+      mode: a model trained on who signed up cannot tell you about who did not.
+
+      **Hypothesis testing.** Null and alternative hypotheses, p-values,
+      significance, statistical power. A p-value is the probability of data
+      this extreme *if the null were true* — it is not the probability that
+      your hypothesis is right, and treating it that way is the single most
+      common misreading in applied work. Watch for multiple comparisons: test
+      twenty things at p < 0.05 and one will "work" by chance.
+
+      **Bayes.** `P(A|B) = P(B|A)P(A)/P(B)`. The base rate is what people
+      forget: a 99%-accurate test for a condition affecting 1 in 10,000 still
+      produces mostly false positives. This intuition is directly relevant to
+      classification on imbalanced data.
+
+      **Correlation is not causation**, and confounders are everywhere.
+      Randomised experiments exist precisely because observational correlation
+      cannot settle causal questions.
+    resources:
+      - kind: video
+        title: "StatQuest with Josh Starmer"
+        url: https://www.youtube.com/@statquest
+        provider: YouTube
+        duration_min: 600
+      - kind: course
+        title: "Seeing Theory — visual introduction to probability and statistics"
+        url: https://seeing-theory.brown.edu/
+        provider: Brown University
+        duration_min: 180
+      - kind: book
+        title: "Think Stats (free online)"
+        url: https://allendowney.github.io/ThinkStats/
+        provider: Allen B. Downey
+        duration_min: 600
+      - kind: course
+        title: "Khan Academy — Statistics and probability"
+        url: https://www.khanacademy.org/math/statistics-probability
+        provider: Khan Academy
+        duration_min: 900
+    quiz:
+      - prompt: A test is 99% accurate for a disease affecting 1 in 10,000 people. You test positive. Roughly what is the chance you have it?
+        explanation: With a base rate of 0.01%, false positives (about 1% of the healthy 9,999) vastly outnumber the true positive. This is Bayes' theorem in action.
+        options:
+          - text: "About 1%"
+            correct: true
+          - text: "99%"
+          - text: "50%"
+          - text: "Exactly 99.99%"
+      - prompt: What does a p-value of 0.03 actually mean?
+        explanation: It is the probability of observing data at least this extreme assuming the null hypothesis is true — not the probability that the null is false.
+        options:
+          - text: "If the null hypothesis were true, data this extreme would occur 3% of the time"
+            correct: true
+          - text: "There is a 3% chance the null hypothesis is true"
+          - text: "There is a 97% chance the effect is real"
+          - text: "The effect size is 3%"
+      - prompt: Why is the median often a better summary than the mean for latency data?
+        explanation: Latency distributions are right-skewed; a few very slow requests drag the mean away from the typical experience.
+        options:
+          - text: "Latency is right-skewed, so a few extreme values distort the mean"
+            correct: true
+          - text: "The mean cannot be computed for latency"
+          - text: "The median is always larger"
+          - text: "Means require a normal distribution to be defined"
+    interview:
+      - question: Your A/B test shows a 3% lift with p = 0.04. Do you ship it?
+        difficulty: hard
+        answer_md: |
+          Not on that number alone. Ask: was the sample size and duration fixed
+          in advance, or did someone peek and stop when it crossed
+          significance? How many metrics and variants were tested (multiple
+          comparisons)? Is 3% larger than the minimum detectable effect the
+          test was powered for? Does the confidence interval include values too
+          small to matter? Are there novelty effects, seasonality, or segment
+          reversals (Simpson's paradox)? And is the lift on a metric that
+          actually maps to business value?
+
+  # ---------------------------------------------------------------- 4
+  - slug: numpy-pandas
+    name: NumPy & Pandas
+    domain: data
+    est_hours: 30
+    difficulty: beginner
+    prerequisites:
+      - programming-language-python
+    summary: >-
+      Vectorised arrays, broadcasting, and the dataframe operations that make
+      up most of the real work in any ML project.
+    content_md: |
+      Practitioners spend far more time reshaping data than training models.
+      Fluency here converts a week of work into an afternoon.
+
+      **NumPy.** The `ndarray` is a typed, contiguous block of memory, which is
+      why it is orders of magnitude faster than a Python list. Vectorise:
+      writing a Python `for` loop over an array is the classic performance
+      mistake. Learn indexing and slicing (and that slices are *views*, so
+      mutating one changes the original), boolean masking, and `axis`
+      semantics — `axis=0` collapses rows, `axis=1` collapses columns.
+
+      **Broadcasting** is the rule that lets a `(3, 1)` array combine with a
+      `(1, 4)` array to produce `(3, 4)`. It is elegant and it silently
+      produces wrong answers when you meant something else, so check shapes
+      deliberately.
+
+      **Pandas.** `Series` and `DataFrame`, the index (which is a real data
+      structure, not decoration), `loc` versus `iloc`, filtering, `assign`,
+      `groupby` → aggregate → reset, `merge` with the four join types, `pivot`
+      and `melt` for reshaping, and time-series resampling.
+
+      **Missing data** is a modelling decision, not a cleanup chore. Dropping,
+      filling with a constant, or imputing with the mean each encode a
+      different assumption about *why* the value is missing, and that
+      assumption ends up in your model.
+
+      **Chained assignment** (`df[df.a > 1]['b'] = 0`) is the classic Pandas
+      trap — it may write to a temporary copy and vanish silently. Use `.loc`
+      for assignment, always.
+    resources:
+      - kind: doc
+        title: "NumPy — the absolute basics for beginners"
+        url: https://numpy.org/doc/stable/user/absolute_beginners.html
+        provider: NumPy
+        duration_min: 120
+      - kind: doc
+        title: "pandas — 10 minutes to pandas"
+        url: https://pandas.pydata.org/docs/user_guide/10min.html
+        provider: pandas
+        duration_min: 90
+      - kind: course
+        title: "Kaggle Learn — Pandas"
+        url: https://www.kaggle.com/learn/pandas
+        provider: Kaggle
+        duration_min: 240
+      - kind: project
+        title: "Clean and analyse a messy real-world dataset end to end"
+        url: https://www.kaggle.com/datasets
+        provider: Kaggle
+        duration_min: 300
+    quiz:
+      - prompt: Why is a NumPy array much faster than a Python list for numeric work?
+        explanation: Arrays store unboxed values contiguously and operate on them in compiled loops, avoiding per-element Python object overhead.
+        options:
+          - text: "It stores fixed-type values contiguously and runs operations in compiled code rather than the Python interpreter"
+            correct: true
+          - text: "It is stored on the GPU by default"
+          - text: "It compresses the data"
+          - text: "Lists are immutable"
+      - prompt: "`df.groupby('domain')['hours'].mean()` returns what?"
+        explanation: Split by the grouping column, apply the aggregate to the selected column, and combine into a Series indexed by group.
+        options:
+          - text: "A Series of the mean `hours` for each distinct `domain`"
+            correct: true
+          - text: "A DataFrame of every row sorted by domain"
+          - text: "The overall mean of `hours`"
+          - text: "The number of rows per domain"
+      - prompt: Why is `df[df.a > 1]['b'] = 0` unreliable?
+        explanation: The first operation may return a copy, so the assignment writes to a temporary that is immediately discarded. Use `df.loc[df.a > 1, 'b'] = 0`.
+        options:
+          - text: "It may assign to a temporary copy, so the change is silently lost — use `.loc` instead"
+            correct: true
+          - text: "It always raises an exception"
+          - text: "It is slower but correct"
+          - text: "Boolean masks cannot be used for assignment at all"
+    interview:
+      - question: A dataframe with 50 million rows will not fit in memory. What do you do?
+        difficulty: medium
+        answer_md: |
+          Read in chunks (`chunksize`) and aggregate incrementally; downcast
+          dtypes (float64 → float32, object → category), which often halves
+          memory on its own; load only the columns you need; use a columnar
+          format like Parquet instead of CSV. If it is still too big, push the
+          work into a database with SQL, or move to an out-of-core / distributed
+          engine such as Polars, Dask or Spark. Ask first whether a sample
+          would answer the question — often it would.
+
+  # ---------------------------------------------------------------- 5
+  - slug: data-visualization
+    name: Data Visualization & EDA
+    domain: data
+    est_hours: 20
+    difficulty: beginner
+    prerequisites:
+      - numpy-pandas
+    summary: >-
+      Looking at your data before modelling it — distributions, relationships,
+      outliers and leakage you would otherwise miss.
+    content_md: |
+      Exploratory data analysis is not a formality before the real work. It is
+      where you discover the duplicate rows, the target leakage and the shifted
+      distribution that would otherwise produce a model with a suspiciously
+      excellent score and no real-world value.
+
+      **Always plot it.** Anscombe's quartet and the Datasaurus Dozen are four
+      and thirteen datasets with identical means, variances and correlations
+      that look completely different when plotted. Summary statistics alone
+      will mislead you.
+
+      **The core charts and when.** Histogram or KDE for one distribution.
+      Box or violin plot to compare a distribution across categories. Scatter
+      for the relationship between two continuous variables. Line for anything
+      over time. Bar for counts by category — starting the axis anywhere but
+      zero on a bar chart is a distortion.
+
+      **What to look for.** Skew and outliers (real signal or data-entry
+      error?). Missingness patterns — is it missing at random, or only for a
+      specific segment? Class imbalance. Duplicates. Suspiciously perfect
+      correlation with the target, which usually means leakage: a feature that
+      would not be available at prediction time.
+
+      **Communication.** A chart has one message. Label the axes, include
+      units, sort categorical bars by value rather than alphabetically, and
+      choose colour that survives greyscale printing and colour-blind viewers.
+      If a reader has to study the legend to understand the point, redraw it.
+    resources:
+      - kind: doc
+        title: "Matplotlib — tutorials"
+        url: https://matplotlib.org/stable/tutorials/index.html
+        provider: Matplotlib
+        duration_min: 180
+      - kind: doc
+        title: "seaborn — statistical data visualization tutorial"
+        url: https://seaborn.pydata.org/tutorial.html
+        provider: seaborn
+        duration_min: 150
+      - kind: article
+        title: "The Datasaurus Dozen — why you should always plot your data"
+        url: https://www.autodesk.com/research/publications/same-stats-different-graphs
+        provider: Autodesk Research
+        duration_min: 20
+      - kind: course
+        title: "Kaggle Learn — Data Visualization"
+        url: https://www.kaggle.com/learn/data-visualization
+        provider: Kaggle
+        duration_min: 240
+    quiz:
+      - prompt: A feature correlates 0.98 with your target. What should you suspect first?
+        explanation: Near-perfect correlation usually means leakage — the feature encodes the answer and will not exist at prediction time.
+        options:
+          - text: "Target leakage — the feature may not be available at prediction time"
+            correct: true
+          - text: "That the model will definitely generalise well"
+          - text: "That the feature should be dropped as useless"
+          - text: "That the dataset is too small"
+      - prompt: Which chart best compares the distribution of salary across five departments?
+        explanation: Box or violin plots show median, spread and outliers for each category side by side.
+        options:
+          - text: "A box or violin plot per department"
+            correct: true
+          - text: "A pie chart"
+          - text: "A single histogram of all salaries"
+          - text: "A line chart"
+      - prompt: Why must a bar chart's value axis start at zero?
+        explanation: Bar length encodes magnitude; truncating the axis exaggerates small differences into large-looking ones.
+        options:
+          - text: "Bar length encodes the value, so a truncated axis visually exaggerates differences"
+            correct: true
+          - text: "Matplotlib requires it"
+          - text: "It makes the chart render faster"
+          - text: "It does not matter"
+    interview:
+      - question: How do you approach a dataset you have never seen before?
+        difficulty: easy
+        answer_md: |
+          Shape and dtypes first, then per-column summaries: missingness,
+          cardinality, range, and obviously impossible values (negative ages,
+          future timestamps). Plot the target distribution and check for
+          imbalance. Look at duplicates and at how rows are keyed. Plot each
+          candidate feature against the target and check correlations for
+          leakage. Understand how and when the data was collected, because a
+          distribution shift between training data and production is the
+          failure you cannot fix with a better model.
+
+  # ---------------------------------------------------------------- 6
+  - slug: classical-ml
+    name: Classical Machine Learning
+    domain: ml
+    est_hours: 70
+    difficulty: intermediate
+    prerequisites:
+      - numpy-pandas
+      - statistics-probability
+      - math-linear-algebra
+    summary: >-
+      Regression, trees, ensembles and clustering with scikit-learn — plus the
+      bias-variance thinking that governs all of them.
+    content_md: |
+      Deep learning gets the attention, but gradient-boosted trees still win
+      most problems that arrive as a table of rows and columns. Classical ML is
+      not a stepping stone; it is the default answer.
+
+      **Supervised versus unsupervised.** Supervised learning maps features to
+      a known label (regression for numbers, classification for categories).
+      Unsupervised finds structure without labels — clustering, dimensionality
+      reduction, anomaly detection.
+
+      **The workhorses.** Linear and logistic regression, interpretable and
+      surprisingly hard to beat on small data. Decision trees, which are
+      readable but overfit alone. Random forests, which average many
+      decorrelated trees to reduce variance. Gradient boosting (XGBoost,
+      LightGBM), which fits each new tree to the previous ensemble's residuals
+      and dominates tabular benchmarks. k-nearest neighbours and SVMs. k-means
+      and DBSCAN for clustering. PCA for compression and visualisation.
+
+      **Bias and variance.** High bias is underfitting — the model is too
+      simple and does badly on training data too. High variance is overfitting —
+      it memorises training data and fails on new data. Regularisation (L1
+      produces sparsity and effectively selects features; L2 shrinks weights
+      smoothly), more data, and simpler models all trade variance for bias.
+
+      **Feature engineering** is where most of the gain lives on tabular data:
+      encoding categoricals (one-hot, target, ordinal), scaling for
+      distance-based models, handling skew, and creating interaction terms.
+
+      **Pipelines.** Fit every transformation *inside* a `Pipeline` on the
+      training fold only. Scaling or imputing before the split leaks
+      information from the test set and quietly inflates your score.
+    resources:
+      - kind: doc
+        title: "scikit-learn — User Guide"
+        url: https://scikit-learn.org/stable/user_guide.html
+        provider: scikit-learn
+        duration_min: 900
+      - kind: course
+        title: "Machine Learning Specialization (Andrew Ng)"
+        url: https://www.coursera.org/specializations/machine-learning-introduction
+        provider: DeepLearning.AI
+        is_free: false
+        duration_min: 2400
+      - kind: book
+        title: "Hands-On Machine Learning with Scikit-Learn, Keras & TensorFlow"
+        url: https://www.oreilly.com/library/view/hands-on-machine-learning/9781098125974/
+        provider: Aurélien Géron
+        is_free: false
+        duration_min: 2400
+      - kind: course
+        title: "Kaggle Learn — Intro to Machine Learning"
+        url: https://www.kaggle.com/learn/intro-to-machine-learning
+        provider: Kaggle
+        duration_min: 180
+    quiz:
+      - prompt: Training accuracy is 99%, validation accuracy is 62%. What is happening?
+        explanation: The model memorised the training set. Reduce variance with regularisation, a simpler model, or more data.
+        options:
+          - text: "Overfitting — high variance"
+            correct: true
+          - text: "Underfitting — high bias"
+          - text: "The learning rate is too low"
+          - text: "The labels are shuffled"
+      - prompt: Why must scaling be fitted inside a cross-validation pipeline rather than on the whole dataset first?
+        explanation: Fitting the scaler on all data lets the validation fold's statistics influence training — data leakage that inflates the reported score.
+        options:
+          - text: "Otherwise statistics from the validation fold leak into training and the score is optimistic"
+            correct: true
+          - text: "Because scikit-learn cannot scale before splitting"
+          - text: "It makes training slower"
+          - text: "Scaling is only valid for tree models"
+      - prompt: What is the practical difference between L1 and L2 regularisation?
+        explanation: L1 can drive coefficients exactly to zero, performing feature selection; L2 shrinks them smoothly toward zero without eliminating them.
+        options:
+          - text: "L1 can zero out coefficients entirely (feature selection); L2 shrinks them smoothly"
+            correct: true
+          - text: "L1 is for classification, L2 for regression"
+          - text: "L2 makes the model sparse"
+          - text: "They are identical in effect"
+    interview:
+      - question: When would you choose gradient boosting over a neural network?
+        difficulty: medium
+        answer_md: |
+          For tabular, heterogeneous, modestly sized data — which is most
+          business data — gradient boosting typically wins on accuracy, trains
+          in minutes on a CPU, needs little preprocessing, handles mixed types
+          and missing values, and offers usable feature importances. Neural
+          networks earn their complexity on unstructured data (text, images,
+          audio) or when you need representation learning and transfer from a
+          pretrained model.
+      - question: Your classifier has 97% accuracy on a dataset where 97% of examples are the negative class. Is it good?
+        difficulty: easy
+        answer_md: |
+          No — predicting the majority class every time achieves exactly that.
+          On imbalanced data use precision, recall, F1, PR-AUC or balanced
+          accuracy, pick the metric that matches the cost of each error type,
+          and consider resampling, class weights or threshold tuning.
+
+  # ---------------------------------------------------------------- 7
+  - slug: model-evaluation
+    name: Model Evaluation & Validation
+    domain: ml
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - classical-ml
+    summary: >-
+      Choosing metrics that reflect the real cost of being wrong, and splitting
+      data so your score means something.
+    content_md: |
+      A model is only as trustworthy as its evaluation. Most ML that fails in
+      production was evaluated in a way that could not have caught the problem.
+
+      **Splitting.** Train / validation / test, where the test set is touched
+      once, at the end. k-fold cross-validation uses the data more efficiently;
+      stratified folds preserve class balance. **Time-series data must be split
+      chronologically** — a random split lets the model see the future, and the
+      resulting score is fantasy. Group splits matter whenever multiple rows
+      come from the same user or device, or the model can memorise the entity
+      rather than learn the pattern.
+
+      **Classification metrics.** Accuracy is misleading under imbalance.
+      Precision is "of those I flagged, how many were right"; recall is "of
+      those that mattered, how many did I catch". F1 balances them. ROC-AUC is
+      threshold-independent but flattering on heavily imbalanced data, where
+      PR-AUC is more informative. The confusion matrix is where you should
+      start, because it shows *which* errors you are making.
+
+      **The threshold is a product decision.** A fraud model and a cancer
+      screen want opposite error profiles. Pick the threshold from the cost of
+      a false positive versus a false negative, not from the default of 0.5.
+
+      **Regression metrics.** MAE is in the units of the target and robust to
+      outliers; RMSE punishes large errors more; MAPE breaks near zero; R²
+      describes explained variance and can be negative for a bad model.
+
+      **Calibration.** A model that says "80% confident" should be right about
+      80% of the time. Ranking-good but badly calibrated probabilities are
+      dangerous whenever the number is shown to a person or used in a decision
+      rule.
+
+      **Baselines.** Always compare against predicting the majority class, the
+      mean, or last week's value. A model that cannot beat that is not a model.
+    resources:
+      - kind: doc
+        title: "scikit-learn — Metrics and scoring"
+        url: https://scikit-learn.org/stable/modules/model_evaluation.html
+        provider: scikit-learn
+        duration_min: 180
+      - kind: doc
+        title: "scikit-learn — Cross-validation"
+        url: https://scikit-learn.org/stable/modules/cross_validation.html
+        provider: scikit-learn
+        duration_min: 90
+      - kind: course
+        title: "Google — Machine Learning Crash Course: classification metrics"
+        url: https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall
+        provider: Google
+        duration_min: 60
+      - kind: article
+        title: "Rules of Machine Learning: best practices for ML engineering"
+        url: https://developers.google.com/machine-learning/guides/rules-of-ml
+        provider: Google
+        duration_min: 90
+    quiz:
+      - prompt: You are forecasting next month's demand. Why is a random train/test split wrong?
+        explanation: Random splitting puts future rows in the training set, letting the model learn from information it would not have at prediction time.
+        options:
+          - text: "It lets the model train on future data, so the score cannot be reproduced in production"
+            correct: true
+          - text: "Random splits are computationally expensive"
+          - text: "Time series cannot be modelled at all"
+          - text: "It reduces the training set size too much"
+      - prompt: A cancer screening model should prioritise which metric?
+        explanation: A missed case (false negative) is far costlier than a false alarm, so recall dominates.
+        options:
+          - text: "Recall — missing a positive case is the expensive error"
+            correct: true
+          - text: "Precision — false alarms are the expensive error"
+          - text: "Raw accuracy"
+          - text: "Training loss"
+      - prompt: What does it mean for a classifier to be well calibrated?
+        explanation: Among predictions made with 70% confidence, roughly 70% should turn out positive.
+        options:
+          - text: "Its predicted probabilities match observed frequencies"
+            correct: true
+          - text: "Its accuracy exceeds 90%"
+          - text: "Its ROC-AUC is 1.0"
+          - text: "It was trained with a balanced dataset"
+    interview:
+      - question: Your model performs well offline but poorly in production. What are the likely causes?
+        difficulty: hard
+        answer_md: |
+          Training/serving skew — features computed differently in the two
+          paths. Data leakage that inflated the offline score. Distribution
+          shift between the training window and live traffic. Feedback loops
+          where the model's own actions change the data. A split that did not
+          respect time or entity grouping. A threshold tuned on a different
+          class balance. Diagnose by logging live features and predictions,
+          comparing feature distributions offline versus online, and
+          backtesting on the most recent period only.
+
+  # ---------------------------------------------------------------- 8
+  - slug: deep-learning-foundations
+    name: Deep Learning Foundations
+    domain: ai
+    est_hours: 60
+    difficulty: advanced
+    prerequisites:
+      - classical-ml
+      - math-calculus-optimization
+    summary: >-
+      Neurons, layers, activations, loss functions and the training loop —
+      what a network is before any framework gets involved.
+    content_md: |
+      A neural network is a stack of linear maps separated by non-linearities,
+      trained by gradient descent. Everything else is engineering on top of
+      that sentence.
+
+      **The unit.** A neuron computes `w·x + b` and applies an activation.
+      Without the non-linearity, stacking layers collapses to a single linear
+      map — no matter how deep, it could not learn anything a linear model
+      could not.
+
+      **Activations.** ReLU is the default: cheap, and it does not saturate for
+      positive inputs. Its failure mode is dying units stuck at zero, which
+      leaky ReLU and GELU address. Sigmoid and tanh saturate and mostly survive
+      in gates and binary outputs. Softmax turns logits into a probability
+      distribution over classes.
+
+      **Loss functions** encode what you are asking for: cross-entropy for
+      classification, MSE or MAE for regression, contrastive and triplet losses
+      for embeddings. Choosing the loss is choosing the objective, so it
+      deserves as much thought as the architecture.
+
+      **The training loop.** Forward pass → compute loss → backward pass to get
+      gradients → optimiser step → zero the gradients. Every framework hides
+      this loop; write it by hand once and it stops being magic.
+
+      **Regularisation for networks.** Dropout randomly zeroes activations
+      during training so no unit becomes indispensable. Batch and layer
+      normalisation stabilise and accelerate training. Early stopping on
+      validation loss. Data augmentation is often the strongest regulariser
+      available.
+
+      **Practical training.** Overfit a single batch first — if the model
+      cannot drive the loss to near zero on ten examples, there is a bug, not a
+      capacity problem. Then scale up, watch the train/validation gap, and tune
+      the learning rate before anything else.
+    resources:
+      - kind: course
+        title: "Practical Deep Learning for Coders (fast.ai)"
+        url: https://course.fast.ai/
+        provider: fast.ai
+        duration_min: 1800
+      - kind: book
+        title: "Deep Learning (Goodfellow, Bengio & Courville — free online)"
+        url: https://www.deeplearningbook.org/
+        provider: MIT Press
+        duration_min: 3000
+      - kind: video
+        title: "Neural Networks: Zero to Hero (Andrej Karpathy)"
+        url: https://karpathy.ai/zero-to-hero.html
+        provider: Andrej Karpathy
+        duration_min: 900
+      - kind: article
+        title: "A Recipe for Training Neural Networks"
+        url: https://karpathy.github.io/2019/04/25/recipe/
+        provider: Andrej Karpathy
+        duration_min: 45
+    quiz:
+      - prompt: What happens if you remove all non-linear activations from a deep network?
+        explanation: A composition of linear maps is itself a linear map, so the whole network collapses to the expressive power of one linear layer.
+        options:
+          - text: "The whole network collapses to a single linear transformation"
+            correct: true
+          - text: "It trains faster but with the same capacity"
+          - text: "Gradients explode"
+          - text: "Nothing changes"
+      - prompt: What is dropout doing during training?
+        explanation: Randomly zeroing activations prevents co-adaptation, forcing redundant representations. It is disabled at inference.
+        options:
+          - text: "Randomly zeroing activations so the network cannot rely on any single unit"
+            correct: true
+          - text: "Removing training examples that are too easy"
+          - text: "Reducing the learning rate over time"
+          - text: "Pruning weights permanently"
+      - prompt: Your model cannot overfit a single batch of ten examples. What does that tell you?
+        explanation: A model with capacity should memorise ten examples trivially. Failure indicates a bug — wrong loss, detached gradients, bad labels or a broken data path.
+        options:
+          - text: "There is a bug in the model, loss or data pipeline — not a capacity problem"
+            correct: true
+          - text: "The model needs more training data"
+          - text: "The learning rate is too high"
+          - text: "The model is well regularised"
+    interview:
+      - question: Explain the difference between batch normalisation and layer normalisation.
+        difficulty: hard
+        answer_md: |
+          Batch norm normalises each feature across the examples in a batch, so
+          it depends on batch size and behaves differently at inference (using
+          running statistics). Layer norm normalises across the features within
+          each example independently, making it batch-size agnostic and
+          well-suited to variable-length sequences — which is why transformers
+          use layer norm rather than batch norm.
+
+  # ---------------------------------------------------------------- 9
+  - slug: pytorch-fundamentals
+    name: PyTorch Fundamentals
+    domain: ai
+    est_hours: 50
+    difficulty: advanced
+    prerequisites:
+      - deep-learning-foundations
+    summary: >-
+      Tensors, autograd, `nn.Module`, datasets and dataloaders, and a training
+      loop you can actually debug.
+    content_md: |
+      PyTorch is the working environment for most research and an increasing
+      share of production. It is deliberately close to NumPy, which is why the
+      earlier array work pays off immediately.
+
+      **Tensors** are arrays with two extra properties: a device (`cpu`,
+      `cuda`) and a gradient history. Operations between tensors on different
+      devices fail, and forgetting `.to(device)` is the most common beginner
+      error after shape mismatches.
+
+      **Autograd.** Every operation on a tensor with `requires_grad=True`
+      builds a graph. `loss.backward()` walks it and accumulates gradients into
+      `.grad`. Gradients *accumulate*, which is why `optimizer.zero_grad()` is
+      mandatory each step — omitting it is a silent bug that makes training
+      mysteriously bad rather than crashing. Use `torch.no_grad()` for
+      inference to skip graph building and save memory.
+
+      **Modules.** Subclass `nn.Module`, declare submodules in `__init__`,
+      define `forward`. Parameters register automatically, which is what makes
+      `model.parameters()`, `model.to(device)` and checkpointing work.
+
+      **Data.** A `Dataset` implements `__len__` and `__getitem__`; a
+      `DataLoader` batches, shuffles and parallelises loading. On many tasks
+      the GPU is idle waiting for data, so the loader is the real bottleneck.
+
+      **The loop.** `model.train()` / `model.eval()` matters — it switches
+      dropout and batch-norm behaviour, and forgetting it produces
+      inconsistent validation numbers. Move data to the device, forward,
+      compute loss, `zero_grad`, `backward`, `step`. Checkpoint the model and
+      optimiser state together so training can resume.
+
+      **Debugging** is mostly shapes. Print them, or assert them, at every
+      boundary.
+    resources:
+      - kind: doc
+        title: "PyTorch — Learn the Basics tutorial"
+        url: https://pytorch.org/tutorials/beginner/basics/intro.html
+        provider: PyTorch
+        duration_min: 240
+      - kind: doc
+        title: "PyTorch — A 60 Minute Blitz"
+        url: https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html
+        provider: PyTorch
+        duration_min: 90
+      - kind: video
+        title: "Karpathy — building micrograd and makemore from scratch"
+        url: https://karpathy.ai/zero-to-hero.html
+        provider: Andrej Karpathy
+        duration_min: 900
+      - kind: project
+        title: "Train an image classifier on CIFAR-10"
+        url: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+        provider: PyTorch
+        duration_min: 240
+    quiz:
+      - prompt: Why must you call `optimizer.zero_grad()` in the training loop?
+        explanation: PyTorch accumulates gradients into `.grad` by default, so without zeroing you step on the sum of all previous batches.
+        options:
+          - text: "Gradients accumulate by default, so without zeroing each step uses the sum of all previous batches"
+            correct: true
+          - text: "It frees GPU memory"
+          - text: "It resets the learning rate"
+          - text: "It is optional and only affects speed"
+      - prompt: What does `model.eval()` change?
+        explanation: It switches modules with train/eval-dependent behaviour — dropout is disabled, batch norm uses running statistics.
+        options:
+          - text: "It puts dropout and batch norm into inference mode"
+            correct: true
+          - text: "It disables gradient computation"
+          - text: "It moves the model to the CPU"
+          - text: "It loads the best checkpoint"
+      - prompt: What is `torch.no_grad()` for?
+        explanation: It stops autograd from recording operations, cutting memory use and speeding up inference.
+        options:
+          - text: "Disabling gradient tracking during inference to save memory and time"
+            correct: true
+          - text: "Freezing the model's weights permanently"
+          - text: "Preventing the optimiser from stepping"
+          - text: "Turning off dropout"
+    interview:
+      - question: You get "CUDA out of memory" during training. What are your options?
+        difficulty: medium
+        answer_md: |
+          Reduce batch size, and recover the effective batch with gradient
+          accumulation. Use mixed precision (`torch.autocast` with a grad
+          scaler). Enable gradient checkpointing to trade compute for memory.
+          Make sure you are not accumulating tensors that still carry graph
+          history in a list — call `.item()` or `.detach()` when logging loss.
+          Wrap evaluation in `torch.no_grad()`. Then consider a smaller model,
+          shorter sequences, or sharding across devices.
+
+  # ---------------------------------------------------------------- 10
+  - slug: nlp-transformers
+    name: NLP & Transformers
+    domain: ai
+    est_hours: 60
+    difficulty: advanced
+    prerequisites:
+      - pytorch-fundamentals
+    summary: >-
+      Tokenisation, embeddings, attention and the transformer architecture that
+      every modern language model is built on.
+    content_md: |
+      Transformers replaced recurrent networks because attention lets every
+      position see every other position in one step, which parallelises across
+      a sequence in a way an RNN fundamentally cannot.
+
+      **Tokenisation.** Text becomes integer token ids via subword schemes like
+      BPE or WordPiece, which keep the vocabulary bounded while still
+      representing unseen words. Token counts — not word counts — drive cost and
+      context limits, and tokenisation quirks explain a lot of odd model
+      behaviour (including why models are bad at counting characters).
+
+      **Embeddings** map token ids to dense vectors where geometric closeness
+      means semantic similarity. They are the bridge between discrete text and
+      continuous maths, and they are also what makes vector search possible.
+
+      **Attention.** Each token emits a query, a key and a value. The query is
+      compared against every key to produce weights, and the output is the
+      weighted sum of values — "when interpreting this token, how much should I
+      look at each other token?". Multi-head attention runs several of these in
+      parallel so different heads can specialise. Self-attention is O(n²) in
+      sequence length, which is precisely why long context is expensive.
+
+      **The architecture.** Attention plus a feed-forward block, wrapped in
+      residual connections and layer norm, stacked. Positional encodings
+      restore order information, since attention alone is permutation
+      invariant. Encoder-only models (BERT) suit classification and embedding;
+      decoder-only models (the GPT family) suit generation; encoder-decoder
+      suits translation and summarisation.
+
+      **Using them.** Fine-tuning adapts a pretrained model to your task;
+      parameter-efficient methods like LoRA train a small number of extra
+      weights instead of all of them. Prompting often beats fine-tuning for
+      general tasks with little data.
+    resources:
+      - kind: course
+        title: "Hugging Face — NLP Course"
+        url: https://huggingface.co/learn/nlp-course
+        provider: Hugging Face
+        duration_min: 900
+      - kind: article
+        title: "The Illustrated Transformer"
+        url: https://jalammar.github.io/illustrated-transformer/
+        provider: Jay Alammar
+        duration_min: 60
+      - kind: article
+        title: "Attention Is All You Need (the original paper)"
+        url: https://arxiv.org/abs/1706.03762
+        provider: arXiv
+        duration_min: 120
+      - kind: video
+        title: "Let's build GPT: from scratch, in code, spelled out"
+        url: https://www.youtube.com/watch?v=kCc8FmEb1nY
+        provider: Andrej Karpathy
+        duration_min: 120
+    quiz:
+      - prompt: Why is self-attention expensive for long sequences?
+        explanation: Every token attends to every other token, so compute and memory scale quadratically with sequence length.
+        options:
+          - text: "It compares every token with every other token, so cost grows with the square of the sequence length"
+            correct: true
+          - text: "It processes tokens strictly one at a time"
+          - text: "It requires a separate model per token"
+          - text: "Embeddings must be recomputed for each layer"
+      - prompt: Why do transformers need positional encodings?
+        explanation: Attention treats the input as a set — without positional information "dog bites man" and "man bites dog" are identical.
+        options:
+          - text: "Attention is permutation invariant, so order must be injected explicitly"
+            correct: true
+          - text: "To reduce the vocabulary size"
+          - text: "To normalise the attention weights"
+          - text: "To support multiple languages"
+      - prompt: What does LoRA change about fine-tuning?
+        explanation: It freezes the base weights and trains small low-rank adapter matrices, cutting trainable parameters and memory by orders of magnitude.
+        options:
+          - text: "It trains small low-rank adapters instead of all the model's weights"
+            correct: true
+          - text: "It compresses the training data"
+          - text: "It removes the need for a GPU entirely"
+          - text: "It replaces attention with convolution"
+    interview:
+      - question: Explain attention to someone who knows basic linear algebra but not deep learning.
+        difficulty: hard
+        answer_md: |
+          Each token produces three vectors: a query (what it is looking for), a
+          key (what it offers) and a value (what it contributes). Dot the query
+          against every key to score relevance, scale and softmax those scores
+          into weights that sum to one, then take the weighted sum of the
+          values. The result is a representation of the token that is informed
+          by exactly the other tokens that matter to it. Multiple heads do this
+          in parallel with different learned projections so different heads can
+          track syntax, coreference and so on.
+
+  # ---------------------------------------------------------------- 11
+  - slug: computer-vision
+    name: Computer Vision
+    domain: ai
+    est_hours: 55
+    difficulty: advanced
+    prerequisites:
+      - pytorch-fundamentals
+    summary: >-
+      Convolutions, classic architectures, transfer learning, detection and
+      segmentation.
+    content_md: |
+      Vision is where deep learning first clearly beat hand-engineered features,
+      and it remains the cleanest place to build intuition about
+      representation learning.
+
+      **Convolutions.** A small kernel slides over the image computing local
+      weighted sums. Two properties make this the right inductive bias for
+      images: **parameter sharing** (the same edge detector is useful
+      everywhere) and **locality** (nearby pixels are related). Stride and
+      padding control output size; stacking layers grows the receptive field so
+      later layers see larger structures.
+
+      **Pooling and hierarchy.** Early layers learn edges and colour blobs;
+      middle layers learn textures and parts; late layers learn objects. This
+      hierarchy is why transfer learning works so well.
+
+      **Architectures worth knowing.** LeNet and AlexNet historically; VGG for
+      its uniform simplicity; ResNet, whose residual connections made very deep
+      networks trainable by giving gradients a short path; EfficientNet for
+      scaling; and Vision Transformers, which apply attention to image patches
+      and now compete with or beat CNNs at scale.
+
+      **Transfer learning is the default.** Take a model pretrained on a large
+      dataset, replace the head, and fine-tune. With a few thousand images this
+      beats training from scratch by a wide margin, and it is usually a few
+      hours of work rather than a few weeks.
+
+      **Augmentation** — flips, crops, colour jitter, cutout, mixup — is the
+      most effective regulariser in vision. Be careful that the augmentation
+      preserves the label: flipping a photo of a cat is fine, flipping a photo
+      of text is not.
+
+      **Beyond classification.** Detection (YOLO, Faster R-CNN) predicts boxes;
+      segmentation (U-Net, Mask R-CNN) predicts per-pixel classes. Their
+      metrics differ too — IoU and mAP rather than accuracy.
+    resources:
+      - kind: course
+        title: "CS231n — Convolutional Neural Networks for Visual Recognition"
+        url: https://cs231n.github.io/
+        provider: Stanford
+        duration_min: 1800
+      - kind: doc
+        title: "PyTorch — Transfer learning for computer vision tutorial"
+        url: https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
+        provider: PyTorch
+        duration_min: 120
+      - kind: article
+        title: "Deep Residual Learning for Image Recognition (ResNet)"
+        url: https://arxiv.org/abs/1512.03385
+        provider: arXiv
+        duration_min: 90
+      - kind: project
+        title: "Fine-tune a pretrained model on your own image dataset"
+        url: https://huggingface.co/docs/transformers/tasks/image_classification
+        provider: Hugging Face
+        duration_min: 300
+    quiz:
+      - prompt: What problem do residual (skip) connections solve?
+        explanation: They give gradients a direct path backwards, making very deep networks trainable instead of degrading.
+        options:
+          - text: "They let gradients flow through very deep networks, preventing degradation as depth grows"
+            correct: true
+          - text: "They reduce the number of parameters to zero"
+          - text: "They replace the need for activations"
+          - text: "They perform data augmentation"
+      - prompt: You have 2,000 labelled images. What is the best first approach?
+        explanation: Fine-tuning a pretrained backbone leverages representations learned from millions of images; training from scratch would overfit badly.
+        options:
+          - text: "Fine-tune a model pretrained on a large dataset"
+            correct: true
+          - text: "Train a large CNN from scratch"
+          - text: "Use a linear model on raw pixels"
+          - text: "Collect 10 million images before doing anything"
+      - prompt: Which augmentation would corrupt the labels for a digit-recognition dataset?
+        explanation: Horizontal flipping turns some digits into invalid or different shapes; the image no longer matches its label.
+        options:
+          - text: "Horizontal flipping"
+            correct: true
+          - text: "Small rotations"
+          - text: "Slight brightness jitter"
+          - text: "Random cropping with padding"
+    interview:
+      - question: How would you build a system that detects defects on a production line with very few defect examples?
+        difficulty: hard
+        answer_md: |
+          Treat it as anomaly detection rather than balanced classification:
+          train on the plentiful normal images and flag deviations
+          (autoencoder reconstruction error, embedding distance from the normal
+          cluster, or a one-class model). Use heavy augmentation and synthetic
+          defect generation. Fine-tune a pretrained backbone for the embedding.
+          Evaluate with PR-AUC and set the threshold from the relative cost of
+          a missed defect versus a false alarm, and design a human review loop
+          that also collects new labelled defects over time.
+
+  # ---------------------------------------------------------------- 12
+  - slug: llm-engineering-rag
+    name: LLM Applications & RAG
+    domain: ai
+    est_hours: 50
+    difficulty: advanced
+    prerequisites:
+      - nlp-transformers
+    summary: >-
+      Prompting, embeddings, retrieval-augmented generation, tool use and
+      evaluating systems whose output is text.
+    content_md: |
+      Most AI engineering jobs today are about building *systems around*
+      language models rather than training them. The hard parts are retrieval,
+      grounding and evaluation.
+
+      **Prompting.** Be specific about the task, the format and the audience.
+      Few-shot examples teach the shape of a good answer. Asking for
+      step-by-step reasoning helps on multi-step problems. Structured output
+      (JSON conforming to a schema) makes responses programmable. Treat prompts
+      as versioned artefacts with tests, not strings you tweak until a demo
+      works.
+
+      **Why RAG.** A model knows only what was in its training data and will
+      state wrong things fluently. Retrieval-augmented generation supplies
+      relevant source text at query time, so answers are grounded and citable,
+      and the knowledge base updates without retraining.
+
+      **The pipeline.** Chunk documents (small enough to be precise, large
+      enough to be self-contained, usually with overlap) → embed each chunk →
+      store the vectors → embed the query → retrieve the top-k most similar
+      chunks → put them in the prompt with an instruction to answer only from
+      the provided context and to say when it does not know.
+
+      **Retrieval quality is the whole game.** Most "the model hallucinated"
+      complaints are actually "retrieval returned nothing relevant". Hybrid
+      search (dense embeddings plus keyword/BM25) beats either alone, and
+      reranking the candidates with a cross-encoder is usually the single
+      biggest quality win.
+
+      **Tools and agents.** Give the model functions it can call, and it can
+      look things up, run calculations and act. Constrain the tool surface,
+      validate every argument, and bound the number of steps — an unbounded
+      agent loop is an unbounded bill.
+
+      **Evaluation** is the part teams skip and regret. Build a fixed set of
+      questions with known good answers, measure retrieval hit rate separately
+      from answer quality, and use both automated judging and periodic human
+      review. Track cost and latency per request alongside quality.
+    resources:
+      - kind: doc
+        title: "Hugging Face — Advanced RAG cookbook"
+        url: https://huggingface.co/learn/cookbook/advanced_rag
+        provider: Hugging Face
+        duration_min: 180
+      - kind: doc
+        title: "Prompt Engineering Guide"
+        url: https://www.promptingguide.ai/
+        provider: DAIR.AI
+        duration_min: 240
+      - kind: doc
+        title: "LangChain — introduction and tutorials"
+        url: https://python.langchain.com/docs/introduction/
+        provider: LangChain
+        duration_min: 300
+      - kind: project
+        title: "Build a RAG system over your own documents"
+        url: https://huggingface.co/learn/cookbook/rag_evaluation
+        provider: Hugging Face
+        duration_min: 480
+    quiz:
+      - prompt: Your RAG system gives confidently wrong answers. What should you check first?
+        explanation: Generation can only be as good as its context. Measure retrieval hit rate before touching the prompt or the model.
+        options:
+          - text: "Whether retrieval is returning the relevant chunks at all"
+            correct: true
+          - text: "Whether the model needs more parameters"
+          - text: "Whether the temperature is above zero"
+          - text: "Whether the vector database is on SSD"
+      - prompt: Why chunk documents with some overlap between chunks?
+        explanation: Overlap prevents a relevant passage from being split across a boundary and losing the context that makes it meaningful.
+        options:
+          - text: "So a relevant passage is not cut in half at a chunk boundary"
+            correct: true
+          - text: "To increase the number of vectors and improve recall by volume"
+          - text: "Because embedding models require fixed-size input"
+          - text: "To reduce storage costs"
+      - prompt: What does a cross-encoder reranker do in a retrieval pipeline?
+        explanation: It scores each candidate jointly with the query, which is far more accurate than comparing independent embeddings — but too slow to run over the whole corpus.
+        options:
+          - text: "Rescores the top candidates by encoding query and passage together, improving precision"
+            correct: true
+          - text: "Compresses the vector index"
+          - text: "Generates the final answer"
+          - text: "Splits documents into chunks"
+    interview:
+      - question: How would you evaluate a RAG chatbot before shipping it?
+        difficulty: hard
+        answer_md: |
+          Separate the two stages. For retrieval, build a labelled set of
+          questions with known relevant documents and measure recall@k and MRR.
+          For generation, score groundedness (is every claim supported by the
+          retrieved context), answer relevance, and refusal behaviour on
+          questions the corpus cannot answer. Use a held-out question set that
+          nobody optimised against, combine LLM-as-judge with periodic human
+          review, and track cost, latency and failure modes per request. Add
+          regression tests so a prompt change cannot silently degrade quality.
+
+  # ---------------------------------------------------------------- 13
+  - slug: mlops-deployment
+    name: MLOps & Model Deployment
+    domain: ai
+    est_hours: 45
+    difficulty: advanced
+    prerequisites:
+      - pytorch-fundamentals
+      - containers-docker
+    summary: >-
+      Serving models, versioning data and experiments, monitoring for drift and
+      retraining without breaking production.
+    content_md: |
+      A model in a notebook has produced no value. MLOps is the discipline of
+      getting it in front of users and keeping it correct as the world changes.
+
+      **Serving.** Wrap the model in an API behind a schema-validated endpoint.
+      Batch inference suits scheduled scoring; real-time suits per-request
+      predictions; streaming suits event pipelines. Load the model once at
+      startup, not per request. Watch p95 latency, not the average, and set a
+      timeout.
+
+      **Reproducibility.** A model is code plus data plus hyperparameters plus
+      environment. Version all four — Git for code, DVC or object storage with
+      content hashes for data, an experiment tracker (MLflow, Weights &
+      Biases) for runs, and a pinned container for the environment. "It worked
+      last month" must be checkable.
+
+      **The registry.** Models get versions, stages (staging, production) and
+      lineage back to the exact training run. This is what makes rollback
+      possible when a new model turns out worse.
+
+      **Training/serving skew** is the defining ML production bug: a feature
+      computed one way in the training pipeline and another way at serving
+      time. A shared feature-transformation library — or a feature store —
+      is the structural fix.
+
+      **Monitoring.** Beyond ordinary service metrics, watch the input
+      distribution (data drift), the relationship between inputs and target
+      (concept drift), prediction distribution, and — where labels eventually
+      arrive — live accuracy. Alert on drift before accuracy visibly collapses.
+
+      **Retraining** should be a scheduled, automated, *evaluated* pipeline: new
+      data → retrain → validate against the current production model on a
+      held-out set → promote only if better. Shadow deployments and canaries
+      apply here exactly as they do for ordinary services.
+    resources:
+      - kind: doc
+        title: "Made With ML — MLOps course"
+        url: https://madewithml.com/
+        provider: Goku Mohandas
+        duration_min: 1200
+      - kind: doc
+        title: "ml-ops.org — MLOps principles"
+        url: https://ml-ops.org/
+        provider: INNOQ
+        duration_min: 180
+      - kind: book
+        title: "Designing Machine Learning Systems"
+        url: https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/
+        provider: Chip Huyen
+        is_free: false
+        duration_min: 1800
+      - kind: course
+        title: "Full Stack Deep Learning"
+        url: https://fullstackdeeplearning.com/
+        provider: FSDL
+        duration_min: 900
+    quiz:
+      - prompt: Predictions get worse over months although the code never changed. What is the most likely cause?
+        explanation: The world moved — the live input distribution or the input-output relationship no longer matches the training data.
+        options:
+          - text: "Data or concept drift"
+            correct: true
+          - text: "The model file was corrupted"
+          - text: "A memory leak"
+          - text: "The learning rate decayed"
+      - prompt: What is training/serving skew?
+        explanation: The same conceptual feature is computed differently in the two paths, so the model sees inputs at serving time it was never trained on.
+        options:
+          - text: "Features are computed differently in the training pipeline than at inference time"
+            correct: true
+          - text: "The training set is larger than the test set"
+          - text: "Training uses a GPU and serving uses a CPU"
+          - text: "The model is retrained too often"
+      - prompt: Why keep a model registry with versions and stages?
+        explanation: It gives you lineage and the ability to roll back to a known-good model when a new one underperforms.
+        options:
+          - text: "So you can trace a prediction to its training run and roll back to a previous model"
+            correct: true
+          - text: "To reduce inference latency"
+          - text: "To compress model weights"
+          - text: "Because Docker requires it"
+    interview:
+      - question: Design the deployment for a recommendation model serving 10,000 requests per second.
+        difficulty: hard
+        answer_md: |
+          Precompute what you can: candidate generation offline into a fast
+          store, with only lightweight ranking online. Serve behind a load
+          balancer with horizontal replicas, the model loaded once per process,
+          and a feature store shared with the training pipeline to prevent
+          skew. Cache per-user results with a short TTL. Set strict timeouts
+          and a fallback to a non-personalised popular list so a model outage
+          degrades quality rather than availability. Roll out with shadow
+          traffic then a canary, monitor latency percentiles, prediction
+          distribution and business metrics, and keep the previous model ready
+          for instant rollback.
+
+  # ---------------------------------------------------------------- 14
+  - slug: ml-system-design
+    name: ML System Design
+    domain: ai
+    est_hours: 40
+    difficulty: advanced
+    prerequisites:
+      - mlops-deployment
+      - model-evaluation
+    summary: >-
+      Framing a business problem as an ML problem, choosing what to build, and
+      designing the full pipeline end to end.
+    content_md: |
+      ML system design interviews — and real ML projects — fail far more often
+      on framing than on modelling.
+
+      **Start with the problem, not the model.** What decision changes because
+      of this prediction? What happens if it is wrong in each direction? Would
+      a rule, a heuristic or a lookup table be good enough? A large share of
+      "ML projects" are better served by a `SELECT` statement, and recognising
+      that is a senior skill rather than a failure.
+
+      **Framing.** Turn the business goal into a learning problem: what is the
+      unit of prediction, what is the label, and where does the label come
+      from? Implicit labels (a click, a purchase, a skip) are cheap and biased;
+      explicit labels are expensive and scarce. Define the offline metric and
+      the online metric, and be explicit that they are not the same thing.
+
+      **Data.** Volume, freshness, and how the training set is constructed —
+      including negative sampling, which quietly determines what the model
+      learns. Guard against leakage and respect time when splitting.
+
+      **Architecture.** Most large ML systems are two-stage: cheap candidate
+      generation over everything, then expensive ranking over a shortlist.
+      Decide what is precomputed offline versus computed per request, and where
+      the latency budget goes.
+
+      **Feedback loops.** A recommender trained on what it recommended will
+      narrow over time. Reserve exploration traffic, log counterfactuals, and
+      monitor diversity alongside accuracy.
+
+      **Non-functionals.** Latency budget, cost per prediction, privacy and
+      data retention, fairness across segments, and explainability where the
+      decision affects someone materially. State these as requirements up
+      front, because they constrain the design more than the model choice does.
+    resources:
+      - kind: book
+        title: "Designing Machine Learning Systems"
+        url: https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/
+        provider: Chip Huyen
+        is_free: false
+        duration_min: 1800
+      - kind: doc
+        title: "Rules of Machine Learning: best practices for ML engineering"
+        url: https://developers.google.com/machine-learning/guides/rules-of-ml
+        provider: Google
+        duration_min: 90
+      - kind: doc
+        title: "Google — People + AI Guidebook"
+        url: https://pair.withgoogle.com/guidebook/
+        provider: Google PAIR
+        duration_min: 180
+      - kind: doc
+        title: "The System Design Primer (transferable fundamentals)"
+        url: https://github.com/donnemartin/system-design-primer
+        provider: Donne Martin
+        duration_min: 600
+    quiz:
+      - prompt: What should you establish before training any model for a new problem?
+        explanation: A baseline — a rule, heuristic or trivial predictor — defines the bar the model must clear to be worth its complexity.
+        options:
+          - text: "A simple baseline and the metric that decides whether the model beats it"
+            correct: true
+          - text: "The GPU budget"
+          - text: "The deep learning architecture"
+          - text: "The vector database vendor"
+      - prompt: Why are large recommenders usually split into candidate generation and ranking?
+        explanation: Scoring millions of items per request with an expensive model is infeasible, so a cheap stage narrows the field first.
+        options:
+          - text: "A cheap stage narrows millions of items to hundreds, so the expensive model runs on a shortlist within the latency budget"
+            correct: true
+          - text: "Because two models are always more accurate than one"
+          - text: "To use two different programming languages"
+          - text: "To satisfy privacy regulations"
+      - prompt: What is a feedback loop risk in a deployed recommender?
+        explanation: The model trains on data produced by its own recommendations, reinforcing what it already shows and shrinking discovery.
+        options:
+          - text: "It trains on the consequences of its own predictions, progressively narrowing what users see"
+            correct: true
+          - text: "It causes GPU memory fragmentation"
+          - text: "It makes the API non-idempotent"
+          - text: "It invalidates the database indexes"
+    interview:
+      - question: Design a system to detect fraudulent transactions.
+        difficulty: hard
+        answer_md: |
+          Clarify volume, latency budget (real-time authorisation is tens of
+          milliseconds), and the cost asymmetry — blocking a legitimate
+          transaction is expensive in a different way from allowing a
+          fraudulent one. Labels arrive late and are noisy (chargebacks weeks
+          later), so discuss delayed feedback. Features: transaction, account
+          history, device and velocity aggregates — computed in a feature store
+          shared with training to prevent skew. Start with gradient boosting
+          plus rules for known patterns. Evaluate with PR-AUC and cost-weighted
+          metrics, set the threshold from those costs, and route the uncertain
+          middle band to manual review. Cover drift monitoring, adversarial
+          adaptation by fraudsters, and periodic retraining with a promotion
+          gate.

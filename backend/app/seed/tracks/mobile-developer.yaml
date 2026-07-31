@@ -1,0 +1,286 @@
+track:
+  slug: mobile-developer
+  title: Become a Mobile App Developer
+  domain: mobile
+  target_role: Mobile Developer
+  difficulty: intermediate
+  description: >-
+    Ship apps to iOS and Android: platform fundamentals, cross-platform
+    development with React Native, offline-first data, and the release process
+    that app stores impose on you.
+
+concepts:
+  - slug: javascript-essentials
+  - slug: react-fundamentals
+  - slug: git-version-control
+
+  - slug: mobile-platform-fundamentals
+    name: Mobile Platform Fundamentals
+    domain: mobile
+    est_hours: 30
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Lifecycles, permissions, navigation patterns and the constraints — battery,
+      network, memory — that make mobile genuinely different from the web.
+    content_md: |
+      A phone is not a small laptop. The constraints are what shape every design
+      decision.
+
+      **The lifecycle.** Your app is suspended, backgrounded and killed by the
+      operating system without asking. Anything not persisted is gone. Long work
+      must be handed to a background task API or it will simply stop when the
+      user switches apps.
+
+      **Permissions.** Camera, location, notifications and contacts require an
+      explicit prompt, and users say no. Ask in context, at the moment the
+      feature is used, with an explanation — a permission wall on first launch is
+      the fastest way to a permanent denial you cannot re-request.
+
+      **Network reality.** Connections drop in lifts and tunnels. Every request
+      needs a timeout, a retry, and a UI state for offline. Assume the payload is
+      metered: mobile data costs the user money.
+
+      **Navigation.** Stacks, tabs and modals, plus the Android hardware back
+      button, which has no web equivalent and must always do something sensible.
+      Deep links should reconstruct a valid back stack, not drop the user
+      somewhere they cannot escape.
+
+      **Design conventions differ.** iOS and Android have distinct expectations
+      for navigation, typography and gestures. Ignoring them makes an app feel
+      foreign on at least one platform.
+    resources:
+      - kind: doc
+        title: "Apple Human Interface Guidelines"
+        url: https://developer.apple.com/design/human-interface-guidelines
+        provider: Apple
+        duration_min: 240
+      - kind: doc
+        title: "Material Design 3"
+        url: https://m3.material.io/
+        provider: Google
+        duration_min: 240
+      - kind: doc
+        title: "Android — application fundamentals and lifecycle"
+        url: https://developer.android.com/guide/components/activities/activity-lifecycle
+        provider: Google
+        duration_min: 120
+    quiz:
+      - prompt: When should an app request the location permission?
+        explanation: At the moment the feature needs it, with context. A denial on first launch is often permanent and cannot be re-prompted.
+        options:
+          - text: "When the user first uses a feature that needs it, with an explanation"
+            correct: true
+          - text: "On first launch, along with every other permission"
+          - text: "In the app store listing only"
+          - text: "After the user has been active for a week"
+      - prompt: What must you assume about work running when the user switches apps?
+        explanation: The OS may suspend or kill your process at any time; unpersisted state is lost and in-flight work stops.
+        options:
+          - text: "It may be suspended or killed at any moment"
+            correct: true
+          - text: "It continues indefinitely"
+          - text: "It is moved to another thread"
+          - text: "It is automatically retried"
+      - prompt: Which navigation affordance exists on Android but not on iOS or the web?
+        explanation: The system back gesture/button, which every screen must handle sensibly.
+        options:
+          - text: "The system back button or gesture"
+            correct: true
+          - text: "Tab bars"
+          - text: "Modal sheets"
+          - text: "Deep links"
+    interview:
+      - question: How would you design an app to work on a flaky train connection?
+        difficulty: hard
+        answer_md: |
+          Offline-first: render from a local store and treat the network as a
+          background sync rather than the source of truth for the UI. Queue
+          mutations locally with idempotency keys and replay them when
+          connectivity returns, with a defined conflict-resolution rule.
+          Aggressively cache reads with a visible "last updated" so the user
+          knows what they are looking at. Short timeouts with retry and backoff.
+          And make the offline state explicit in the interface — a silent failure
+          is worse than a clear "queued, will send".
+
+  - slug: react-native-development
+    name: Cross-Platform with React Native
+    domain: mobile
+    est_hours: 45
+    difficulty: intermediate
+    prerequisites:
+      - react-fundamentals
+      - mobile-platform-fundamentals
+    summary: >-
+      One codebase for both platforms: components, navigation, native modules,
+      and where the abstraction leaks.
+    content_md: |
+      React Native lets you write the app in React and render real native views.
+      The productivity gain is genuine; so are the seams.
+
+      **The mental model.** Your JavaScript runs and describes a tree; the
+      framework maps it to native `UIView`/`View` objects. There is no DOM, so
+      there is no CSS: you style with JavaScript objects, layout with flexbox
+      only, and use `<View>`/`<Text>` rather than `div`/`span`. Text must live
+      inside a `<Text>` element.
+
+      **Expo** removes most of the native toolchain pain and is the sensible
+      starting point. You only need a bare workflow when you require a native
+      module Expo does not provide.
+
+      **Performance.** Lists must be virtualised (`FlashList`, `FlatList`) —
+      mapping over ten thousand rows will freeze the app. Keep animations on the
+      native driver so they run off the JavaScript thread. Images need explicit
+      sizing and caching.
+
+      **Where it leaks.** Anything platform-specific: permissions, background
+      tasks, push notifications, deep links, in-app purchases. You will read
+      native documentation and sometimes write a native module. Plan for it
+      rather than being surprised by it.
+
+      **Testing on real devices matters more than on the web** — an emulator on a
+      fast machine hides jank that a three-year-old Android phone will not.
+    resources:
+      - kind: doc
+        title: "React Native — getting started"
+        url: https://reactnative.dev/docs/getting-started
+        provider: Meta
+        duration_min: 240
+      - kind: doc
+        title: "Expo — documentation and tutorial"
+        url: https://docs.expo.dev/tutorial/introduction/
+        provider: Expo
+        duration_min: 300
+      - kind: doc
+        title: "React Navigation"
+        url: https://reactnavigation.org/docs/getting-started
+        provider: React Navigation
+        duration_min: 120
+    quiz:
+      - prompt: How do you lay out a screen in React Native?
+        explanation: Flexbox only, expressed as JavaScript style objects. There is no CSS and no grid.
+        options:
+          - text: "Flexbox, via JavaScript style objects"
+            correct: true
+          - text: "CSS Grid"
+          - text: "Absolute positioning only"
+          - text: "HTML and a stylesheet"
+      - prompt: Why use `FlatList` instead of mapping over an array?
+        explanation: It virtualises — only visible rows are mounted — so memory and frame time stay flat as the list grows.
+        options:
+          - text: "It only renders the visible rows, so long lists stay smooth"
+            correct: true
+          - text: "It sorts the data"
+          - text: "It is required for TypeScript"
+          - text: "It caches network requests"
+      - prompt: When do you need to leave Expo's managed workflow?
+        explanation: When you need a native capability or module the SDK does not expose.
+        options:
+          - text: "When you need a native module Expo does not provide"
+            correct: true
+          - text: "As soon as you use navigation"
+          - text: "To publish to the App Store"
+          - text: "To use TypeScript"
+    interview:
+      - question: React Native or native Swift/Kotlin — how do you choose?
+        difficulty: medium
+        answer_md: |
+          Choose React Native when the app is largely product surface — forms,
+          lists, content, standard interactions — the team already knows React,
+          and shipping both platforms from one codebase is worth more than the
+          last few percent of polish. Choose native when you lean heavily on
+          platform capabilities (complex camera or audio work, background
+          processing, widgets, deep OS integration), need the highest possible
+          performance or the newest OS features on day one, or already have
+          platform specialists. The honest deciding factor is usually team
+          composition and how much of the app is genuinely platform-specific.
+
+  - slug: mobile-release-and-distribution
+    name: Release, Store Review & Updates
+    domain: mobile
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - react-native-development
+    summary: >-
+      Signing, store review, staged rollout, crash reporting and the fact that
+      users do not update.
+    content_md: |
+      Web deployment is instant and reversible. Mobile is neither, and that
+      changes how you work.
+
+      **Signing and identity.** Both stores require signed builds tied to
+      certificates and provisioning that you must not lose — losing an Android
+      upload key without the recovery path can mean you cannot update your own
+      app. Store these like production secrets, because they are.
+
+      **Review takes days and can reject you.** Common causes: missing privacy
+      declarations, permissions requested without justification, broken demo
+      credentials for the reviewer, payment flows that bypass store billing.
+      Build the review turnaround into your release plan.
+
+      **Rollout gradually.** Both stores support staged rollout to a percentage
+      of users. A crash affecting 2% of devices is an inconvenience at 5% rollout
+      and an emergency at 100%. Watch crash-free rate before promoting.
+
+      **You cannot force an update.** Old versions of your app will call your API
+      for years. That makes API backwards compatibility a hard requirement, and a
+      forced-upgrade mechanism (a version check that can block a truly broken
+      release) worth building early.
+
+      **Over-the-air updates** can patch JavaScript without a store round trip,
+      within the stores' rules — invaluable for hotfixes, and not a substitute
+      for a real release process.
+    resources:
+      - kind: doc
+        title: "App Store Review Guidelines"
+        url: https://developer.apple.com/app-store/review/guidelines/
+        provider: Apple
+        duration_min: 120
+      - kind: doc
+        title: "Google Play — publish and manage releases"
+        url: https://support.google.com/googleplay/android-developer/answer/9859348
+        provider: Google
+        duration_min: 90
+      - kind: doc
+        title: "Expo Application Services — build and submit"
+        url: https://docs.expo.dev/eas/
+        provider: Expo
+        duration_min: 120
+    quiz:
+      - prompt: Why must your API stay backwards compatible for mobile clients?
+        explanation: Users cannot be forced to update, so old app versions keep calling your API for a long time.
+        options:
+          - text: "Old app versions remain installed and keep calling it"
+            correct: true
+          - text: "Stores require a fixed API"
+          - text: "Because mobile cannot use HTTPS"
+          - text: "It is only true for iOS"
+      - prompt: What is the point of a staged rollout?
+        explanation: A bad build reaches a small fraction of users, so crash metrics catch it before everyone is affected.
+        options:
+          - text: "A regression only reaches a small share of users before you notice"
+            correct: true
+          - text: "It makes review faster"
+          - text: "It reduces the app size"
+          - text: "It is required for in-app purchases"
+      - prompt: What happens if you lose your Android upload key with no recovery configured?
+        explanation: You may be unable to publish updates to the existing listing — treat signing keys as critical secrets.
+        options:
+          - text: "You may be unable to ship updates to that app at all"
+            correct: true
+          - text: "Nothing; Google regenerates it"
+          - text: "Users are logged out"
+          - text: "The app is removed automatically"
+    interview:
+      - question: A crash is affecting 5% of users on the version you shipped yesterday. What do you do?
+        difficulty: medium
+        answer_md: |
+          Halt the staged rollout immediately — that stops the bleeding without
+          needing a new build. Pull the stack traces from crash reporting and
+          segment by OS version and device to find the trigger. If the fix is in
+          JavaScript, an over-the-air update can reach users in minutes; if it is
+          native, prepare an expedited build and request expedited review. Users
+          already on the broken build cannot be rolled back, which is why the
+          rollout percentage is the real control. Afterwards: add the missing
+          test or crash-free-rate gate to the release checklist.

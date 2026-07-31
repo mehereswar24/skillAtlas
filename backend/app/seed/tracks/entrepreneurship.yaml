@@ -1,0 +1,283 @@
+track:
+  slug: entrepreneurship
+  title: Learn Entrepreneurship
+  domain: entrepreneur
+  target_role: Founder
+  difficulty: intermediate
+  description: >-
+    Find a problem worth solving, validate it before building, and turn it into
+    a business with working unit economics — customer discovery, business
+    models and fundraising.
+
+concepts:
+  - slug: customer-discovery
+    name: Customer Discovery & Validation
+    domain: entrepreneur
+    est_hours: 25
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Finding out whether the problem is real before building the solution —
+      and the interview technique that stops people being polite to you.
+    content_md: |
+      Most startups fail because nobody wanted the product, not because it was
+      built badly. Discovery is the work that prevents that, and it is cheap
+      compared with building.
+
+      **Talk about their problem, not your idea.** The moment you describe your
+      solution, people become polite and stop being useful. Ask about specific
+      past behaviour: what did you do last time this happened, what did it cost
+      you, what did you try, what did you spend? Never ask "would you buy this?".
+
+      **Look for evidence of pain.** People who have already hacked together a
+      workaround — a spreadsheet, a manual process, an agency — have demonstrated
+      the problem is real and worth money. An enthusiastic "that sounds great!"
+      from someone with no workaround is worth almost nothing.
+
+      **Test the riskiest assumption first**, not the easiest to build. Usually
+      that is whether anyone will pay, and it can often be tested with a landing
+      page, a concierge service you deliver by hand, or a pre-sale — long before
+      code exists.
+
+      **The strongest signal is money or time committed.** A letter of intent, a
+      deposit, a scheduled pilot. Everything else is encouragement.
+
+      **Falsify.** Write down what would prove you wrong, and go looking for it.
+      Discovery designed to confirm the idea is theatre.
+    resources:
+      - kind: book
+        title: "The Mom Test"
+        url: https://www.momtestbook.com/
+        provider: Rob Fitzpatrick
+        is_free: false
+        duration_min: 240
+      - kind: doc
+        title: "Y Combinator Startup Library"
+        url: https://www.ycombinator.com/library
+        provider: Y Combinator
+        duration_min: 480
+      - kind: book
+        title: "The Lean Startup — build-measure-learn"
+        url: https://theleanstartup.com/
+        provider: Eric Ries
+        is_free: false
+        duration_min: 480
+    quiz:
+      - prompt: What is the strongest early signal that a problem is real?
+        explanation: Someone has already built a workaround or paid to solve it — that is behaviour, not opinion.
+        options:
+          - text: "The person already pays for or hacks together a workaround"
+            correct: true
+          - text: "They say the idea sounds great"
+          - text: "They agree to a follow-up call"
+          - text: "They share it on social media"
+      - prompt: Why should you avoid describing your solution in a discovery interview?
+        explanation: People become supportive rather than honest once they know what you want to hear.
+        options:
+          - text: "It makes people polite instead of honest"
+            correct: true
+          - text: "It risks the idea being stolen"
+          - text: "It takes too long"
+          - text: "It biases the sample size"
+      - prompt: Which assumption should you test first?
+        explanation: The riskiest one — usually whether anyone will pay — regardless of how hard it is to test.
+        options:
+          - text: "The riskiest one, usually willingness to pay"
+            correct: true
+          - text: "The cheapest one to build"
+          - text: "The most technically interesting one"
+          - text: "The one investors ask about"
+    interview:
+      - question: Twenty people said they loved your idea. Is that validation?
+        difficulty: easy
+        answer_md: |
+          No. Enthusiasm costs nothing and people are socially motivated to be
+          encouraging, especially to someone they like. Validation is behaviour:
+          a deposit, a signed letter of intent, a pilot on the calendar, or an
+          existing budget already being spent on a worse alternative. Ask what
+          they currently do about the problem and what it costs them — if the
+          answer is "nothing, really", the problem is not painful enough to fund
+          a business. Then ask for the commitment and watch what happens.
+
+  - slug: business-models-and-unit-economics
+    name: Business Models & Unit Economics
+    domain: entrepreneur
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - customer-discovery
+    summary: >-
+      How the business makes money and whether each customer is profitable —
+      pricing, margins, CAC payback and runway.
+    content_md: |
+      A business model is a hypothesis about how value is created, delivered and
+      captured. Unit economics tell you whether the hypothesis survives
+      arithmetic.
+
+      **Know your unit.** A customer, a transaction, a seat, a delivery. Then:
+      what does it cost to acquire, what does it cost to serve, and what does it
+      earn over its life? If contribution margin is negative, growth makes things
+      worse, not better — scale amplifies a loss.
+
+      **Pricing is the highest-leverage lever available** and the one founders
+      neglect most. It is a positioning decision as much as a financial one, and
+      price is signal: too cheap and buyers assume it is not serious. Value-based
+      pricing — anchored to the value delivered — beats cost-plus almost always.
+      Most first prices are too low.
+
+      **Payback period matters as much as the ratio.** Recovering acquisition
+      cost in three months is a self-funding business; recovering it in
+      twenty-four means you need capital to grow at all.
+
+      **Runway and burn.** Months of cash at the current rate, and the milestone
+      you must reach before it runs out. Plan to reach that milestone with a
+      margin, because raising takes longer than expected.
+
+      **Churn quietly decides everything.** At 5% monthly churn the average
+      customer lasts twenty months and growth is a leaking bucket you must keep
+      refilling.
+    resources:
+      - kind: article
+        title: "Sequoia — company metrics that matter"
+        url: https://www.sequoiacap.com/article/company-metrics/
+        provider: Sequoia
+        duration_min: 60
+      - kind: doc
+        title: "a16z — 16 startup metrics"
+        url: https://a16z.com/16-startup-metrics/
+        provider: Andreessen Horowitz
+        duration_min: 60
+      - kind: book
+        title: "Business Model Generation (canvas)"
+        url: https://www.strategyzer.com/library/business-model-generation-2
+        provider: Osterwalder & Pigneur
+        is_free: false
+        duration_min: 300
+    quiz:
+      - prompt: Contribution margin per customer is negative. What does growth do?
+        explanation: It multiplies the loss. Every new customer makes the position worse until the economics are fixed.
+        options:
+          - text: "Makes the losses larger"
+            correct: true
+          - text: "Fixes it through economies of scale"
+          - text: "Has no effect on the margin"
+          - text: "Improves the payback period"
+      - prompt: Why does 5% monthly churn matter so much?
+        explanation: It caps the average customer lifetime at about twenty months, so growth requires constantly replacing lost revenue.
+        options:
+          - text: "It limits average customer lifetime and turns growth into a leaking bucket"
+            correct: true
+          - text: "It only matters for consumer products"
+          - text: "It reduces acquisition cost"
+          - text: "It has no effect below 10%"
+      - prompt: What is the most common pricing mistake founders make?
+        explanation: Pricing too low, usually from cost-plus thinking and fear of rejection — which also damages positioning.
+        options:
+          - text: "Pricing too low, based on cost rather than value"
+            correct: true
+          - text: "Pricing too high"
+          - text: "Offering annual billing"
+          - text: "Publishing the price"
+    interview:
+      - question: When is it right to raise prices?
+        difficulty: medium
+        answer_md: |
+          When you are winning nearly every deal without resistance, when
+          customers tell you the value exceeds what they pay, when support and
+          delivery costs have grown, or when your positioning has moved upmarket.
+          Practically: raise for new customers first and grandfather existing
+          ones for a period, so you learn from conversion data without triggering
+          churn among people who already trust you. Test on a segment rather than
+          everyone, and watch win rate and sales-cycle length rather than only
+          revenue. A price increase that loses your worst-fit customers is often
+          a net gain.
+
+  - slug: fundraising-and-growth
+    name: Fundraising & Early Growth
+    domain: entrepreneur
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - business-models-and-unit-economics
+    summary: >-
+      Whether to raise at all, how equity and dilution work, and what actually
+      drives early growth.
+    content_md: |
+      Raising money is a choice with consequences, not a milestone.
+
+      **Should you raise?** Venture capital suits businesses that need capital to
+      reach a large market quickly and can plausibly return many multiples. It
+      brings an obligation to pursue a particular scale and exit. Bootstrapping
+      keeps control and forces discipline, and it is the right answer far more
+      often than the coverage suggests. Revenue is the least dilutive capital
+      available.
+
+      **Mechanics.** Equity is ownership; dilution is what happens as you issue
+      more. A SAFE or convertible note defers the valuation to a later priced
+      round. Understand the cap table, the option pool — which usually comes out
+      of the founders' share — vesting with a cliff, and liquidation preferences,
+      which decide who gets paid what in an exit that is not enormous.
+
+      **What investors are actually assessing:** the team, the size of the market,
+      evidence of pull, and whether the metrics show something working. A deck is
+      a summary of that evidence, not a substitute for it.
+
+      **Early growth is rarely a channel trick.** It comes from a product people
+      return to, doing things that do not scale to get the first customers, and
+      talking to them constantly. Retention comes before acquisition: pouring
+      traffic into a product people leave is expensive and futile.
+    resources:
+      - kind: doc
+        title: "Y Combinator — how to raise money"
+        url: https://www.ycombinator.com/library/4A-a-guide-to-seed-fundraising
+        provider: Y Combinator
+        duration_min: 90
+      - kind: article
+        title: "Do things that don't scale"
+        url: https://paulgraham.com/ds.html
+        provider: Paul Graham
+        duration_min: 30
+      - kind: doc
+        title: "Understanding SAFEs and dilution"
+        url: https://www.ycombinator.com/documents
+        provider: Y Combinator
+        duration_min: 60
+    quiz:
+      - prompt: Which is the least dilutive source of capital?
+        explanation: Revenue from customers costs no equity at all.
+        options:
+          - text: "Revenue from customers"
+            correct: true
+          - text: "A seed round"
+          - text: "A convertible note"
+          - text: "A SAFE"
+      - prompt: What does a liquidation preference determine?
+        explanation: Who gets paid first, and how much, when the company is sold — which matters enormously in a modest exit.
+        options:
+          - text: "Who is paid first and how much in an exit"
+            correct: true
+          - text: "The share price at IPO"
+          - text: "The option pool size"
+          - text: "The vesting cliff"
+      - prompt: Which should be fixed first: retention or acquisition?
+        explanation: Retention. Acquiring users into a product they abandon wastes the spend and hides the real problem.
+        options:
+          - text: "Retention — acquisition into a leaky product wastes the spend"
+            correct: true
+          - text: "Acquisition, to gather data"
+          - text: "Both simultaneously, always"
+          - text: "Neither; pricing comes first"
+    interview:
+      - question: An investor offers money at a valuation you think is low. How do you think about it?
+        difficulty: hard
+        answer_md: |
+          Valuation is only one term. Compare the dilution against what the money
+          buys — if it reliably gets you to a milestone that materially derisks
+          the business, a lower valuation now can be worth far more than a higher
+          one later. Read the other terms carefully: liquidation preference,
+          participation, board composition, pro-rata and protective provisions
+          can matter more than the headline number in every outcome except the
+          best one. Consider whether this investor adds something beyond capital,
+          how long you could go without raising, and what the realistic
+          alternative offer is. Do not optimise valuation into terms you will
+          regret.
