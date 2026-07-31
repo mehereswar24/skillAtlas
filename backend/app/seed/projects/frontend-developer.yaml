@@ -1,0 +1,830 @@
+# Projects for the frontend-developer track.
+#
+# These run in a sandboxed iframe: the learner's HTML, CSS and JS are assembled
+# into a document, and each test is a JavaScript expression evaluated against
+# the rendered result. Truthy passes.
+#
+# The constraint that shapes every brief: the frame has no network and no
+# bundler, so React and TypeScript cannot run here as themselves. Rather than
+# fake it, the two projects for those concepts build the *mechanism* underneath
+# them in vanilla JavaScript — a reconciler and a runtime validator — and say so
+# in the brief. Learning what `useState` is doing beats miming its API.
+
+projects:
+  - slug: layout-without-hacks
+    concept: html-css-foundations
+    title: Build a card grid that holds up
+    tagline: Semantic markup, grid, and a layout that survives a long word.
+    runtime: web
+    difficulty: beginner
+    est_minutes: 45
+    xp_reward: 110
+    brief_md: |
+      Recreate a product card grid. The markup is scored as heavily as the
+      appearance, because the markup is what a screen reader, a search crawler
+      and the next developer all read.
+
+      In `index.html`, inside `<main id="app">`, build:
+
+      - A `<h1>` with the text `Catalogue`.
+      - A `<ul class="grid">` containing exactly **three** `<li class="card">`.
+      - Each card holds an `<h2>` with the product name and a
+        `<p class="price">` with the price.
+
+      In `styles.css`:
+
+      - `.grid` uses **CSS Grid** with `grid-template-columns` built from
+        `repeat(auto-fill, minmax(...))` so it reflows without media queries.
+      - `.card` uses `box-sizing: border-box`.
+      - Long words must not overflow the card — reach for `overflow-wrap`.
+
+      The list is a `<ul>` on purpose: a set of cards *is* a list, and using one
+      tells assistive technology how many items there are before the user walks
+      through them.
+    must_contain:
+      - "grid-template-columns"
+      - "auto-fill"
+    files:
+      - path: index.html
+        entry: true
+        content: |
+          <main id="app">
+            <!-- Build the heading and the grid here. -->
+          </main>
+      - path: styles.css
+        content: |
+          /* Layout the grid and the cards. */
+          .grid {
+          }
+
+          .card {
+          }
+    tests:
+      - name: There is a single top-level heading
+        kind: dom-assert
+        code: "document.querySelectorAll('h1').length === 1 && document.querySelector('h1').textContent.trim() === 'Catalogue'"
+      - name: The grid is a list of three cards
+        kind: dom-assert
+        code: "document.querySelectorAll('ul.grid > li.card').length === 3"
+      - name: Each card has a name and a price
+        kind: dom-assert
+        code: "[...document.querySelectorAll('.card')].every(c => c.querySelector('h2') && c.querySelector('p.price'))"
+      - name: The grid actually uses CSS Grid
+        kind: dom-assert
+        code: "getComputedStyle(document.querySelector('.grid')).display === 'grid'"
+      - name: Cards use border-box sizing
+        kind: dom-assert
+        code: "getComputedStyle(document.querySelector('.card')).boxSizing === 'border-box'"
+      - name: A long word cannot overflow a card
+        hidden: true
+        kind: dom-assert
+        code: "['break-word','anywhere'].includes(getComputedStyle(document.querySelector('.card')).overflowWrap)"
+    solution_md: |
+      ```html
+      <main id="app">
+        <h1>Catalogue</h1>
+        <ul class="grid">
+          <li class="card"><h2>Keyboard</h2><p class="price">₹4,500</p></li>
+          <li class="card"><h2>Mouse</h2><p class="price">₹900</p></li>
+          <li class="card"><h2>Monitor</h2><p class="price">₹12,000</p></li>
+        </ul>
+      </main>
+      ```
+
+      ```css
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        list-style: none;
+        padding: 0;
+      }
+
+      .card {
+        box-sizing: border-box;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        overflow-wrap: break-word;
+      }
+      ```
+
+      `repeat(auto-fill, minmax(200px, 1fr))` is the whole responsive layout: it
+      fits as many 200px-minimum columns as there is room for and shares the
+      remainder between them. No breakpoints, no media queries, and it adapts to
+      a container it does not know the width of.
+
+  - slug: event-delegation-todo
+    concept: javascript-essentials
+    title: A to-do list with one event listener
+    tagline: Delegation, the event object, and why you are not adding a listener per row.
+    runtime: web
+    difficulty: beginner
+    est_minutes: 50
+    xp_reward: 120
+    brief_md: |
+      Build a to-do list in `app.js`. The requirement that makes this a real
+      exercise: **exactly one click listener**, attached to the list container,
+      not one per item.
+
+      That is event delegation, and it is the reason a table with 10,000 rows
+      does not need 10,000 listeners. It also means items added later work
+      without any extra wiring — which is the part people usually discover by
+      hitting the bug first.
+
+      Behaviour:
+
+      - Submitting the form adds an `<li class="todo">` to `<ul id="list">`
+        containing the input's text in a `<span class="text">` and a
+        `<button class="remove">` — then clears the input.
+      - Clicking a remove button deletes **that** item.
+      - Clicking the text toggles `class="done"` on the `<li>`.
+      - An empty or whitespace-only submission adds nothing.
+
+      Use `event.target` and `closest()` to work out what was clicked.
+    must_contain:
+      - "addEventListener"
+      - "closest"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <form id="add">
+            <input id="title" type="text" placeholder="What needs doing?">
+            <button type="submit">Add</button>
+          </form>
+          <ul id="list"></ul>
+      - path: app.js
+        content: |
+          const form = document.getElementById('add');
+          const input = document.getElementById('title');
+          const list = document.getElementById('list');
+
+          // One listener on the form, one on the list. No listener per item.
+      - path: styles.css
+        content: |
+          .done .text { text-decoration: line-through; }
+    tests:
+      - name: Adding an item appends it to the list
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('title').value = 'Write tests';
+            document.getElementById('add').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+            const items = document.querySelectorAll('#list li.todo');
+            return items.length === 1 && items[0].querySelector('.text').textContent === 'Write tests';
+          })()
+      - name: The input is cleared after adding
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('title').value = 'Another';
+            document.getElementById('add').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+            return document.getElementById('title').value === '';
+          })()
+      - name: An empty submission adds nothing
+        kind: dom-assert
+        code: |
+          (() => {
+            const before = document.querySelectorAll('#list li.todo').length;
+            document.getElementById('title').value = '   ';
+            document.getElementById('add').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+            return document.querySelectorAll('#list li.todo').length === before;
+          })()
+      - name: Clicking the text toggles done
+        kind: dom-assert
+        code: |
+          (() => {
+            const item = document.querySelector('#list li.todo');
+            item.querySelector('.text').click();
+            const on = item.classList.contains('done');
+            item.querySelector('.text').click();
+            return on && !item.classList.contains('done');
+          })()
+      - name: Remove deletes only the item clicked
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const before = document.querySelectorAll('#list li.todo').length;
+            document.querySelector('#list li.todo .remove').click();
+            return document.querySelectorAll('#list li.todo').length === before - 1;
+          })()
+      - name: Items added later still work — one delegated listener, not one each
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('title').value = 'Late arrival';
+            document.getElementById('add').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+            const items = document.querySelectorAll('#list li.todo');
+            const last = items[items.length - 1];
+            last.querySelector('.text').click();
+            return last.classList.contains('done');
+          })()
+    solution_md: |
+      ```js
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const title = input.value.trim();
+        if (!title) return;
+
+        const item = document.createElement('li');
+        item.className = 'todo';
+        item.innerHTML = '<span class="text"></span><button class="remove">×</button>';
+        item.querySelector('.text').textContent = title;
+        list.append(item);
+        input.value = '';
+      });
+
+      list.addEventListener('click', (event) => {
+        const item = event.target.closest('li.todo');
+        if (!item) return;
+        if (event.target.closest('.remove')) item.remove();
+        else if (event.target.closest('.text')) item.classList.toggle('done');
+      });
+      ```
+
+      Two details worth keeping. `textContent` rather than `innerHTML` for the
+      user's text — otherwise a to-do called `<img onerror=...>` executes, which
+      is XSS in eight characters. And `closest()` rather than checking
+      `event.target` directly, because a click can land on a child element of
+      the button and `target` would be that child.
+
+  - slug: build-a-reconciler
+    concept: react-fundamentals
+    title: Build the diff that React does
+    tagline: Render from state, diff, and patch — the whole idea, in 60 lines.
+    runtime: web
+    difficulty: advanced
+    est_minutes: 75
+    xp_reward: 190
+    brief_md: |
+      There is no bundler in this sandbox, so this is not a React project — it
+      is the *mechanism underneath* React, written by hand. Which is the better
+      exercise anyway: once you have written a reconciler, `key` warnings and
+      unnecessary re-renders stop being folklore.
+
+      Implement three functions in `app.js`.
+
+      **`h(tag, props, ...children)`** — return a plain object describing an
+      element: `{tag, props, children}`. Children that are strings stay strings.
+      This is what JSX compiles to.
+
+      **`render(vnode)`** — turn a vnode into a real DOM node. Strings become
+      text nodes. `props` become attributes, except `on*` which become event
+      listeners.
+
+      **`patch(parent, oldVNode, newVNode, index = 0)`** — update the DOM *in
+      place* by comparing two trees:
+
+      - No old node → append the new one.
+      - No new node → remove the old one.
+      - Different `tag`, or one is a string and the other is not, or two
+        different strings → replace.
+      - Same tag → update changed attributes and recurse into children.
+
+      The last case is the one that matters. Replacing the node whenever
+      anything changes is easy and is exactly what makes an input lose focus
+      mid-typing; patching in place is what makes a UI framework usable.
+    must_contain:
+      - "function h"
+      - "function patch"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="root"></div>
+      - path: app.js
+        content: |
+          function h(tag, props, ...children) {
+            // Return {tag, props, children}
+          }
+
+          function render(vnode) {
+            // A string becomes a text node; anything else becomes an element.
+          }
+
+          function patch(parent, oldVNode, newVNode, index = 0) {
+            // Compare and update in place.
+          }
+
+          // Exposed so the tests can reach them.
+          window.h = h;
+          window.render = render;
+          window.patch = patch;
+    tests:
+      - name: h builds a vnode
+        kind: dom-assert
+        code: |
+          (() => {
+            const v = h('p', {class: 'x'}, 'hello');
+            return v.tag === 'p' && v.props.class === 'x' && v.children[0] === 'hello';
+          })()
+      - name: render produces real DOM
+        kind: dom-assert
+        code: |
+          (() => {
+            const node = render(h('p', {class: 'x'}, 'hello'));
+            return node.tagName === 'P' && node.className === 'x' && node.textContent === 'hello';
+          })()
+      - name: patch appends when there was nothing
+        kind: dom-assert
+        code: |
+          (() => {
+            const root = document.getElementById('root');
+            root.innerHTML = '';
+            patch(root, null, h('span', {}, 'first'));
+            return root.childNodes.length === 1 && root.textContent === 'first';
+          })()
+      - name: patch replaces when the tag changes
+        kind: dom-assert
+        code: |
+          (() => {
+            const root = document.getElementById('root');
+            root.innerHTML = '';
+            const before = h('span', {}, 'a');
+            patch(root, null, before);
+            patch(root, before, h('div', {}, 'a'));
+            return root.firstChild.tagName === 'DIV';
+          })()
+      - name: patch updates text without replacing the element
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const root = document.getElementById('root');
+            root.innerHTML = '';
+            const before = h('p', {}, 'one');
+            patch(root, null, before);
+            const node = root.firstChild;
+            node.dataset.identity = 'kept';
+            patch(root, before, h('p', {}, 'two'));
+            // Same element object, new text: that is the whole point of a reconciler.
+            return root.firstChild === node && root.textContent === 'two';
+          })()
+      - name: patch removes a node that is gone
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const root = document.getElementById('root');
+            root.innerHTML = '';
+            const before = h('p', {}, 'gone');
+            patch(root, null, before);
+            patch(root, before, null);
+            return root.childNodes.length === 0;
+          })()
+    solution_md: |
+      ```js
+      function h(tag, props, ...children) {
+        return { tag, props: props || {}, children: children.flat() };
+      }
+
+      function render(vnode) {
+        if (typeof vnode === 'string') return document.createTextNode(vnode);
+        const node = document.createElement(vnode.tag);
+        for (const [key, value] of Object.entries(vnode.props)) {
+          if (key.startsWith('on')) node.addEventListener(key.slice(2).toLowerCase(), value);
+          else node.setAttribute(key, value);
+        }
+        vnode.children.map(render).forEach((child) => node.append(child));
+        return node;
+      }
+
+      function changed(a, b) {
+        return (
+          typeof a !== typeof b ||
+          (typeof a === 'string' && a !== b) ||
+          a.tag !== b.tag
+        );
+      }
+
+      function patch(parent, oldVNode, newVNode, index = 0) {
+        if (oldVNode == null) {
+          parent.append(render(newVNode));
+        } else if (newVNode == null) {
+          parent.removeChild(parent.childNodes[index]);
+        } else if (changed(oldVNode, newVNode)) {
+          parent.replaceChild(render(newVNode), parent.childNodes[index]);
+        } else if (newVNode.tag) {
+          const node = parent.childNodes[index];
+          for (const [key, value] of Object.entries(newVNode.props)) {
+            if (oldVNode.props[key] !== value && !key.startsWith('on')) {
+              node.setAttribute(key, value);
+            }
+          }
+          const length = Math.max(oldVNode.children.length, newVNode.children.length);
+          // Backwards, so removing a child does not shift the indices still to visit.
+          for (let i = length - 1; i >= 0; i--) {
+            patch(node, oldVNode.children[i], newVNode.children[i], i);
+          }
+        }
+      }
+      ```
+
+      Two things fall out of this that explain real React behaviour.
+
+      Iterating children **by index** is why `key` exists: insert an item at the
+      top of a keyless list and every subsequent child compares against the
+      wrong old child, so the whole list re-renders. Keys let the diff match
+      children by identity instead of position.
+
+      And the `changed()` check is why changing an element's type throws away
+      its entire subtree, including component state and DOM focus.
+
+  - slug: observable-store
+    concept: frontend-state-and-data
+    title: A store with subscriptions
+    tagline: One source of truth, immutable updates, and no stale renders.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 140
+    brief_md: |
+      Every state library — Redux, Zustand, signals — is this object with more
+      ergonomics on top. Write it once and the trade-offs stop being framework
+      trivia.
+
+      Implement `createStore(initialState)` in `app.js`, returning an object
+      with:
+
+      - **`getState()`** — the current state.
+      - **`setState(updater)`** — `updater` is either a partial object or a
+        function of the current state returning one. Merge it, then notify
+        subscribers. **Never mutate the existing state object** — produce a new
+        one, which is what makes cheap change detection possible.
+      - **`subscribe(listener)`** — call `listener(state)` on every change;
+        return an `unsubscribe` function.
+      - **`select(selector, listener)`** — call `listener(value)` only when
+        `selector(state)` actually changes, compared with `Object.is`. This is
+        the optimisation that stops one unrelated field re-rendering the world.
+
+      Two details the tests check: a listener that unsubscribes during a
+      notification must not break the others still to be called, and setting a
+      value to the same thing must not notify at all.
+    must_contain:
+      - "function createStore"
+      - "Object.is"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="root"></div>
+      - path: app.js
+        content: |
+          function createStore(initialState) {
+            let state = initialState;
+            const listeners = new Set();
+
+            // getState, setState, subscribe, select
+          }
+
+          window.createStore = createStore;
+    tests:
+      - name: Reads and merges state
+        kind: dom-assert
+        code: |
+          (() => {
+            const s = createStore({count: 0, name: 'a'});
+            s.setState({count: 1});
+            return s.getState().count === 1 && s.getState().name === 'a';
+          })()
+      - name: Accepts an updater function
+        kind: dom-assert
+        code: |
+          (() => {
+            const s = createStore({count: 1});
+            s.setState((state) => ({count: state.count + 1}));
+            return s.getState().count === 2;
+          })()
+      - name: State is replaced, not mutated
+        kind: dom-assert
+        code: |
+          (() => {
+            const s = createStore({count: 0});
+            const before = s.getState();
+            s.setState({count: 1});
+            return before !== s.getState() && before.count === 0;
+          })()
+      - name: Subscribers are notified, and can unsubscribe
+        kind: dom-assert
+        code: |
+          (() => {
+            const s = createStore({count: 0});
+            let calls = 0;
+            const off = s.subscribe(() => calls++);
+            s.setState({count: 1});
+            off();
+            s.setState({count: 2});
+            return calls === 1;
+          })()
+      - name: select only fires when its slice changes
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const s = createStore({count: 0, other: 'x'});
+            let calls = 0;
+            s.select((state) => state.count, () => calls++);
+            s.setState({other: 'y'});
+            s.setState({count: 1});
+            s.setState({other: 'z'});
+            return calls === 1;
+          })()
+      - name: Unsubscribing during a notification is safe
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const s = createStore({count: 0});
+            let second = 0;
+            const off = s.subscribe(() => off());
+            s.subscribe(() => second++);
+            s.setState({count: 1});
+            return second === 1;
+          })()
+    solution_md: |
+      ```js
+      function createStore(initialState) {
+        let state = initialState;
+        const listeners = new Set();
+
+        function notify() {
+          // Iterate a copy: a listener may unsubscribe itself, and mutating
+          // the Set mid-iteration would skip whoever came next.
+          for (const listener of [...listeners]) listener(state);
+        }
+
+        return {
+          getState: () => state,
+
+          setState(updater) {
+            const partial = typeof updater === 'function' ? updater(state) : updater;
+            state = { ...state, ...partial };
+            notify();
+          },
+
+          subscribe(listener) {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+          },
+
+          select(selector, listener) {
+            let previous = selector(state);
+            return this.subscribe((next) => {
+              const current = selector(next);
+              if (!Object.is(previous, current)) {
+                previous = current;
+                listener(current);
+              }
+            });
+          },
+        };
+      }
+      ```
+
+      `{ ...state, ...partial }` is doing real work: because every update
+      produces a new object, `select` can compare slices with `Object.is`
+      instead of deep-equality. That identity check is the entire performance
+      story of immutable state — and it is also why mutating state in place
+      makes a React component mysteriously not re-render.
+
+  - slug: fix-the-form-accessibility
+    concept: web-accessibility
+    title: Make a broken form usable
+    tagline: Labels, roles, focus and error announcement — the things a mouse hides.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      `index.html` contains a sign-up form that looks fine and is unusable
+      without a mouse. Fix it. Every problem here is one found in real audits.
+
+      What must be true when you are done:
+
+      - Every input has an accessible name via a `<label for>` pointing at its
+        `id`. Placeholder text is **not** a label — it disappears on focus,
+        which is exactly when it is needed.
+      - The "Sign up" control is a `<button>`, not a styled `<div>`. A native
+        button is focusable, activates on Enter and Space, and is announced as a
+        button — recreating that on a div takes `tabindex`, key handlers and
+        `role`, and is almost always done incompletely.
+      - The error region has `role="alert"` so a screen reader announces it when
+        it appears, rather than leaving it to be discovered.
+      - The required email input carries `aria-required="true"`, and when it is
+        invalid, `aria-invalid="true"` plus `aria-describedby` pointing at the
+        error's `id`.
+      - No element has a positive `tabindex`. Positive values jump the tab order
+        out of document order and are nearly always a bug.
+    must_contain:
+      - "role=\"alert\""
+      - "aria-describedby"
+    files:
+      - path: index.html
+        entry: true
+        content: |
+          <form id="signup">
+            <input id="email" type="email" placeholder="Email">
+            <input id="password" type="password" placeholder="Password" tabindex="1">
+
+            <div id="error" class="error">Enter a valid email address.</div>
+
+            <div class="button" onclick="submitForm()">Sign up</div>
+          </form>
+      - path: app.js
+        readonly: true
+        content: |
+          // Provided. Do not change this — fix the markup instead.
+          function submitForm() {
+            document.getElementById('error').hidden = false;
+          }
+    tests:
+      - name: Every input has a real label
+        kind: dom-assert
+        code: |
+          [...document.querySelectorAll('input')].every((input) =>
+            document.querySelector(`label[for="${input.id}"]`))
+      - name: The submit control is a button
+        kind: dom-assert
+        code: "!!document.querySelector('form button') && !document.querySelector('div.button')"
+      - name: Errors are announced
+        kind: dom-assert
+        code: "document.getElementById('error').getAttribute('role') === 'alert'"
+      - name: The email field is marked required and described by the error
+        kind: dom-assert
+        code: |
+          (() => {
+            const email = document.getElementById('email');
+            return email.getAttribute('aria-required') === 'true' &&
+                   email.getAttribute('aria-describedby') === 'error';
+          })()
+      - name: No positive tabindex hijacks the tab order
+        hidden: true
+        kind: dom-assert
+        code: "[...document.querySelectorAll('[tabindex]')].every((el) => Number(el.getAttribute('tabindex')) <= 0)"
+      - name: The invalid field is marked invalid
+        hidden: true
+        kind: dom-assert
+        code: "document.getElementById('email').getAttribute('aria-invalid') === 'true'"
+    solution_md: |
+      ```html
+      <form id="signup">
+        <label for="email">Email</label>
+        <input id="email" type="email" aria-required="true"
+               aria-invalid="true" aria-describedby="error">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" aria-required="true">
+
+        <div id="error" class="error" role="alert">Enter a valid email address.</div>
+
+        <button type="submit">Sign up</button>
+      </form>
+      ```
+
+      Note how much of the fix is *removing* things: the `tabindex="1"`, the
+      `div` pretending to be a button, the placeholder standing in for a label.
+      Most accessibility work is choosing the right element rather than adding
+      ARIA — `role="alert"` is here because there is no native element that
+      means "announce this when it appears", and `aria-describedby` because
+      there is no native way to associate an arbitrary error with a field.
+
+  - slug: measure-then-optimise
+    concept: web-performance
+    title: Make a slow list fast
+    tagline: Batch your DOM writes and stop reading layout in a loop.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      `app.js` renders 2,000 rows in the slowest way available: appending one
+      node at a time, and reading `offsetHeight` inside the same loop that
+      writes styles. That second part is **layout thrashing** — every read after
+      a write forces the browser to recalculate layout synchronously, so an O(n)
+      loop does O(n) layouts.
+
+      Rewrite `renderRows(container, count)` so that it:
+
+      - Builds all nodes into a `DocumentFragment` and appends **once**, so the
+        browser lays out one time rather than `count` times.
+      - Does not read any layout property (`offsetHeight`, `offsetWidth`,
+        `getBoundingClientRect`) inside the build loop.
+      - Still produces exactly `count` `<div class="row">` elements, each with
+        text `Row N` (1-indexed).
+      - Returns the number of rows it created.
+
+      The lesson generalises past this loop: separate the read phase from the
+      write phase. Every virtualised list, every animation library and every
+      "why is scrolling janky" investigation comes back to it.
+    must_contain:
+      - "createDocumentFragment"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="list"></div>
+      - path: app.js
+        content: |
+          function renderRows(container, count) {
+            // Slow version — rewrite it.
+            container.innerHTML = '';
+            let created = 0;
+            for (let i = 1; i <= count; i++) {
+              const row = document.createElement('div');
+              row.className = 'row';
+              row.textContent = 'Row ' + i;
+              container.append(row);            // a write, every iteration
+              row.style.height = row.offsetHeight + 'px';  // a read right after
+              created++;
+            }
+            return created;
+          }
+
+          window.renderRows = renderRows;
+    tests:
+      - name: Renders the right number of rows
+        kind: dom-assert
+        code: |
+          (() => {
+            const list = document.getElementById('list');
+            return renderRows(list, 2000) === 2000 &&
+                   list.querySelectorAll('.row').length === 2000;
+          })()
+      - name: Rows are labelled correctly
+        kind: dom-assert
+        code: |
+          (() => {
+            const list = document.getElementById('list');
+            renderRows(list, 5);
+            const rows = list.querySelectorAll('.row');
+            return rows[0].textContent === 'Row 1' && rows[4].textContent === 'Row 5';
+          })()
+      - name: Re-rendering replaces rather than accumulates
+        kind: dom-assert
+        code: |
+          (() => {
+            const list = document.getElementById('list');
+            renderRows(list, 10);
+            renderRows(list, 3);
+            return list.querySelectorAll('.row').length === 3;
+          })()
+      - name: The container is written to once, not per row
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const list = document.getElementById('list');
+            list.textContent = '';
+            // A fragment append is a single mutation carrying every node; a
+            // per-row loop is one mutation each. This is the observable
+            // difference, and it is what costs a layout per row.
+            const observer = new MutationObserver(() => {});
+            observer.observe(list, {childList: true});
+            renderRows(list, 500);
+            const batches = observer.takeRecords().filter(r => r.addedNodes.length);
+            observer.disconnect();
+            return batches.length === 1 && batches[0].addedNodes.length === 500;
+          })()
+      - name: It is fast
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const list = document.getElementById('list');
+            const start = performance.now();
+            renderRows(list, 2000);
+            return performance.now() - start < 250;
+          })()
+    solution_md: |
+      ```js
+      function renderRows(container, count) {
+        container.textContent = '';
+        const fragment = document.createDocumentFragment();
+
+        for (let i = 1; i <= count; i++) {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.textContent = 'Row ' + i;
+          fragment.append(row);          // off-document: no layout yet
+        }
+
+        container.append(fragment);      // one insertion, one layout
+        return count;
+      }
+      ```
+
+      Two changes, and the second is the bigger one. Building into a fragment
+      means the nodes are not in the document while you assemble them, so no
+      layout happens per row. And dropping the `offsetHeight` read removes the
+      forced synchronous layout entirely — that read was asking the browser
+      "where is everything now?" two thousand times, and each answer required
+      redoing the work the previous write invalidated.
+
+      If you genuinely need measurements, do all the writes, then all the reads,
+      in separate passes.

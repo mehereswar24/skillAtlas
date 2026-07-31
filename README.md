@@ -149,12 +149,13 @@ the 27 domains has a curated route; nothing says "coming soon"**.
 | Quiz questions | 328 |
 | Interview questions | 118 |
 | Job roles measured | 31 |
-| Buildable projects | 15 (77 automated tests) |
+| Buildable projects | 21 (112 automated tests) |
 | Companies | 10 (13 roles, 55 sourced questions) |
 
-Projects currently cover the backend track end to end — one per concept. The
-other tracks have concepts and resources but no projects yet; the machinery is
-content-driven, so adding them is YAML authoring rather than code.
+Projects currently cover the **backend** track end to end (one per concept,
+Python and SQL) and the **frontend** track (web). The remaining tracks have
+concepts and resources but no projects yet — the machinery is content-driven,
+so adding them is YAML authoring rather than code.
 
 Concepts are shared across tracks by slug reference rather than duplicated —
 `programming-language-python` and `containers-docker` each appear in several
@@ -186,6 +187,7 @@ cd backend
 cd ..\frontend
 npx tsc --noEmit
 node scripts/check-python-harness.mjs             # the harness, under real Pyodide
+node scripts/check-web-projects.mjs               # web projects, under jsdom
 npm run build
 ```
 

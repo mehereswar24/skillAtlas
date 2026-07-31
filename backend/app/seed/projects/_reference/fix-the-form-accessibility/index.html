@@ -1,0 +1,12 @@
+<form id="signup">
+  <label for="email">Email</label>
+  <input id="email" type="email" aria-required="true" aria-invalid="true"
+         aria-describedby="error">
+
+  <label for="password">Password</label>
+  <input id="password" type="password" aria-required="true">
+
+  <div id="error" class="error" role="alert">Enter a valid email address.</div>
+
+  <button type="submit" onclick="submitForm()">Sign up</button>
+</form>
