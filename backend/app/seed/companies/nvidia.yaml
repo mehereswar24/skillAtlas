@@ -1,0 +1,202 @@
+company:
+  slug: nvidia
+  name: NVIDIA
+  industry: Semiconductors & AI
+  hq: Santa Clara, California
+  website: https://www.nvidia.com/en-us/about-nvidia/careers/
+  icon: Cpu
+  fetched_on: 2026-07-31
+  sort_order: 5
+  description: >-
+    GPUs, CUDA and the software stack most modern AI runs on. Interviews go
+    deeper on systems and hardware-adjacent reasoning than any other company on
+    this list.
+  hiring_process_md: |
+    NVIDIA's loop looks like a normal software loop until the round where
+    someone asks why your kernel is memory-bound. **The distinguishing signal
+    is whether you reason about the machine**, not just the algorithm.
+
+    **The shape of it**
+
+    1. **Recruiter screen**, then a **technical phone screen** — coding, often
+       in C++ for systems roles.
+    2. **The loop (4–6 rounds)** — coding, systems or architecture depth,
+       domain depth for the specific team (graphics, CUDA, deep learning,
+       autonomous driving), and a manager round.
+
+    **What to expect that other loops do not ask.** Memory hierarchy and why it
+    dominates performance; parallelism and where it breaks down; numerical
+    precision (fp32 vs fp16 vs bf16) and what you lose; and for CUDA-adjacent
+    roles, the actual execution model — warps, occupancy, coalesced access,
+    shared memory.
+
+    Teams are specialised, so read the posting carefully: a deep learning
+    performance role and a graphics driver role share a company and almost
+    nothing else.
+
+  resources:
+    - kind: careers
+      title: "NVIDIA Careers"
+      url: https://www.nvidia.com/en-us/about-nvidia/careers/
+    - kind: prep
+      title: "CUDA C++ Programming Guide"
+      url: https://docs.nvidia.com/cuda/cuda-c-programming-guide/
+    - kind: blog
+      title: "NVIDIA Technical Blog"
+      url: https://developer.nvidia.com/blog/
+    - kind: prep
+      title: "NVIDIA interview experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/tag/nvidia/
+
+roles:
+  - slug: deep-learning-engineer
+    title: Deep Learning Engineer
+    level: mid
+    maps_to_role: machine-learning-engineer
+    sort_order: 1
+    source_url: https://www.nvidia.com/en-us/about-nvidia/careers/
+    description: >-
+      Training and optimising models on NVIDIA hardware. Judged on whether you
+      understand what the GPU is actually doing, not only what the framework
+      API is.
+    focus_md: |
+      **The differentiator is performance reasoning.** Plenty of candidates can
+      train a model; the round turns on questions like "your training step is
+      30% GPU-utilised, why?" — and the answer is almost never "add more
+      layers".
+
+      Build the mental model: where the data is (host memory, device memory,
+      shared memory, registers), how much bandwidth each hop has, and which of
+      those is your bottleneck. Then the vocabulary of fixes: batching, mixed
+      precision, kernel fusion, overlapping data loading with compute, and
+      avoiding host-device round trips inside the loop.
+
+      Deep learning fundamentals still matter — backpropagation, optimisers,
+      normalisation, why transformers scale — but they are the entry ticket
+      rather than the differentiator.
+    focus_areas:
+      - { concept: deep-learning-foundations, label: "Deep learning fundamentals", weight: 5,
+          notes: "Backpropagation by hand, optimisers, normalisation, why residual connections work." }
+      - { concept: pytorch-fundamentals, label: "PyTorch, below the API", weight: 5,
+          notes: "Autograd, memory layout, where synchronisation points hide." }
+      - { concept: math-linear-algebra, label: "Linear algebra", weight: 4,
+          notes: "Matmul is the primitive everything reduces to. Know its cost and its memory pattern." }
+      - { concept: programming-language-python, label: "Python", weight: 4 }
+      - { concept: nlp-transformers, label: "Transformers", weight: 4,
+          notes: "Attention's quadratic cost is the thing every optimisation question circles back to." }
+      - { concept: mlops-deployment, label: "Training and serving at scale", weight: 4 }
+      - { concept: model-evaluation, label: "Evaluation", weight: 3 }
+      - { label: "GPU architecture & CUDA", weight: 5,
+          notes: "Memory hierarchy, warps, occupancy, coalescing. The round that separates candidates." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: GPU performance
+        difficulty: hard
+        question: >-
+          Your training loop reports 30% GPU utilisation. Where do you look?
+        answer_md: |
+          Low utilisation means the GPU is waiting, so find what it is waiting
+          for. In rough order of how often it is the answer:
+
+          **Data loading.** The most common cause by a distance. Too few
+          loader workers, decoding on the CPU, or reading from a slow disk
+          means the GPU idles between batches. Overlap with prefetching and
+          pinned memory.
+
+          **Small batches.** A kernel launch has fixed overhead; tiny batches
+          spend more time launching than computing.
+
+          **Host-device synchronisation inside the loop.** A `.item()`, a
+          `print`, or a Python-side conditional on a tensor value forces a sync
+          and serialises everything.
+
+          **Memory-bound kernels.** Elementwise operations do very little
+          arithmetic per byte moved, so they run at bandwidth speed however
+          fast the cores are. Fusion is the fix.
+
+          Say how you would *tell* which, not just the list: profile it. Nsight
+          Systems for the timeline, then Nsight Compute on the kernel that
+          dominates.
+        source_name: NVIDIA Technical Blog — performance optimisation
+        source_url: https://developer.nvidia.com/blog/
+
+      - kind: interview
+        round: technical
+        topic: Numerical precision
+        difficulty: medium
+        question: >-
+          Why does mixed-precision training work, and what breaks if you do it
+          naively?
+        answer_md: |
+          It works because most of the arithmetic in a forward and backward
+          pass does not need fp32's range or precision, while matmul in fp16 or
+          bf16 runs several times faster on tensor cores and halves the memory
+          traffic.
+
+          Naively, two things break. **Gradient underflow**: small fp16
+          gradients round to zero and those weights stop learning — the fix is
+          loss scaling, multiplying the loss before the backward pass and
+          unscaling before the optimiser step. And **accumulation error**:
+          summing many small values in fp16 loses them, which is why
+          accumulation and the master weights stay in fp32.
+
+          bf16 is worth naming as the modern answer: it has fp32's exponent
+          range with fewer mantissa bits, so underflow largely disappears and
+          loss scaling stops being necessary — you trade precision for range,
+          which for gradients is the right trade.
+        source_name: NVIDIA docs — mixed precision training
+        source_url: https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html
+
+      - kind: interview
+        round: coding
+        topic: Systems
+        difficulty: hard
+        question: >-
+          Explain memory coalescing, and rewrite a strided access pattern to
+          take advantage of it.
+        answer_md: |
+          A warp of 32 threads issues its memory accesses together. If those
+          32 addresses fall in the same contiguous cache lines, the hardware
+          services them in a small number of transactions — coalesced. If they
+          are strided, each thread pulls its own line and you waste most of the
+          bandwidth you paid for.
+
+          The classic fix is a transpose done through **shared memory**: read
+          the tile coalesced into shared memory, synchronise, then write it out
+          coalesced in the other orientation. The strided access happens
+          against shared memory, which does not care.
+
+          The detail that shows you have actually written this: pad the shared
+          tile by one column (`tile[32][33]`) to avoid bank conflicts, which
+          otherwise serialise the shared-memory access and undo the gain.
+        source_name: CUDA C++ Programming Guide
+        source_url: https://docs.nvidia.com/cuda/cuda-c-programming-guide/
+
+      - kind: interview
+        round: technical
+        topic: Transformers
+        difficulty: hard
+        question: >-
+          Attention is O(n²) in sequence length. What have people done about
+          it?
+        answer_md: |
+          Split the answer into two families, because they solve different
+          problems.
+
+          **Exact but IO-aware.** FlashAttention does not change the
+          complexity — it changes where the intermediate matrix lives. By
+          tiling and recomputing in on-chip SRAM it never materialises the
+          n×n matrix in HBM, which turns a memory-bound operation into a
+          compute-bound one. Same maths, several times faster, and no accuracy
+          cost. This is the answer NVIDIA is listening for.
+
+          **Approximate.** Sparse attention (local windows plus a few global
+          tokens), low-rank approximations, and linear-attention formulations
+          reduce the asymptotic cost but change the model.
+
+          Worth adding for inference: KV caching removes the recomputation
+          across generated tokens entirely, and its memory growth is why
+          paged-attention schemes exist.
+        source_name: NVIDIA Technical Blog
+        source_url: https://developer.nvidia.com/blog/

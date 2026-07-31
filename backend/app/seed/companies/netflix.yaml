@@ -1,0 +1,196 @@
+company:
+  slug: netflix
+  name: Netflix
+  industry: Big Tech
+  hq: Los Gatos, California
+  website: https://jobs.netflix.com/
+  icon: Clapperboard
+  fetched_on: 2026-07-31
+  sort_order: 7
+  description: >-
+    Streaming at global scale, run by a small number of senior engineers. Hires
+    almost exclusively experienced people, and screens hard for judgement and
+    autonomy rather than for algorithm recall.
+  hiring_process_md: |
+    Netflix is the outlier on this list in two ways, and both change how you
+    prepare.
+
+    **It hires seniors.** There is very little junior hiring; roles are pitched
+    at people who have already owned systems. The bar is "would we hire this
+    person to make decisions without supervision", which is a different
+    question from "can this person solve a graph problem".
+
+    **Culture is a real screen.** The Netflix culture memo — freedom and
+    responsibility, "people over process", context not control, and the candour
+    expectation — is the actual rubric for several rounds, not a poster.
+    Candidates who have not read it and thought about whether they *want* that
+    environment tend to be filtered out, in both directions.
+
+    **The shape of it**
+
+    1. **Recruiter and hiring-manager screens** — the manager screen is
+       substantive and often the hardest filter.
+    2. **Technical rounds** — practical coding, often closer to real
+       engineering than to puzzles, plus deep system design.
+    3. **Culture and cross-functional rounds** — with people outside your team,
+       probing judgement, disagreement and how you handle ambiguity.
+
+    **Compensation is top-of-market and salary-only**, with no equity refresh
+    game and no bonus structure. It is worth knowing before you negotiate.
+
+  resources:
+    - kind: careers
+      title: "Netflix Jobs"
+      url: https://jobs.netflix.com/
+    - kind: careers
+      title: "Netflix culture memo"
+      url: https://jobs.netflix.com/culture
+    - kind: blog
+      title: "Netflix Technology Blog"
+      url: https://netflixtechblog.com/
+    - kind: prep
+      title: "Netflix open source"
+      url: https://netflix.github.io/
+
+roles:
+  - slug: senior-software-engineer
+    title: Senior Software Engineer
+    level: senior
+    maps_to_role: senior-backend-engineer
+    sort_order: 1
+    source_url: https://jobs.netflix.com/culture
+    description: >-
+      Owns systems end to end with minimal process around you. Judged on
+      judgement, operational maturity and the ability to disagree well.
+    focus_md: |
+      **Prepare stories about decisions, not features.** The recurring
+      question shape here is "tell me about a time you made a call with
+      incomplete information" or "when did you push back on your manager".
+      Netflix explicitly wants people who can operate with context rather than
+      control, and it tests that conversationally.
+
+      On the technical side, weight **distributed systems and operations**
+      heavily. Netflix's engineering blog is unusually detailed and is
+      effectively a public syllabus: chaos engineering, circuit breakers,
+      regional failover, adaptive concurrency limits, canary analysis. Reading
+      three or four of those posts is better preparation than a hundred
+      algorithm problems.
+
+      Also be ready to talk about **what you turned off**. A senior engineer
+      who can name a system they decommissioned, and defend it, signals
+      something the rest of the loop cannot.
+    focus_areas:
+      - { concept: system-design-basics, label: "Distributed systems design", weight: 5,
+          notes: "Regional failover, backpressure, circuit breakers, graceful degradation." }
+      - { concept: observability, label: "Operating at scale", weight: 5,
+          notes: "Netflix invented much of this vocabulary. Know what you would measure and why." }
+      - { concept: incident-response, label: "Incident response and resilience", weight: 5,
+          notes: "Chaos engineering is a Netflix export. Have an outage you owned end to end." }
+      - { concept: caching-strategies, label: "Caching and CDN behaviour", weight: 4,
+          notes: "Streaming is a caching problem before it is anything else." }
+      - { concept: async-and-message-queues, label: "Async and event-driven design", weight: 4 }
+      - { concept: data-structures-algorithms, label: "Practical coding", weight: 3,
+          notes: "Real-world shaped rather than puzzle-shaped. The bar is competence, not speed." }
+      - { label: "Judgement and candour", weight: 5,
+          notes: "The culture memo is the rubric. Prepare stories about decisions and disagreements." }
+    questions:
+      - kind: interview
+        round: system-design
+        topic: Resilience
+        difficulty: hard
+        question: >-
+          A downstream recommendation service starts timing out. What should
+          the user see, and how do you make that happen?
+        answer_md: |
+          The answer Netflix is listening for is **graceful degradation**: the
+          user should see the app, with a less personalised row, rather than an
+          error page. Streaming a fallback is always better than failing.
+
+          Mechanically: a timeout short enough that the caller is not held
+          hostage; a circuit breaker that opens after a failure threshold so
+          you stop sending traffic into a service that is already struggling; a
+          static or cached fallback response; and a half-open probe so recovery
+          is automatic rather than manual.
+
+          Then the part that separates a real answer: **retries are dangerous
+          here.** Retrying into an overloaded dependency is how a slowdown
+          becomes an outage. If you retry at all, do it with jitter and a
+          budget — a cap on the fraction of traffic that may be retries.
+
+          Say how you would know it worked: you test it deliberately, in
+          production, by injecting the failure. That is what chaos engineering
+          is for.
+        source_name: Netflix Technology Blog
+        source_url: https://netflixtechblog.com/
+
+      - kind: interview
+        round: system-design
+        topic: Scale
+        difficulty: hard
+        question: >-
+          Design video delivery for a global audience. Where does the traffic
+          actually go?
+        answer_md: |
+          The key insight is that the bytes should never come from your data
+          centre. Netflix's own approach is to put caching appliances **inside
+          ISP networks**, so a stream is served from a box a few hops from the
+          viewer.
+
+          The pieces: encode each title once into a ladder of bitrates and
+          resolutions; chunk it into segments; distribute the popular catalogue
+          to edge caches ahead of demand, using viewing patterns to predict
+          what to push where; and let the client do adaptive bitrate selection,
+          measuring throughput and stepping the quality up or down between
+          segments.
+
+          The control plane — auth, catalogue, recommendations, playback
+          licensing — is a normal microservice architecture and is a rounding
+          error in bytes. Saying that split out loud is the answer; candidates
+          who spend the round on the API tier have missed what the system is.
+        source_name: Netflix Technology Blog — Open Connect
+        source_url: https://netflixtechblog.com/
+
+      - kind: interview
+        round: managerial
+        topic: Culture
+        difficulty: hard
+        question: >-
+          Tell me about a time you disagreed with your manager. What did you
+          do?
+        answer_md: |
+          Netflix's culture memo asks people to "disagree openly" and treats
+          silent disagreement as a failure, so an answer where you deferred
+          without saying anything is a genuine negative here — even though it
+          would pass elsewhere.
+
+          A strong answer: what the decision was, what evidence you brought and
+          to whom, that you made the disagreement explicit rather than working
+          around it, and what happened afterwards — including committing fully
+          if the decision went the other way.
+
+          The version that scores badly is the one with no real conflict in it:
+          "we discussed it and agreed" tells the interviewer nothing about how
+          you behave when you do not agree, which is the entire question.
+        source_name: Netflix culture memo
+        source_url: https://jobs.netflix.com/culture
+
+      - kind: interview
+        round: managerial
+        topic: Judgement
+        difficulty: hard
+        question: >-
+          What is something you built that you later decided should not exist?
+        answer_md: |
+          An unusual question that maps directly onto a Netflix value: judgement
+          about impact rather than attachment to output.
+
+          Answer with a real one. What you built, why it seemed right, what
+          changed your mind — usage data, maintenance cost, a simpler
+          alternative — and what you did about it. The strongest version ends
+          with you actually removing it, and with what you learned about how to
+          spot that class of mistake earlier.
+
+          Nobody senior has a clean record here. A candidate who cannot name
+          anything reads as someone who has not looked.
+        source_name: Netflix culture memo
+        source_url: https://jobs.netflix.com/culture

@@ -1,0 +1,216 @@
+company:
+  slug: infosys
+  name: Infosys
+  industry: IT Services (India)
+  hq: Bengaluru, India
+  website: https://www.infosys.com/careers/
+  icon: Building
+  fetched_on: 2026-07-31
+  sort_order: 11
+  description: >-
+    India's second-largest IT services firm. Three rounds for freshers, usually
+    inside two weeks, with an adaptive online test doing most of the filtering.
+  hiring_process_md: |
+    Infosys runs a short process — three rounds, typically over one to two
+    weeks — and the online test is where most candidates are eliminated.
+
+    **The shape of it**
+
+    1. **Online test (~95 minutes)** — quantitative aptitude, logical
+       reasoning and verbal ability, with **adaptive** difficulty: answer well
+       and the questions get harder. For the 2026 cycle the paper also includes
+       mathematical puzzles and English grammar sections.
+    2. **Technical interview** — core subjects (C/C++ fundamentals, data
+       structures, DBMS, OS) and your final-year project.
+    3. **HR interview** — behaviour, communication, and willingness to
+       relocate.
+
+    **Two structural facts to plan around.** There is **no negative marking**,
+    but there are **sectional cutoffs** and **sectional timing** with no
+    switching between sections — so never leave a question blank, and never
+    bank time from an easy section hoping to spend it on a hard one. And
+    because the test is adaptive, an early run of correct answers raises the
+    difficulty; do not read harder questions as a sign you are doing badly.
+
+    **Eligibility** for the 2026 batch is generally 60% or 6.0 CGPA throughout
+    Class 10, Class 12 and graduation, with no active backlogs at selection.
+    Confirm against the official posting, since criteria move between cycles.
+
+  resources:
+    - kind: careers
+      title: "Infosys Careers — graduates"
+      url: https://www.infosys.com/careers/graduates.html
+    - kind: prep
+      title: "Infosys recruitment process for freshers — PrepInsta"
+      url: https://prepinsta.com/infosys/recruitment-process/
+    - kind: prep
+      title: "Infosys recruitment: process, eligibility, rounds — Unstop"
+      url: https://unstop.com/blog/infosys-recruitment-process
+    - kind: paper
+      title: "Infosys previous year papers with solutions — PrepInsta"
+      url: https://prepinsta.com/infosys/
+
+roles:
+  - slug: systems-engineer
+    title: Systems Engineer
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://prepinsta.com/infosys/recruitment-process/
+    description: >-
+      The standard fresher role. Cleared on the online test, confirmed on core
+      CS fundamentals and your project.
+    focus_md: |
+      **The pseudocode section is where Infosys differs from its peers.** It
+      leans on C and C++ and on data structures, and the questions are usually
+      "what does this print" rather than "write this" — which means practising
+      *reading* unfamiliar code carefully is worth more than practising writing
+      it. Pointer arithmetic, static variables, pre/post increment inside
+      expressions, and array-of-pointer declarations are the recurring traps.
+
+      For the aptitude sections, the topics are standard but the adaptive
+      format is not: accuracy early matters more than volume, because a wrong
+      early answer lowers the difficulty of everything after it and caps your
+      score.
+
+      For the technical interview, expect definitional questions asked
+      directly — the difference between C and C++, what a null pointer is, the
+      four OOP pillars. Give crisp, correct definitions and then one sentence
+      of "and here is where it matters", which is what distinguishes you from
+      the rest of the queue.
+    focus_areas:
+      - { concept: quantitative-aptitude, label: "Quantitative aptitude & reasoning", weight: 5,
+          notes: "Adaptive. Accuracy early raises your ceiling; sectional cutoffs mean no section can be skipped." }
+      - { concept: programming-language-python, label: "Programming fundamentals", weight: 5,
+          notes: "Pseudocode section leans C/C++. Practise reading unfamiliar code, not just writing it." }
+      - { concept: data-structures-algorithms, label: "Data structures", weight: 4,
+          notes: "Arrays, linked lists, stacks, queues, trees — definitions and traversals." }
+      - { concept: relational-databases-sql, label: "DBMS", weight: 4,
+          notes: "Normalisation, keys, joins, ACID. Asked in nearly every technical round." }
+      - { concept: data-modeling, label: "OOP concepts", weight: 4 }
+      - { concept: exam-strategy, label: "Exam technique", weight: 4,
+          notes: "No negative marking, sectional cutoffs, sectional timing with no switching." }
+      - { concept: linux-and-shell, label: "Operating systems basics", weight: 3,
+          notes: "Processes vs threads, deadlock conditions, paging." }
+    questions:
+      - kind: exam
+        round: aptitude
+        topic: Test format
+        difficulty: easy
+        year: 2026
+        question: >-
+          The Infosys online test is adaptive with sectional cutoffs and no
+          negative marking. How should that change your strategy?
+        answer_md: |
+          Three consequences, and each is actionable.
+
+          **Adaptive** means accuracy early is worth more than accuracy late: a
+          strong opening run raises the difficulty — and therefore the marks
+          available — for the rest of the section. Slow down on the first few.
+
+          **No negative marking** means a blank is strictly worse than a guess.
+          Eliminate what you can and commit; there is no downside.
+
+          **Sectional cutoffs with sectional timing** mean you cannot rescue a
+          weak section with a strong one, and you cannot carry saved minutes
+          across. Budget within each section, and if verbal is your weak spot,
+          preparing it has more expected value than pushing quant from good to
+          excellent.
+        source_name: PrepInsta — Infosys recruitment process
+        source_url: https://prepinsta.com/infosys/recruitment-process/
+
+      - kind: exam
+        round: aptitude
+        topic: Pseudocode
+        difficulty: medium
+        question: >-
+          What does this print, and why?
+          `int i = 5; printf("%d %d", i++, ++i);`
+        answer_md: |
+          The honest answer, and the one that scores: **it is undefined
+          behaviour.** Modifying `i` twice between sequence points means the C
+          standard does not define the result, and different compilers really
+          do produce different output.
+
+          Infosys-style papers do ask questions in this family, and the useful
+          preparation is recognising the *shape* — multiple modifications of
+          the same variable in one expression, or a variable modified and read
+          in the same expression — rather than memorising one compiler's
+          answer.
+
+          If the paper forces a choice, the common GCC result is `6 7`
+          (arguments evaluated right to left), but say why it is not
+          guaranteed if you get the chance.
+        source_name: PrepInsta — Infosys previous year papers
+        source_url: https://prepinsta.com/infosys/
+
+      - kind: interview
+        round: technical
+        topic: Programming fundamentals
+        difficulty: easy
+        question: >-
+          What is the difference between C and C++?
+        answer_md: |
+          Asked almost verbatim in Infosys technical rounds, so have a crisp
+          answer ready.
+
+          C is procedural: functions and structs, no built-in support for
+          classes, inheritance or polymorphism, manual memory management with
+          `malloc`/`free`, and no namespaces, references or exceptions.
+
+          C++ is a superset in spirit — it adds classes, inheritance,
+          polymorphism, templates, operator overloading, references,
+          exceptions, namespaces, `new`/`delete` and the STL. It is *not* a
+          strict superset in the standards sense: some valid C is invalid C++,
+          which is a nice detail to add if the interviewer seems interested.
+
+          Then one sentence on why it matters: C++ lets you express ownership
+          and lifetimes in the type system (RAII), which is what removes a
+          whole class of leak that C leaves to discipline.
+        source_name: PrepInsta — Infosys recruitment process
+        source_url: https://prepinsta.com/infosys/recruitment-process/
+
+      - kind: interview
+        round: technical
+        topic: Projects
+        difficulty: medium
+        question: >-
+          Explain your final-year project. What was your contribution, and what
+          would you change?
+        answer_md: |
+          The most-asked question in Indian service-company technical rounds,
+          and the one candidates prepare least.
+
+          Structure it: the problem in one sentence, the architecture in a
+          drawing you can do from memory, the part **you** wrote, one
+          technology choice you can justify against the alternative, and one
+          thing you would change.
+
+          Two rules. Do not claim work a teammate did — a single follow-up
+          about how it works exposes it and costs you the interviewer's trust
+          for everything else you said. And do not describe a tutorial project
+          as though it were original; being clear that you followed a guide and
+          then extended it is a better answer than the alternative.
+        source_name: Unstop — Infosys recruitment process
+        source_url: https://unstop.com/blog/infosys-recruitment-process
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Where do you see yourself in five years, and are you comfortable
+          relocating?
+        answer_md: |
+          The HR round tests communication and, bluntly, whether you will
+          actually accept and stay. Infosys allocates freshers across cities
+          and training locations, so relocation is a live constraint rather
+          than small talk.
+
+          For the five-year question, connect the answer to something the
+          company can offer — a technical depth, a domain, a certification
+          track — rather than "in a management position", which reads as a plan
+          to leave engineering. For relocation, answer directly and honestly;
+          a hedge is heard as a no.
+        source_name: PrepInsta — Infosys recruitment process
+        source_url: https://prepinsta.com/infosys/recruitment-process/

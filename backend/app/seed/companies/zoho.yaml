@@ -1,0 +1,185 @@
+company:
+  slug: zoho
+  name: Zoho Corporation
+  industry: Product (India)
+  hq: Chennai, India
+  website: https://www.zoho.com/careers/
+  icon: Boxes
+  fetched_on: 2026-07-31
+  sort_order: 12
+  description: >-
+    A bootstrapped product company with a famously long, purely
+    skill-based hiring process — no degree filter, and a coding round measured
+    in hours rather than minutes.
+  hiring_process_md: |
+    Zoho is the counter-example to every "CGPA cutoff" in Indian hiring: the
+    process is long, difficulty rises with each round, and what carries you
+    through is being able to actually write programs.
+
+    **The shape of it (up to five rounds)**
+
+    1. **Aptitude** — around 20 questions in 60 minutes: quantitative, logical
+       reasoning and verbal.
+    2. **Programming round 1 (basic)** — around 5 problems in up to 3 hours,
+       historically expected in C. Moderate to high difficulty.
+    3. **Programming round 2 (advanced)** — a longer, more open-ended build,
+       sometimes a small application rather than isolated problems.
+    4. **Technical interview** — computer science fundamentals: OOP, DBMS,
+       operating systems, networks, plus your code from the earlier rounds.
+    5. **HR round** — background, motivation, and whether you want to be there.
+
+    **What makes it different.** Three hours for five problems means these are
+    not one-liners: expect string manipulation, matrix work, date arithmetic
+    and simulation problems where the specification itself is the difficulty.
+    Reading the requirement precisely matters as much as the algorithm, and
+    partial credit is real — a working solution to four of five beats elegant
+    fragments of all five.
+
+  resources:
+    - kind: careers
+      title: "Zoho Careers"
+      url: https://www.zoho.com/careers/
+    - kind: prep
+      title: "Zoho recruitment process — PrepInsta"
+      url: https://prepinsta.com/zoho/recruitment-process/
+    - kind: prep
+      title: "Zoho recruitment process — Unstop"
+      url: https://unstop.com/blog/zoho-recruitment-process
+    - kind: paper
+      title: "Zoho placement papers and previous questions — PrepInsta"
+      url: https://prepinsta.com/zoho/
+
+roles:
+  - slug: member-technical-staff
+    title: Member of Technical Staff
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://prepinsta.com/zoho/recruitment-process/
+    description: >-
+      Zoho's entry engineering role. Selected almost entirely on demonstrated
+      programming ability across two long coding rounds.
+    focus_md: |
+      **Practise writing complete programs, not solving snippets.** The single
+      biggest difference between Zoho and a typical service-company test is
+      duration: three hours for five problems means each one has real
+      specification detail, and the failure mode is misreading the requirement
+      rather than not knowing the algorithm.
+
+      Concretely, the recurring families are: string manipulation (parsing,
+      formatting, transformation with fiddly rules), matrix traversal (spiral,
+      rotation, diagonal), date and time arithmetic, and simulation problems
+      where you implement stated rules exactly.
+
+      Two habits pay for themselves. **Write the input parsing first and test
+      it** — a solution that computes correctly and reads input wrongly scores
+      zero. And **finish problems rather than starting all of them**: four
+      complete beats five partial, every time.
+
+      For the technical round, Zoho asks real computer-science fundamentals
+      rather than definitions-by-rote, and it will ask about the code you wrote
+      earlier in the process — so remember your own approach.
+    focus_areas:
+      - { concept: programming-language-python, label: "Writing complete programs", weight: 5,
+          notes: "Historically C is expected in round one. Input parsing, edge cases, working end to end." }
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+          notes: "Strings, matrices, recursion and simulation more than graphs and DP." }
+      - { concept: quantitative-aptitude, label: "Aptitude & logical reasoning", weight: 4,
+          notes: "20 questions in 60 minutes: probability, time and work, profit and loss, puzzles, series." }
+      - { concept: data-modeling, label: "OOP and design", weight: 4,
+          notes: "The advanced round is often 'build a small application', which is a design question wearing a coding costume." }
+      - { concept: relational-databases-sql, label: "DBMS", weight: 3 }
+      - { concept: linux-and-shell, label: "Operating systems", weight: 3 }
+      - { concept: internet-and-http, label: "Computer networks", weight: 3 }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Strings
+        difficulty: medium
+        question: >-
+          Given a string, replace each digit with its word form, keep letters
+          as they are, and collapse runs of spaces into one. Example:
+          `"a1  b22"` becomes `"aone btwotwo"`.
+        answer_md: |
+          Representative of the Zoho basic round: not algorithmically hard, but
+          with enough specification detail to punish skim-reading.
+
+          Do it in one pass with an explicit "did I just emit a space" flag,
+          rather than a regex you have to reason about twice. Keep a digit →
+          word lookup as a plain array indexed by `c - '0'`.
+
+          The traps in the wording, all of which appear in the hidden tests: a
+          run of spaces collapses to one *space*, not to nothing; a leading or
+          trailing space is still a run; and each digit expands individually,
+          so `22` is `twotwo` rather than `twentytwo`. Re-read the example
+          before you write anything — it disambiguates two of those three.
+        source_name: PrepInsta — Zoho placement papers
+        source_url: https://prepinsta.com/zoho/
+
+      - kind: online-assessment
+        round: coding
+        topic: Matrices
+        difficulty: medium
+        question: >-
+          Print an n×n matrix in spiral order. Then rotate it 90° clockwise
+          in place.
+        answer_md: |
+          Spiral order is four boundary variables — top, bottom, left, right —
+          walking right, down, left, up and shrinking the boundary after each
+          leg. The bug everybody hits is the middle row or column of an odd
+          matrix printed twice, so guard the third and fourth legs with
+          `if (top <= bottom)` and `if (left <= right)`.
+
+          In-place rotation is the neat one: **transpose, then reverse each
+          row**. Two simple loops, no temporary matrix, and easy to explain out
+          loud. Anticlockwise is transpose then reverse each *column*.
+        source_name: GeeksforGeeks — Zoho Corporation recruitment process
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zoho-corporation-recruitment-process/
+
+      - kind: online-assessment
+        round: coding
+        topic: Simulation
+        difficulty: hard
+        question: >-
+          The advanced round often asks you to build a small application — a
+          text-based game, a scheduling tool, a mini banking system. How do you
+          approach three hours of that?
+        answer_md: |
+          Treat it as a design exercise, because that is what is being marked.
+
+          Spend the first fifteen minutes on data structures and the module
+          boundaries — what state exists, who owns it, what the operations are.
+          Then build **one complete vertical slice** that runs: read input,
+          apply one operation, print output. Get that working before adding
+          features.
+
+          Two things that score: input validation that fails gracefully rather
+          than crashing, and code you can still explain at the end, because the
+          technical interviewer will ask about it. Two things that do not: a
+          half-finished feature list, and cleverness that you cannot justify.
+        source_name: Unstop — Zoho recruitment process
+        source_url: https://unstop.com/blog/zoho-recruitment-process
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: medium
+        question: >-
+          What is a deadlock, and how would you prevent one?
+        answer_md: |
+          A deadlock needs all four Coffman conditions to hold at once: mutual
+          exclusion, hold-and-wait, no preemption, and circular wait. Naming
+          all four is the answer they want, because the prevention strategies
+          fall out of it directly — break any one condition and deadlock
+          becomes impossible.
+
+          The practical one is **breaking circular wait by imposing a global
+          lock ordering**: every thread acquires locks in the same defined
+          order, so no cycle can form. That is what real codebases do, and
+          saying so distinguishes an understood answer from a memorised list.
+
+          Worth adding: detection-and-recovery is a legitimate alternative to
+          prevention — databases do exactly this, detecting the cycle in their
+          wait-for graph and aborting the cheapest transaction.
+        source_name: PrepInsta — Zoho syllabus
+        source_url: https://prepinsta.com/zoho/syllabus/

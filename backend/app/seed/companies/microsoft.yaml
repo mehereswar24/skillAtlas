@@ -1,0 +1,277 @@
+company:
+  slug: microsoft
+  name: Microsoft
+  industry: Big Tech
+  hq: Redmond, Washington
+  website: https://careers.microsoft.com/
+  icon: Grid2x2
+  fetched_on: 2026-07-31
+  sort_order: 3
+  description: >-
+    Azure, Windows, Office and GitHub. You interview with the team you would
+    join, which makes the loop more conversational and the team-fit signal much
+    stronger than at companies that hire centrally.
+  hiring_process_md: |
+    The structural difference from Google: **Microsoft hires to a team.** Most
+    of your interviewers are your future colleagues, and one of them is the
+    hiring manager who makes the call. That changes the calculus — genuine
+    interest in what that specific team builds is a real signal, not flattery.
+
+    **The shape of it**
+
+    1. **Recruiter screen.**
+    2. **Technical phone screen (45 min)** — one coding problem.
+    3. **The loop (4–5 rounds, ~45–60 min each)** — coding, design, and
+       conversations with potential teammates and cross-functional colleagues.
+       For university hiring this is often compressed into a single day.
+    4. **As-appropriate round** — historically the "AA": a senior leader who
+       makes the final call and can go anywhere, including your motivation and
+       your resume in detail.
+
+    **What is distinctive.** Rounds are 45 minutes and Microsoft's own guidance
+    stresses managing that time. Interviewers are looking at how you *break
+    down* a problem, not only whether you land the optimum, and they explicitly
+    want you to think out loud. You code in the language you are strongest in —
+    there is no house language.
+
+  resources:
+    - kind: careers
+      title: "How we hire — Microsoft Careers"
+      url: https://careers.microsoft.com/v2/global/en/hiring-tips.html
+    - kind: prep
+      title: "Technical interviewing — Microsoft Careers"
+      url: https://careers.microsoft.com/v2/global/en/hiring-tips/technical-interviewing
+    - kind: prep
+      title: "Microsoft interview experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/blogs/how-to-prepare-for-microsoft-software-development-engineering-interview/
+    - kind: blog
+      title: "Microsoft Engineering blog"
+      url: https://devblogs.microsoft.com/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://careers.microsoft.com/v2/global/en/hiring-tips/technical-interviewing
+    description: >-
+      Product engineering across Azure, Office, Windows and GitHub. Coding,
+      design, and a real emphasis on testing and edge cases.
+    focus_md: |
+      Microsoft's loop rewards something the algorithm-grind circuit
+      under-trains: **how you test what you just wrote.**
+
+      Interviewers routinely ask "how would you test this?" and a candidate who
+      answers with three specific cases — empty, boundary, adversarial — reads
+      differently from one who says "I'd write unit tests". Microsoft's own
+      guidance asks for code that is clean, concise and bug-free, and the
+      fastest way to demonstrate bug-free is to walk your own code through a
+      hostile input before they do.
+
+      The other distinctive habit: **narrate the decomposition.** They say
+      explicitly that they want to see how you break information down and how
+      you put yourself in the customer's shoes. Saying "there are two sub-
+      problems here, parsing and matching; let me do parsing first" is worth
+      more than silently arriving at the answer.
+    focus_areas:
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+          notes: "Trees, strings and dynamic programming recur. 45-minute rounds, so pace yourself." }
+      - { concept: backend-testing, label: "Testing and edge cases", weight: 4,
+          notes: "'How would you test this?' is asked more here than anywhere else in big tech." }
+      - { concept: system-design-basics, label: "System design", weight: 4,
+          notes: "Tied for the second most important round, and sometimes run by the hiring manager." }
+      - { concept: programming-language-python, label: "One language, fluently", weight: 4,
+          notes: "Your choice — there is no house language." }
+      - { concept: data-modeling, label: "Object-oriented design", weight: 3 }
+      - { concept: cloud-fundamentals, label: "Cloud fundamentals", weight: 3,
+          notes: "For Azure teams especially: regions, availability zones, managed identity." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Strings
+        difficulty: medium
+        question: >-
+          Write a function that returns true if a string is a valid number.
+          Then tell me how you would test it.
+        answer_md: |
+          Deliberately underspecified — the first move is to pin down the
+          grammar. Are leading and trailing spaces allowed? Signs? Decimals
+          without a leading digit (`.5`)? Exponents (`1e10`, `1E-3`)? Hex?
+
+          Once the grammar is agreed the implementation is a small state
+          machine, or a careful single pass tracking whether you have seen a
+          digit, a dot and an exponent.
+
+          The second half is really the question. Name the classes of test:
+          empty string; a lone `.` or `-`; `1e`; `1e+`; `.5` and `5.`; leading
+          and trailing whitespace; `+-1`; something enormous. Microsoft is
+          checking whether you generate edge cases yourself or wait for them to
+          be pointed out.
+        source_name: Microsoft Careers — technical interviewing
+        source_url: https://careers.microsoft.com/v2/global/en/hiring-tips/technical-interviewing
+
+      - kind: interview
+        round: coding
+        topic: Linked lists
+        difficulty: medium
+        question: >-
+          Detect whether a linked list has a cycle, and return the node where
+          the cycle begins.
+        answer_md: |
+          Detection is Floyd's tortoise and hare: advance one pointer by one
+          and another by two; they meet inside the cycle if one exists. O(n)
+          time, O(1) space.
+
+          Finding the *entry point* is the part worth being able to justify
+          rather than recite: after they meet, reset one pointer to the head
+          and advance both one step at a time — they meet at the cycle's start.
+          The reason is that the distance from the head to the entry equals the
+          distance from the meeting point to the entry, modulo the cycle
+          length.
+
+          A hash set of visited nodes also works and is O(n) space. Offer both
+          and say which you would ship, and why.
+        source_name: GeeksforGeeks — preparing for the Microsoft SDE interview
+        source_url: https://www.geeksforgeeks.org/blogs/how-to-prepare-for-microsoft-software-development-engineering-interview/
+
+      - kind: interview
+        round: system-design
+        topic: Design
+        difficulty: hard
+        question: >-
+          Design the backend for a collaborative document editor. Start with
+          two users typing in the same paragraph.
+        answer_md: |
+          The whole problem is concurrent edits to shared state, so get there
+          fast rather than spending the round on load balancers.
+
+          Naive last-write-wins loses characters. The two real families of
+          answer are **operational transformation** (transform each incoming
+          operation against the ones applied since it was generated) and
+          **CRDTs** (give every character a unique, ordered identifier so
+          concurrent inserts converge without a central arbiter). Name the
+          trade: OT needs a central server to order operations and is simpler
+          to reason about per-document; CRDTs work peer-to-peer but carry more
+          metadata per character.
+
+          Then the surrounding system: WebSocket per document, a per-document
+          server affinity so ordering has one home, a periodic snapshot plus an
+          operation log for recovery, and presence as a separate, lossy channel
+          — cursor positions do not need durability.
+        source_name: interviewing.io — Microsoft interview guide
+        source_url: https://interviewing.io/guides/hiring-process/microsoft
+
+      - kind: interview
+        round: managerial
+        topic: Team fit
+        difficulty: medium
+        question: >-
+          Why this team, specifically?
+        answer_md: |
+          At a company that hires centrally this is small talk. At Microsoft it
+          is a real question, because the person asking will be sitting next to
+          you.
+
+          A good answer connects something you have actually done or debugged
+          to something the team owns. Read their public work — Azure has
+          extensive docs, GitHub and VS Code develop in the open, the
+          engineering blogs are detailed. "I have used X and hit this specific
+          limitation, and I want to work on that" beats any amount of
+          enthusiasm about the company.
+        source_name: Microsoft Careers — interview tips
+        source_url: https://careers.microsoft.com/v2/global/en/hiring-tips/interview-tips.html
+
+  - slug: data-analyst
+    title: Data & Applied Scientist
+    level: entry to mid
+    maps_to_role: data-scientist
+    sort_order: 2
+    source_url: https://careers.microsoft.com/v2/global/en/hiring-tips.html
+    description: >-
+      Product analytics and applied modelling. Weighted towards SQL,
+      experimentation and statistical honesty rather than deep-learning
+      research.
+    focus_md: |
+      The failure mode here is preparing as though it were an ML research
+      interview. Most rounds are **SQL, experiment design and communicating a
+      result** — the modelling questions that do come up are about evaluation
+      and validity rather than architecture.
+
+      Be ready to write real SQL on a whiteboard, including window functions,
+      and to explain what a p-value does and does not tell you. Then be ready
+      for the question behind every product-analytics round: *given this
+      result, what should the team do?* A candidate who reports a number
+      without a recommendation has answered half.
+    focus_areas:
+      - { concept: relational-databases-sql, label: "SQL, including window functions", weight: 5,
+          notes: "Written live. Joins, aggregation, ranking and cohorting." }
+      - { concept: statistics-probability, label: "Statistics and inference", weight: 5,
+          notes: "What a p-value is, what it is not, and what a confidence interval actually covers." }
+      - { concept: experiment-design, label: "A/B testing and experiment design", weight: 5,
+          notes: "Power, sample size, novelty effects, peeking, and when not to run an experiment." }
+      - { concept: numpy-pandas, label: "Python for analysis", weight: 4 }
+      - { concept: data-visualization, label: "Communicating a result", weight: 4,
+          notes: "The round usually ends with 'so what should we do?'" }
+      - { concept: classical-ml, label: "Classical ML", weight: 3 }
+      - { concept: model-evaluation, label: "Model evaluation", weight: 3 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: SQL
+        difficulty: medium
+        question: >-
+          Write a query returning, for each user, the date of their second
+          purchase — excluding users with fewer than two.
+        answer_md: |
+          The window-function answer is short and is what they are looking for:
+
+          ```sql
+          SELECT user_id, purchased_on
+          FROM (
+            SELECT user_id, purchased_on,
+                   ROW_NUMBER() OVER (
+                     PARTITION BY user_id ORDER BY purchased_on
+                   ) AS n
+            FROM purchases
+          ) ranked
+          WHERE n = 2;
+          ```
+
+          Users with one purchase never produce a row with `n = 2`, so the
+          exclusion is free — say that out loud, because it is the part
+          candidates usually add an unnecessary `HAVING` for.
+
+          Expect the follow-up: what if two purchases share a timestamp?
+          `ROW_NUMBER` breaks the tie arbitrarily; `RANK` would return both and
+          change the row count. Which you want depends on the question being
+          asked, and noticing that is the signal.
+        source_name: Microsoft Careers — how we hire
+        source_url: https://careers.microsoft.com/v2/global/en/hiring-tips.html
+
+      - kind: interview
+        round: technical
+        topic: Experimentation
+        difficulty: hard
+        question: >-
+          An A/B test shows a 2% lift with p = 0.04 after three days. Do you
+          ship it?
+        answer_md: |
+          The expected answer is not yes.
+
+          **Was three days the plan?** If you are checking daily and stopping
+          when it crosses 0.05, the real false-positive rate is far above 5% —
+          that is peeking, and it is the single most common way product teams
+          fool themselves. Fix it with a pre-registered sample size or a
+          sequential test designed for continuous monitoring.
+
+          **Is three days long enough for this metric?** Weekly cycles mean a
+          three-day window can be all weekdays. Novelty effects inflate early
+          engagement lifts that decay.
+
+          **Is 2% worth it?** Practical significance is a separate question
+          from statistical significance, and it is the one the business
+          actually cares about. What does 2% mean in revenue, and what does
+          the change cost to maintain?
+        source_name: Microsoft Careers — how we hire
+        source_url: https://careers.microsoft.com/v2/global/en/hiring-tips.html

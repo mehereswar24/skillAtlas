@@ -1,0 +1,219 @@
+company:
+  slug: meta
+  name: Meta
+  industry: Big Tech
+  hq: Menlo Park, California
+  website: https://www.metacareers.com/
+  icon: Infinity
+  fetched_on: 2026-07-31
+  sort_order: 4
+  description: >-
+    Facebook, Instagram, WhatsApp and Reality Labs. The most time-pressured
+    coding loop in big tech — two problems in 45 minutes is the norm, so speed
+    is part of the bar.
+  hiring_process_md: |
+    Meta's loop is the one where **pace is explicitly part of the signal**.
+    Coding rounds typically ask two medium problems in 45 minutes, which leaves
+    roughly 20 minutes each including clarification and testing. Candidates who
+    solve everything but slowly do get rejected here in a way they would not at
+    Microsoft.
+
+    **The shape of it**
+
+    1. **Recruiter pre-screen (~20 min)** — background and behavioural fit.
+    2. **Technical phone screen (~45 min)** — one or two DSA problems in a
+       shared editor, usually CoderPad.
+    3. **The full loop (4–5 rounds, 45 min each)** — two coding rounds, one or
+       two system design rounds ("Ninja" rounds at senior levels), and a
+       behavioural round Meta calls "Jedi".
+    4. **Hiring committee and team matching.**
+
+    **The 2026 change worth knowing.** Meta began piloting an AI-assisted
+    coding interview in late 2025: a 60-minute round in a CoderPad environment
+    with an AI assistant built in, replacing one of the two coding rounds. It
+    is being rolled out more widely through 2026. Practise *using* an assistant
+    well — asking it precise questions, checking its output, keeping ownership
+    of the design — rather than pretending it is not there.
+
+    **The behavioural round is graded, not a chat.** 45 minutes on what you are
+    passionate about in tech and what impact you want to have. Meta is
+    assessing whether you would thrive in a fast-moving org, and vague answers
+    about "great culture" score badly.
+
+  resources:
+    - kind: careers
+      title: "Meta hiring process"
+      url: https://www.metacareers.com/hiring-process/
+    - kind: prep
+      title: "Preparing for your full loop interview at Meta"
+      url: https://www.metacareers.com/swe-prep-onsite/
+    - kind: prep
+      title: "Preparing for your software engineering interview at Meta"
+      url: https://www.metacareers.com/blog/preparing-for-your-software-engineering-interview-at-meta/
+    - kind: blog
+      title: "Meta Engineering blog"
+      url: https://engineering.fb.com/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer (E3/E4)
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.metacareers.com/swe-prep-onsite/
+    description: >-
+      Product or infrastructure engineering. Two coding rounds, design, and a
+      behavioural round that is genuinely scored.
+    focus_md: |
+      **Optimise for speed with correctness, in that combination.** The
+      constraint is two mediums in 45 minutes. That means:
+
+      - Clarify in one or two questions, not five. Meta interviewers want
+        enough clarification to show you thought, not a requirements workshop.
+      - Go straight to the intended solution if you see it. Walking through the
+        brute force is good practice at Google; here it can cost you the second
+        problem.
+      - Write code that runs. There is no compiler in CoderPad by default, so
+        dry-run it on one small input at the end — the ten seconds is cheaper
+        than the interviewer finding an off-by-one.
+
+      Meta publishes its own prep guidance, and one line from it is worth
+      internalising: they want to see you arrive at an *optimal* solution, then
+      discuss complexity and trade-offs. Not "a working solution".
+    focus_areas:
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms, at speed", weight: 5,
+          notes: "Two mediums in 45 minutes. Graphs, trees, intervals, binary search and heaps recur." }
+      - { concept: system-design-basics, label: "System design", weight: 4,
+          notes: "Product-shaped: news feed, messaging, notifications. Start from the read/write ratio." }
+      - { label: "The behavioural (Jedi) round", weight: 4,
+          notes: "45 graded minutes on impact, conflict and what drives you. Prepare it like a technical round." }
+      - { concept: programming-language-python, label: "One language, fluently", weight: 4 }
+      - { concept: caching-strategies, label: "Caching and fan-out", weight: 3,
+          notes: "Meta's classic design problems are fan-out problems in disguise." }
+      - { concept: relational-databases-sql, label: "Data stores and sharding", weight: 3 }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Intervals
+        difficulty: medium
+        question: >-
+          Given a list of meeting intervals, merge the overlapping ones. You
+          have about 20 minutes.
+        answer_md: |
+          Sort by start time, then sweep: keep the last interval in the output
+          and either extend its end (if the current start is ≤ that end) or
+          push a new one. O(n log n), dominated by the sort.
+
+          Two details separate a fast clean pass from a scramble: decide up
+          front whether touching intervals (`[1,2]` and `[2,3]`) count as
+          overlapping — ask, in one sentence — and mutate the last output
+          element rather than popping and re-pushing.
+
+          The usual follow-up is the room-count variant: how many rooms are
+          needed? That is a different algorithm — a min-heap of end times, or a
+          sorted sweep of +1/-1 events — and interviewers ask it precisely
+          because candidates try to bend the merge answer into it.
+        source_name: Meta Careers — preparing for your full loop interview
+        source_url: https://www.metacareers.com/swe-prep-onsite/
+
+      - kind: interview
+        round: coding
+        topic: Trees & graphs
+        difficulty: medium
+        question: >-
+          Given a binary tree, return the vertical order traversal of its
+          nodes.
+        answer_md: |
+          Assign each node a column: root is 0, left child is `col - 1`, right
+          is `col + 1`. Do a BFS carrying `(node, col)` and bucket values into a
+          dict keyed by column, then emit the buckets in sorted key order.
+
+          BFS rather than DFS matters here: it gives you top-to-bottom ordering
+          within a column for free. A DFS needs the row as well and a sort at
+          the end.
+
+          Say the complexity: O(n) to traverse plus O(k log k) to sort the
+          columns, where k is the number of distinct columns.
+        source_name: GeeksforGeeks — Meta/Facebook SDE sheet
+        source_url: https://www.geeksforgeeks.org/dsa/facebookmeta-sde-sheet-interview-questions-and-answers/
+
+      - kind: interview
+        round: system-design
+        topic: Fan-out
+        difficulty: hard
+        question: >-
+          Design a news feed. What happens when someone with 50 million
+          followers posts?
+        answer_md: |
+          Start by naming the two strategies, because the whole answer is the
+          choice between them.
+
+          **Fan-out on write** pushes the post into every follower's
+          precomputed feed. Reads are then a single cheap lookup — which is
+          what you want, since feed reads massively outnumber posts. But a
+          celebrity post means 50 million writes.
+
+          **Fan-out on read** stores the post once and assembles each feed at
+          request time by merging the timelines the user follows. Cheap writes,
+          expensive reads.
+
+          Production answer is hybrid, and saying so is the point: fan-out on
+          write for ordinary accounts, fan-out on read for a small set of
+          high-follower accounts, merged at read time. That is roughly what
+          large social platforms actually do, and the threshold between the two
+          becomes a tunable.
+
+          Then ranking, which is where Meta will push: the feed is not
+          chronological, so the merge feeds a scoring model, and you need to
+          talk about how you keep that fast.
+        source_name: Meta Careers — preparing for your software engineering interview
+        source_url: https://www.metacareers.com/blog/preparing-for-your-software-engineering-interview-at-meta/
+
+      - kind: interview
+        round: managerial
+        topic: Behavioural (Jedi)
+        difficulty: medium
+        question: >-
+          Tell me about the project you are proudest of, and what your specific
+          contribution was.
+        answer_md: |
+          Meta's behavioural round assesses whether you would thrive somewhere
+          that moves fast, so the axis being measured is **impact and
+          ownership**, not harmony.
+
+          Answer with: what the problem was and who it hurt, what you
+          personally decided and built, what you shipped, and the number that
+          moved. Then the part most candidates skip — what you would do
+          differently. Self-criticism reads as senior; an unblemished story
+          reads as rehearsed.
+
+          Avoid the team-first framing that works well at other companies. "We
+          decided" repeated for five minutes leaves the interviewer with
+          nothing to write about you.
+        source_name: interviewing.io — how Meta evaluates behavioural interviews
+        source_url: https://interviewing.io/blog/how-software-engineering-behavioral-interviews-are-evaluated-meta
+
+      - kind: interview
+        round: coding
+        topic: AI-assisted round
+        difficulty: hard
+        year: 2026
+        question: >-
+          In the AI-assisted coding round, how should you use the assistant
+          without failing the round?
+        answer_md: |
+          The round exists to see how you work *with* a tool you will have on
+          the job, so neither ignoring it nor deferring to it scores well.
+
+          What works: state your approach before prompting, so the design is
+          visibly yours. Use the assistant for the mechanical parts — boilerplate,
+          a signature you half-remember, a test harness. Then read what it gave
+          you out loud and say what is wrong with it, because catching a subtly
+          wrong generation is the strongest possible signal in this format.
+
+          What fails: pasting the problem in and narrating the output. You
+          cannot answer the follow-up questions about complexity and trade-offs
+          from code you did not reason about, and the follow-ups are where the
+          round is scored.
+        source_name: interviewing.io — how to use AI in Meta's AI-assisted coding interview
+        source_url: https://interviewing.io/blog/how-to-use-ai-in-meta-s-ai-assisted-coding-interview-with-real-prompts-and-examples

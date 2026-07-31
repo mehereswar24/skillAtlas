@@ -1,0 +1,187 @@
+company:
+  slug: goldman-sachs
+  name: Goldman Sachs
+  industry: Finance & Trading
+  hq: New York, New York
+  website: https://www.goldmansachs.com/careers/
+  icon: LineChart
+  fetched_on: 2026-07-31
+  sort_order: 6
+  description: >-
+    Investment banking with one of the largest engineering divisions in
+    finance. Engineering interviews add probability, mental arithmetic and
+    "why do you want finance" to the usual coding loop.
+  hiring_process_md: |
+    Goldman hires engineers in volume — a large share of the firm is technology
+    — and the loop looks like a software loop with two additions that catch
+    candidates out: **quantitative reasoning under pressure**, and a genuine
+    check on why you want to work in finance rather than at a product company.
+
+    **The shape of it**
+
+    1. **Online assessment** — coding problems, plus for many programmes a
+       **HireVue** recorded video interview: pre-set questions, a short
+       preparation timer, one or two takes.
+    2. **Superday** — several back-to-back rounds in one day: coding, CS
+       fundamentals, probability and brain-teasers, and behavioural/fit.
+
+    **Two things to prepare that other loops do not need.** Probability
+    questions asked conversationally — expected value, conditional
+    probability, and the classic urn and dice setups — where the interviewer
+    is watching you set up the problem rather than recall a formula. And a
+    real answer to "why finance", because a candidate who is clearly using
+    Goldman as a fallback is visible immediately.
+
+  resources:
+    - kind: careers
+      title: "Goldman Sachs Careers — engineering"
+      url: https://www.goldmansachs.com/careers/divisions/engineering/
+    - kind: careers
+      title: "Goldman Sachs — our interview process"
+      url: https://www.goldmansachs.com/careers/how-we-hire/
+    - kind: blog
+      title: "Goldman Sachs Developer / open source"
+      url: https://developer.gs.com/
+    - kind: prep
+      title: "Goldman Sachs interview experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/tag/goldman-sachs/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer, Engineering Division
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.goldmansachs.com/careers/divisions/engineering/
+    description: >-
+      Platform, risk and trading systems. Standard coding rounds plus
+      probability, plus a real fit conversation.
+    focus_md: |
+      Prepare the software half exactly as you would for any product company —
+      data structures, algorithms, OOP, databases — and then add the two
+      things that are specific here.
+
+      **Probability and expected value, conversationally.** Not a written exam:
+      an interviewer describes a setup and watches you decompose it. Practise
+      saying the sample space out loud, then the events, then the arithmetic.
+      Getting the setup visibly right and fumbling the arithmetic scores far
+      better than the reverse.
+
+      **A concrete "why finance".** The strongest version connects a technical
+      interest to a property of the domain: latency that has a dollar value,
+      correctness requirements backed by regulation, data volumes with hard
+      deadlines. The weakest version is about compensation, and interviewers
+      hear it constantly.
+
+      Also expect questions about **precision and correctness** — finance is
+      one of the few domains where "close enough" has a legal meaning.
+    focus_areas:
+      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5 }
+      - { concept: statistics-probability, label: "Probability & expected value", weight: 5,
+          notes: "Asked conversationally. Set up the sample space out loud before computing." }
+      - { concept: data-modeling, label: "OOP and system modelling", weight: 4,
+          notes: "'Model a trade / an order book / a portfolio' is a recurring shape." }
+      - { concept: relational-databases-sql, label: "SQL and data modelling", weight: 4 }
+      - { concept: system-design-basics, label: "System design", weight: 4,
+          notes: "Latency and correctness constraints are stricter than in consumer products." }
+      - { concept: backend-testing, label: "Correctness and testing", weight: 3,
+          notes: "Floating point vs decimal for money is a live question, not a trivia one." }
+      - { label: "Why finance, specifically", weight: 3,
+          notes: "A graded fit question. Have a concrete, technical answer." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Probability
+        difficulty: medium
+        question: >-
+          You roll two fair six-sided dice. Given that the sum is 8, what is
+          the probability that at least one die shows a 5?
+        answer_md: |
+          Set the sample space up out loud, because that is what is being
+          watched.
+
+          Sum 8 happens in five ways: (2,6), (3,5), (4,4), (5,3), (6,2). Of
+          those, two contain a 5: (3,5) and (5,3). So the answer is **2/5**.
+
+          The trap is answering 2/36 or 1/3 by forgetting to condition, or by
+          treating (3,5) and (5,3) as one outcome. Enumerate ordered pairs and
+          the conditioning takes care of itself — and say that you are
+          enumerating ordered pairs, so the interviewer can follow.
+        source_name: GeeksforGeeks — Goldman Sachs interview experiences
+        source_url: https://www.geeksforgeeks.org/tag/goldman-sachs/
+
+      - kind: interview
+        round: technical
+        topic: Numerical correctness
+        difficulty: medium
+        question: >-
+          Why should you not store a monetary amount in a float?
+        answer_md: |
+          Binary floating point cannot represent most decimal fractions
+          exactly. 0.1 + 0.2 is not 0.3, and once you sum a million
+          transactions the error is not academic — it is a reconciliation break
+          somebody has to explain.
+
+          Two acceptable answers, and knowing when to use each is the signal.
+          **Integer minor units**: store paise or cents as an integer, which is
+          exact for addition and subtraction and forces you to be explicit
+          about rounding on division. **Arbitrary-precision decimal**
+          (`DECIMAL(19,4)`, Python's `decimal`, Java's `BigDecimal`): exact
+          decimal arithmetic with a defined rounding mode, at the cost of
+          speed.
+
+          Add the part that shows domain awareness: whichever you choose, the
+          rounding rule must be *specified* — half-up, half-even — because
+          different jurisdictions and different products mandate different
+          ones.
+        source_name: Goldman Sachs Careers — engineering
+        source_url: https://www.goldmansachs.com/careers/divisions/engineering/
+
+      - kind: interview
+        round: coding
+        topic: Design
+        difficulty: hard
+        question: >-
+          Design the data structures for an order book supporting limit orders,
+          with the best bid and ask available in O(1).
+        answer_md: |
+          The right shape: two price-ordered maps, bids descending and asks
+          ascending, each price level holding a FIFO queue of orders so
+          price-time priority is preserved. Plus a hash map from order id to
+          its position, so cancellation is O(1) rather than a scan.
+
+          Best bid and ask are then the first entry of each map. With a sorted
+          structure that is O(1) to read and O(log n) to update; if you need
+          strictly O(1) updates too, the production trick is an array indexed
+          by price tick with a pointer to the current best.
+
+          Say what a matching engine does on arrival: walk the opposite side
+          while the price crosses, fill and pop, and rest any remainder. The
+          follow-up is usually about partial fills and about what happens when
+          two orders arrive in the same microsecond — which is why the queue
+          per level is a queue and not a set.
+        source_name: GeeksforGeeks — Goldman Sachs interview experiences
+        source_url: https://www.geeksforgeeks.org/tag/goldman-sachs/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: medium
+        question: >-
+          Why Goldman Sachs, and why engineering in finance rather than at a
+          technology company?
+        answer_md: |
+          A graded question, and one where generic enthusiasm actively hurts.
+
+          What works is connecting a technical interest to a property of the
+          domain that is genuinely different: systems where latency has a
+          directly measurable cost, correctness requirements that are
+          externally audited, or risk calculations over large data sets with
+          hard end-of-day deadlines. Naming a specific team or a piece of
+          Goldman's open-source work is stronger still.
+
+          What does not work: compensation, prestige, or "I want to learn about
+          markets" with nothing behind it. Interviewers hear those all day and
+          they read as "no answer".
+        source_name: Goldman Sachs — how we hire
+        source_url: https://www.goldmansachs.com/careers/how-we-hire/
