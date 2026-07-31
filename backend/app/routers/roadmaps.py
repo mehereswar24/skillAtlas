@@ -5,7 +5,7 @@ plan from a hardcoded dict and threw it away. Roadmaps are now derived from the
 seeded graph and persisted, which is what makes progress meaningful.
 """
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
@@ -20,6 +20,7 @@ from app.models.progress import (
 )
 from app.routers.content import concept_summary, track_summary
 from app.schemas.roadmap import (
+    PACES,
     RoadmapAppend,
     RoadmapCreate,
     RoadmapItemOut,
@@ -91,12 +92,36 @@ def serialize_roadmap(db: DbSession, roadmap: UserRoadmap, user_id: int) -> Road
         id=roadmap.id,
         track=track_summary(roadmap.track, track_concept_count, track_hours),
         daily_hours=roadmap.daily_hours,
+        pace=pace_for_hours(roadmap.daily_hours),
         created_at=roadmap.created_at or datetime.now(timezone.utc),
         total_concepts=total,
         completed_concepts=done,
         percent_complete=round(done / total * 100) if total else 0,
+        target_date=finish_date(roadmap, week_list),
         weeks=week_list,
     )
+
+
+def pace_for_hours(daily_hours: int) -> str:
+    """The closest named pace to a raw hours figure."""
+    return min(PACES, key=lambda name: abs(PACES[name] - daily_hours))
+
+
+def finish_date(roadmap: UserRoadmap, weeks: list[RoadmapWeekOut]) -> date | None:
+    """When the *remaining* work runs out, at the roadmap's pace.
+
+    Counted from today over the weeks that still hold unfinished items, rather
+    than from the creation date over all of them — a learner who is ahead
+    should see the date move towards them, not sit where it was on day one.
+    """
+    outstanding = [
+        week
+        for week in weeks
+        if any(item.status != STATUS_COMPLETED for item in week.items)
+    ]
+    if not outstanding:
+        return None
+    return date.today() + timedelta(weeks=len(outstanding))
 
 
 @router.post("", response_model=RoadmapOut, status_code=status.HTTP_201_CREATED)
@@ -112,16 +137,24 @@ def create_roadmap(payload: RoadmapCreate, user: CurrentUser, db: DbSession):
     known_ids = concept_ids_by_slug(db, payload.known_concept_slugs)
     _record_prior_knowledge(db, user.id, known_ids)
 
-    roadmap = build_roadmap(db, user.id, track, payload.daily_hours, known_ids)
+    daily_hours = payload.hours_per_day
+    roadmap = build_roadmap(db, user.id, track, daily_hours, known_ids)
 
     profile = get_profile(db, user)
     profile.current_track_id = track.id
     profile.target_goal = track.title
-    profile.daily_hours = payload.daily_hours
+    profile.daily_hours = daily_hours
+    profile.pace = payload.pace or pace_for_hours(daily_hours)
 
     db.commit()
     db.refresh(roadmap)
-    return serialize_roadmap(db, roadmap, user.id)
+
+    serialized = serialize_roadmap(db, roadmap, user.id)
+    # Cached on the profile so the dashboard can show the finish date without
+    # rebuilding the whole roadmap.
+    profile.target_date = serialized.target_date
+    db.commit()
+    return serialized
 
 
 def _record_prior_knowledge(db: DbSession, user_id: int, concept_ids: set[int]) -> None:

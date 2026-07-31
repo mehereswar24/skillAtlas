@@ -405,7 +405,7 @@ def seed_projects(db: Session, concepts: dict[str, Concept]) -> dict[str, Projec
             db.add(project)
             db.flush()
 
-            _replace_project_children(project, raw, runtime)
+            _replace_project_children(db, project, raw, runtime)
             db.flush()
             projects[slug] = project
 
@@ -413,7 +413,7 @@ def seed_projects(db: Session, concepts: dict[str, Concept]) -> dict[str, Projec
 
 
 def _replace_project_children(
-    project: Project, raw: dict[str, Any], runtime: str
+    db: Session, project: Project, raw: dict[str, Any], runtime: str
 ) -> None:
     files = raw.get("files", [])
     if not files:
@@ -423,7 +423,10 @@ def _replace_project_children(
             f"Project '{project.slug}' has no entry file — mark one with `entry: true`"
         )
 
+    # Flush the delete before inserting the replacements, or the new rows hit
+    # the unique index while the old ones are still in the table.
     project.files.clear()
+    db.flush()
     for order, spec in enumerate(files):
         project.files.append(
             ProjectFile(
@@ -443,6 +446,7 @@ def _replace_project_children(
         )
 
     project.tests.clear()
+    db.flush()
     for order, spec in enumerate(tests):
         kind = spec.get("kind", TEST_KIND_FOR_RUNTIME[runtime])
         if kind not in TEST_KINDS:
@@ -501,6 +505,7 @@ def seed_companies(db: Session, concepts: dict[str, Concept]) -> dict[str, Compa
         db.flush()
 
         company.resources.clear()
+        db.flush()
         for order, res in enumerate(raw.get("resources", []) or []):
             company.resources.append(
                 CompanyResource(

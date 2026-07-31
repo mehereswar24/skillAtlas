@@ -18,6 +18,7 @@ from app.schemas.auth import (
     TokenPair,
     UserOut,
 )
+from app.schemas.roadmap import PACES
 from app.security import (
     TokenError,
     create_access_token,
@@ -48,7 +49,9 @@ def serialize_user(user: User, profile: UserProfile) -> UserOut:
             current_track_slug=(
                 profile.current_track.slug if profile.current_track else None
             ),
+            pace=profile.pace,
             daily_hours=profile.daily_hours,
+            target_date=profile.target_date,
             xp=profile.xp,
             level=level,
             xp_into_level=into_level,
@@ -137,7 +140,10 @@ def update_me(payload: ProfileUpdate, user: CurrentUser, db: DbSession):
     profile = get_profile(db, user)
     if payload.display_name is not None:
         user.display_name = payload.display_name.strip()
-    if payload.daily_hours is not None:
+    if payload.pace is not None:
+        profile.pace = payload.pace
+        profile.daily_hours = PACES[payload.pace]
+    elif payload.daily_hours is not None:
         profile.daily_hours = payload.daily_hours
     if payload.target_goal is not None:
         profile.target_goal = payload.target_goal

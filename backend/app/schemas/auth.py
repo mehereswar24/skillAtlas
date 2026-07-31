@@ -27,7 +27,9 @@ class ProfileOut(BaseModel):
     target_goal: str | None
     current_track_id: int | None
     current_track_slug: str | None = None
+    pace: str
     daily_hours: int
+    target_date: date | None
     xp: int
     level: int
     xp_into_level: int = 0
@@ -59,5 +61,8 @@ class AuthResponse(TokenPair):
 
 class ProfileUpdate(BaseModel):
     display_name: str | None = Field(default=None, max_length=120)
+    pace: str | None = Field(
+        default=None, pattern="^(casual|steady|focused|intense)$"
+    )
     daily_hours: int | None = Field(default=None, ge=1, le=16)
     target_goal: str | None = Field(default=None, max_length=255)

@@ -63,6 +63,15 @@ cd backend
 Without Ollama the tutor still answers — it retrieves the relevant concept
 notes by keyword and says plainly in the UI that it is not generating.
 
+## Design
+
+Light mode is parchment and ink; dark mode is deep survey-blue. One accent — a
+burnt amber taken from contour lines on a map — so anything amber is always an
+action. Fraunces for headings, Inter for UI, and a `.contour` backdrop that
+approximates map hachure in pure CSS. The theme is applied by a blocking inline
+script in `<head>` (`src/components/theme-toggle.tsx`) so there is no flash of
+the wrong theme before hydration.
+
 ## How it works
 
 **The graph.** `concepts` are nodes, `concept_prerequisites` are edges. A track
@@ -92,26 +101,28 @@ middleware) does an optimistic cookie check; the API authorises for real.
 
 ## Content
 
-Learning content is authored as YAML in `backend/app/seed/tracks/`. Two tracks
-are written to full depth today:
+Learning content is authored as YAML in `backend/app/seed/tracks/` — **every
+one of the 27 domains has a curated route; nothing says "coming soon"**.
 
-| Track | Concepts | Hours |
-|---|---|---|
-| Become a Backend Developer | 15 | ~435 |
-| Become an AI Engineer | 15 | ~695 |
+| | |
+|---|---|
+| Domains | 27 |
+| Tracks | 27 |
+| Concepts | 108 (~3,535 hours) |
+| Curated resource links | 357 |
+| Quiz questions | 324 |
+| Interview questions | 115 |
+| Job roles measured | 31 |
 
-That is 29 distinct concepts (one is shared by both tracks), 117 curated
-resource links, 87 quiz questions and 36 interview questions.
+Concepts are shared across tracks by slug reference rather than duplicated —
+`programming-language-python` and `containers-docker` each appear in several
+routes — which is what makes this one graph instead of parallel lists.
 
-All 27 domains are seeded, but a domain only advertises itself as available if
-it actually has a track — the rest show "Coming soon" on Explore rather than
-linking into an empty page. **Adding a track is content work, not code**: drop a
-new YAML file into `app/seed/tracks/`, re-run the seeder, and it appears
-everywhere. A track file may reference a concept defined in another file by
-slug alone, which is how tracks share nodes.
+**Adding a track is content work, not code**: drop a YAML file into
+`app/seed/tracks/`, re-run the seeder, and it appears everywhere.
 
 ```powershell
-.\venv\Scripts\python.exe -m app.seed.loader     # idempotent; safe to re-run
+.env\Scripts\python.exe -m app.seed.loader     # idempotent; safe to re-run
 ```
 
 The loader validates as it goes: unknown domains and prerequisites, duplicate
@@ -122,7 +133,7 @@ prerequisite cycles all fail the seed rather than corrupting the graph.
 
 ```powershell
 cd backend
-.\venv\Scripts\python.exe -m pytest tests        # 84 tests
+.\venv\Scripts\python.exe -m pytest tests        # 82 tests
 .\venv\Scripts\python.exe scripts\smoke.py       # end-to-end, needs both servers up
 
 cd ..\frontend
