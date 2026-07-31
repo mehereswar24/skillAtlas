@@ -130,9 +130,9 @@ npx tsc --noEmit
 npm run build
 ```
 
-`scripts/smoke.py` walks the product the way a person does — signup →
-assessment → roadmap → locked concept → study → complete → dashboard → tutor →
-community — through the frontend BFF with real cookies.
+`scripts/smoke.py` walks the product the way a person does — signup → roadmap
+→ locked concept → study → complete → dashboard → tutor → community — through
+the frontend BFF with real cookies.
 
 ## Using Postgres instead of SQLite
 
@@ -153,11 +153,11 @@ No application code changes; the models avoid SQLite-only SQL.
 backend/
   app/
     main.py config.py database.py security.py deps.py
-    models/      identity, knowledge graph, progress, community, assessment
+    models/      identity, knowledge graph, progress, community
     schemas/     Pydantic request/response DTOs
-    routers/     auth content roadmaps progress dashboard chat assessment community
-    services/    graph roadmap gamification readiness assessment rag llm/
-    seed/        tracks/*.yaml domains.yaml roles.yaml assessment.yaml + loader
+    routers/     auth content roadmaps progress dashboard chat community
+    services/    graph roadmap gamification readiness rag llm/
+    seed/        tracks/*.yaml domains.yaml roles.yaml + loader
   alembic/       migrations
   tests/         pytest suite
   scripts/       smoke.py

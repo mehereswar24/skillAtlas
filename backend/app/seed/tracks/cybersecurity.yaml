@@ -74,7 +74,7 @@ concepts:
           - text: "The system should never crash"
           - text: "Errors should be hidden from users"
           - text: "Backups must be encrypted"
-      - prompt: The "E" in STRIDE stands for:
+      - prompt: 'The "E" in STRIDE stands for what?'
         explanation: Elevation of privilege — gaining rights beyond what was granted.
         options:
           - text: "Elevation of privilege"

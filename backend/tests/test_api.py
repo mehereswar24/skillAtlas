@@ -1,4 +1,4 @@
-"""Content, roadmap, dashboard, assessment and community endpoints."""
+"""Content, roadmap, dashboard and community endpoints."""
 
 from tests.conftest import complete_concept
 
@@ -6,12 +6,17 @@ from tests.conftest import complete_concept
 # --- content --------------------------------------------------------------
 
 
-def test_domains_are_seeded_and_flagged_honestly(client):
+def test_every_domain_has_content(client):
+    """No domain may be listed without a route behind it."""
     domains = client.get("/api/v1/domains").json()
-    assert len(domains) > 20
+    tracks = client.get("/api/v1/tracks").json()
 
-    with_content = {d["slug"] for d in domains if d["has_content"]}
-    assert with_content == {"backend", "ai"}, "only seeded tracks may claim content"
+    assert len(domains) >= 27
+    without = [d["slug"] for d in domains if not d["has_content"]]
+    assert without == [], f"domains with no track: {without}"
+
+    tracked = {t["domain_slug"] for t in tracks}
+    assert tracked == {d["slug"] for d in domains}
 
 
 def test_quiz_answers_are_never_sent_to_the_client(client):
@@ -214,38 +219,6 @@ def test_next_up_only_suggests_unlocked_concepts(client, learner):
     assert suggested
     for slug in suggested:
         assert not client.get(f"/api/v1/concepts/{slug}", headers=headers).json()["is_locked"]
-
-
-# --- assessment -----------------------------------------------------------
-
-
-def test_assessment_scores_and_recommends_a_real_track(client):
-    questions = client.get("/api/v1/assessment/questions").json()
-    assert questions
-
-    # Every question's first option belongs to the same category.
-    picks = [q["options"][0]["id"] for q in questions]
-    result = client.post("/api/v1/assessment/submit", json={"option_ids": picks}).json()
-
-    assert result["top_category"] == "Systems & Backend"
-    assert result["recommended_track"]["slug"] == "backend-developer"
-    assert result["saved"] is False  # anonymous
-
-
-def test_assessment_does_not_leak_option_categories(client):
-    questions = client.get("/api/v1/assessment/questions").json()
-    assert "category" not in str(questions)
-
-
-def test_assessment_result_is_saved_for_a_signed_in_learner(client, auth):
-    headers, _ = auth()
-    questions = client.get("/api/v1/assessment/questions").json()
-    picks = [q["options"][0]["id"] for q in questions]
-
-    result = client.post(
-        "/api/v1/assessment/submit", json={"option_ids": picks}, headers=headers
-    ).json()
-    assert result["saved"] is True
 
 
 # --- community ------------------------------------------------------------

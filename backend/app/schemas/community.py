@@ -1,42 +1,8 @@
-"""Assessment and community DTOs."""
+"""Community DTOs."""
 
 from datetime import datetime
 
 from pydantic import BaseModel, Field
-
-from app.schemas.content import TrackSummary
-
-
-# --- assessment -----------------------------------------------------------
-
-
-class AssessmentOptionOut(BaseModel):
-    """Category is deliberately omitted so the quiz cannot be reverse-engineered."""
-
-    id: int
-    text: str
-
-
-class AssessmentQuestionOut(BaseModel):
-    id: int
-    prompt: str
-    options: list[AssessmentOptionOut]
-
-
-class AssessmentSubmit(BaseModel):
-    option_ids: list[int] = Field(min_length=1)
-
-
-class AssessmentResultOut(BaseModel):
-    top_category: str
-    blurb: str
-    scores: dict[str, float]
-    recommended_track: TrackSummary | None
-    note: str | None
-    saved: bool
-
-
-# --- community ------------------------------------------------------------
 
 
 class AuthorOut(BaseModel):

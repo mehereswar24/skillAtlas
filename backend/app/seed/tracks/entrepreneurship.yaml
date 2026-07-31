@@ -259,7 +259,7 @@ concepts:
           - text: "The share price at IPO"
           - text: "The option pool size"
           - text: "The vesting cliff"
-      - prompt: Which should be fixed first: retention or acquisition?
+      - prompt: "Which should be fixed first: retention or acquisition?"
         explanation: Retention. Acquiring users into a product they abandon wastes the spend and hides the real problem.
         options:
           - text: "Retention — acquisition into a leaky product wastes the spend"

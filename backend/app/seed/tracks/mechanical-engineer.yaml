@@ -159,7 +159,7 @@ concepts:
           - text: "The absolute pressure"
           - text: "The specific heat"
           - text: "Thermal conductivity"
-      - prompt: Carnot efficiency represents:
+      - prompt: "Carnot efficiency represents:"
         explanation: The theoretical maximum for a heat engine between two temperatures; every real cycle falls below it.
         options:
           - text: "The upper bound on efficiency for a heat engine between two temperatures"

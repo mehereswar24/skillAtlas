@@ -81,7 +81,7 @@ concepts:
           - text: "DNS is misconfigured"
           - text: "The disk is full"
       - prompt: Which command shows which process is listening on a port?
-        explanation: `ss -ltnp` lists listening TCP sockets with the owning process.
+        explanation: "`ss -ltnp` lists listening TCP sockets with the owning process."
         options:
           - text: "ss -ltnp"
             correct: true

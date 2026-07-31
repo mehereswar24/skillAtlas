@@ -89,18 +89,7 @@ class Smoke:
             f"xp={me['profile']['xp']} level={me['profile']['level']}",
         )
 
-        print("\n2. Assessment")
-        status, questions = self.request("GET", "/assessment/questions")
-        self.check("questions come from the database", status == 200 and len(questions) > 0)
-        picks = [q["options"][0]["id"] for q in questions]
-        status, result = self.request("POST", "/assessment/submit", {"option_ids": picks})
-        self.check(
-            "result maps to a real track",
-            status == 200 and result["recommended_track"] is not None,
-            result.get("top_category", ""),
-        )
-
-        print("\n3. Roadmap")
+        print("\n2. Roadmap")
         status, roadmap = self.request(
             "POST",
             "/roadmaps",
@@ -124,7 +113,7 @@ class Smoke:
         status, again = self.request("GET", "/roadmaps/current")
         self.check("roadmap persisted", status == 200 and again["id"] == roadmap["id"])
 
-        print("\n4. Locking")
+        print("\n3. Locking")
         status, locked = self.request("GET", "/concepts/rest-api-design")
         self.check(
             "downstream concept is locked",
@@ -134,7 +123,7 @@ class Smoke:
         status, _ = self.request("POST", "/progress/rest-api-design/complete", {"answers": []})
         self.check("cannot complete a locked concept", status == 409, f"status {status}")
 
-        print("\n5. Study and complete")
+        print("\n4. Study and complete")
         first = self.complete("internet-and-http")
         self.check("xp awarded", first["xp_earned"] > 0, f"+{first['xp_earned']} xp")
         self.check("streak started", first["streak_days"] == 1)
@@ -152,7 +141,7 @@ class Smoke:
         status, unlocked = self.request("GET", "/concepts/rest-api-design")
         self.check("previously locked concept is now open", not unlocked["is_locked"])
 
-        print("\n6. Dashboard reflects the work")
+        print("\n5. Dashboard reflects the work")
         status, dash = self.request("GET", "/dashboard")
         stats = dash["stats"]
         # Two studied here, plus the one declared as prior knowledge at step 3 —
@@ -178,7 +167,7 @@ class Smoke:
             any(p["minutes"] > 0 for p in dash["velocity"]),
         )
 
-        print("\n7. AI tutor")
+        print("\n6. AI tutor")
         status, tutor = self.request("GET", "/chat/status")
         self.check("tutor reachable", status == 200, f"mode: {tutor['mode']}")
         answer, sources = self.ask("Why do caches serve stale data?")
@@ -189,7 +178,7 @@ class Smoke:
             f"sources: {', '.join(sources) or 'none'}",
         )
 
-        print("\n8. Community")
+        print("\n7. Community")
         status, post = self.request(
             "POST",
             "/community/posts",

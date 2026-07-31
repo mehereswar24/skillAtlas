@@ -196,8 +196,8 @@ def append_concepts(
 def resolve_track(db: Session, *, slug: str | None, goal: str | None) -> Track | None:
     """Find a track by slug, or by a human-entered goal string.
 
-    The onboarding UI posts a slug; the assessment and older links may pass a
-    title like "Become a Backend Developer".
+    The onboarding UI posts a slug; older links may pass a title like
+    "Become a Backend Developer".
     """
     if slug:
         track = db.scalar(select(Track).where(Track.slug == slug))

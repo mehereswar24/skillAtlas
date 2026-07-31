@@ -4,11 +4,6 @@ Importing this package registers every model on ``Base.metadata`` — Alembic's
 autogenerate and ``Base.metadata.create_all`` both depend on that.
 """
 
-from app.models.assessment import (
-    AssessmentOption,
-    AssessmentQuestion,
-    AssessmentResult,
-)
 from app.models.community import CommunityComment, CommunityPost, PostVote
 from app.models.content import (
     Concept,
@@ -35,9 +30,6 @@ from app.models.progress import (
 from app.models.user import User, UserProfile
 
 __all__ = [
-    "AssessmentOption",
-    "AssessmentQuestion",
-    "AssessmentResult",
     "ChatMessage",
     "CommunityComment",
     "CommunityPost",

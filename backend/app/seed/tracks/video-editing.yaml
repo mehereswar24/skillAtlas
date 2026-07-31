@@ -1,0 +1,279 @@
+track:
+  slug: video-editing
+  title: Learn Video Editing
+  domain: video
+  target_role: Video Editor
+  difficulty: beginner
+  description: >-
+    Story structure and pacing, the edit itself, and the colour and sound work
+    that separates amateur footage from something people watch to the end.
+
+concepts:
+  - slug: video-storytelling
+    name: Story, Structure & Pacing
+    domain: video
+    est_hours: 20
+    difficulty: beginner
+    prerequisites: []
+    summary: >-
+      Why an edit holds attention — structure, rhythm and the discipline of
+      cutting what you love.
+    content_md: |
+      Editing is not assembling footage; it is deciding what the audience knows
+      and feels, and when.
+
+      **Structure.** Even a two-minute video needs a beginning that establishes,
+      a middle that develops, and an end that resolves. The opening seconds
+      decide whether anyone stays — lead with the most interesting moment rather
+      than a slow build, especially online.
+
+      **Cut on motion and on meaning.** A cut placed mid-gesture is nearly
+      invisible; one placed in a pause draws attention to itself. Cut when the
+      shot has delivered its information and not a second later. The most common
+      amateur fault is holding every shot two seconds too long.
+
+      **Pacing is contrast.** Fast throughout is exhausting; slow throughout is
+      dull. Vary shot length deliberately, and let a moment breathe after
+      something important.
+
+      **Continuity.** Match action across a cut, respect screen direction and the
+      180-degree line, and use cutaways and B-roll to hide jumps and compress
+      time. A jump cut is a choice, not an accident.
+
+      **Kill your darlings.** The shot that took three hours to get, that does
+      not serve the story, must go. Watch the cut without sound to see the rhythm,
+      and with your eyes closed to hear it.
+    resources:
+      - kind: book
+        title: "In the Blink of an Eye"
+        url: https://www.silmanjamespress.com/shop/p/in-the-blink-of-an-eye
+        provider: Walter Murch
+        is_free: false
+        duration_min: 180
+      - kind: video
+        title: "Every Frame a Painting — editing and film form"
+        url: https://www.youtube.com/@everyframeapainting
+        provider: YouTube
+        duration_min: 300
+      - kind: doc
+        title: "The 180-degree rule and continuity editing"
+        url: https://www.studiobinder.com/blog/what-is-the-180-degree-rule/
+        provider: StudioBinder
+        duration_min: 30
+    quiz:
+      - prompt: What is the most common pacing mistake in amateur edits?
+        explanation: Holding shots too long after they have delivered their information.
+        options:
+          - text: "Holding every shot a couple of seconds too long"
+            correct: true
+          - text: "Cutting too fast throughout"
+          - text: "Using too much B-roll"
+          - text: "Too many transitions"
+      - prompt: Why cut on motion?
+        explanation: Movement masks the cut, so the transition passes almost unnoticed.
+        options:
+          - text: "Movement hides the cut, making it feel invisible"
+            correct: true
+          - text: "It saves render time"
+          - text: "It preserves audio sync"
+          - text: "It is required for continuity"
+      - prompt: What does the 180-degree rule preserve?
+        explanation: Consistent screen direction, so the audience does not lose their spatial orientation between shots.
+        options:
+          - text: "Consistent screen direction between shots"
+            correct: true
+          - text: "Consistent exposure"
+          - text: "Audio phase"
+          - text: "Colour temperature"
+    interview:
+      - question: A client says the video "drags" but cannot say where. How do you find it?
+        difficulty: medium
+        answer_md: |
+          Watch it with fresh eyes and mark the exact timestamp where your
+          attention drifts — the drag usually starts earlier than where it is
+          noticed. Common causes: a slow opening before the hook, a section that
+          repeats information already delivered, shots held past their purpose,
+          or no change in pace for a long stretch. Try cutting the first ten
+          seconds entirely, tightening every shot by half a second, and removing
+          one whole section to see whether anything is actually lost. Most edits
+          improve when 15% shorter.
+
+  - slug: editing-craft
+    name: "The Edit: Tools & Techniques"
+    domain: video
+    est_hours: 30
+    difficulty: beginner
+    prerequisites:
+      - video-storytelling
+    summary: >-
+      Timelines, proxies, transitions and titles — working efficiently in a
+      non-linear editor without fighting it.
+    content_md: |
+      The tools matter less than the method, but a disorganised project will
+      cost you more time than any technique will save.
+
+      **Organise before you cut.** Consistent folder structure, footage backed
+      up before you touch it, bins by scene or type, and a naming convention.
+      Sync audio and mark selects in a first pass so the creative edit is not
+      interrupted by searching.
+
+      **Proxies.** Editing high-resolution footage on modest hardware is painful;
+      generate low-resolution proxies, cut smoothly, and relink to the originals
+      for export. This single step transforms the experience.
+
+      **The edit stages.** Assembly (everything in order), rough cut (shaped and
+      roughly timed), fine cut (frame-accurate, rhythm resolved), then picture
+      lock — after which colour and sound work begins. Colouring before lock is
+      wasted effort.
+
+      **Restraint with transitions.** Cuts and occasional dissolves cover almost
+      everything. Elaborate transitions date instantly and usually signal that
+      the cut underneath is not working.
+
+      **Text must be readable** on a phone: large enough, high contrast, on
+      screen long enough to read twice, and inside safe margins. Add captions —
+      a large share of viewers watch without sound, and captions are an
+      accessibility requirement, not a nicety.
+    resources:
+      - kind: doc
+        title: "DaVinci Resolve — free training and manuals"
+        url: https://www.blackmagicdesign.com/products/davinciresolve/training
+        provider: Blackmagic Design
+        duration_min: 600
+      - kind: doc
+        title: "Adobe Premiere Pro — tutorials"
+        url: https://helpx.adobe.com/premiere-pro/tutorials.html
+        provider: Adobe
+        duration_min: 300
+      - kind: doc
+        title: "Working with proxies"
+        url: https://helpx.adobe.com/premiere-pro/using/ingest-proxy-workflow.html
+        provider: Adobe
+        duration_min: 45
+    quiz:
+      - prompt: What are proxies for?
+        explanation: Low-resolution stand-ins let you edit smoothly on modest hardware, relinking to the originals at export.
+        options:
+          - text: "Editing smoothly on modest hardware before relinking for export"
+            correct: true
+          - text: "Backing up the footage"
+          - text: "Colour grading"
+          - text: "Adding subtitles"
+      - prompt: When should colour grading begin?
+        explanation: After picture lock — grading shots that get cut or retimed is wasted work.
+        options:
+          - text: "After picture lock"
+            correct: true
+          - text: "During the assembly"
+          - text: "Before importing"
+          - text: "At the same time as the rough cut"
+      - prompt: Why add captions?
+        explanation: Many viewers watch muted, and captions are also an accessibility requirement.
+        options:
+          - text: "Many people watch without sound, and they are an accessibility requirement"
+            correct: true
+          - text: "They improve compression"
+          - text: "They replace titles"
+          - text: "They are required for export"
+    interview:
+      - question: Your timeline has become unmanageable halfway through a project. What do you do?
+        difficulty: easy
+        answer_md: |
+          Stop cutting and reorganise — the cost compounds otherwise. Duplicate
+          the sequence so you can experiment safely, then use nested sequences or
+          markers to break the timeline into named sections. Colour-label clips
+          by type, collapse B-roll onto dedicated tracks, and label audio tracks
+          by role (dialogue, music, effects) rather than leaving everything on
+          one. Consolidate and remove unused media. Then re-establish a
+          convention and stick to it — most unmanageable timelines come from
+          starting without one.
+
+  - slug: colour-and-sound
+    name: Colour & Sound
+    domain: video
+    est_hours: 25
+    difficulty: intermediate
+    prerequisites:
+      - editing-craft
+    summary: >-
+      Correction versus grading, and the audio work that viewers notice far
+      more than they notice the picture.
+    content_md: |
+      Audiences forgive imperfect pictures and abandon bad audio. Weight your
+      effort accordingly.
+
+      **Sound first.** Dialogue must be clear, consistent in level, and free of
+      distracting noise. The order that works: clean up (noise reduction, remove
+      clicks), level (compression to even out dynamics), shape (EQ to cut low
+      rumble and add presence), then balance music and effects beneath the voice.
+      Duck music under dialogue automatically rather than fighting it manually.
+      Mix to a sensible loudness target for the platform, and check on phone
+      speakers as well as headphones.
+
+      **Room tone** — thirty seconds of the empty room — is what makes edits in
+      dialogue invisible. Record it every time; you will need it.
+
+      **Colour correction is technical**: balance white, set exposure, and match
+      shots so a scene is consistent. It must happen before any creative work.
+
+      **Colour grading is creative**: the look, mood and palette. Use scopes
+      rather than your eyes, which adapt within seconds and lie to you. Keep
+      skin tones plausible — audiences forgive an extreme grade everywhere except
+      on faces.
+
+      **Log footage** looks flat deliberately, preserving dynamic range for
+      grading; it is not broken, it just needs a conversion applied first.
+    resources:
+      - kind: doc
+        title: "DaVinci Resolve — colour and Fairlight training"
+        url: https://www.blackmagicdesign.com/products/davinciresolve/training
+        provider: Blackmagic Design
+        duration_min: 480
+      - kind: doc
+        title: "Audio for video: levels, loudness and mixing"
+        url: https://www.izotope.com/en/learn.html
+        provider: iZotope
+        duration_min: 180
+      - kind: article
+        title: "Reading video scopes"
+        url: https://www.studiobinder.com/blog/what-is-a-waveform-monitor/
+        provider: StudioBinder
+        duration_min: 45
+    quiz:
+      - prompt: Which do audiences tolerate least?
+        explanation: Bad audio. Viewers will accept a soft or noisy image far longer than unclear or unpleasant sound.
+        options:
+          - text: "Poor audio"
+            correct: true
+          - text: "Slightly soft focus"
+          - text: "Noticeable grain"
+          - text: "Inconsistent colour"
+      - prompt: Why use scopes rather than judging colour by eye?
+        explanation: Visual adaptation happens within seconds, so your perception of a cast drifts; scopes are objective.
+        options:
+          - text: "Your eyes adapt quickly and stop seeing the cast"
+            correct: true
+          - text: "Scopes are faster"
+          - text: "Monitors cannot show colour accurately at all"
+          - text: "Scopes apply the grade automatically"
+      - prompt: What is room tone used for?
+        explanation: Filling gaps and smoothing dialogue edits so cuts in audio are not audible.
+        options:
+          - text: "Filling gaps so dialogue edits are inaudible"
+            correct: true
+          - text: "Setting the loudness target"
+          - text: "Syncing audio to picture"
+          - text: "Removing reverb"
+    interview:
+      - question: The interview audio was recorded in an echoey room. What can you do?
+        difficulty: medium
+        answer_md: |
+          Reverb is very hard to remove convincingly, so manage expectations
+          first. Try de-reverb processing gently — pushed hard it makes voices
+          sound underwater. EQ to cut the low-mid muddiness that makes echo
+          obvious, gate or expand to suppress the reverb tail between phrases,
+          and add a light compressor to bring the direct sound forward. Sometimes
+          adding a small amount of consistent room ambience or music masks the
+          irregularity better than trying to eliminate it. The real fix is at
+          recording: a closer microphone, soft furnishings, and never relying on
+          the camera's built-in mic.

@@ -63,7 +63,7 @@ concepts:
         duration_min: 180
     quiz:
       - prompt: Which competitor do most positioning statements forget?
-        explanation: "Doing nothing" — the status quo is the most common alternative a buyer chooses.
+        explanation: The status quo — doing nothing — is the most common alternative a buyer chooses.
         options:
           - text: "The status quo — doing nothing"
             correct: true

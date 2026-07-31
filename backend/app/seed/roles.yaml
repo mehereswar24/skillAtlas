@@ -150,3 +150,245 @@ roles:
       - { concept: model-evaluation, weight: 4 }
       - { concept: mlops-deployment, weight: 3 }
       - { concept: containers-docker, weight: 2 }
+
+  # --- roles for the domains added in the full-coverage pass ---------------
+
+  - slug: frontend-developer
+    title: Frontend Developer
+    description: >-
+      Builds the interfaces people touch, and owns how they feel and perform.
+    skills:
+      - { concept: html-css-foundations, weight: 5 }
+      - { concept: javascript-essentials, weight: 5 }
+      - { concept: react-fundamentals, weight: 5 }
+      - { concept: frontend-state-and-data, weight: 4 }
+      - { concept: typescript-for-apps, weight: 4 }
+      - { concept: web-accessibility, weight: 4 }
+      - { concept: web-performance, weight: 3 }
+      - { concept: frontend-testing, weight: 3 }
+      - { concept: git-version-control, weight: 3 }
+      - { concept: internet-and-http, weight: 3 }
+
+  - slug: fullstack-engineer
+    title: Full Stack Engineer
+    description: >-
+      Owns a feature from schema to screen.
+    skills:
+      - { concept: javascript-essentials, weight: 4 }
+      - { concept: react-fundamentals, weight: 4 }
+      - { concept: typescript-for-apps, weight: 4 }
+      - { concept: rendering-strategies, weight: 3 }
+      - { concept: end-to-end-type-safety, weight: 3 }
+      - { concept: relational-databases-sql, weight: 5 }
+      - { concept: rest-api-design, weight: 5 }
+      - { concept: auth-and-security, weight: 4 }
+      - { concept: containers-docker, weight: 3 }
+      - { concept: shipping-a-product, weight: 3 }
+
+  - slug: cloud-engineer
+    title: Cloud Engineer
+    description: >-
+      Designs and runs infrastructure on a cloud provider.
+    skills:
+      - { concept: cloud-fundamentals, weight: 5 }
+      - { concept: cloud-networking-and-identity, weight: 5 }
+      - { concept: infrastructure-as-code, weight: 5 }
+      - { concept: cloud-cost-management, weight: 4 }
+      - { concept: linux-and-shell, weight: 4 }
+      - { concept: containers-docker, weight: 3 }
+      - { concept: observability, weight: 3 }
+
+  - slug: data-analyst
+    title: Data Analyst
+    description: >-
+      Answers business questions with data people can trust.
+    skills:
+      - { concept: relational-databases-sql, weight: 5 }
+      - { concept: analytics-engineering, weight: 4 }
+      - { concept: numpy-pandas, weight: 4 }
+      - { concept: statistics-probability, weight: 5 }
+      - { concept: data-visualization, weight: 4 }
+      - { concept: experiment-design, weight: 4 }
+      - { concept: programming-language-python, weight: 3 }
+
+  - slug: security-engineer
+    title: Security Engineer
+    description: >-
+      Finds and fixes the ways systems break under an adversary.
+    skills:
+      - { concept: security-fundamentals, weight: 5 }
+      - { concept: applied-cryptography, weight: 4 }
+      - { concept: offensive-security-basics, weight: 5 }
+      - { concept: auth-and-security, weight: 5 }
+      - { concept: internet-and-http, weight: 4 }
+      - { concept: linux-and-shell, weight: 4 }
+
+  - slug: mobile-developer
+    title: Mobile Developer
+    description: >-
+      Ships and maintains apps on iOS and Android.
+    skills:
+      - { concept: mobile-platform-fundamentals, weight: 5 }
+      - { concept: react-native-development, weight: 5 }
+      - { concept: mobile-release-and-distribution, weight: 4 }
+      - { concept: javascript-essentials, weight: 4 }
+      - { concept: react-fundamentals, weight: 4 }
+      - { concept: git-version-control, weight: 3 }
+
+  - slug: game-developer
+    title: Game Developer
+    description: >-
+      Builds games that are technically sound and good to play.
+    skills:
+      - { concept: game-loop-and-engines, weight: 5 }
+      - { concept: game-math-and-physics, weight: 5 }
+      - { concept: game-feel-and-design, weight: 4 }
+
+  - slug: embedded-engineer
+    title: Embedded Systems Engineer
+    description: >-
+      Writes software for constrained hardware.
+    skills:
+      - { concept: c-and-microcontrollers, weight: 5 }
+      - { concept: peripherals-and-interrupts, weight: 5 }
+      - { concept: iot-and-connectivity, weight: 4 }
+      - { concept: linux-and-shell, weight: 3 }
+
+  - slug: smart-contract-developer
+    title: Smart Contract Developer
+    description: >-
+      Writes and secures on-chain code.
+    skills:
+      - { concept: blockchain-fundamentals, weight: 4 }
+      - { concept: solidity-smart-contracts, weight: 5 }
+      - { concept: smart-contract-security, weight: 5 }
+      - { concept: applied-cryptography, weight: 3 }
+
+  - slug: product-designer
+    title: Product Designer
+    description: >-
+      Researches, designs and validates the product experience.
+    skills:
+      - { concept: ux-research, weight: 5 }
+      - { concept: interaction-design, weight: 5 }
+      - { concept: design-systems-and-figma, weight: 4 }
+      - { concept: web-accessibility, weight: 4 }
+
+  - slug: graphic-designer
+    title: Graphic Designer
+    description: >-
+      Typography, layout and brand systems across print and screen.
+    skills:
+      - { concept: typography, weight: 5 }
+      - { concept: layout-and-composition, weight: 5 }
+      - { concept: brand-and-production, weight: 4 }
+
+  - slug: mechanical-design-engineer
+    title: Mechanical Design Engineer
+    description: >-
+      Designs parts and assemblies that can be made and will not fail.
+    skills:
+      - { concept: statics-and-strength, weight: 5 }
+      - { concept: cad-and-manufacturing, weight: 5 }
+      - { concept: thermo-and-fluids, weight: 3 }
+
+  - slug: structural-engineer
+    title: Civil / Structural Engineer
+    description: >-
+      Analyses and delivers structures safely to the ground.
+    skills:
+      - { concept: statics-and-strength, weight: 5 }
+      - { concept: structural-analysis, weight: 5 }
+      - { concept: geotechnics-and-materials, weight: 4 }
+      - { concept: construction-management, weight: 3 }
+
+  - slug: process-engineer
+    title: Process Engineer
+    description: >-
+      Designs and operates chemical processes safely and economically.
+    skills:
+      - { concept: mass-and-energy-balances, weight: 5 }
+      - { concept: transport-and-reactions, weight: 5 }
+      - { concept: process-design-and-safety, weight: 5 }
+
+  - slug: exam-candidate
+    title: Competitive Exam Candidate
+    description: >-
+      Prepared, practised and strategic on exam day.
+    skills:
+      - { concept: study-technique, weight: 4 }
+      - { concept: quantitative-aptitude, weight: 5 }
+      - { concept: exam-strategy, weight: 4 }
+
+  - slug: financial-analyst
+    title: Financial Analyst
+    description: >-
+      Reads accounts, values assets and advises on capital.
+    skills:
+      - { concept: accounting-fundamentals, weight: 5 }
+      - { concept: valuation-and-corporate-finance, weight: 5 }
+      - { concept: markets-and-personal-investing, weight: 3 }
+
+  - slug: digital-marketer
+    title: Digital Marketer
+    description: >-
+      Positions the product and acquires customers profitably.
+    skills:
+      - { concept: marketing-strategy, weight: 5 }
+      - { concept: channels-and-acquisition, weight: 5 }
+      - { concept: content-seo-and-analytics, weight: 4 }
+
+  - slug: founder
+    title: Founder
+    description: >-
+      Finds a problem worth solving and builds a business around it.
+    skills:
+      - { concept: customer-discovery, weight: 5 }
+      - { concept: business-models-and-unit-economics, weight: 5 }
+      - { concept: fundraising-and-growth, weight: 4 }
+      - { concept: marketing-strategy, weight: 3 }
+
+  - slug: photographer
+    title: Photographer
+    description: >-
+      Makes and finishes photographs deliberately.
+    skills:
+      - { concept: exposure-and-camera, weight: 4 }
+      - { concept: light-and-composition, weight: 5 }
+      - { concept: photo-editing-and-workflow, weight: 4 }
+
+  - slug: video-editor
+    title: Video Editor
+    description: >-
+      Shapes footage into something people watch to the end.
+    skills:
+      - { concept: video-storytelling, weight: 5 }
+      - { concept: editing-craft, weight: 5 }
+      - { concept: colour-and-sound, weight: 4 }
+
+  - slug: music-producer
+    title: Music Producer
+    description: >-
+      Writes, arranges, records and finishes music.
+    skills:
+      - { concept: music-theory-basics, weight: 4 }
+      - { concept: daw-and-arrangement, weight: 5 }
+      - { concept: mixing-and-mastering, weight: 4 }
+
+  - slug: language-learner
+    title: Confident Speaker
+    description: >-
+      Reaches conversational fluency deliberately rather than by accident.
+    skills:
+      - { concept: language-foundations, weight: 5 }
+      - { concept: vocabulary-and-listening, weight: 5 }
+      - { concept: speaking-and-fluency, weight: 5 }
+
+  - slug: fitness-coach
+    title: Fitness & Nutrition Coach
+    description: >-
+      Programmes training and nutrition on evidence rather than fashion.
+    skills:
+      - { concept: training-principles, weight: 5 }
+      - { concept: programme-design, weight: 5 }
+      - { concept: nutrition-fundamentals, weight: 4 }

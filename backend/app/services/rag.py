@@ -11,6 +11,7 @@ Ollama has never been run and no embeddings exist.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 
@@ -206,26 +207,51 @@ def _keyword_search(db: Session, query: str, k: int) -> list[Retrieved]:
         concept.id: f"{concept.name} {concept.summary} {concept.content_md}".lower()
         for concept in concepts
     }
-    # Inverse document frequency: a term in one concept is far more telling
-    # than one that appears in twenty.
+    names = {concept.id: concept.name.lower() for concept in concepts}
+    total = len(haystacks) or 1
+
+    # Term frequency per concept, counting a term wherever it *starts* a word,
+    # so "cache" matches "caches" and "price" matches "pricing". Plain substring
+    # containment was too loose and ignored how often the term appears — one
+    # passing mention of "price" scored the same as a concept about pricing.
+    counts: dict[int, dict[str, int]] = {}
+    for concept_id, text in haystacks.items():
+        counts[concept_id] = {
+            term: len(re.findall(rf"\b{re.escape(term)}", text)) for term in terms
+        }
+
     document_freq = {
-        term: sum(1 for text in haystacks.values() if term in text) for term in terms
+        term: sum(1 for per_term in counts.values() if per_term[term]) for term in terms
     }
 
     scored: list[tuple[float, Concept]] = []
     for concept in concepts:
-        haystack = haystacks[concept.id]
-        name = concept.name.lower()
+        per_term = counts[concept.id]
+        name = names[concept.id]
         score = 0.0
+        matched = 0
+
         for term in terms:
-            if term not in haystack:
+            frequency = per_term[term]
+            if not frequency:
                 continue
-            frequency = document_freq[term] or 1
-            weight = 1 / frequency
-            # A hit in the title is what the concept is *about*, not a mention.
-            score += weight * (3 if term in name else 1)
-        if score > 0:
-            scored.append((score, concept))
+            matched += 1
+            # Log-scaled IDF. Plain 1/df is unusable on a corpus this small: a
+            # word appearing in exactly one concept would score 1.0 and outrank
+            # two genuinely relevant terms.
+            idf = math.log(1 + total / (document_freq[term] or 1))
+            # Damped term frequency, so ten mentions beat one without a concept
+            # winning purely by being long.
+            tf = 1 + math.log(frequency)
+            # A hit in the title says the concept is *about* the term.
+            score += tf * idf * (2 if term in name else 1)
+
+        if not matched:
+            continue
+        # Coverage, squared: answering every term of the question should beat
+        # matching one rare one. This is what holds precision as the corpus grows.
+        score *= (matched / len(terms)) ** 2
+        scored.append((score, concept))
 
     scored.sort(key=lambda pair: (-pair[0], pair[1].name))
     return [

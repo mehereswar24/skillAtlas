@@ -155,7 +155,7 @@ concepts:
           - text: "Low intensity"
           - text: "A warm colour temperature"
           - text: "Being directly overhead"
-      - prompt: The single most common way to improve a composition is:
+      - prompt: "The single most common way to improve a composition is:"
         explanation: Remove something. Most weak photographs contain too much rather than too little.
         options:
           - text: "Remove distracting elements — get closer or change angle"

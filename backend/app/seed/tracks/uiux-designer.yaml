@@ -168,7 +168,7 @@ concepts:
           - text: "The success state"
           - text: "The hover state"
           - text: "The default state"
-      - prompt: Generally preferable to a destructive-action confirmation dialogue:
+      - prompt: "Generally preferable to a destructive-action confirmation dialogue:"
         explanation: Undo lets the common case stay fast while still protecting against mistakes; confirmations get dismissed reflexively.
         options:
           - text: "Performing the action immediately with a clear undo"

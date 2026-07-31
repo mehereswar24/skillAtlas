@@ -26,7 +26,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models.assessment import AssessmentOption, AssessmentQuestion
 from app.models.content import (
     Concept,
     ConceptPrerequisite,
@@ -299,7 +298,7 @@ def seed_tracks(
 
 
 # --------------------------------------------------------------------------
-# roles + assessment
+# roles
 # --------------------------------------------------------------------------
 
 
@@ -331,30 +330,6 @@ def seed_roles(db: Session, concepts: dict[str, Concept]) -> None:
     db.flush()
 
 
-def seed_assessment(db: Session) -> None:
-    data = _read_yaml(SEED_DIR / "assessment.yaml")
-
-    # Questions carry no user data (results reference categories, not option
-    # ids), so a clean rebuild keeps the file authoritative.
-    db.query(AssessmentOption).delete()
-    db.query(AssessmentQuestion).delete()
-    db.flush()
-
-    for q_order, raw in enumerate(data.get("questions", [])):
-        question = AssessmentQuestion(prompt=raw["prompt"], sort_order=q_order)
-        for o_order, opt in enumerate(raw.get("options", [])):
-            question.options.append(
-                AssessmentOption(
-                    text=opt["text"],
-                    category=opt["category"],
-                    weight=float(opt.get("weight", 1.0)),
-                    sort_order=o_order,
-                )
-            )
-        db.add(question)
-    db.flush()
-
-
 # --------------------------------------------------------------------------
 # entrypoint
 # --------------------------------------------------------------------------
@@ -364,7 +339,6 @@ def seed_all(db: Session, *, verbose: bool = True) -> dict[str, int]:
     domains = seed_domains(db)
     tracks, concepts = seed_tracks(db, domains)
     seed_roles(db, concepts)
-    seed_assessment(db)
     db.commit()
 
     counts = {

@@ -67,7 +67,7 @@ concepts:
           - text: "The company is growing healthily"
           - text: "It has repaid debt"
           - text: "Nothing; the two are unrelated"
-      - prompt: The balance sheet equation is:
+      - prompt: "The balance sheet equation is:"
         explanation: Assets equal liabilities plus equity, always, by construction.
         options:
           - text: "Assets = Liabilities + Equity"
@@ -156,7 +156,7 @@ concepts:
           - text: "The first year's cash flow"
           - text: "The tax rate"
           - text: "Working capital"
-      - prompt: All else equal, a higher discount rate produces:
+      - prompt: "All else equal, a higher discount rate produces:"
         explanation: Future cash flows are discounted more heavily, so present value falls.
         options:
           - text: "A lower valuation"

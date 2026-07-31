@@ -85,8 +85,16 @@ def test_tracks_share_concepts_rather_than_duplicating_them(db):
     python = db.scalar(
         select(Concept).where(Concept.slug == "programming-language-python")
     )
-    tracks = {tc.track.slug for tc in db.scalars(select(Track)).unique().all() for tc in tc.track_concepts if tc.concept_id == python.id}
-    assert tracks == {"backend-developer", "ai-engineer"}
+    sharing = {
+        track.slug
+        for track in db.scalars(select(Track)).unique().all()
+        for tc in track.track_concepts
+        if tc.concept_id == python.id
+    }
+    # Python is curated under the backend track and referenced by several
+    # others; at minimum those two must both point at the same node.
+    assert {"backend-developer", "ai-engineer"} <= sharing
+    assert len(sharing) >= 3
 
 
 # --- retrieval quality ----------------------------------------------------
@@ -104,12 +112,21 @@ def test_chunking_keeps_chunks_bounded_and_lossless():
 
 
 def test_keyword_fallback_finds_the_right_concept(db):
-    """Retrieval must work before anyone has run the embedding step."""
+    """Retrieval must work before anyone has run the embedding step.
+
+    These questions share vocabulary with their target concept, which is all a
+    lexical fallback can be expected to handle — paraphrases without shared
+    words are what the embedding path exists for.
+    """
     cases = {
         "why does my cache serve stale data": "caching-strategies",
         "how do I prevent SQL injection": "auth-and-security",
         "explain attention in transformers": "nlp-transformers",
         "my model is overfitting": "classical-ml",
+        "what is progressive overload": "training-principles",
+        "what is bleed in print": "brand-and-production",
+        "what is a liveness probe": "kubernetes-orchestration",
+        "how do I improve my listening in a new language": "vocabulary-and-listening",
     }
     for question, expected in cases.items():
         results = _keyword_search(db, question, k=3)
@@ -117,6 +134,19 @@ def test_keyword_fallback_finds_the_right_concept(db):
         assert results[0].concept_slug == expected, (
             f"{question!r} returned {results[0].concept_slug}, expected {expected}"
         )
+
+
+def test_keyword_ranking_prefers_the_concept_that_covers_the_whole_question(db):
+    """A rare incidental word must not outrank broad relevance.
+
+    Small corpora break naive IDF: a term appearing in exactly one concept
+    scores maximally, so an off-topic concept containing "prevent" once beat
+    the security concept containing both "sql" and "injection".
+    """
+    results = _keyword_search(db, "how do I prevent SQL injection", k=5)
+    top = [r.concept_slug for r in results]
+    assert top[0] in {"auth-and-security", "offensive-security-basics"}
+    assert "customer-discovery" not in top
 
 
 def test_stopwords_do_not_dominate_retrieval(db):

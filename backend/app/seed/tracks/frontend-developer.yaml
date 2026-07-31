@@ -87,7 +87,7 @@ concepts:
           - text: "Flexbox"
           - text: "Floats"
           - text: "Absolute positioning"
-      - prompt: What does `box-sizing: border-box` change?
+      - prompt: "What does `box-sizing: border-box` change?"
         explanation: Width then includes padding and border, so a 200px box stays 200px wide when you add padding.
         options:
           - text: "`width` includes padding and border instead of only the content"
@@ -628,7 +628,7 @@ concepts:
           - text: "Add a role to every element"
           - text: "Always use aria-label"
           - text: "ARIA replaces semantic HTML"
-      - prompt: What is wrong with `outline: none` on focusable elements?
+      - prompt: "What is wrong with `outline: none` on focusable elements?"
         explanation: It removes the only indicator keyboard users have of where they are, unless an equally visible replacement is provided.
         options:
           - text: "Keyboard users lose all indication of where focus is"
@@ -636,7 +636,7 @@ concepts:
           - text: "It breaks the mouse cursor"
           - text: "It is invalid CSS"
           - text: "It only affects Safari"
-      - prompt: The minimum contrast ratio for normal body text at WCAG AA is:
+      - prompt: "The minimum contrast ratio for normal body text at WCAG AA is:"
         explanation: 4.5:1 for normal text; large text may drop to 3:1.
         options:
           - text: "4.5:1"
@@ -711,7 +711,7 @@ concepts:
         provider: MSW
         duration_min: 90
     quiz:
-      - prompt: Why prefer `getByRole('button', { name: 'Save' })` over a test id?
+      - prompt: "Why prefer `getByRole('button', { name: 'Save' })` over a test id?"
         explanation: It asserts what a user (and assistive technology) can actually perceive, so it survives refactors and catches accessibility regressions.
         options:
           - text: "It matches how a user and a screen reader find the control"
@@ -720,7 +720,7 @@ concepts:
           - text: "Test ids are not supported"
           - text: "It avoids rendering the component"
       - prompt: A test passes locally and fails in CI intermittently. Most likely cause?
-        explanation: A race: the assertion runs before the UI has settled. Use async queries that wait for the expected state.
+        explanation: "A race: the assertion runs before the UI has settled. Use async queries that wait for the expected state."
         options:
           - text: "An unawaited async update — assert with a query that waits"
             correct: true

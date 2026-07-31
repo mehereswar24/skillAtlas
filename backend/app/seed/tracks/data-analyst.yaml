@@ -175,7 +175,7 @@ concepts:
           - text: "It is normal variance; ignore it"
           - text: "The treatment is working"
           - text: "You should re-weight the results"
-      - prompt: An effect is positive overall but negative in every segment. This is:
+      - prompt: "An effect is positive overall but negative in every segment. This is:"
         explanation: Simpson's paradox, usually caused by unequal segment sizes between arms.
         options:
           - text: "Simpson's paradox"
