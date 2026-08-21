@@ -7,7 +7,11 @@
     .\run-dev.ps1 -Setup      # also installs deps, migrates and seeds first
 #>
 param(
-    [switch]$Setup
+    [switch]$Setup,
+    # Keep this in step with API_BASE_URL in frontend\.env.local — the BFF talks
+    # to the backend by that address, so a mismatch shows up as 500s on every
+    # data-backed page rather than a connection error.
+    [int]$Port = 8010
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,9 +44,9 @@ if ($Setup) {
     Push-Location $frontend; npm install; Pop-Location
 }
 
-Write-Host "`nStarting backend on http://localhost:8010 (docs at /docs)" -ForegroundColor Green
+Write-Host "`nStarting backend on http://localhost:$Port (docs at /docs)" -ForegroundColor Green
 $api = Start-Process -PassThru -WorkingDirectory $backend -FilePath $python `
-    -ArgumentList "-m", "uvicorn", "app.main:app", "--reload", "--port", "8010"
+    -ArgumentList "-m", "uvicorn", "app.main:app", "--reload", "--port", "$Port"
 
 Write-Host "Starting frontend on http://localhost:3000" -ForegroundColor Green
 $web = Start-Process -PassThru -WorkingDirectory $frontend -FilePath "npm.cmd" `

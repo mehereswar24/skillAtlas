@@ -51,6 +51,10 @@ class QuizQuestionOut(ORMModel):
     id: int
     prompt: str
     options: list[QuizOptionOut]
+    # Provenance, exposed so the UI can say where a question came from. None
+    # means a person wrote it; a model name means the question was generated
+    # and then checked against the concept body (see scripts/generate_quizzes.py).
+    generated_by: str | None = None
 
 
 class InterviewQuestionOut(ORMModel):
@@ -58,6 +62,7 @@ class InterviewQuestionOut(ORMModel):
     question: str
     answer_md: str | None
     difficulty: str
+    generated_by: str | None = None
 
 
 class ConceptSummary(ORMModel):

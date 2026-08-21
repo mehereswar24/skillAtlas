@@ -65,6 +65,27 @@ class RoadmapOut(BaseModel):
     weeks: list[RoadmapWeekOut]
 
 
+class RoadmapSummaryOut(BaseModel):
+    """One of the learner's routes, without the week-by-week plan.
+
+    A learner can run several routes at once and the switcher shows all of
+    them, so this deliberately omits `weeks` — serialising every week of every
+    route just to render a list is what made the dashboard slow.
+    """
+
+    id: int
+    track: TrackSummary
+    daily_hours: int
+    pace: str
+    created_at: datetime
+    total_concepts: int
+    completed_concepts: int
+    percent_complete: int
+    target_date: date | None
+    # True for the route the dashboard, tutor and company actions act on.
+    is_focused: bool
+
+
 class RoadmapItemUpdate(BaseModel):
     status: str = Field(pattern="^(pending|in-progress|skipped)$")
 

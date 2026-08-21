@@ -1,0 +1,767 @@
+# Databricks.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (a company-tag list), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: databricks
+  name: Databricks
+  industry: Data & AI Platform
+  hq: San Francisco, California
+  website: https://www.databricks.com/company/careers
+  icon: Database
+  fetched_on: 2026-08-21
+  sort_order: 6
+  description: >-
+    The company behind Apache Spark, Delta Lake and the "lakehouse" pitch —
+    it sells the platform that most Fortune 500 data teams run their Spark
+    jobs, streaming pipelines and MLflow-tracked models on. The product you
+    would be hired to help build is a distributed system, and the interview
+    loop is unusually honest about that.
+  hiring_process_md: |
+    Unlike a generalist pool like Google's, you interview **for a specific
+    team's open req** — the posting you apply to is close to the team you'll
+    land on, so it pays to read the job description literally rather than
+    treating it as a template.
+
+    **The shape of it**
+
+    1. **Recruiter screen (~30 min)** — background, motivation, level, comp
+       expectations. For new-grad and intern pipelines this is sometimes
+       preceded by a timed online assessment (historically on CodeSignal) —
+       a handful of algorithmic problems under a strict clock, no interviewer
+       present.
+    2. **Technical phone screen (~1 hr)** — one engineer, one shared editor
+       (CoderPad). Medium-to-hard data-structure problems, often with a
+       systems flavor rather than a pure LeetCode template.
+    3. **Hiring manager call (~1 hr)** — behavioral and a deep dive into a
+       project on your resume; this is also where team fit gets checked,
+       since (unlike Google) there is no separate matching step afterward.
+    4. **Onsite / virtual onsite loop (4–5 rounds, ~1 hr each)** — for
+       engineering roles this typically includes two coding rounds, one round
+       that is explicitly about concurrency or systems programming, one
+       system-design round (from mid-level up), and one behavioral /
+       cross-functional round.
+    5. **Team match confirmation and offer.**
+
+    **What actually gets graded.** The coding bar is comparable to any Big
+    Tech loop, but the *flavor* is distributed-systems-heavy: expect
+    questions to bend toward concurrency, streaming, and data-at-scale rather
+    than pure interview-puzzle shapes. The system-design round in particular
+    tends to land on a piece of a data platform — a job scheduler, an
+    ingestion pipeline, a query cache — rather than a generic "design
+    Twitter." Candidates who prepare only classic system design (load
+    balancers, sharded SQL, CDNs) are consistently surprised by how much the
+    round wants to talk about schema evolution, exactly-once semantics, and
+    metadata scalability instead.
+  resources:
+    - kind: careers
+      title: "Careers at Databricks"
+      url: https://www.databricks.com/company/careers
+    - kind: prep
+      title: "Interview prep and insider insights — Databricks Careers"
+      url: https://www.databricks.com/company/careers/interview-prep
+    - kind: blog
+      title: "Engineering — Databricks Blog"
+      url: https://www.databricks.com/blog/category/engineering
+    - kind: prep
+      title: "Databricks interview process and questions — interviewing.io"
+      url: https://interviewing.io/databricks-interview-questions
+    - kind: prep
+      title: "Databricks internship interview experience — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/databricks-interview-experience-for-summer-2021-internship/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://interviewing.io/databricks-interview-questions
+    description: >-
+      Builds the platform itself — the Spark runtime, job scheduler, storage
+      layer, or the control plane that runs other people's pipelines. Graded
+      on data structures, a dedicated concurrency round, and (from mid-level
+      up) distributed-systems design.
+    focus_md: |
+      The single biggest surprise for candidates coming from a generic
+      Big-Tech prep plan is the **concurrency round**. It is not a bonus
+      question buried inside a coding round — it is its own hour, and it is
+      graded like one. "Reverse a linked list" fluency does not transfer;
+      what transfers is being able to reason correctly about a producer and
+      multiple consumers racing on a shared queue, and to say out loud *why*
+      your lock placement is correct rather than just typing something that
+      compiles.
+
+      The second surprise is how often "generic" coding questions turn out to
+      have a systems angle bolted on. A graph problem becomes "now the grid
+      doesn't fit in memory." A rate limiter becomes "now it has to be
+      correct across multiple nodes without a shared clock." Prepare the
+      follow-up, not just the base case — interviewers here are visibly
+      fishing for whether you default to a single-machine mental model or a
+      distributed one.
+
+      For system design, do not walk in with a memorized "design Twitter"
+      script. The rounds tend to land on a slice of an actual data platform —
+      a job scheduler, a streaming ingestion path, a metadata service for
+      petabyte-scale tables — and reward candidates who reach for schema
+      evolution, exactly-once delivery, and small-file/compaction problems
+      rather than generic load-balancer diagrams.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "Two to three of the four-to-five onsite rounds. Graphs, hashing and design-a-data-structure problems recur more than pure DP." }
+      - { concept: computer-science-processes-and-threads, label: "Concurrency & multithreading", weight: 5,
+          notes: "A standalone graded round, not a sub-question. Producer/consumer, locking, and race conditions." }
+      - { concept: computer-science-system-design, label: "Distributed systems design", weight: 4,
+          notes: "Skews toward data-platform components: schedulers, ingestion, metadata services." }
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 3,
+          notes: "Scala, Java, Python or Go are all fine; the platform's core is Scala/JVM, which helps but isn't required." }
+      - { concept: backend-message-brokers, label: "Streaming & message queues", weight: 3,
+          notes: "So much of the product is streaming-first that Kafka-shaped questions leak into generalist SWE loops." }
+      - { concept: system-design-databases, label: "Storage engines & metadata scalability", weight: 3 }
+      - { label: "Behavioral / cross-functional", weight: 3,
+          notes: "A full graded round. Have a story about a production incident you owned, not just a project you shipped." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Arrays & strings
+        difficulty: easy
+        year: 2023
+        question: >-
+          The take-home style online assessment (historically run on
+          CodeSignal, timed under an hour) has included a "broken keyboard"
+          style problem: given the text a user intended to type and the text
+          that actually came out — because some keys silently fail to
+          register — identify which keys are broken.
+        answer_md: |
+          Walk both strings with two pointers. Whenever the intended
+          character does not appear next in the actual output, that character
+          is a candidate broken key — but confirm it by checking it never
+          appears anywhere later in the actual string either, since a key
+          that occasionally works is not "broken."
+
+          The clean approach: build a frequency count of each character in
+          the intended string and in the actual string. Any character whose
+          count dropped to zero in the actual string is broken. This turns a
+          two-pointer edge-case hunt into an O(n) count-and-diff, which is the
+          answer worth giving under a strict OA clock.
+        source_name: GeeksforGeeks — Databricks internship interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/databricks-interview-experience-for-summer-2021-internship/
+
+      - kind: interview
+        round: coding
+        topic: Data structure design
+        difficulty: medium
+        year: 2025
+        question: >-
+          Design a data structure that supports insert, remove, and
+          get-a-uniformly-random-element, all in O(1) average time.
+        answer_md: |
+          The naive answer — a hash set — gets insert and remove for free but
+          has no O(1) way to pick a uniformly random element, since you
+          cannot random-index into a hash set's buckets fairly.
+
+          The trick is to back it with **both** a dynamic array and a hash
+          map from value to its index in the array. Insert appends to the
+          array and records the index. `getRandom` picks a random array index
+          directly — O(1). Remove is the subtle part: instead of shifting
+          everything after the removed element (O(n)), swap the element with
+          the array's last element, update the swapped element's index in the
+          map, then pop the last slot. That keeps every operation O(1)
+          average, and the swap-with-last trick is the piece interviewers are
+          checking for.
+        source_name: Taro — Databricks Software Engineer interview experience
+        source_url: https://www.jointaro.com/interviews/companies/databricks/experiences/software-engineer-united-states-november-12-2025-no-offer-neutral-75940d40/
+
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        year: 2024
+        question: >-
+          Given a weighted graph, find the shortest path between two nodes.
+          Follow-up: some edge weights can change between queries — how does
+          your approach hold up if you have to answer many queries against a
+          graph that keeps getting updated?
+        answer_md: |
+          Single-query, non-negative weights: Dijkstra with a min-heap,
+          O((V+E) log V). Say why you are not reaching for Bellman-Ford —
+          it's the O(VE) fallback for negative weights, not the default.
+
+          The follow-up is where the round is actually won. Re-running
+          Dijkstra from scratch on every query is wasteful if updates are
+          localized. Worth naming: incremental shortest-path structures that
+          only recompute the affected subgraph after a weight change, or, if
+          queries vastly outnumber updates, precomputing all-pairs shortest
+          paths (Floyd–Warshall or repeated Dijkstra) and accepting a more
+          expensive update in exchange for O(1) query. The right answer
+          depends on the read:write ratio — naming that trade-off explicitly
+          is the point.
+        source_name: interviewing.io — Databricks interview process and questions
+        source_url: https://interviewing.io/databricks-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: String manipulation
+        difficulty: medium
+        year: 2024
+        question: >-
+          Given an IP address and a set of other IP addresses, find the
+          shortest CIDR block that contains all of them.
+        answer_md: |
+          Convert every IP to its 32-bit integer representation. A CIDR block
+          `/n` fixes the top `n` bits and lets the remaining `32-n` bits vary,
+          so the smallest containing block is found by finding the longest
+          common prefix (in bits) shared by every address in the set.
+
+          Concretely: XOR all the integers together — any bit position where
+          two addresses differ produces a 1 somewhere in that XOR. The
+          position of the highest set bit across all the XOR results tells
+          you how many leading bits are common; that count is your prefix
+          length `n`, and the block is `(common_prefix) / n`. This is a bit-
+          manipulation problem wearing a networking costume, and naming that
+          out loud is usually what separates a fast solve from a slow one.
+        source_name: interviewing.io — Databricks interview process and questions
+        source_url: https://interviewing.io/databricks-interview-questions
+
+      - kind: interview
+        round: coding
+        topic: Concurrency
+        difficulty: hard
+        year: 2024
+        question: >-
+          Implement a thread-safe bounded blocking queue supporting multiple
+          producers and multiple consumers. What goes wrong if you get the
+          locking wrong, and how do you prove to the interviewer that yours
+          doesn't?
+        answer_md: |
+          The shape: a fixed-capacity buffer, a lock, and two condition
+          variables — "not full" and "not empty." `put` blocks (waits) while
+          the buffer is full; `take` blocks while it's empty; each signals the
+          other's condition after it changes the buffer.
+
+          The bug interviewers are fishing for is using `if` instead of
+          `while` around the wait: with multiple producers and consumers, a
+          thread can be woken up by a signal meant for someone else, find the
+          condition no longer holds (another thread got there first), and
+          proceed anyway — corrupting the buffer or blocking forever. Always
+          re-check the condition in a loop after waking. The second thing
+          worth saying unprompted: signal, don't broadcast, when only one
+          waiter can make progress, or you pay for a thundering herd that all
+          re-checks and mostly goes back to sleep.
+        source_name: interviewing.io — Databricks interview process and questions
+        source_url: https://interviewing.io/databricks-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: Distributed job scheduling
+        difficulty: hard
+        year: 2024
+        question: >-
+          Design a job scheduler that runs thousands of tenants' scheduled and
+          triggered jobs across a shared cluster fleet. What has to change
+          about your design once jobs run on serverless, ephemeral compute
+          instead of long-lived clusters?
+        answer_md: |
+          On long-lived clusters, scheduling is mostly bin-packing: a queue of
+          pending jobs, a scheduler that assigns each job to a cluster with
+          free capacity, and per-tenant fairness so one noisy tenant can't
+          starve everyone else. The scheduler itself needs to be replicated
+          with leader election, since a single scheduler is both a
+          bottleneck and a single point of failure.
+
+          Serverless changes the hard part from "packing" to "cold start and
+          routing." Now every job needs compute provisioned on demand, so the
+          design needs a gateway that can route a job to pre-warmed capacity
+          when available and fall back to spinning up new compute when not —
+          the tension is between keeping a warm pool (cost) and cold-start
+          latency (user-facing SLA). Databricks' own engineering blog frames
+          this as separating the client/application layer from the compute
+          layer entirely (their "Spark Connect" work) plus a routing gateway
+          and an adaptive autoscaler sitting in between — naming that
+          separation of concerns is the crux of a strong answer here.
+        source_name: "Databricks Engineering Blog — Rethinking Distributed Systems for Serverless Performance and Reliability"
+        source_url: https://www.databricks.com/blog/rethinking-distributed-systems-serverless-performance-and-reliability
+
+      - kind: interview
+        round: managerial
+        topic: Behavioral
+        difficulty: easy
+        year: 2025
+        question: >-
+          Tell me about a time you disagreed with a coworker on a technical
+          decision. How did you handle it?
+        answer_md: |
+          Because there is no separate hiring-committee step here the way
+          there is at some Big Tech companies, this round is doing double
+          duty: it is checking whether you're someone the *specific team*
+          wants to work with, not just whether you're smart.
+
+          Structure it around a real disagreement with real stakes, not a
+          manufactured one. State what you disagreed about, what evidence you
+          brought (not just an opinion), what the resolution was, and how you
+          behaved once the decision was made — including if it went against
+          you. A story where you were overruled and still executed well often
+          lands better than one where you were simply right.
+        source_name: interviewing.io — Databricks interview process and questions
+        source_url: https://interviewing.io/databricks-interview-questions
+
+  - slug: machine-learning-engineer
+    title: Machine Learning Engineer
+    level: mid to senior
+    maps_to_role: machine-learning-engineer
+    sort_order: 2
+    source_url: https://www.datainterview.com/blog/databricks-machine-learning-engineer-interview
+    description: >-
+      Builds and operates the systems that take a model from a notebook to a
+      production endpoint — training pipelines, feature consistency, model
+      serving, and the monitoring that catches a model quietly going stale.
+    focus_md: |
+      The loop is intentionally light on "explain backpropagation" trivia and
+      heavy on **production ML systems** questions: given a training run that
+      works, how do you get it into an endpoint that meets a latency and cost
+      budget, stays accurate as the input distribution drifts, and can be
+      rolled back safely if it doesn't? Candidates who prepared only classical
+      ML theory are consistently surprised that the hardest question in the
+      loop is about the gap between offline evaluation and online behavior,
+      not about model architecture.
+
+      Two specific things to have real opinions on, because they come up
+      directly: **train/serve skew** (why a feature computed one way in a
+      batch pipeline and another way in a real-time server silently breaks
+      models), and **what actually triggers a rollback** — a lot of
+      candidates can describe canary deployment but freeze when asked what
+      specific metric, over what window, should page someone.
+
+      Because the platform's own product is MLflow plus Lakehouse Monitoring,
+      expect the interviewer to probe whether you think about drift
+      detection as a first-class part of the design rather than an
+      afterthought — "how would you know if this broke" is often asked before
+      "how would you build it."
+    focus_areas:
+      - { concept: computer-science-system-design, label: "ML systems design", weight: 5,
+          notes: "Training-to-serving with a latency/cost SLO, not a model-architecture quiz." }
+      - { concept: machine-learning-validation-techniques, label: "Model evaluation & rollout gates", weight: 4,
+          notes: "What blocks a promotion from staging to production, and what number triggers a rollback." }
+      - { concept: data-analyst-big-data-technologies, label: "Distributed data processing (Spark)", weight: 4,
+          notes: "Feature pipelines run at Spark scale; know where a shuffle happens and why it matters for a nightly SLA." }
+      - { concept: machine-learning-deep-learning-architectures, label: "Deep learning fundamentals", weight: 3 }
+      - { concept: machine-learning-types-of-machine-learning, label: "Core ML fundamentals", weight: 3 }
+      - { concept: backend-caching, label: "Low-latency serving", weight: 3 }
+      - { label: "Production monitoring & drift", weight: 4,
+          notes: "Databricks' own Lakehouse Monitoring is close to the syllabus: feature drift vs. prediction drift, and when each should page someone versus just log." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Distributed data processing
+        difficulty: medium
+        year: 2024
+        question: >-
+          Given a large Spark DataFrame of per-user events partitioned by
+          user_id, compute a trailing 7-day rolling average of a numeric
+          feature for every user, without collecting data to the driver.
+          Where does a shuffle happen in your solution, and why does that
+          matter for a nightly pipeline's SLA?
+        answer_md: |
+          Use a window function partitioned by `user_id`, ordered by event
+          date, with a range frame of the preceding 6 days plus the current
+          row — this keeps everything as a distributed DataFrame operation,
+          never pulling data onto the driver.
+
+          The shuffle happens at the partition-by step: Spark has to
+          repartition the data so every row for a given user lands on the
+          same executor, since the window function needs all of one user's
+          history together. If the data isn't already partitioned by
+          `user_id` upstream, that shuffle is the dominant cost of the job —
+          which is exactly why feature pipelines with a tight nightly SLA
+          often persist data pre-partitioned by the join/window key instead
+          of re-shuffling it every run.
+        source_name: DataCamp — Databricks interview questions and answers
+        source_url: https://www.datacamp.com/blog/databricks-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Reproducibility & experiment tracking
+        difficulty: easy
+        year: 2024
+        question: >-
+          A model scored well in your notebook three months ago. Someone else
+          needs to reproduce that exact result today. What has to be true for
+          that to work?
+        answer_md: |
+          Reproducibility is a chain, and any broken link kills it: the exact
+          code version (git commit, not "the notebook as it currently
+          exists"), the exact data version the model trained on, the exact
+          hyperparameters and library versions, and the training environment.
+
+          This is what MLflow's experiment tracking is for — logging the
+          code version, parameters, metrics, and artifacts as a single run
+          record — but it only helps if data is versioned too, since a
+          "reproducible" run against a table that got silently overwritten
+          upstream isn't reproducible at all. A model registry stage
+          (staging → production) on top of that gives you a controlled,
+          auditable promotion path instead of "whoever has notebook access
+          can push to prod."
+        source_name: DataCamp — Databricks interview questions and answers
+        source_url: https://www.datacamp.com/blog/databricks-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: ML system design
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the system that takes a model from an offline training run
+          to a production endpoint serving under 100ms at p99, and keeps
+          serving accurately as the input distribution shifts over time.
+        answer_md: |
+          Start from the skew, not the model. If training computes features
+          in a batch job and serving computes the "same" features in a
+          low-latency request path, small differences in how each is
+          implemented silently make the served features diverge from what
+          the model was trained on — this is the single most common cause of
+          "it worked offline, it's bad in production." A feature store that
+          both training and serving read from closes that gap.
+
+          For the serving path itself: a low-latency endpoint in front of the
+          model, a cache for expensive feature lookups, and an evaluation
+          gate that a candidate model must clear on a held-out, *recent*
+          slice of traffic before it's promoted — offline metrics on stale
+          data are not enough. Roll out with a canary against a fixed traffic
+          slice, and tie rollback to a concrete online metric over a defined
+          window (not "if it feels wrong"), because a vague rollback trigger
+          means nobody actually pulls it in an incident.
+        source_name: "DataInterview — Databricks Machine Learning Engineer interview guide"
+        source_url: https://www.datainterview.com/blog/databricks-machine-learning-engineer-interview
+
+      - kind: interview
+        round: technical
+        topic: Production monitoring
+        difficulty: medium
+        year: 2025
+        question: >-
+          A fraud model's precision quietly drops several points over a
+          month, but no accuracy alert ever fires. What's wrong with the
+          monitoring setup, and how do you fix it?
+        answer_md: |
+          The likely cause is that "accuracy" was never actually being
+          computed in near-real-time — ground-truth labels for fraud (a
+          chargeback, a manual review outcome) arrive days or weeks late, so
+          an accuracy-based alert is structurally blind to a slow degradation
+          until long after it started.
+
+          The fix is to monitor what you *can* measure immediately: feature
+          drift (are the inputs the model sees today statistically different
+          from training) and prediction drift (has the distribution of the
+          model's own outputs shifted), both computable the moment a
+          prediction is made, with the delayed label metric added later as
+          a confirming signal rather than the primary one. This is close to
+          how Databricks' own Lakehouse Monitoring is built: automatic
+          profiling and drift tables computed continuously per table, so a
+          shift shows up in hours, not whenever labels eventually land.
+        source_name: "Databricks Blog — Lakehouse Monitoring GA: Profiling, Diagnosing, and Enforcing Data Quality"
+        source_url: https://www.databricks.com/blog/lakehouse-monitoring-ga-profiling-diagnosing-and-enforcing-data-quality-intelligence
+
+      - kind: interview
+        round: coding
+        topic: Spark MLlib
+        difficulty: medium
+        year: 2024
+        question: >-
+          Implement k-fold cross-validation for a Spark DataFrame where each
+          row belongs to a user, guaranteeing no single user's rows ever
+          appear in both the train and validation fold. Why is naive
+          random-row splitting wrong here?
+        answer_md: |
+          Naive row-level random splitting treats every row as independent,
+          but rows from the same user are correlated — if some of a user's
+          events land in train and others in validation, the model can
+          effectively "memorize" that user via near-duplicate rows and your
+          validation score becomes an overestimate of real generalization.
+
+          The fix is group-aware cross-validation: assign each *user* (not
+          each row) to a fold, typically by hashing the user id into k
+          buckets, then filter the DataFrame by fold membership per split.
+          This keeps the operation distributed — the hash-and-filter can run
+          entirely as Spark transformations — while guaranteeing the
+          train/validation boundary respects user identity, which is the
+          actual constraint the interviewer is checking you'll remember on
+          the job.
+        source_name: DataCamp — Databricks interview questions and answers
+        source_url: https://www.datacamp.com/blog/databricks-interview-questions
+
+      - kind: interview
+        round: managerial
+        topic: Ownership
+        difficulty: medium
+        year: 2024
+        question: >-
+          Tell me about a model you shipped that had to be rolled back. What
+          happened, and what did you change afterward?
+        answer_md: |
+          Databricks explicitly frames its behavioral rounds around real
+          "tell me about a time" narratives rather than hypotheticals, so
+          resist the urge to describe a rollback that went smoothly for no
+          reason — that reads as either luck or a made-up story.
+
+          A strong answer names the concrete trigger (what metric, what
+          threshold, who or what caught it), the mechanics of the rollback
+          itself, and — the part people skip — the specific process change
+          afterward: a new gate added to the evaluation pipeline, a metric
+          that wasn't being monitored before, or an alert threshold that was
+          too loose. "We rolled it back and moved on" without a systemic fix
+          is a worse answer than a smaller incident with a real fix attached.
+        source_name: "Databricks Careers — Interview prep and insider insights"
+        source_url: https://www.databricks.com/company/careers/interview-prep
+
+  - slug: data-engineer
+    title: Data Engineer
+    level: mid
+    maps_to_role: data-scientist
+    sort_order: 3
+    source_url: https://www.systemdesignhandbook.com/guides/databricks-system-design-interview/
+    description: >-
+      Builds the ingestion and transformation pipelines that turn raw events
+      into trustworthy tables — the bronze/silver/gold "medallion" layers most
+      Databricks customers actually run. Graded on Spark and Delta Lake
+      internals more than general algorithms.
+    focus_md: |
+      This loop is the most product-specific of the three: expect Delta Lake
+      internals (the transaction log, ACID guarantees, schema evolution),
+      streaming semantics (exactly-once delivery, watermarking for late
+      data), and query performance (partitioning, Z-order, the small-file
+      problem) to come up as concretely as "here's a table, here's a query
+      that's too slow, what do you do." Generic data-engineering trivia
+      (what's a star schema) is table stakes, not the bar.
+
+      The recurring pattern worth internalizing is the **medallion
+      architecture**: bronze tables hold raw, mostly-unvalidated ingested
+      data; silver applies typing, deduplication and business rules; gold is
+      pre-aggregated for consumption. A strong answer to almost any pipeline
+      design question restates the problem in terms of which layer the
+      complexity belongs in, rather than trying to do validation, dedup and
+      aggregation all in one pass.
+
+      The other recurring theme is **failure and reprocessing**. It is not
+      enough to design the happy path — every serious answer needs a story
+      for late-arriving data, a mid-stream schema change, and a job that dies
+      halfway through a batch and needs to restart without producing
+      duplicates.
+    focus_areas:
+      - { concept: data-analyst-big-data-technologies, label: "Apache Spark internals", weight: 5,
+          notes: "Lazy evaluation, partitioning, shuffles — the substrate every other answer sits on." }
+      - { concept: system-design-data-management, label: "Lakehouse architecture (Delta Lake / medallion)", weight: 5,
+          notes: "Transaction log, ACID guarantees, schema evolution, bronze/silver/gold." }
+      - { concept: backend-message-brokers, label: "Streaming ingestion (Kafka, Auto Loader)", weight: 4 }
+      - { concept: system-design-asynchronism, label: "Exactly-once processing & watermarking", weight: 4,
+          notes: "Checkpointing, idempotent writes, and correctly handling data that arrives late." }
+      - { concept: sql-query-optimization-techniques, label: "Query performance at scale", weight: 3,
+          notes: "Partitioning, Z-order clustering, the small-file problem." }
+      - { concept: backend-scaling-databases, label: "Scaling storage & metadata", weight: 3 }
+      - { label: "Governance (Unity Catalog)", weight: 3,
+          notes: "Increasingly asked at intermediate+ level: fine-grained access control, lineage, auditing across workspaces." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Delta Lake internals
+        difficulty: easy
+        year: 2024
+        question: >-
+          What does Delta Lake's transaction log actually give you that a
+          plain folder of Parquet files doesn't? What happens if two jobs try
+          to write to the same table at the same moment?
+        answer_md: |
+          A folder of Parquet files has no notion of "the current state of
+          the table" — readers have to guess which files are current versus
+          leftover from a failed or in-progress write, and there's no
+          transactional boundary around a multi-file write. Delta Lake's
+          `_delta_log` fixes this with an ordered sequence of JSON commit
+          files, each an atomic record of exactly which files were added and
+          removed — the table's true state is the log replayed to its latest
+          commit, not "whatever files happen to be in the directory."
+
+          Two concurrent writers use optimistic concurrency control: both
+          read the log at the same starting version, and whichever commits
+          first wins outright. The second writer's commit is checked against
+          what actually landed — if the changes don't conflict (e.g., they
+          touched disjoint partitions) it can still succeed; if they do
+          conflict, the write fails and the job retries against the new log
+          tip rather than corrupting the table. That log is also what backs
+          time travel — querying the table "as of" an earlier commit.
+        source_name: DataCamp — Databricks interview questions and answers
+        source_url: https://www.datacamp.com/blog/databricks-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: Real-time ingestion pipeline
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a pipeline that ingests clickstream events from Kafka into a
+          queryable table within two minutes of the event happening, while
+          correctly handling events that arrive up to an hour late.
+        answer_md: |
+          Spark Structured Streaming reading from Kafka, checkpointing offsets
+          so a restart resumes exactly where it left off rather than
+          reprocessing or dropping data. Land raw events into a bronze Delta
+          table essentially as-is — minimal transformation, maximum
+          durability, so you can always replay from here if downstream logic
+          has a bug.
+
+          The late-data requirement is handled with a **watermark**: tell
+          Spark "I won't consider an event more than one hour late," which
+          bounds how long it keeps state around for aggregations and lets it
+          safely finalize and emit results for older windows instead of
+          holding them open forever. Silver applies deduplication (Kafka's
+          at-least-once delivery means retries produce duplicates — dedupe on
+          an event id within the watermark window) and schema validation.
+          Gold holds the pre-aggregated, dashboard-ready view. Partition
+          bronze/silver by event date to keep the small-file problem in check
+          as micro-batches land continuously, and compact periodically.
+        source_name: "System Design Handbook — Databricks System Design Interview guide"
+        source_url: https://www.systemdesignhandbook.com/guides/databricks-system-design-interview/
+
+      - kind: interview
+        round: coding
+        topic: Schema evolution
+        difficulty: medium
+        year: 2024
+        question: >-
+          A silver table gains a new nullable column upstream while the
+          pipeline is running. Write the merge logic that keeps the pipeline
+          running without a manual migration step. What would you do
+          differently if the change were a column *type* change instead?
+        answer_md: |
+          For an additive nullable column, this is the safe case: enable
+          schema evolution on the merge/write (Delta's `mergeSchema` option)
+          so the new column is absorbed automatically, with existing rows
+          getting a null in that column and the write proceeding without
+          manual DDL. This is safe specifically because it's additive and
+          nullable — nothing about the meaning of existing columns changes.
+
+          A type change is a different category of problem and should *not*
+          be auto-merged. Silently widening or narrowing a column's type can
+          change how existing values are interpreted (a string-to-int change
+          can silently drop or corrupt malformed rows, for instance). That
+          needs an explicit, versioned migration: write the new schema to a
+          new column or table, backfill historical data deliberately, cut
+          readers over, and only then retire the old column — a manual step
+          on purpose, because getting it wrong corrupts history rather than
+          just failing loudly.
+        source_name: DataCamp — Databricks interview questions and answers
+        source_url: https://www.datacamp.com/blog/databricks-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Query performance
+        difficulty: medium
+        year: 2025
+        question: >-
+          A BI dashboard query against a 50-column, multi-terabyte gold table
+          is scanning far more data than it should and the dashboard is slow.
+          What levers do you pull, in order?
+        answer_md: |
+          First check partition pruning: is the query filtering on the
+          column the table is partitioned by, so Spark can skip whole
+          partitions rather than scanning everything? If the filter is on a
+          second, unpartitioned column, Z-order clustering on that column
+          co-locates similar values within files so data-skipping statistics
+          can rule out whole files without reading them.
+
+          Watch for the small-file problem cutting the other way: over-
+          partitioning (partitioning by too fine-grained a key) creates
+          thousands of tiny files, and the overhead of opening each one can
+          dominate query time even with perfect pruning — compact
+          periodically (`OPTIMIZE`) if that's the case. Delta's built-in
+          caching helps for genuinely hot data reused across queries. If this
+          specific dashboard is the actual bottleneck rather than ad hoc
+          querying in general, the highest-leverage fix is often a
+          materialized, pre-aggregated gold table built exactly for that
+          query pattern rather than tuning the wide table further.
+        source_name: "System Design Handbook — Databricks System Design Interview guide"
+        source_url: https://www.systemdesignhandbook.com/guides/databricks-system-design-interview/
+
+      - kind: interview
+        round: coding
+        topic: Streaming semantics
+        difficulty: medium
+        year: 2024
+        question: >-
+          A Structured Streaming job writes to an external database (not
+          Delta) and produces duplicate rows every time it restarts after a
+          failure. Why, and how do you fix it?
+        answer_md: |
+          Streaming checkpoints track which Kafka offsets have been
+          *processed*, but that checkpoint commit and the write to an
+          external sink are two separate operations with no shared
+          transaction. If the job crashes after writing a micro-batch to the
+          external database but before the checkpoint records that batch as
+          done, a restart reprocesses the same batch and writes it again —
+          classic at-least-once delivery, not exactly-once.
+
+          The fix is to make the sink write idempotent rather than trying to
+          make the two operations atomic. Use `foreachBatch` and perform a
+          merge/upsert keyed on a unique id (or the Kafka offset itself)
+          instead of a plain insert — writing the same batch twice then has
+          no effect the second time. Writing to Delta directly sidesteps this
+          entirely, since Delta's transaction log lets the streaming write
+          and the checkpoint commit be treated as one atomic unit — which is
+          part of why teams default to Delta as the sink whenever they can.
+        source_name: DataCamp — Databricks interview questions and answers
+        source_url: https://www.datacamp.com/blog/databricks-interview-questions
+
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: easy
+        year: 2023
+        question: >-
+          The timed online assessment has included a straightforward
+          numeric-array problem in this shape: given a list of daily prices,
+          find the maximum profit from a single buy followed by a later sell.
+          Walk through brute force to the optimal single pass.
+        answer_md: |
+          Brute force checks every buy-day/sell-day pair: O(n²), and it's
+          worth stating that out loud first before improving it, since silent
+          thinking time under a strict OA clock looks identical to being
+          stuck.
+
+          Single pass: track the minimum price seen so far while scanning
+          left to right, and at each day compute `price - min_so_far` as a
+          candidate profit, keeping the best one seen. This works because the
+          best sell day's optimal buy day is always the cheapest price that
+          occurred *before* it — you never need to look backward past the
+          running minimum. O(n) time, O(1) space.
+        source_name: GeeksforGeeks — Databricks internship interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/databricks-interview-experience-for-summer-2021-internship/
+
+      - kind: interview
+        round: managerial
+        topic: Ownership
+        difficulty: medium
+        year: 2024
+        question: >-
+          Tell me about a pipeline that broke in production. How did you find
+          out, and what changed afterward?
+        answer_md: |
+          Avoid a story where the only fix was "I fixed the bug." The
+          stronger half of the answer is what changed structurally: a new
+          data-quality check added at the bronze/silver boundary, an alert on
+          a metric that wasn't being watched before, or a runbook that didn't
+          exist until this incident forced one.
+
+          Also be specific about *how you found out* — a dashboard you were
+          staring at, a downstream team pinging you, or (the strongest
+          answer) a monitor that caught it before anyone downstream noticed.
+          Databricks' own prep materials frame behavioral rounds around real
+          "tell me about a time" stories rather than hypotheticals, so a
+          concrete incident with a concrete systemic fix reads far better
+          than a polished but generic answer.
+        source_name: "Databricks Careers — Interview prep and insider insights"
+        source_url: https://www.databricks.com/company/careers/interview-prep

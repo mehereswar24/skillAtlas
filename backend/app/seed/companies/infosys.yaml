@@ -79,18 +79,18 @@ roles:
       of "and here is where it matters", which is what distinguishes you from
       the rest of the queue.
     focus_areas:
-      - { concept: quantitative-aptitude, label: "Quantitative aptitude & reasoning", weight: 5,
+      - { label: "Quantitative aptitude & reasoning", weight: 5,
           notes: "Adaptive. Accuracy early raises your ceiling; sectional cutoffs mean no section can be skipped." }
-      - { concept: programming-language-python, label: "Programming fundamentals", weight: 5,
+      - { concept: python-learn-the-basics, label: "Programming fundamentals", weight: 5,
           notes: "Pseudocode section leans C/C++. Practise reading unfamiliar code, not just writing it." }
-      - { concept: data-structures-algorithms, label: "Data structures", weight: 4,
+      - { concept: computer-science-data-structures, label: "Data structures", weight: 4,
           notes: "Arrays, linked lists, stacks, queues, trees — definitions and traversals." }
-      - { concept: relational-databases-sql, label: "DBMS", weight: 4,
+      - { concept: backend-relational-databases, label: "DBMS", weight: 4,
           notes: "Normalisation, keys, joins, ACID. Asked in nearly every technical round." }
-      - { concept: data-modeling, label: "OOP concepts", weight: 4 }
-      - { concept: exam-strategy, label: "Exam technique", weight: 4,
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP concepts", weight: 4 }
+      - { label: "Exam technique", weight: 4,
           notes: "No negative marking, sectional cutoffs, sectional timing with no switching." }
-      - { concept: linux-and-shell, label: "Operating systems basics", weight: 3,
+      - { concept: devops-operating-system, label: "Operating systems basics", weight: 3,
           notes: "Processes vs threads, deadlock conditions, paging." }
     questions:
       - kind: exam

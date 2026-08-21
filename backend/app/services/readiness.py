@@ -37,6 +37,38 @@ def completed_concept_ids(db: Session, user_id: int) -> set[int]:
     )
 
 
+# Track slugs and role slugs used to be identical. Since the roadmap.sh import
+# tracks carry roadmap.sh's names (`backend`, `devops`) while roles keep the
+# authored job titles (`backend-developer`, `devops-engineer`), so the goal a
+# learner picked has to be matched onto a role rather than looked up directly.
+_ROLE_SUFFIXES = ("", "-developer", "-engineer", "-designer", "-analyst", "-scientist")
+
+
+def _match_role(
+    readiness: list["RoleReadiness"], track_slug: str
+) -> "RoleReadiness | None":
+    """The role a chosen track is aiming at, or None."""
+    by_slug = {r.role.slug: r for r in readiness if r.missing}
+
+    for suffix in _ROLE_SUFFIXES:
+        found = by_slug.get(f"{track_slug}{suffix}")
+        if found:
+            return found
+
+    # `product-design` → `product-designer`.
+    for slug, entry in by_slug.items():
+        if slug.startswith(track_slug):
+            return entry
+
+    # `full-stack` → `fullstack-engineer`, `cyber-security` → `security-engineer`.
+    compact = track_slug.replace("-", "")
+    for slug, entry in by_slug.items():
+        stem = slug.rsplit("-", 1)[0].replace("-", "")
+        if stem == compact or compact.endswith(stem) or stem.endswith(compact):
+            return entry
+    return None
+
+
 def role_readiness(db: Session, user_id: int) -> list[RoleReadiness]:
     """Readiness for every role, best first."""
     completed = completed_concept_ids(db, user_id)
@@ -102,10 +134,7 @@ def missing_skills(
 
     target: RoleReadiness | None = None
     if preferred_role_slug:
-        target = next(
-            (r for r in readiness if r.role.slug == preferred_role_slug and r.missing),
-            None,
-        )
+        target = _match_role(readiness, preferred_role_slug)
     if target is None:
         target = next((r for r in readiness if r.missing and r.percent > 0), None)
     if target is None:

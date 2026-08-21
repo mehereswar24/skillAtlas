@@ -1,0 +1,628 @@
+# Atlassian.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (a company's LeetCode tag, a Glassdoor thread),
+#     we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI
+#     shows it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: atlassian
+  name: Atlassian
+  industry: Enterprise Software
+  hq: Sydney, Australia / San Francisco, California
+  website: https://www.atlassian.com/company/careers
+  icon: Layers
+  fetched_on: 2026-08-21
+  sort_order: 10
+  description: >-
+    Jira, Confluence, Trello and Bitbucket. Atlassian is unusually open about
+    its interview format, and grades a dedicated values round with the same
+    rigour it grades code — a strong loop with a generic values answer is a
+    real way to lose an offer here.
+  hiring_process_md: |
+    Atlassian publishes its interview loop, which is rarer than it sounds, and
+    the loop rewards candidates who take that publication seriously rather
+    than treating the published guide as marketing.
+
+    **The shape of it**
+
+    1. **Recruiter screen (30 min)** — background, motivation, logistics.
+    2. **Technical screen (45–60 min, usually run by Karat, a third-party
+       interviewing service, not an Atlassian engineer)** — often opens with
+       rapid-fire fundamentals (networking, OS, complexity) before one or two
+       coding problems in a shared editor.
+    3. **Virtual onsite loop (4–5 rounds, ~60 min each):**
+       - **Coding** — data structures and algorithms, plus a low-level design
+         problem (design a class, not a distributed system).
+       - **System design** — one full round from mid-level up.
+       - **Values interview** — a dedicated round, run by someone *outside*
+         your hiring chain, that maps structured questions to Atlassian's five
+         values.
+       - **Manager interview** — career trajectory, collaboration style, why
+         this team.
+    4. **Hiring committee** — reviews the packet before an offer goes out.
+
+    **What actually gets graded.** The published guide is explicit that
+    Atlassian does not grade language trivia — you pick your language, and
+    fluency in it matters less than how you reason through a problem out
+    loud. The one place candidates consistently underprepare is the values
+    round: it is graded on a rubric, not vibes, and a technically strong
+    candidate with a generic "I'm a team player" answer can still be rejected
+    there. The five values — Open company, no bullshit; Build with heart and
+    balance; Don't #@!% the customer; Play, as a team; Be the change you seek
+    — each need at least one concrete STAR story, ideally with a result you'd
+    do differently in hindsight, because a story where you were simply right
+    the whole time reads as rehearsed.
+  resources:
+    - kind: careers
+      title: "Engineering Interview Guide — Atlassian Careers"
+      url: https://www.atlassian.com/company/careers/resources/interviewing/engineering
+    - kind: careers
+      title: "Atlassian's values"
+      url: https://www.atlassian.com/company/values
+    - kind: careers
+      title: "Atlassian Careers"
+      url: https://www.atlassian.com/company/careers
+    - kind: blog
+      title: "Atlassian Engineering"
+      url: https://www.atlassian.com/engineering
+    - kind: prep
+      title: "Atlassian interview questions for technical profiles — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/atlassian-interview-questions-for-technical-profiles/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.atlassian.com/company/careers/resources/interviewing/engineering
+    description: >-
+      The generalist engineering role across Jira, Confluence and Bitbucket
+      backends. Graded on data structures and algorithms, low-level design,
+      and — as heavily as either — the values round.
+    focus_md: |
+      Two things separate a pass here from a near-miss. First, the low-level
+      design half of the coding round: Atlassian's products are built from
+      composable services behind REST APIs, so "design a class that models
+      an issue with configurable workflow states" is as likely as a pure
+      algorithm question, and it is graded on whether your abstractions hold
+      up when the interviewer asks you to extend them live.
+
+      Second, prepare the values round as its own interview, not a warm-up
+      chat. Bring three STAR stories that are honest about a time you were
+      wrong, not just times you were vindicated — that is what the rubric is
+      actually listening for.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "The coding round's first half. Arrays, trees, graphs and hashing are the recurring shapes." }
+      - { concept: computer-science-design-patterns, label: "Low-level / object-oriented design", weight: 5,
+          notes: "The coding round's second half: design a class or small component, not a distributed system." }
+      - { concept: computer-science-system-design, label: "System design", weight: 4,
+          notes: "A full round from mid-level up. Notification fan-out and multi-tenant scale are recurring themes." }
+      - { concept: api-design-different-api-styles, label: "REST API design", weight: 3,
+          notes: "Jira and Confluence are consumed as much through their APIs as their UIs." }
+      - { concept: backend-relational-databases, label: "Databases", weight: 3 }
+      - { concept: computer-science-networking, label: "Networking & OS fundamentals", weight: 2,
+          notes: "The Karat screen often opens with rapid-fire questions here before any code." }
+      - { label: "Atlassian values interview", weight: 5,
+          notes: "A dedicated, rubric-graded round. Map a STAR story to each of the five values before you walk in." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Arrays & intervals
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a list of scheduled maintenance windows as start/end times,
+          merge the overlapping ones and return the minimal set of windows
+          that still cover every original interval.
+        answer_md: |
+          Sort by start time first — this is the step candidates skip and
+          then wonder why their merge logic keeps missing overlaps.
+
+          Walk the sorted list keeping a "current" merged interval. If the
+          next interval's start is at or before the current interval's end,
+          extend the current interval's end to the max of the two ends;
+          otherwise close the current interval out and start a new one.
+          O(n log n) for the sort, O(n) for the single pass.
+
+          The follow-up worth volunteering: if the input arrives as a stream
+          rather than a batch, a sorted structure (balanced BST or skip list)
+          keyed by start time turns each insert into an O(log n) operation
+          instead of a full re-sort.
+        source_name: GeeksforGeeks — Atlassian interview experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/atlassian-interview-experience-for-sde/
+
+      - kind: interview
+        round: coding
+        topic: Low-level design
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the classes for a rate limiter that a shared API gateway
+          could use to cap requests per API key. Support at least two
+          different limiting strategies.
+        answer_md: |
+          Start with an interface — `RateLimiter.allow(apiKey): boolean` —
+          so the strategy is swappable, then implement two concrete classes
+          behind it: a token bucket (steady refill rate, allows bursts) and a
+          sliding-window counter (cheaper, approximate). This is the design
+          move interviewers are checking for: do you reach for polymorphism
+          before you reach for an if/else on a strategy enum.
+
+          State per key needs its own lock or needs to live in something
+          like Redis if the gateway is multi-instance — say this out loud
+          even if you don't implement it, because "where does the state
+          live under horizontal scale" is the actual follow-up question.
+        source_name: "Atlassian Low Level Design questions from recent interviews — Medium"
+        source_url: https://medium.com/@prashant558908/atlassian-low-level-design-questions-from-recent-interviews-d09c463c0889
+
+      - kind: interview
+        round: system-design
+        topic: Notification fan-out
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a notification service that has to fan updates out across
+          Jira, Confluence and Bitbucket — a comment, a mention and a build
+          failure should all be able to trigger one.
+        answer_md: |
+          The interesting constraint is that the three products have
+          different event shapes and different notification preferences per
+          user, so the design should separate "an event happened" from "who
+          gets told and how." A message queue (event bus) decouples the
+          producers (Jira, Confluence, Bitbucket) from a notification
+          service that fans each event out to a per-user preference table,
+          then to delivery channels (email, in-app, Slack).
+
+          Worth naming explicitly: idempotency (a retried event shouldn't
+          double-notify), and a preference cache in front of the delivery
+          fan-out, since checking "does this user want this" is the
+          hot-path read.
+        source_name: GeeksforGeeks — Atlassian interview questions for technical profiles
+        source_url: https://www.geeksforgeeks.org/interview-experiences/atlassian-interview-questions-for-technical-profiles/
+
+      - kind: interview
+        round: technical
+        topic: Networking & OS fundamentals
+        difficulty: easy
+        year: 2025
+        question: >-
+          Walk through what happens between typing a URL into a browser and
+          the page rendering. Where would a CDN and DNS caching change that
+          timeline?
+        answer_md: |
+          The expected shape: DNS resolution (walking the resolver chain
+          down to an authoritative server, or hitting a cache at any level),
+          TCP handshake, TLS handshake, the HTTP request, then the browser
+          parsing and rendering the response — with connection reuse
+          (HTTP/2 multiplexing or keep-alive) shortening this for subsequent
+          requests.
+
+          A CDN answers the request from an edge node close to the user
+          instead of the origin, cutting round-trip time; DNS caching (at
+          the OS, browser or resolver) skips the resolution chain entirely
+          on a repeat lookup. The Karat screen is checking whether you can
+          narrate this without prompting — it's testing fluency, not memory.
+        source_name: "TechPrep — Top Atlassian interview questions"
+        source_url: https://www.techprep.app/companies/atlassian
+
+      - kind: interview
+        round: managerial
+        topic: Atlassian values
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a decision you made where you later found out you
+          were wrong. What did you do when you found out, and what changed
+          in how you work now?
+        answer_md: |
+          This maps to "Open company, no bullshit" and "Build with heart and
+          balance" at once, and the trap is picking a story where the
+          mistake was cosmetic. Interviewers are listening for whether you
+          surfaced the mistake yourself before someone else found it, how
+          you communicated it (to whom, how fast), and one concrete thing
+          you changed afterwards — not "I learned to be more careful," which
+          reads as no change at all.
+
+          Atlassian's own guidance is to structure this with STAR: the
+          situation and the decision, the moment you learned it was wrong,
+          the action you took once you knew, and the measurable result —
+          including what you'd still do differently.
+        source_name: "Atlassian interview process — Ophy AI"
+        source_url: https://ophyai.com/blog/company-guides/atlassian-interview-guide
+
+      - kind: online-assessment
+        round: coding
+        topic: Karat DS&A screen
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a stream of Jira issue keys being viewed, design a data
+          structure that returns the k most recently viewed issues in O(1)
+          and supports O(1) insertion of a new view.
+        answer_md: |
+          This is an LRU-cache shape: a hash map from issue key to a node,
+          plus a doubly linked list ordered by recency. A view moves the
+          node to the head (O(1) with a hash map lookup plus pointer
+          surgery); reading the k most recent is just walking the first k
+          nodes from the head.
+
+          The screen is timed, so say the data structure choice out loud
+          before coding it — "hash map plus doubly linked list, because I
+          need O(1) lookup and O(1) reordering" — since Karat interviewers
+          are grading the verbal reasoning as much as the final code.
+        source_name: "Interviewing at Atlassian — Levels.fyi"
+        source_url: https://www.levels.fyi/blog/interviewing-at-atlassian.html
+
+      - kind: interview
+        round: technical
+        topic: REST API design
+        difficulty: medium
+        year: 2025
+        question: >-
+          Design a paginated REST endpoint for listing issues with filters
+          (assignee, status, label). What breaks first as the result set
+          grows?
+        answer_md: |
+          Offset pagination (`?offset=200&limit=50`) is the answer most
+          candidates reach for first and the one that breaks first: on a
+          large, actively-written table, offset pagination re-scans skipped
+          rows on every page and can skip or duplicate rows if the
+          underlying data changes between requests.
+
+          Cursor-based pagination (a `next_cursor` opaque token derived from
+          the last row's sort key) fixes both: it's a seek rather than a
+          scan, and it's stable under concurrent writes. Filters compound
+          the problem — each filter combination needs an index that
+          supports it, or the query falls back to a full scan once the
+          table is large enough.
+        source_name: "Atlassian's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/atlassian-interview-questions
+
+  - slug: senior-software-engineer
+    title: Senior Software Engineer
+    level: senior
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://www.teamblind.com/post/atlassian-coding-design-and-system-design-bank-gvuoncyd
+    description: >-
+      Same loop as the generalist role with the system design round weighted
+      heavier and a second technical round that probes how you'd scale an
+      existing system rather than design one from scratch.
+    focus_md: |
+      The tell that separates senior candidates: when asked to scale
+      something, do you reach immediately for "add a cache" and "add more
+      servers," or do you first ask what's actually failing — write
+      contention, read fan-out, a hot partition — and scale *that*.
+      Interviewers at this level are explicitly listening for you to name
+      the bottleneck before you name the fix.
+    focus_areas:
+      - { concept: computer-science-system-design, label: "Distributed systems design", weight: 5,
+          notes: "Real-time collaboration and multi-tenant scale are recurring Atlassian-flavoured prompts." }
+      - { concept: backend-scaling-databases, label: "Scaling databases", weight: 4,
+          notes: "Sharding a multi-tenant table (think Jira Cloud) comes up directly." }
+      - { concept: backend-architectural-patterns, label: "Architectural trade-offs", weight: 4 }
+      - { concept: backend-caching, label: "Caching strategy", weight: 3 }
+      - { concept: system-design-consistency-patterns, label: "Consistency under concurrent edits", weight: 4,
+          notes: "Real-time collaborative editing (Confluence-style) is a named prompt in recent loops." }
+      - { concept: computer-science-graphs, label: "Graph problems", weight: 3,
+          notes: "Issue-linking and dependency graphs (blocks/is-blocked-by) are a natural Jira-flavoured shape." }
+      - { label: "Technical leadership & values", weight: 3,
+          notes: "The values round still applies, weighted toward influence without authority." }
+    questions:
+      - kind: interview
+        round: system-design
+        topic: Real-time collaborative editing
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the backend for real-time collaborative document editing,
+          similar to Confluence's live pages — multiple people typing in the
+          same document at once.
+        answer_md: |
+          The core problem is merging concurrent edits without last-write-
+          wins clobbering someone's paragraph. Two accepted approaches:
+          Operational Transformation (transform each incoming operation
+          against the ones already applied, in server-decided order) or a
+          CRDT (each edit is a commutative operation that converges to the
+          same state regardless of arrival order). CRDTs are the easier
+          answer to reason about correctly under interview pressure because
+          you don't have to hand-derive the transform functions.
+
+          Beyond the merge algorithm: a WebSocket connection per active
+          editor, a presence service so cursors show who's where, and
+          periodic snapshotting so a new joiner doesn't replay the full
+          edit history from document creation.
+        source_name: GeeksforGeeks — Atlassian interview questions for technical profiles
+        source_url: https://www.geeksforgeeks.org/interview-experiences/atlassian-interview-questions-for-technical-profiles/
+
+      - kind: interview
+        round: system-design
+        topic: Multi-tenant scale
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a spreadsheet-like collaborative grid (think Google Sheets)
+          that supports formulas referencing other cells, at the scale of a
+          large team using it simultaneously.
+        answer_md: |
+          Two sub-problems, and naming both up front is what distinguishes a
+          senior answer: real-time sync of cell edits (same shape as
+          collaborative editing — CRDT or OT), and formula recalculation,
+          which is a dependency-graph problem — a cell's formula creates an
+          edge to every cell it references, and an edit triggers a
+          topological re-evaluation of the affected subgraph, not the whole
+          sheet.
+
+          The trap is recalculating everything downstream naively; a real
+          design memoizes unaffected branches and detects circular
+          references (A1 referencing B1 referencing A1) before evaluating,
+          since that's an infinite loop otherwise.
+        source_name: "Top system design interview questions for Atlassian — DesignGurus"
+        source_url: https://www.designgurus.io/answers/detail/what-are-the-top-system-design-interview-questions-for-atlassian-interview
+
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: hard
+        year: 2025
+        question: >-
+          Jira issues can "block" other issues. Given a set of block
+          relationships, detect whether adding a new block relationship
+          would create a cycle, and if so return the cycle.
+        answer_md: |
+          This is cycle detection on a directed graph, and the interesting
+          part is doing it incrementally rather than re-scanning the whole
+          graph on every new edge. Before inserting the new edge A→B, run a
+          DFS from B: if that DFS reaches A, the new edge would close a
+          cycle, and the path DFS took back to A *is* the cycle to report.
+
+          Naive full-graph cycle detection (Kahn's algorithm every time) is
+          O(V+E) per check; the incremental DFS is the same worst case but
+          the answer worth stating is that in the common case — most new
+          edges don't create cycles — it terminates far earlier.
+        source_name: GeeksforGeeks — Atlassian interview experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/atlassian-interview-experience-for-sde/
+
+      - kind: interview
+        round: technical
+        topic: Sharding a multi-tenant table
+        difficulty: hard
+        year: 2025
+        question: >-
+          A single Postgres table backing something like Jira Cloud's issues
+          has outgrown one machine. How would you shard it, and what do you
+          give up?
+        answer_md: |
+          Shard by tenant (workspace/site) ID, not by issue ID — every query
+          in a multi-tenant SaaS is already scoped to one tenant, so
+          tenant-key sharding keeps almost every query on a single shard.
+          Sharding by issue ID instead would scatter a single customer's
+          data across every shard and turn every query into a fan-out.
+
+          What you give up: cross-tenant queries (admin analytics across all
+          customers) now require a scatter-gather across shards, and a
+          single very large tenant can still outgrow its shard — which is
+          why real systems add a re-sharding or tenant-splitting path rather
+          than assuming the initial shard count is final.
+        source_name: "Atlassian Low Level Design questions from recent interviews — Medium"
+        source_url: https://medium.com/@prashant558908/atlassian-low-level-design-questions-from-recent-interviews-d09c463c0889
+
+      - kind: interview
+        round: managerial
+        topic: Influence without authority
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a time you needed another team to change something
+          in their system to unblock you, and they weren't convinced it was
+          worth doing.
+        answer_md: |
+          Weak answers escalate to a manager immediately; the rubric is
+          listening for whether you did the work to make the other team's
+          incentives visible first — quantified the cost of the status quo
+          to *them*, not just to you, before asking for the change.
+
+          A strong close names what you'd do differently: bring data
+          earlier, loop in their lead before the ask rather than after
+          pushback, or accept a smaller interim fix instead of holding out
+          for the ideal one. "Be the change you seek" is explicitly about
+          not waiting for someone else to fix the process.
+        source_name: "Atlassian interview process — Ophy AI"
+        source_url: https://ophyai.com/blog/company-guides/atlassian-interview-guide
+
+      - kind: online-assessment
+        round: coding
+        topic: Dependency scheduling
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a set of CI build jobs and their dependencies, return a valid
+          execution order, or report that no valid order exists.
+        answer_md: |
+          Topological sort — Kahn's algorithm (repeatedly remove nodes with
+          in-degree zero) is the version worth coding under time pressure,
+          because the leftover-nodes check is also your cycle detector: if
+          nodes remain after the queue empties, a cycle exists among them
+          and no valid order does.
+
+          Worth mentioning unprompted: the topological order isn't unique
+          when multiple jobs have no dependency relationship between them —
+          any of the valid orderings is correct, which is a detail
+          interviewers sometimes probe with "is your order the only one?"
+        source_name: "Atlassian's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/atlassian-interview-questions
+
+  - slug: site-reliability-engineer
+    title: Site Reliability Engineer
+    level: mid to senior
+    maps_to_role: devops-engineer
+    sort_order: 3
+    source_url: https://wac-cdn.atlassian.com/dam/jcr:a7dedb30-54ff-4641-84a7-34715d819009/P60%20SRE.pdf?cdnVersion=1436
+    description: >-
+      Keeps Jira, Confluence and Bitbucket Cloud up. The loop keeps the same
+      coding and values rounds as software engineering and swaps one round
+      for SRE craft — incident response, observability and operational
+      judgement under pressure.
+    focus_md: |
+      Atlassian's own published SRE interview guide is unusually direct
+      about what the craft round grades: not whether you've memorised a
+      runbook, but whether you can narrate a real incident — what you
+      personally did, how you communicated while still mid-incident, and
+      what changed afterwards. A candidate who says "I fixed it" without
+      saying how they knew what to fix, or who they told while doing it,
+      reads as junior regardless of the outage's severity.
+    focus_areas:
+      - { concept: devops-observability, label: "Observability & alerting", weight: 5,
+          notes: "What you alert on, and why symptom-based alerts beat cause-based ones, is core vocabulary here." }
+      - { concept: devops-operating-system, label: "Linux internals", weight: 4,
+          notes: "Live troubleshooting rounds lean on this: load average, /proc, what OOM-killer does." }
+      - { concept: computer-science-system-design, label: "System design", weight: 4 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3,
+          notes: "The coding bar isn't lowered for SRE candidates." }
+      - { concept: cyber-security-understand-the-incident-response-process, label: "Incident response", weight: 5,
+          notes: "The SRE craft round's centre of gravity. Bring a real incident, not a hypothetical." }
+      - { concept: devops-container-orchestration, label: "Container orchestration", weight: 3 }
+      - { concept: devops-infrastructure-monitoring, label: "Infrastructure monitoring", weight: 3 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Incident response
+        difficulty: hard
+        year: 2025
+        question: >-
+          Walk me through an incident you were part of, end to end — not
+          just the fix, but how you found it and what changed afterwards.
+        answer_md: |
+          Atlassian's own SRE interview guide is explicit that this is
+          graded structurally: detection (how did you find out — alert,
+          customer report, dashboard?), diagnosis (what did you check, in
+          what order, and why that order), mitigation (what you did to
+          restore service, which is not always the same as the root-cause
+          fix), and follow-up (the blameless postmortem action items, and
+          whether they actually shipped).
+
+          The detail that separates strong answers: naming what you did to
+          keep *other people* effective during the incident — a clear
+          status update cadence, delegating a sub-investigation, or
+          explicitly not paging someone who didn't need to be paged — not
+          just your own diagnostic steps.
+        source_name: "Principal Site Reliability Engineer Interview Guide — Atlassian"
+        source_url: https://wac-cdn.atlassian.com/dam/jcr:a7dedb30-54ff-4641-84a7-34715d819009/P60%20SRE.pdf?cdnVersion=1436
+
+      - kind: interview
+        round: technical
+        topic: Alerting design
+        difficulty: medium
+        year: 2025
+        question: >-
+          A service currently pages on-call for every 5xx error. On-call is
+          burning out from noise. Redesign the alerting.
+        answer_md: |
+          The fix is moving from cause-based alerts (an individual error) to
+          symptom-based ones (the user-facing SLO is at risk). Page on
+          burn-rate against an error budget — e.g., "we're consuming 2%/hour
+          of our monthly error budget" — rather than on any single error,
+          because a handful of 5xxs is often within tolerance and doesn't
+          need a human woken up for it.
+
+          Worth naming: a fast-burn alert (page now, budget nearly gone) and
+          a slow-burn alert (ticket, not page — budget draining steadily but
+          with hours to react) are different severities, and collapsing
+          them into one alert is exactly what causes the noise.
+        source_name: "Google SRE book — alerting on SLOs"
+        source_url: https://sre.google/workbook/alerting-on-slos/
+
+      - kind: online-assessment
+        round: coding
+        topic: Log parsing under time pressure
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a stream of log lines with timestamps, find the longest
+          window during which the error rate exceeded a given threshold.
+        answer_md: |
+          A sliding window over the sorted timestamps: expand the right edge
+          while the running error rate in the window stays above threshold;
+          when it drops below, shrink from the left. Track the max window
+          length seen. O(n) if the log is already time-ordered, which
+          production logs generally are.
+
+          The realistic follow-up is "the log doesn't fit in memory" —
+          answer that you only need a fixed-size ring buffer of the current
+          window's contents plus running counts, not the whole log, since
+          the sliding window never looks backward past its own left edge.
+        source_name: "Atlassian Site Reliability Engineer interview questions — Nodeflair"
+        source_url: https://nodeflair.com/companies/atlassian/interviews/site-reliability-engineer
+
+      - kind: interview
+        round: system-design
+        topic: Deployment safety
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a deployment pipeline for a service with hundreds of
+          instances such that a bad release affects as few customers as
+          possible before it's caught.
+        answer_md: |
+          Progressive rollout is the shape: deploy to a canary slice (1% of
+          instances, or one low-traffic region) first, watch the same
+          symptom-based SLO alerts for a bake period, then widen
+          automatically if healthy — halt and roll back automatically if
+          not. The rollback has to be as automated as the rollout, or "we
+          caught it" doesn't help anyone for the ten minutes a human takes
+          to notice and act.
+
+          Feature flags are the complementary tool: they decouple "the code
+          is deployed" from "the behaviour is live," so a bad feature can be
+          killed with a flag flip instead of a full redeploy.
+        source_name: "Atlassian Site Reliability Engineer interview questions — Nodeflair"
+        source_url: https://nodeflair.com/companies/atlassian/interviews/site-reliability-engineer
+
+      - kind: interview
+        round: managerial
+        topic: Atlassian values under pressure
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a time you had to tell a customer-facing team or a
+          customer directly that something was your team's fault.
+        answer_md: |
+          This is "Don't #@!% the customer" applied to incident
+          communication specifically. The rubric wants directness — did you
+          say plainly that it was your fault, with a timeline, rather than
+          hedging in a way that sounds like you're protecting yourself — and
+          evidence that you closed the loop afterwards with what changed so
+          it doesn't recur.
+        source_name: "Atlassian interview process — Ophy AI"
+        source_url: https://ophyai.com/blog/company-guides/atlassian-interview-guide
+
+      - kind: interview
+        round: technical
+        topic: Linux troubleshooting
+        difficulty: medium
+        year: 2025
+        question: >-
+          A host's CPU usage looks normal but requests are timing out. What
+          do you check, in order?
+        answer_md: |
+          Normal CPU with timeouts points away from compute and toward
+          contention or I/O. The order worth stating: load average versus
+          CPU count (a high load average with idle CPU means processes are
+          blocked, not computing — usually on I/O or a lock); `/proc` for
+          the suspect process's wait channel; disk and network I/O wait;
+          then application-level locks or a thread pool that's exhausted
+          even though no single thread is busy.
+
+          The habit interviewers want to see: forming a hypothesis and
+          checking the cheapest way to falsify it first, rather than running
+          every tool in sequence with no theory.
+        source_name: "Atlassian Senior Site Reliability Engineer interview questions — Nodeflair"
+        source_url: https://nodeflair.com/companies/atlassian/interviews/senior-site-reliability-engineer

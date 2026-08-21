@@ -79,9 +79,10 @@ the wrong theme before hydration.
 ## How it works
 
 **The graph.** `concepts` are nodes, `concept_prerequisites` are edges. A track
-lists its curated concepts; roadmap generation takes the transitive closure of
-their prerequisites, so choosing *AI Engineer* pulls in `containers-docker`
-even though that concept is curated under the backend track.
+lists its concepts; roadmap generation takes the transitive closure of their
+prerequisites. Since the roadmap.sh import each track owns its own concepts and
+every chain is linear, so a closure stays inside one track — the machinery still
+handles a shared, branching graph, there just is not one in the current content.
 
 **Roadmap generation.** Closure → subtract what the learner says they already
 know → Kahn topological sort (deterministic, quickest-wins first) → pack into
@@ -137,33 +138,62 @@ middleware) does an optimistic cookie check; the API authorises for real.
 
 ## Content
 
-Learning content is authored as YAML under `backend/app/seed/` — **every one of
-the 27 domains has a curated route; nothing says "coming soon"**.
+Tracks and concepts are **imported from [roadmap.sh](https://roadmap.sh)**. The
+hand-authored curriculum that used to live here was replaced by that import;
+roles, projects and companies are still authored YAML under `backend/app/seed/`.
 
 | | |
 |---|---|
-| Domains | 27 |
-| Tracks | 27 |
-| Concepts | 109 (~3,605 hours) |
-| Curated resource links | 362 |
-| Quiz questions | 328 |
-| Interview questions | 118 |
-| Job roles measured | 31 |
-| Buildable projects | 21 (112 automated tests) |
-| Companies | 10 (13 roles, 55 sourced questions) |
+| Domains | 15 |
+| Tracks | 92 — 91 imported, 1 authored (DSA) |
+| Concepts | 2,757 |
+| Resource links | 21,915 |
+| Quiz questions | 0 — see below |
+| Interview questions | 0 — see below |
+| Job roles measured | 26 |
+| Buildable projects | 55 (36 Python, 12 web, 7 SQL) |
+| Companies | 30 (69 roles, 403 sourced questions) |
 
-Projects currently cover the **backend** track end to end (one per concept,
-Python and SQL) and the **frontend** track (web). The remaining tracks have
-concepts and resources but no projects yet — the machinery is content-driven,
-so adding them is YAML authoring rather than code.
+Tracks and concepts are imported; **projects, companies, roles and the DSA track
+are authored** and live in the repo.
 
-Concepts are shared across tracks by slug reference rather than duplicated —
-`programming-language-python` and `containers-docker` each appear in several
-routes — which is what makes this one graph instead of parallel lists.
+### Licence — read before publishing
 
-**Adding a track, a project or a company is content work, not code**: drop a
-YAML file into `app/seed/tracks/`, `app/seed/projects/` or
-`app/seed/companies/`, re-run the seeder, and it appears everywhere.
+roadmap.sh's content is **not** open source. Its licence allows *personal use*
+and forbids redistributing the material anywhere outside its own repository.
+The generated tracks are therefore **git-ignored**: this repo ships the
+importer, not its output. Do not commit `backend/app/seed/tracks/*.yaml` or
+publish a deployment built from them without permission from roadmap.sh.
+
+### What the import does and does not give you
+
+roadmap.sh publishes each roadmap as a visual canvas plus one markdown file per
+node. Two fields it has no equivalent for are synthesised by the importer, and
+two features have no source at all:
+
+* **`est_hours` is estimated** from how much material a topic carries — there
+  is no time data in the source. The weekly scheduler needs *some* number.
+* **Prerequisites are the roadmap's own reading order.** The canvas has no
+  dependency edges; order is spatial, so each concept requires the previous one.
+* **No quizzes and no interview questions.** Completing a concept is therefore
+  ungated (`routers/progress.py` treats zero questions as a pass).
+* **Concepts are no longer shared between tracks.** Each roadmap is a
+  self-contained canvas, so the importer namespaces concepts per roadmap and
+  the same subject is duplicated across tracks. Progress does not carry over.
+
+Regenerate the content with:
+
+```powershell
+# a checkout or tarball of github.com/nilbuild/developer-roadmap
+.\venv\Scripts\python.exe scripts\import_roadmapsh.py --repo <path>
+```
+
+`scripts/remap_concept_refs.py` re-points authored `concept:` references at the
+imported concepts after a re-import.
+
+Projects cover the **backend** and **frontend** tracks. **Adding a project or a
+company is content work, not code**: drop a YAML file into
+`app/seed/projects/` or `app/seed/companies/`, re-run the seeder.
 
 ```powershell
 .env\Scripts\python.exe -m app.seed.loader     # idempotent; safe to re-run
@@ -188,8 +218,24 @@ cd ..\frontend
 npx tsc --noEmit
 node scripts/check-python-harness.mjs             # the harness, under real Pyodide
 node scripts/check-web-projects.mjs               # web projects, under jsdom
+npm run check:explore                             # /explore in a real browser
+npm run check:routes                              # several routes at once
+npm run check:companies                           # all 30 companies + the DSA track
+npm run check:build                               # all 55 projects
 npm run build
 ```
+
+The four `check:*` scripts drive the app end to end in Chromium. They need both
+servers up and `npx playwright install chromium` once.
+
+- **`check:explore`** — browse a domain's routes, start one, land on a real
+  weekly plan; plus search, the category filter and the signed-out redirect.
+- **`check:routes`** — run three routes at once, switch focus, rebuild one in
+  place, drop one.
+- **`check:companies`** — walks all 30 companies and 69 roles, asserts every
+  question is source-cited, and starts the DSA route.
+- **`check:build`** — walks all 55 projects, asserts each ships an entry file
+  and tests, and opens one workspace.
 
 `scripts/smoke.py` walks the product the way a person does — signup → roadmap →
 locked concept → study → complete → **build a project** → **points ledger** →

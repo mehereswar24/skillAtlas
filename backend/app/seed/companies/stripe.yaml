@@ -1,0 +1,691 @@
+# Stripe.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: stripe
+  name: Stripe
+  industry: Payments Infrastructure
+  hq: South San Francisco, California
+  website: https://stripe.com
+  icon: CreditCard
+  fetched_on: 2026-08-21
+  sort_order: 2
+  description: >-
+    Payments infrastructure for the internet — Stripe's APIs power checkout,
+    billing and money movement for millions of businesses. Interviews reward
+    practical engineering over algorithmic party tricks: reading code you
+    didn't write, reasoning about correctness under retries, and writing
+    clearly about both.
+  hiring_process_md: |
+    Stripe hires the way it builds its API: precisely, and with an unusual
+    amount of respect for what happens when a request fails halfway through.
+    The loop reads less like a algorithms gauntlet and more like a rough day
+    at the actual job — you are handed real, slightly messy artefacts (a
+    codebase with a bug in it, an API you have to integrate against under
+    time pressure, a design that has to survive a retry storm) and watched for
+    how you reason about them out loud.
+
+    **The shape of it**
+
+    1. **Recruiter screen (30 min)** — background, motivation, and whether you
+       understand what Stripe actually does (financial infrastructure for
+       other businesses, not a consumer payments app).
+    2. **Technical phone screen (60 min)** — live coding, but interviewers are
+       explicitly steered away from classic algorithm puzzles toward practical
+       problems: parsing ambiguous input, rate limiting, redacting sensitive
+       data from a log stream.
+    3. **Onsite loop (4–5 rounds, roughly 5 hours total)** — a coding round,
+       a "Bug Bash" (debug a real, unfamiliar codebase), an API/integration
+       round, a system design round, and a behavioural round. Staff+
+       candidates add a presentation round.
+    4. **Hiring manager / team match**, then an offer. The whole panel submits
+       written feedback and the group generally reaches consensus, with the
+       hiring manager as tiebreaker.
+
+    Two rounds decide more outcomes than people expect going in, and neither
+    rewards grinding a problem bank. The **Bug Bash** hands you a small,
+    unfamiliar service with a real bug and grades your diagnosis more than
+    your fix — narrate hypotheses, don't go silent and grep. The **API
+    integration round** lets you google freely and grades whether you handle
+    the parts a naive integration skips: retries, idempotency, partial
+    failure. Security-track candidates sit the same Bug Bash the engineers do,
+    plus rounds on threat modelling and, for application-security roles, a
+    hands-on CTF-style exercise.
+  resources:
+    - kind: careers
+      title: "Stripe Careers"
+      url: https://stripe.com/jobs
+    - kind: blog
+      title: "Stripe Engineering blog"
+      url: https://stripe.com/blog/engineering
+    - kind: prep
+      title: "Stripe interview process & questions — interviewing.io"
+      url: https://interviewing.io/stripe-interview-questions
+    - kind: blog
+      title: "Designing robust and predictable APIs with idempotency — Stripe blog"
+      url: https://stripe.com/blog/idempotency
+    - kind: prep
+      title: "Stripe interview process guide — TechPrep"
+      url: https://www.techprep.app/blog/stripe-interview-process
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://interviewing.io/stripe-interview-questions
+    description: >-
+      The core IC engineering role. Graded less on algorithmic tricks than on
+      whether you can build a correct mental model of a system you didn't
+      write and reason about failure modes out loud.
+    focus_md: |
+      **Stripe explicitly does not run a LeetCode shop.** Interviewers are
+      steered away from classic algorithm puzzles, and candidates who show up
+      having only grinded a problem sheet are often unpleasantly surprised:
+      the coding round is more likely to be "parse this ambiguous input" or
+      "redact card numbers out of a log stream" than "invert a binary tree."
+
+      Two rounds decide most outcomes, and neither is what people expect
+      going in:
+
+      - **The Bug Bash.** You get a small, unfamiliar codebase with a real
+        (if genericised) bug and have to find it live, usually within
+        45–60 minutes. The diagnosis matters more than the fix — narrate your
+        hypotheses, don't silently grep. This round has the worst pass rate
+        in the loop precisely because it can't be crammed for.
+      - **The API/integration round.** You build a feature against Stripe's
+        own API and docs, and googling is explicitly allowed. What's graded
+        is whether you handle the parts a naive integration skips: retries,
+        idempotency, partial failure.
+
+      System design at Stripe gravitates toward money-correctness rather than
+      raw scale: webhook delivery with retries, exactly-once-ish payment
+      processing, fraud-scoring pipelines. "It probably works" is not a
+      passing answer when the thing you're designing moves other people's
+      money.
+    focus_areas:
+      - { concept: api-design-design-first, label: "API design fluency", weight: 5,
+          notes: "Stripe is an API company first. The integration round grades whether you design and consume APIs well, not just call them." }
+      - { concept: system-design-idempotent-operations, label: "Idempotency & exactly-once semantics", weight: 5,
+          notes: "Comes up in coding, system design and the API round. Know what Stripe's own Idempotency-Key header actually does." }
+      - { label: "Debugging unfamiliar code (Bug Bash)", weight: 5,
+          notes: "No concept card covers this — it's a skill built by reading other people's code, not a topic you study." }
+      - { concept: computer-science-system-design, label: "System design for payments-shaped systems", weight: 4,
+          notes: "Webhook delivery, retry storms, fraud scoring — correctness under partial failure, not just throughput." }
+      - { concept: computer-science-data-structures, label: "Practical data structures & algorithms", weight: 3,
+          notes: "Present, but dressed as a real scenario — parsing, sliding windows over transaction streams — rarely a bare prompt." }
+      - { concept: api-design-traffic-control-error-handling, label: "Rate limiting & error handling", weight: 3 }
+      - { concept: sql-learn-the-basics, label: "SQL over transactional data", weight: 2,
+          notes: "Rolling averages and anomaly detection on a payments table, not schema trivia." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Debugging unfamiliar code (Bug Bash)
+        difficulty: hard
+        year: 2024
+        question: >-
+          You're handed a small service in the language of your choice. It
+          builds, but one endpoint is failing intermittently — the
+          interviewer won't tell you more than that. Find the bug and fix it,
+          thinking out loud the whole time.
+        answer_md: |
+          There's no algorithm to memorise here — the round is testing
+          whether you can build a correct mental model of code you didn't
+          write, under time pressure, without going quiet.
+
+          A workable sequence: **reproduce first.** Run the failing case
+          before reading a line of source; "intermittent" usually means
+          state, ordering or concurrency, and you want to see the shape of
+          the failure before you theorise about it. Then **read outward from
+          the symptom**, not from `main()` — find the function that returns
+          the wrong thing, then walk backward through what feeds it.
+
+          Say your hypotheses out loud as you form them, even the wrong ones
+          — "intermittent" plus "endpoint" points toward a race condition, a
+          stale cache entry, or an off-by-one that only bites at a boundary
+          (empty list, last page, midnight UTC). The diagnosis reportedly
+          carries more weight than the fix; a candidate who clearly narrows
+          the cause and proposes two plausible fixes often scores better than
+          one who patches the symptom without explaining why it happened.
+          Once found, write the regression test before you call it done —
+          that's the artefact that proves you understood the bug rather than
+          got lucky.
+        source_name: interviewing.io — Stripe interview guide
+        source_url: https://interviewing.io/stripe-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: Payments & idempotency
+        difficulty: hard
+        year: 2024
+        question: >-
+          Design the write path for a "charge a customer's card" endpoint
+          that must never double-charge, even when the client's connection
+          times out mid-request and the client's only sane move is to retry
+          the exact same call.
+        answer_md: |
+          The client's dilemma is the whole problem: a timeout doesn't tell
+          you whether the charge landed, only that you didn't hear back.
+          Retrying blind risks a double charge; not retrying risks losing a
+          legitimate payment. You solve it by making the retry provably safe
+          rather than trying to guess what happened.
+
+          The mechanism is a client-generated **idempotency key** sent on the
+          request (Stripe's own API takes it as an `Idempotency-Key` header).
+          Before starting work, the server checks whether it has already
+          begun or finished a request with that key; if so, it returns the
+          *cached result* of the original attempt rather than re-executing
+          anything, `500`s included, so a client can safely retry the exact
+          same call as many times as it wants. If it hasn't seen the key, it
+          begins the charge and records the key transactionally with the
+          result.
+
+          Two subtleties are the actual interview: what happens when a
+          **second request with the same key arrives while the first is
+          still in flight** (you need a lock or a "processing" placeholder
+          row so the second one waits or is rejected rather than racing the
+          first to also charge the card), and what happens when a **key is
+          reused with different parameters** (that's client error, not a
+          retry, and should fail loudly rather than silently returning the
+          old result). Keys should also expire — storing them forever is a
+          resource leak.
+        source_name: Stripe docs — Idempotent requests
+        source_url: https://docs.stripe.com/api/idempotent_requests
+
+      - kind: interview
+        round: coding
+        topic: Rate limiting
+        difficulty: medium
+        year: 2023
+        question: >-
+          Implement a rate limiter that allows N requests per client per
+          second, then explain what changes when the API runs on many
+          servers behind a load balancer instead of one.
+        answer_md: |
+          Single-process version: a token bucket per client — refill at
+          N tokens/second up to a cap, and a request is allowed if a token is
+          available. It's a few lines and handles bursts sanely, which a
+          naive fixed-window counter does not (a client can burn its whole
+          window's budget in the last millisecond of one second and again in
+          the first millisecond of the next, doubling the effective rate at
+          the boundary).
+
+          The interesting half is what happens once you have more than one
+          server. An in-memory bucket per process is now wrong — a client
+          hitting three different servers gets 3N requests through, not N.
+          The fix is moving the counter to something all servers share: Redis
+          with an atomic `INCR` + `EXPIRE`, or a Lua script if you need the
+          check-and-increment to be atomic in one round trip (two separate
+          calls race). At that point you've traded a memory-speed operation
+          for a network hop on every request, so the follow-up worth raising
+          unprompted is: do you rate-limit centrally on every request, or
+          hand each server a local budget and reconcile periodically, trading
+          strict accuracy for latency? There's no single right answer —
+          naming the trade-off is the point.
+        source_name: interviewing.io — Stripe interview guide
+        source_url: https://interviewing.io/stripe-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: API design & versioning
+        difficulty: medium
+        year: 2024
+        question: >-
+          Stripe's public API launched in 2011 and has never shipped a
+          breaking change to an existing integration since. How would you
+          design a versioning scheme that lets the API's request and
+          response shapes keep evolving without breaking code that was
+          written years ago and never touched again?
+        answer_md: |
+          The naive answer is "put a version number in the URL" (`/v1/`,
+          `/v2/`), but that only solves the problem for integrations built
+          after the bump — everyone already on `/v1/` is still stuck, or
+          still breaks the day you delete `/v1/`.
+
+          Stripe's actual approach pins each API key to a specific **dated
+          version** at the time the account was created (or last upgraded),
+          and every incoming request is transformed forward or backward at
+          the edge to match what that account expects, regardless of what the
+          underlying implementation looks like internally. That decouples
+          "the API changes" from "your integration changes" completely — an
+          account created against the 2019 shape of an object keeps getting
+          the 2019 shape forever, translated on the way out, even while the
+          internal representation has moved on. The cost is real: Stripe
+          maintains a compatibility-transform layer with years of accumulated
+          versions, a permanent tax on every future change. The trade-off
+          worth naming out loud is exactly that — you're buying integration
+          stability by paying engineering complexity forever, and for a
+          company whose customers are other companies' production payment
+          flows, that trade is worth making; for an internal API with five
+          known consumers, it usually isn't.
+        source_name: "Stripe blog — APIs as infrastructure: future-proofing Stripe with versioning"
+        source_url: https://stripe.com/blog/api-versioning
+
+      - kind: interview
+        round: coding
+        topic: Parsing & string processing
+        difficulty: medium
+        year: 2023
+        question: >-
+          Given raw application log lines that sometimes contain a credit
+          card number in one of several formats (spaces, dashes, no
+          separators), write a function that redacts everything but the last
+          four digits before the line is written to disk.
+        answer_md: |
+          Start with the obvious regex — match 13–19 digit runs, optionally
+          separated by spaces or dashes, and replace all but the trailing
+          four characters. That gets you most of the way and is the answer
+          most candidates land on first.
+
+          The follow-up the interviewer is actually listening for is false
+          positives and false negatives. A bare digit regex flags order IDs,
+          phone numbers and timestamps as "card numbers" (false positive —
+          annoying but safe), and it *misses* real card numbers broken across
+          a line wrap or embedded in JSON with escaped separators (false
+          negative — the dangerous direction, since the whole point of the
+          function is to never let a real card number reach disk). Tightening
+          the match with a **Luhn checksum** after the regex catches many
+          false positives, since order IDs rarely happen to be Luhn-valid.
+          But the real production answer is architectural, not
+          regex-tuning: redact as close to the source as possible — at the
+          point the value enters the process, not by scrubbing logs after the
+          fact — because any code path that logs before your redaction filter
+          runs is a card number sitting on disk.
+        source_name: interviewing.io — Stripe interview guide
+        source_url: https://interviewing.io/stripe-interview-questions
+
+      - kind: online-assessment
+        round: coding
+        topic: Sliding window
+        difficulty: easy
+        year: 2024
+        question: >-
+          Given a stream of (timestamp, amount) transaction events, compute
+          the maximum total transaction volume in any rolling 60-second
+          window.
+        answer_md: |
+          This is a sliding window over a stream rather than a fixed array,
+          so the two-pointer version generalises cleanly: keep a queue of
+          (timestamp, amount) pairs and a running sum. For each new event,
+          add it to the sum and push it onto the queue; then, while the
+          oldest entry in the queue is more than 60 seconds behind the
+          newest, pop it off and subtract it from the sum. The running sum
+          after each push is a candidate for the maximum — track the best one
+          seen.
+
+          This is O(1) amortised per event, since each event is pushed once
+          and popped once, and it's the shape you'll reuse for anything
+          "volume/rate over the last N seconds" — which, on a payments
+          platform, is most of fraud velocity checks and dashboard metrics.
+          The thing worth saying out loud: this only works because events
+          arrive in non-decreasing timestamp order. If events can arrive out
+          of order (a very real possibility across distributed producers),
+          you need a different structure — a min-heap keyed by timestamp, or
+          an explicit late-arrival tolerance — and that's usually the
+          intended follow-up.
+        source_name: TechPrep — Stripe interview process guide
+        source_url: https://www.techprep.app/blog/stripe-interview-process
+
+      - kind: online-assessment
+        round: technical
+        topic: SQL over transactional data
+        difficulty: medium
+        year: 2024
+        question: >-
+          Given a payments table with one row per transaction (timestamp,
+          amount, status), write a query that computes each day's 7-day
+          rolling average of successful transaction volume, and flags any day
+          where actual volume deviates from that rolling average by more
+          than 2 standard deviations.
+        answer_md: |
+          First collapse to one row per day: `SUM(amount)` filtered to
+          `status = 'succeeded'`, grouped by date. Then a window function
+          does the rolling stats without a self-join:
+          `AVG(daily_volume) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)`
+          for the rolling mean, and `STDDEV(daily_volume) OVER (...)` the
+          same way for the rolling standard deviation over that window.
+
+          The anomaly flag is then just a comparison in the outer query:
+          `ABS(daily_volume - rolling_avg) > 2 * rolling_stddev`. Two things
+          worth calling out unprompted: the first six days of any range have
+          an incomplete window (fewer than 7 prior days), so either exclude
+          them or note that their rolling average is less trustworthy; and
+          "volume dropped" and "volume spiked" are not the same failure mode
+          on a payments platform — a spike might be a good marketing day or a
+          duplicate-charge bug, a drop might be a checkout outage — so in
+          practice you'd want the two directions flagged and routed
+          differently, not just a single boolean.
+        source_name: TechPrep — Stripe interview process guide
+        source_url: https://www.techprep.app/blog/stripe-interview-process
+
+      - kind: interview
+        round: managerial
+        topic: Behavioral / intellectual honesty
+        difficulty: easy
+        year: 2023
+        question: >-
+          Tell me about a technical decision you made that turned out to be
+          wrong. What did you learn, and what would you do differently?
+        answer_md: |
+          Stripe's behavioural round is described by candidates as going
+          deeper than a standard STAR-format question — interviewers push
+          past the rehearsed version and ask follow-ups until they hit
+          something real. A polished story where you made the right call all
+          along doesn't give them anywhere to push, which is itself a small
+          red flag.
+
+          Pick a decision where the *reasoning* was defensible given what you
+          knew, but the outcome was still wrong — that's a different and more
+          interesting story than "I made a dumb mistake." Structure it around
+          the information you had, the trade-off you weighed, what actually
+          happened, and specifically what you'd change about your *process*
+          next time, not just the outcome. "I'd add a canary rollout before
+          touching the batch job" is a stronger answer than "I'd be more
+          careful," because it shows the lesson generalised into something
+          you'd actually do differently, not just regret.
+        source_name: TechPrep — Stripe interview process guide
+        source_url: https://www.techprep.app/blog/stripe-interview-process
+
+  - slug: security-engineer
+    title: Security Engineer
+    level: mid to senior
+    maps_to_role: security-engineer
+    sort_order: 2
+    source_url: https://stripe.com/careers/listing/cloud-security-engineer/7867389
+    description: >-
+      Builds the guardrails, cryptographic primitives and detection systems
+      that keep a company moving billions of dollars a year from becoming the
+      next breach headline. Shares Stripe's Bug Bash round with the SWE loop,
+      plus rounds specific to threat modelling and applied cryptography.
+    focus_md: |
+      Security roles at Stripe sit inside a company whose entire product is
+      "be trusted with other people's money," which changes the flavour of
+      the questions. Fewer "what is XSS" definitions, more "here is a real
+      design — where does it leak, and what's the blast radius if it does."
+
+      Expect the loop to mix a generalist security-engineering bar (the same
+      Bug Bash round SWEs get, because reading unfamiliar code is a security
+      skill too) with role-specific rounds: a technical interview on core
+      security concepts with a team lead, and — for application/product
+      security roles — a hands-on CTF-style exercise where you're expected to
+      actually find, and ideally exploit, a vulnerability rather than
+      describe one in the abstract.
+
+      Because Stripe's product surface is payments, expect concrete,
+      PCI-flavoured scenarios rather than generic "how would you secure a web
+      app": tokenisation versus storing raw card data, least-privilege IAM in
+      a shared cloud account with hundreds of engineers self-servicing
+      infrastructure, and the fraud-detection side of the house, where the
+      interesting failure mode isn't "we got breached" but "we were so
+      conservative we declined our best customers." Reading Stripe's own
+      webhook-signing implementation before the loop is worth the twenty
+      minutes — HMAC-SHA256 over a timestamped payload, constant-time
+      comparison, replay protection via timestamp tolerance — it's a small,
+      complete example of the applied-crypto reasoning they're listening for.
+    focus_areas:
+      - { concept: api-design-api-security, label: "API authentication & signature verification", weight: 5,
+          notes: "Stripe's own webhook signing (HMAC-SHA256, timestamped, replay-protected) is close to a model answer for this whole topic." }
+      - { concept: cyber-security-basics-of-cryptography, label: "Applied cryptography", weight: 4,
+          notes: "HMACs, constant-time comparison, key rotation — not proving security theorems." }
+      - { concept: cyber-security-cloud-skills-and-knowledge, label: "Cloud security & IAM guardrails", weight: 4,
+          notes: "Least-privilege in a shared cloud account that hundreds of engineers self-service." }
+      - { concept: computer-science-security, label: "Threat modelling & security fundamentals", weight: 4 }
+      - { concept: cyber-security-common-attacks, label: "Web & application attack classes", weight: 3,
+          notes: "IDOR and authorization bugs specifically — the classic Bug Bash shape." }
+      - { concept: cyber-security-understand-the-incident-response-process, label: "Incident response & postmortems", weight: 3 }
+      - { label: "Debugging unfamiliar code (shared Bug Bash round)", weight: 4,
+          notes: "Security candidates sit the same debugging round as SWEs — no concept card covers reading code you didn't write, fast." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Cloud IAM & guardrails
+        difficulty: medium
+        year: 2024
+        question: >-
+          Product teams need to provision their own IAM roles in a shared
+          cloud account without waiting on a security review for every
+          change. How do you stop a well-meaning engineer from shipping an
+          over-privileged role, without becoming the bottleneck that manual
+          review would be?
+        answer_md: |
+          The instinct to gate every role creation behind a human reviewer
+          doesn't scale, and it also doesn't work — a tired reviewer
+          approving their fortieth policy diff of the day is not a security
+          control, it's theatre with a delay attached.
+
+          The stronger pattern is guardrails, not gates: define IAM policies
+          as code, run automated linting in CI that rejects known-bad shapes
+          (wildcard resource ARNs, `*` actions, permissions that don't match
+          the service's declared purpose) before a human ever sees the diff,
+          and default every self-service role template to the minimum
+          permission set a team actually needs rather than a broad one they
+          might grow into. Where a genuinely broad permission is required,
+          route *that specific request* to review rather than reviewing
+          everything — the review budget goes to the risky minority of cases.
+          Backstop it with drift detection: a scheduled job that diffs
+          deployed policies against what CI approved and pages someone when
+          they've diverged, because self-service infrastructure that can
+          only be checked at creation time will eventually be edited by hand
+          at 2am. The goal is that the fast path is also the safe path, so
+          nobody has a reason to route around it.
+        source_name: Stripe Careers — Cloud Security Engineer listing
+        source_url: https://stripe.com/careers/listing/cloud-security-engineer/7867389
+
+      - kind: interview
+        round: technical
+        topic: Payment data protection
+        difficulty: hard
+        year: 2023
+        question: >-
+          A customer-support tool needs to show an agent the last four digits
+          of a card for identity verification. What's wrong with storing the
+          full card number and just truncating it at render time, and what
+          would you build instead?
+        answer_md: |
+          Storing the full number anywhere in your systems — even if every
+          current code path only ever displays four digits of it — means
+          every service, database, backup and log line that number touches
+          is now in PCI scope, and it means one code path with a bug (a debug
+          log statement, an API response that forgot to redact) turns into a
+          full card-number leak instead of a non-event.
+
+          The standard fix is **tokenisation**: the raw number is exchanged
+          once, at the earliest possible point (ideally client-side, before
+          it ever hits your servers), for an opaque token plus a
+          pre-computed "last four" field. Everything downstream — support
+          tools, analytics, your own database — stores and displays the
+          token and the last-four field, never the original number. If a
+          support tool or a database is compromised, the token is worthless
+          outside the system that minted it. This is also why "reduce PCI
+          scope" is a real engineering goal and not just a compliance
+          checkbox: every system that never touches raw card data is a
+          system you don't have to defend to that standard, encrypt to that
+          standard (AES-256 at rest, TLS 1.2+ in transit), or explain to an
+          auditor.
+        source_name: Stripe — Payment security and compliance guide
+        source_url: https://stripe.com/guides/payments-security-and-compliance
+
+      - kind: interview
+        round: technical
+        topic: Fraud detection systems
+        difficulty: medium
+        year: 2024
+        question: >-
+          Design a system that scores every transaction for fraud risk in
+          real time. What signals would you combine, and how do you avoid
+          the failure mode where being too conservative costs more than the
+          fraud you're preventing?
+        answer_md: |
+          No single signal is reliable alone, so production fraud systems
+          layer several: a machine-learning model trained on historical
+          outcomes, hand-written rules for known patterns the model hasn't
+          learned yet (a new fraud ring moves faster than a retraining
+          cycle), device fingerprinting, and velocity checks (how many cards
+          has this device tried in the last hour, how many attempts has this
+          card seen). The rules layer matters even with a good model, because
+          rules can be shipped in minutes when a new attack pattern is
+          spotted, while retraining a model is comparatively slow.
+
+          The trap in the question is the second half. A system tuned purely
+          to minimise fraud will decline legitimate customers to do it, and
+          every declined legitimate transaction is a real cost — lost revenue
+          now, and a customer who may not come back. The metric that actually
+          matters is not "fraud rate" in isolation but the combination of
+          fraud caught *and* approval rate on good transactions, and the two
+          trade off against each other on the same dial. That argues for
+          treating the risk score as a spectrum with several response tiers —
+          auto-approve, step-up authentication (3D Secure, an OTP), manual
+          review, auto-decline — rather than one binary threshold, so
+          borderline transactions get more friction instead of an outright
+          rejection.
+        source_name: Stripe — Payment security and compliance guide
+        source_url: https://stripe.com/guides/payments-security-and-compliance
+
+      - kind: interview
+        round: coding
+        topic: Debugging unfamiliar code (Bug Bash)
+        difficulty: hard
+        year: 2023
+        question: >-
+          You're handed a small internal service. Its authorization check
+          passes in every test the previous team wrote, but the interviewer
+          tells you: "this leaked a customer's data once — find out how."
+          What's your process?
+        answer_md: |
+          Framed as a leak rather than a crash, this is almost always a
+          scoping bug rather than a missing check: the code checks *that*
+          the caller is authenticated and *that* they belong to some
+          organisation, but doesn't check that the resource being requested
+          belongs to *that specific* organisation — the classic
+          insecure-direct-object-reference shape. It passes every test the
+          original team wrote because those tests only ever exercised a user
+          fetching their own data; nobody wrote the test where user A
+          supplies user B's resource ID.
+
+          Work backward from the response, not forward from the request:
+          find where the resource is actually fetched from the database, and
+          check whether the query is scoped to the caller's org/user ID or
+          just to the requested ID. If it's the latter, you've found it.
+          Confirm by writing the exploit as a test — call the endpoint as
+          user A with user B's ID and assert it fails — because in a security
+          round, a diagnosis without a reproducing test is a guess with good
+          vibes. Then fix it at the query layer (scope the `WHERE` clause),
+          not just by adding a check earlier in the request handler that a
+          future refactor could accidentally route around.
+        source_name: Glassdoor — Stripe interview question (Bug Bash)
+        source_url: https://www.glassdoor.com/Interview/in-bug-bash-I-was-asked-to-find-a-bug-in-a-codebase-of-language-of-my-choice-I-found-bug-bash-to-be-the-hardest-interview-QTN_6779817.htm
+
+      - kind: interview
+        round: technical
+        topic: Applied cryptography
+        difficulty: medium
+        year: 2024
+        question: >-
+          You need to (a) store a secret used to sign outgoing webhook
+          payloads, and (b) let the receiver verify a payload hasn't been
+          tampered with in transit. Walk through the design — why not just
+          MD5 the payload and call it done?
+        answer_md: |
+          A bare hash (MD5 or otherwise) proves nothing about authenticity —
+          anyone can compute `MD5(payload)` themselves, attacker included, so
+          a hash alongside the payload only detects accidental corruption,
+          not deliberate tampering. What you need is a **keyed** hash: HMAC
+          over the payload using a secret only you and the legitimate
+          receiver know, so producing a valid signature requires the secret,
+          not just the payload.
+
+          This is close to how Stripe actually signs webhooks: HMAC-SHA256
+          over a string built from a timestamp concatenated with the raw
+          payload, sent in a header alongside the signature. Two details
+          separate a real implementation from a toy one. First, comparing the
+          computed and received signatures must be **constant-time** — a
+          naive `==` short-circuits on the first mismatched byte, and that
+          timing difference is a measurable side channel an attacker can use
+          to guess the correct signature byte by byte. Second, including the
+          **timestamp inside the signed content**, not just alongside it,
+          stops replay attacks: even a captured, perfectly valid old
+          payload-plus-signature pair gets rejected once its timestamp falls
+          outside a tolerance window (a few minutes), because the receiver
+          checks both that the signature is valid *and* that the timestamp is
+          recent — and an attacker can't forge a newer timestamp without
+          invalidating the signature that covers it.
+        source_name: Stripe docs — Verify webhook signatures
+        source_url: https://docs.stripe.com/webhooks/signatures
+
+      - kind: interview
+        round: managerial
+        topic: Incident response
+        difficulty: easy
+        year: 2023
+        question: >-
+          Tell me about a security incident — one you handled, or a
+          postmortem you've studied closely — where the real fix wasn't a
+          code change but a process change. What changed, and why wasn't it
+          caught sooner?
+        answer_md: |
+          The trap is answering with a pure technical fix ("we patched the
+          vulnerability") when the question is explicitly asking about the
+          process gap that let it exist in the first place — a patched line
+          of code and an incident that can't recur are different
+          achievements, and the second one is what they're probing for.
+
+          A strong answer names the process failure precisely: was it a
+          missing step in code review that would have caught the class of
+          bug, not just that instance of it? A monitoring gap where the
+          exploit was visible in logs for weeks before anyone looked? An
+          on-call runbook that didn't cover this failure mode, so response
+          was slower than it should have been? Then it names the concrete
+          process change — a new automated check, a changed review
+          checklist, an added alert with a defined threshold — and, ideally,
+          whether that change actually got tested against a similar scenario
+          later, because a process fix nobody verifies is just a hopeful
+          memo. Blameless framing matters too: "here's what the system
+          allowed to happen and how we changed the system" reads as far more
+          senior than "here's who missed it."
+        source_name: TechPrep — Stripe interview process guide
+        source_url: https://www.techprep.app/blog/stripe-interview-process
+
+      - kind: online-assessment
+        round: coding
+        topic: Sensitive-data redaction
+        difficulty: easy
+        year: 2024
+        question: >-
+          Write a function that scans arbitrary application log lines and
+          redacts anything that looks like a card number, an API secret key,
+          or a bearer token before the line reaches disk.
+        answer_md: |
+          Card numbers get the regex-plus-Luhn treatment from the equivalent
+          engineering question — digit runs of the right length, separators
+          optional, checksum-validated to cut false positives. Secrets and
+          tokens need a different detector, because they don't have a fixed
+          length or checksum: the practical signal is **entropy plus known
+          prefixes**. Stripe's own secret keys, for instance, start with a
+          recognisable prefix (`sk_live_`, `sk_test_`) followed by a long
+          random string — matching the prefix is cheap and precise. For
+          arbitrary bearer tokens without a known prefix, a Shannon-entropy
+          threshold over candidate substrings (long, high-entropy runs of
+          alphanumerics) catches most of them, at the cost of some false
+          positives on things like hashes or UUIDs that are also
+          high-entropy but not secret.
+
+          The design decision worth stating out loud: this is a
+          **defense-in-depth** measure, not the primary control. A redaction
+          filter running at the logging boundary will always miss something
+          — a new secret format, a token embedded in a URL query string, a
+          value the regex doesn't anticipate — so the actual fix for
+          "secrets end up in logs" is to stop constructing log lines from
+          raw request/response bodies in the first place, and treat this
+          filter as the safety net that catches what discipline misses, not
+          the mechanism you rely on.
+        source_name: interviewing.io — Stripe interview guide
+        source_url: https://interviewing.io/stripe-interview-questions

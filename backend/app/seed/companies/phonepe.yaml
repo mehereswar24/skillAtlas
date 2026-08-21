@@ -1,0 +1,468 @@
+# PhonePe.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: phonepe
+  name: PhonePe
+  industry: Fintech / Digital payments
+  hq: Bengaluru, Karnataka
+  website: https://www.phonepe.com/careers/
+  icon: Smartphone
+  fetched_on: 2026-08-21
+  sort_order: 24
+  description: >-
+    India's largest UPI payments app by transaction volume, plus an
+    insurance and wealth-management arm (Pulse). The loop is unapologetically
+    machine-coding-heavy and its system design rounds are consistently
+    payments-flavoured rather than generic.
+  hiring_process_md: |
+    PhonePe's loop is close in shape to Flipkart's and Razorpay's — both
+    unsurprising, since all three lean on machine coding as a serious filter
+    — but PhonePe pushes the payments framing deeper into the system design
+    round than most: expect UPI-specific vocabulary (settlement, ledgers,
+    reconciliation) rather than generic "design a URL shortener" prompts.
+
+    **The shape of it**
+
+    1. **Online assessment** — 4 questions across a spread of difficulty (1
+       easy, 2 medium, 1 hard is a commonly reported mix), plus some UNIX/
+       shell-flavoured questions for certain tracks.
+    2. **Technical/DSA rounds (2)** — each typically 2 DSA problems, live
+       coding, standard product-company syllabus.
+    3. **Machine coding round** — roughly 90 minutes to build a small,
+       actually-running object-oriented system, graded the same way as
+       Flipkart's and Swiggy's: does it run, is it extensible, are the
+       abstractions clean. Some tracks instead give a **take-home LLD
+       problem** with ~2 hours to submit, followed by a live discussion of
+       the trade-offs with a senior engineer.
+    4. **System design (SDE-2 and above)** — payments-domain design: UPI
+       transaction status, distributed ledgers, reconciliation between
+       PhonePe's system and a bank's.
+    5. **Hiring manager & HR** — project depth, ownership, then compensation.
+
+    **What to prepare beyond generic system design.** Spend real time
+    understanding how UPI actually works end to end — the request/collect
+    flow, why settlement is asynchronous, what a reconciliation job is for —
+    because PhonePe's design rounds assume you can reason about *this*
+    domain's specific failure modes, not just generic distributed-systems
+    trade-offs.
+  resources:
+    - kind: blog
+      title: "PhonePe Tech Blog"
+      url: https://tech.phonepe.com/
+    - kind: careers
+      title: "PhonePe Careers"
+      url: https://www.phonepe.com/careers/
+    - kind: prep
+      title: "PhonePe Interview Experience for SDE (2–5 Years Experienced) — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+    - kind: prep
+      title: "PhonePe Interview Experience — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-on-campus-2023/
+    - kind: prep
+      title: "Interview Experience — PhonePe SWE-2 — Roundz (Substack)"
+      url: https://roundz.substack.com/p/interview-experience-130-phonepe-sde2
+
+roles:
+  - slug: sde-1
+    title: SDE-1 (Software Development Engineer)
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.phonepe.com/careers/
+    description: >-
+      Entry engineering role. Standard DSA bar plus a machine coding round
+      that arrives earlier and hits harder than at some peers — treat it as
+      co-equal prep with DSA, not an afterthought.
+    focus_md: |
+      The OA's mixed difficulty (1 easy, 2 medium, 1 hard is the commonly
+      reported shape) rewards time management over raw speed — don't burn 40
+      minutes perfecting the easy one. Budget time proportional to points,
+      not to how satisfying a clean solution feels.
+
+      For the machine coding round, PhonePe's prompts skew toward things with
+      obvious real-world analogues in its own product (a wallet balance
+      system, a simple order/booking tracker) — practicing exactly this
+      shape of prompt (state + transitions + a service layer around it) pays
+      off more than generic LeetCode grinding once you're past the DSA
+      rounds.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "OA covers a spread of difficulty; two DSA-heavy technical rounds follow." }
+      - { concept: computer-science-design-patterns, label: "Machine coding / LLD", weight: 5,
+          notes: "Arrives earlier in seniority than at some peers — prep it as co-equal with DSA." }
+      - { concept: computer-science-common-uml-diagrams, label: "Class modelling", weight: 4 }
+      - { concept: java-learn-the-basics, label: "One language, fluently", weight: 4 }
+      - { concept: backend-relational-databases, label: "Databases", weight: 3 }
+      - { concept: computer-science-processes-and-threads, label: "OS fundamentals", weight: 3,
+          notes: "Some tracks include UNIX/shell-flavoured OA questions." }
+      - { label: "Hiring manager & HR", weight: 2 }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Dynamic programming
+        difficulty: hard
+        year: 2025
+        question: >-
+          Given an encoded string where a number followed by a bracketed
+          substring means "repeat that substring that many times" (e.g.
+          "3[ab]" → "ababab"), decode the full string, including nested
+          brackets (e.g. "2[3[a]b]").
+        answer_md: |
+          A stack-based approach handles the nesting cleanly: walk the string
+          character by character, and whenever you hit `[`, push the current
+          decoded-string-so-far and the current repeat count onto separate
+          stacks, then reset both to start building the inner bracket's
+          content fresh. When you hit `]`, pop the previous string and
+          repeat count, and append `count × innerString` onto the popped
+          string — this naturally handles arbitrary nesting depth because
+          each `[` creates a fresh "frame" and each `]` resolves one level.
+
+          The habit worth stating out loud: recognising "nested, recursively-
+          structured input" as a stack signal, the same way balanced-
+          parentheses problems are, is the actual insight — the repeat-and-
+          append mechanics are secondary once you've identified the shape.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: interview
+        round: technical
+        topic: Machine coding
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design and implement a digital wallet: users can top up, transfer
+          money to other users, and view a transaction history, with a
+          balance that must never go negative.
+        answer_md: |
+          Model `Wallet` as owning a `balance` and a list of `Transaction`
+          records (type: TOPUP/TRANSFER_IN/TRANSFER_OUT, amount, timestamp,
+          counterparty). The transfer operation is the actual design test:
+          it must debit one wallet and credit another as a single unit — if
+          you model it as two independent calls (`walletA.debit()` then
+          `walletB.credit()`), a failure between the two leaves the system
+          inconsistent, which is exactly the bug this prompt is checking
+          whether you'll introduce.
+
+          Guard the never-negative constraint at the debit boundary — reject
+          the transfer atomically if the balance check fails, rather than
+          debiting first and validating after. In a single-process in-memory
+          version, wrapping the debit-and-credit pair in a synchronized block
+          (or equivalent) keyed appropriately prevents a race between two
+          concurrent transfers from the same wallet; naming that this is the
+          same problem a real distributed wallet service solves with a
+          database transaction is worth a sentence even though you won't
+          implement a database in 90 minutes.
+        source_name: PhonePe Interview Experience — Roundz (Substack)
+        source_url: https://roundz.substack.com/p/interview-experience-130-phonepe-sde2
+
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        question: >-
+          Given a binary tree, serialize it to a string and deserialize it
+          back to the original tree.
+        answer_md: |
+          Pre-order DFS traversal is the standard approach: serialize by
+          visiting root, then left, then right, writing a sentinel value
+          (e.g. "#") for null children, separated by a delimiter. E.g. a
+          tree with root 1, left null, right 2 serializes to `"1,#,2,#,#"`.
+
+          Deserializing reconstructs by reading tokens in the same order they
+          were written: read one token, if it's the null sentinel return
+          null, otherwise create a node with that value and recursively
+          deserialize its left and right children from the remaining tokens
+          — the recursion naturally consumes tokens in the exact order
+          pre-order serialization produced them, which is why pre-order
+          (not in-order) is the traversal to use here: pre-order alone,
+          with null markers, is enough to uniquely reconstruct the tree,
+          while in-order alone is not.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: online-assessment
+        round: technical
+        topic: Operating systems
+        difficulty: easy
+        question: >-
+          What does the UNIX command `chmod 750 file.sh` set, and why might
+          a payments-adjacent system care about this specific permission
+          pattern?
+        answer_md: |
+          `chmod 750` sets read+write+execute (7) for the owner, read+execute
+          (5) for the group, and no permissions (0) for others. In octal,
+          each digit is a sum of read=4, write=2, execute=1.
+
+          The "why care" half connects to the domain: a script that touches
+          sensitive data (transaction logs, credentials, reconciliation
+          files) should follow least-privilege — the owning service account
+          gets full control, a defined group (e.g. an ops team) gets
+          read/execute for debugging, and everyone else gets nothing. This
+          is the kind of "boring infra hygiene" question PhonePe's OA
+          includes precisely because a payments company's production
+          incidents are disproportionately caused by overly permissive
+          access, not algorithmic bugs.
+        source_name: GeeksforGeeks — PhonePe Interview Questions
+        source_url: https://www.geeksforgeeks.org/gfg-academy/phonepe-interview-questions/
+
+      - kind: interview
+        round: hr
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          Tell me about your most significant project. What was your specific
+          contribution versus the team's?
+        answer_md: |
+          The follow-up ("your specific contribution versus the team's") is
+          the part that catches unprepared candidates — a project narrated
+          entirely in "we" language gives the interviewer nothing to
+          calibrate your individual level against, which is exactly what
+          this round exists to do.
+
+          Restructure the story around decisions *you* made: a specific
+          technical trade-off you owned, a bug only you tracked down, a piece
+          you designed. It's fine for the project itself to be a team effort
+          — the answer just needs to isolate your slice of it clearly enough
+          that the interviewer could describe your contribution back to you
+          in one sentence.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: interview
+        round: coding
+        topic: Arrays
+        difficulty: medium
+        question: >-
+          Given an array of transaction amounts and a target balance change,
+          find if there exist three transactions that sum exactly to the
+          target.
+        answer_md: |
+          This is 3-sum: sort the array first (O(n log n)), then for each
+          index `i`, run a two-pointer scan over the remainder of the array
+          looking for a pair that sums to `target - arr[i]`, moving the low
+          pointer up if the running sum is too small and the high pointer
+          down if too large. O(n²) total, which is the accepted complexity
+          for this problem — the sort-plus-two-pointer structure is what
+          gets you from the naive O(n³) triple-nested-loop to O(n²).
+
+          The detail worth handling explicitly: duplicate values can produce
+          duplicate triplets, so skip over repeated values at each of the
+          three positions (outer index and both pointers) once a match is
+          found, to avoid returning the same triplet multiple times if the
+          question wants distinct triplets.
+        source_name: GeeksforGeeks — PhonePe Interview Experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-on-campus-2023/
+
+  - slug: sde-2
+    title: SDE-2
+    level: mid
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://www.phonepe.com/careers/
+    description: >-
+      A full payments-domain system design round is added, and the LLD
+      prompts scale up — flight/travel aggregator design and similar
+      multi-party-integration problems are commonly reported.
+    focus_md: |
+      The distinguishing round at this level is a take-home LLD problem on
+      some tracks: roughly two hours to submit a working design, followed by
+      a live discussion of *why* you made specific choices — which means the
+      round is really testing whether you can defend trade-offs under
+      questioning, not just produce a clean diagram. Treat the live
+      discussion as the graded part, not the submission.
+
+      System design at SDE-2 is explicitly UPI-flavoured. Understand the
+      actual UPI request/collect flow, why settlement between banks is
+      asynchronous, and what a reconciliation job does — PhonePe's design
+      rounds assume this domain knowledge rather than teaching it to you
+      inside the interview.
+    focus_areas:
+      - { concept: computer-science-system-design, label: "System design", weight: 5,
+          notes: "UPI-flavoured: transaction status, ledgers, bank-side reconciliation." }
+      - { concept: computer-science-design-patterns, label: "Low-level design", weight: 5,
+          notes: "Multi-party integration prompts (flight aggregators, marketplace-style LLD)." }
+      - { concept: backend-relational-databases, label: "Transactions & ledgers", weight: 4 }
+      - { concept: system-design-reliability-patterns, label: "Reconciliation & failure handling", weight: 4,
+          notes: "Async settlement means stuck/ambiguous transaction states are a first-class design concern." }
+      - { concept: backend-message-brokers, label: "Async processing & queues", weight: 3 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3 }
+      - { label: "Hiring manager round", weight: 3 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Low-level design
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a flight aggregator system: it pulls availability and pricing
+          from multiple airline partners, and users search and book flights
+          across them.
+        answer_md: |
+          The core abstraction is an `AirlineAdapter` interface with a
+          uniform `searchFlights(query)` and `bookFlight(details)` contract,
+          with one concrete implementation per airline partner translating
+          the aggregator's uniform request format into each airline's own
+          API shape — this isolates the "every partner has a different API"
+          problem behind a stable internal contract, so adding a new airline
+          partner means writing one new adapter, not touching the search or
+          booking flow.
+
+          The design's hard edge is booking: a user selects a flight based on
+          a price/availability snapshot that may be stale by the time they
+          confirm (another user booked the last seat in between). The
+          realistic pattern is a short-lived reservation hold — call the
+          airline's hold-or-reserve API (if offered) at selection time with a
+          TTL, and only finalize payment after confirming the hold is still
+          valid — rather than assuming the search-time snapshot is still
+          accurate at booking time. Naming this staleness problem unprompted
+          is the differentiator between a working sketch and a production-
+          aware one.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: interview
+        round: system-design
+        topic: Payments
+        difficulty: hard
+        year: 2025
+        question: >-
+          A UPI transaction is initiated but the status callback from the
+          bank never arrives — the transaction sits in "pending" indefinitely
+          from the user's point of view. Design the mechanism that resolves
+          this.
+        answer_md: |
+          This is a reconciliation-job design question — the same underlying
+          problem as Razorpay's stuck-transaction question, phrased around
+          UPI specifically. A background job periodically scans transactions
+          stuck in `PENDING` past a threshold (e.g. 2 minutes) and actively
+          queries the bank/NPCI's status-check API for each one, rather than
+          waiting indefinitely for a callback that may simply never arrive
+          due to a dropped connection on the bank's side.
+
+          The design needs an explicit state machine beyond
+          `PENDING`/`SUCCESS`/`FAILED`: something like
+          `PENDING → RECONCILING → RESOLVED(SUCCESS/FAILED)`, so the
+          reconciliation job's in-progress checks don't race with a late-
+          arriving callback that resolves the transaction independently —
+          whichever resolves it first should make the other a no-op, which
+          usually means the resolution write itself needs to be idempotent
+          and conditioned on the transaction still being in a resolvable
+          state. The strongest answers explicitly say "the callback is
+          best-effort; the reconciliation job is the actual guarantee" —
+          reversing which mechanism you trust is the point of the question.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: online-assessment
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a directed graph representing service dependencies, determine
+          if there's a circular dependency, and if not, return a valid
+          initialization order.
+        answer_md: |
+          This is cycle detection plus topological sort. Run a DFS tracking
+          three states per node — unvisited, in the current recursion stack
+          ("visiting"), and fully processed ("visited"). If you ever reach a
+          node that's currently "visiting" (on the recursion stack), that's a
+          back edge, meaning a cycle exists. If DFS completes with no back
+          edge found, appending each node to the front of a result list as
+          its DFS call finishes gives a valid topological order.
+
+          The distinction worth stating clearly: "visiting" (grey, currently
+          on the call stack) versus "visited" (black, fully done) is what
+          distinguishes a real cycle from just revisiting an already-
+          processed node through a different path, which is not a cycle —
+          conflating the two states is the most common bug in this pattern.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: interview
+        round: managerial
+        topic: Ownership
+        difficulty: medium
+        question: >-
+          Describe a time you had to make a call with incomplete information
+          because a decision couldn't wait. How did it turn out?
+        answer_md: |
+          The hiring-manager round is checking judgment under uncertainty,
+          not whether the decision was ultimately "correct" — payments
+          systems regularly force exactly this kind of call (ship a fix now
+          with a known partial risk, or wait and leave users blocked longer).
+
+          Structure the answer around what information you *did* have, what
+          you explicitly decided to accept as risk rather than resolve, and
+          how you communicated that risk to stakeholders rather than hiding
+          it. A story where the decision turned out imperfectly but the risk
+          was flagged and monitored reads as more mature than a story where
+          everything worked out but you got lucky and never named the risk
+          at all.
+        source_name: PhonePe Interview Experience — Roundz (Substack)
+        source_url: https://roundz.substack.com/p/interview-experience-130-phonepe-sde2
+
+      - kind: interview
+        round: technical
+        topic: Concurrency
+        difficulty: hard
+        question: >-
+          Two services need to process the same UPI collect-request exactly
+          once each, even though messages can be redelivered by the queue.
+          How do you guarantee that?
+        answer_md: |
+          Message queues typically guarantee at-least-once delivery, not
+          exactly-once, so "exactly once" has to be engineered at the
+          consumer, not assumed from the queue's guarantee — the standard
+          pattern is idempotent consumption: each message carries a unique
+          id, and the consumer records processed message ids (in the same
+          transaction as whatever side effect processing the message causes)
+          before considering it done.
+
+          On redelivery, the consumer checks whether it's already processed
+          that message id and, if so, acknowledges without reprocessing. The
+          subtlety: the "record as processed" write and the actual business
+          effect (crediting a wallet, updating a transaction status) must
+          happen atomically — recording completion in a separate step from
+          the effect reopens the same race the idempotency-key pattern is
+          meant to close, so this is the same principle as Razorpay's
+          double-charge question, applied at the message-consumer layer
+          instead of the API layer.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/
+
+      - kind: online-assessment
+        round: aptitude
+        topic: Databases
+        difficulty: medium
+        question: >-
+          Explain database sharding and how you'd choose a shard key for a
+          table of UPI transactions.
+        answer_md: |
+          Sharding splits one logical table across multiple physical database
+          instances by a chosen key, so no single instance holds — or needs
+          to handle write load for — the entire dataset. The choice of shard
+          key determines which query patterns stay fast (single-shard) and
+          which become expensive (cross-shard scatter-gather).
+
+          For UPI transactions specifically, sharding by `user_id` (or the
+          payer's account identifier) keeps "show this user's transaction
+          history" — a very common query — confined to a single shard, at
+          the cost of making "total transaction volume across all users
+          today" (an analytics query, not an operational one) require
+          aggregating across every shard. That's usually the right trade to
+          make: optimise the shard key for the hot operational query path,
+          and push cross-shard analytical queries to a separate pipeline
+          (CDC into a warehouse) rather than trying to serve them efficiently
+          from the sharded operational store directly.
+        source_name: GeeksforGeeks — PhonePe Interview Experience for SDE
+        source_url: https://www.geeksforgeeks.org/interview-experiences/phonepe-interview-experience-for-sde-2-5-years-experienced/

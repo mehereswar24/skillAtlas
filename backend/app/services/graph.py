@@ -19,6 +19,21 @@ from sqlalchemy.orm import Session
 from app.models.content import Concept, ConceptPrerequisite, TrackConcept
 
 
+# Whether a concept's prerequisites *block* it, or merely advise an order.
+#
+# roadmap.sh publishes no dependency data — its canvas conveys order spatially,
+# by reading top to bottom — so the importer chains each concept to the one
+# before it. That produces a strict line: with hard gating, opening "Caching"
+# in the backend route required finishing seven earlier, largely unrelated
+# concepts first. Those edges record a *recommended reading order*, and that is
+# all they can honestly claim to be, so they no longer lock anything.
+#
+# The edges are still stored and still drive the plan's ordering and the
+# "usually covered after" hint. Flip this to True if a future content source
+# ships real dependency data.
+HARD_PREREQUISITES = False
+
+
 class CycleError(Exception):
     """Raised when the prerequisite graph contains a cycle.
 
@@ -131,10 +146,22 @@ class ConceptGraph:
     # -- learner-relative queries ------------------------------------------
 
     def missing_prerequisites(self, concept_id: int, completed: set[int]) -> set[int]:
-        """Direct prerequisites the learner has not finished."""
+        """Direct prerequisites the learner has not finished.
+
+        Advisory, not a gate — see :data:`HARD_PREREQUISITES`. The UI shows
+        these as "usually covered after", which is what the underlying data
+        actually supports.
+        """
         return self.direct_prerequisites(concept_id) - completed
 
     def is_unlocked(self, concept_id: int, completed: set[int]) -> bool:
+        """Whether the learner may start this concept now.
+
+        With soft prerequisites everything is startable; the ordering is a
+        recommendation the learner is free to ignore.
+        """
+        if not HARD_PREREQUISITES:
+            return True
         return not self.missing_prerequisites(concept_id, completed)
 
     def unlocked(self, candidates: set[int], completed: set[int]) -> set[int]:

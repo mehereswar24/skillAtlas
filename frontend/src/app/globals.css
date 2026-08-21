@@ -35,6 +35,12 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
+  /* The vendored lightswind components address the accent as `primarylw`
+     (`text-primarylw`, `color-mix(… var(--primarylw) …)`). Without this it is
+     an undefined custom property: the utility class does not exist, and every
+     `color-mix()` that references it computes to `unset`, which is why the
+     sidebar's active-item highlight rendered fully transparent. */
+  --color-primarylw: var(--primarylw);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
@@ -85,6 +91,8 @@
 
   --primary: oklch(0.15 0 0);
   --primary-foreground: oklch(0.98 0 0);
+  /* Alias consumed by the vendored lightswind sidebar. */
+  --primarylw: oklch(0.15 0 0);
 
   --secondary: oklch(0.96 0 0);
   --secondary-foreground: oklch(0.2 0 0);
@@ -95,9 +103,9 @@
   --accent: oklch(0.96 0 0);
   --accent-foreground: oklch(0.15 0 0);
 
-  --destructive: oklch(0.4 0 0);
-  --success: oklch(0.4 0 0);
-  --warning: oklch(0.4 0 0);
+  --destructive: oklch(0.45 0.17 27);
+  --success: oklch(0.45 0.12 150);
+  --warning: oklch(0.45 0.12 75);
 
   --border: oklch(0.9 0 0);
   --input: oklch(0.9 0 0);
@@ -131,6 +139,7 @@
 
   --primary: oklch(0.96 0 0);
   --primary-foreground: oklch(0.1 0 0);
+  --primarylw: oklch(0.96 0 0);
 
   --secondary: oklch(0.15 0 0);
   --secondary-foreground: oklch(0.96 0 0);
@@ -141,9 +150,9 @@
   --accent: oklch(0.15 0 0);
   --accent-foreground: oklch(0.96 0 0);
 
-  --destructive: oklch(0.6 0 0);
-  --success: oklch(0.6 0 0);
-  --warning: oklch(0.6 0 0);
+  --destructive: oklch(0.68 0.17 27);
+  --success: oklch(0.7 0.14 150);
+  --warning: oklch(0.75 0.13 75);
 
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
@@ -217,6 +226,21 @@
   .eyebrow {
     @apply text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase;
   }
+
+  /* Off-screen until focused, then a real, visible control. A keyboard user
+     otherwise pays ten sidebar tab stops before reaching the page content, on
+     every single page. */
+  .skip-link {
+    @apply sr-only;
+  }
+
+  .skip-link:focus-visible,
+  .skip-link:focus {
+    @apply not-sr-only fixed top-3 left-3 z-[100] rounded-md border border-border bg-popover px-4 py-2 text-sm font-medium text-popover-foreground shadow-lg;
+    /* The app hides the system cursor in favour of a JS one; a skip link is a
+       keyboard affordance, so it keeps a normal pointer. */
+    cursor: pointer;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -233,4 +257,53 @@
 nextjs-portal,
 #nextjs-portal {
   display: none !important;
+}
+
+/* Premium Global Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklch, var(--foreground) 15%, transparent);
+  border-radius: 9999px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklch, var(--foreground) 45%, transparent);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 25%, transparent) transparent;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse 25s linear infinite;
 }

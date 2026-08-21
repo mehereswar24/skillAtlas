@@ -121,6 +121,9 @@ export type Roadmap = {
   weeks: RoadmapWeek[];
 };
 
+/** A route in the switcher: everything but the week-by-week plan. */
+export type RoadmapSummary = Omit<Roadmap, 'weeks'> & { is_focused: boolean };
+
 export type Badge = {
   slug: string;
   name: string;
@@ -337,6 +340,59 @@ export type CompanyDetail = CompanySummary & {
   hiring_process_md: string | null;
   roles: CompanyRoleSummary[];
   resources: CompanyResource[];
+  /** Member-submitted, unlike everything else on this object. */
+  reviews: RatingSummary;
+};
+
+/* --- company reviews ----------------------------------------------------
+ * Kept in their own block, and their own types, because they are a different
+ * kind of claim from everything above: a company profile is researched and
+ * source-cited, a review is one member's account of their own experience.
+ * `kind: 'member-review'` rides along on every review so a component can never
+ * render one as though it were sourced. */
+
+export type ReviewOutcome =
+  | 'offer'
+  | 'rejected'
+  | 'withdrew'
+  | 'pending'
+  | 'not-interviewed';
+
+export type RatingSummary = {
+  review_count: number;
+  /** `null`, not 0, when nobody has reviewed yet. */
+  average_rating: number | null;
+  /** Star value ("1".."5") to how many reviews gave it. */
+  distribution: Record<string, number>;
+};
+
+export type CompanyReview = {
+  id: number;
+  kind: 'member-review';
+  company_slug: string;
+  rating: number;
+  title: string;
+  body_md: string;
+  interview_outcome: ReviewOutcome;
+  interview_year: number | null;
+  is_anonymous: boolean;
+  /** Seeded demo content. The UI labels these so they cannot pass as real. */
+  is_sample: boolean;
+  author: { id: number | null; display_name: string | null };
+  role: { slug: string; title: string } | null;
+  helpful_count: number;
+  not_helpful_count: number;
+  created_at: string;
+  updated_at: string;
+  viewer_is_author: boolean;
+  viewer_vote: number | null;
+};
+
+export type CompanyReviewList = {
+  summary: RatingSummary;
+  reviews: CompanyReview[];
+  viewer_can_write: boolean;
+  viewer_review_id: number | null;
 };
 
 export type FocusArea = {

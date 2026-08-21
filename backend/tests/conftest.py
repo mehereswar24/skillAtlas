@@ -107,21 +107,34 @@ def learner(client: TestClient, auth):
     headers, user = auth()
     response = client.post(
         "/api/v1/roadmaps",
-        json={"track_slug": "backend-developer", "daily_hours": 3},
+        json={"track_slug": "backend", "daily_hours": 3},
         headers=headers,
     )
     assert response.status_code == 201, response.text
     return headers, user, response.json()
 
 
-def complete_concept(client: TestClient, headers: dict, slug: str, minutes: int = 60):
+def complete_concept(
+    client: TestClient, headers: dict, slug: str, minutes: int = 60, _depth: int = 0
+):
     """Answer a concept's quiz correctly and complete it.
 
     The API never reveals the correct option up front, so this submits once to
     obtain the review and then resubmits with the right answers — which is also
     a check that a failed attempt records nothing.
+
+    Since the roadmap.sh import every track is one linear prerequisite chain, so
+    anything past the first concept is locked until everything before it is
+    done. The chain is walked here rather than in each test.
     """
+    assert _depth < 200, f"prerequisite chain for {slug} is implausibly deep"
     detail = client.get(f"/api/v1/concepts/{slug}", headers=headers).json()
+
+    for prereq in detail.get("missing_prerequisites", []):
+        complete_concept(client, headers, prereq["slug"], minutes, _depth + 1)
+    if detail.get("missing_prerequisites"):
+        detail = client.get(f"/api/v1/concepts/{slug}", headers=headers).json()
+
     guess = [
         {"question_id": q["id"], "option_id": q["options"][0]["id"]}
         for q in detail["quiz"]

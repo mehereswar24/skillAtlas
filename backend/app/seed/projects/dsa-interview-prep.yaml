@@ -1,0 +1,1525 @@
+# Projects for the dsa-interview-prep track — one per concept.
+#
+# Every project runs in the learner's browser under Pyodide, so it must be
+# pure Python with no network and no filesystem beyond what the starter files
+# provide. The point of every brief here is to build the *machinery* behind an
+# interview pattern — a real doubly linked list, a hand-rolled heap, a trie
+# with actual pruning — rather than hand back a single LeetCode-shaped
+# function. A learner who finishes one of these has built a small data
+# structure they now understand, not memorized a trick.
+#
+# `tests[].code` is a block of Python executed against the learner's module
+# namespace. It passes if nothing raises, so plain `assert` statements are the
+# whole vocabulary. `hidden: true` keeps a test collapsed in the UI until the
+# project passes — it is a nudge against writing to the test, not a secret,
+# since the browser has to receive the code to run it.
+#
+# `must_contain` lists substrings the submission must include. Use it only
+# where the brief genuinely requires an approach, never as a style check.
+
+projects:
+  # ------------------------------------------------------------ linked lists
+  - slug: lru-cache-doubly-linked-list
+    concept: dsa-linked-lists
+    title: Build an LRU cache from a doubly linked list
+    tagline: No OrderedDict allowed — wire the pointers yourself.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      `functools.lru_cache` and `collections.OrderedDict` both solve this
+      problem for you. Before you lean on either again, build the thing they
+      are hiding: a fixed-capacity cache that evicts the least-recently-used
+      entry in O(1), using a real doubly linked list plus a dict for O(1)
+      lookup.
+
+      Implement `LRUCache` in `solution.py`, backed by the `Node` class
+      already given to you. Keep the list ordered **most-recently-used right
+      after the head sentinel, least-recently-used right before the tail
+      sentinel** — that ordering is what the tests check directly by walking
+      the list, not just by calling `get`.
+
+      - `get(key)` returns the value, or `-1` if the key is absent. A hit
+        counts as a use: move that node to the front.
+      - `put(key, value)` inserts or updates. An update refreshes recency the
+        same way a `get` hit does.
+      - When a `put` would exceed `capacity`, evict the node right before the
+        tail sentinel — the true least-recently-used entry — and remove it
+        from the dict too.
+      - Every operation is O(1). No scanning the list to find a key: the dict
+        maps key to node directly.
+    must_contain:
+      - "class Node"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class Node:
+              """A doubly linked list node holding one cache entry."""
+              __slots__ = ("key", "value", "prev", "next")
+
+              def __init__(self, key=None, value=None):
+                  self.key = key
+                  self.value = value
+                  self.prev = None
+                  self.next = None
+
+
+          class LRUCache:
+              """Fixed-capacity cache, O(1) get/put, evicting least-recently-used.
+
+              Backed by a real doubly linked list (most-recently-used right after
+              the head sentinel, least-recently-used right before the tail
+              sentinel) plus a dict for O(1) node lookup by key.
+              """
+
+              def __init__(self, capacity: int):
+                  self.capacity = capacity
+                  self._map = {}
+                  self._head = Node()
+                  self._tail = Node()
+                  self._head.next = self._tail
+                  self._tail.prev = self._head
+
+              def get(self, key):
+                  """Return the value for `key`, or -1 if absent. A hit is a use."""
+                  raise NotImplementedError("Start here")
+
+              def put(self, key, value) -> None:
+                  """Insert or update `key`. Evict the LRU entry if over capacity."""
+                  raise NotImplementedError
+    tests:
+      - name: Basic put and get, a miss returns -1
+        code: |
+          c = LRUCache(2)
+          c.put(1, 100)
+          c.put(2, 200)
+          assert c.get(1) == 100, c.get(1)
+          assert c.get(3) == -1, "a missing key must return -1, not raise"
+      - name: A get refreshes recency, so the true LRU key is evicted
+        code: |
+          c = LRUCache(2)
+          c.put(1, 1)
+          c.put(2, 2)
+          c.get(1)          # 1 is now most-recently-used
+          c.put(3, 3)       # must evict 2, not 1
+          assert c.get(2) == -1, "'2' should have been evicted"
+          assert c.get(1) == 1
+          assert c.get(3) == 3
+      - name: Updating an existing key refreshes recency without growing size
+        code: |
+          c = LRUCache(2)
+          c.put(1, 1)
+          c.put(2, 2)
+          c.put(1, 10)      # update, not insert
+          c.put(3, 3)       # must evict 2, since 1 was just touched
+          assert c.get(2) == -1
+          assert c.get(1) == 10
+          assert c.get(3) == 3
+      - name: The list order matches most-to-least recently used, node by node
+        code: |
+          def order(cache):
+              keys, node = [], cache._head.next
+              while node is not cache._tail:
+                  keys.append(node.key)
+                  node = node.next
+              return keys
+
+          c = LRUCache(3)
+          c.put("a", 1)
+          c.put("b", 2)
+          c.put("c", 3)
+          assert order(c) == ["c", "b", "a"], order(c)
+          c.get("a")
+          assert order(c) == ["a", "c", "b"], order(c)
+      - name: Capacity is never exceeded across many puts
+        hidden: true
+        code: |
+          c = LRUCache(3)
+          for i in range(20):
+              c.put(i, i * i)
+          assert len(c._map) == 3, f"held {len(c._map)} entries"
+          for i in range(17):
+              assert c.get(i) == -1, f"key {i} should have been evicted long ago"
+          assert c.get(19) == 361
+      - name: After eviction, the sentinel still points at the real new LRU
+        hidden: true
+        code: |
+          c = LRUCache(2)
+          c.put(1, 1)
+          c.put(2, 2)
+          c.put(3, 3)       # evicts 1, since it was never touched again
+          assert c.get(1) == -1
+          assert c._tail.prev.key == 2, "'2' is now the least-recently-used key"
+    solution_md: |
+      ```python
+      def get(self, key):
+          node = self._map.get(key)
+          if node is None:
+              return -1
+          self._remove(node)
+          self._push_front(node)
+          return node.value
+
+      def put(self, key, value):
+          node = self._map.get(key)
+          if node is not None:
+              node.value = value
+              self._remove(node)
+              self._push_front(node)
+              return
+
+          node = Node(key, value)
+          self._map[key] = node
+          self._push_front(node)
+
+          if len(self._map) > self.capacity:
+              lru = self._tail.prev
+              self._remove(lru)
+              del self._map[lru.key]
+      ```
+
+      `_remove` and `_push_front` are small helpers that only touch `prev` and
+      `next` pointers — that is the entire trick. Once they exist, `get` and
+      `put` are both "look up in the dict, then move a node," which is why
+      both are O(1): no list is ever walked. `functools.lru_cache` does
+      exactly this internally, just with a slightly different pointer dance.
+
+  # ---------------------------------------------------------------- heaps
+  - slug: min-heap-from-scratch
+    concept: dsa-heaps
+    title: A min-heap, sift_up and sift_down included
+    tagline: heapq does this in C. Do it once in Python so you know what it's doing.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 140
+    brief_md: |
+      A binary heap is a complete binary tree squeezed into a flat list: the
+      children of index `i` live at `2i + 1` and `2i + 2`. Every heap
+      operation is just "fix one local violation of the heap property and
+      keep going" — that fix has two shapes, and you are about to write both.
+
+      Implement `MinHeap` in `solution.py`:
+
+      - `push(value)` appends to the end of the list, then **sifts up**:
+        while the new value is smaller than its parent, swap with the parent.
+      - `pop()` removes and returns the smallest value (the root), moves the
+        *last* element into the root position, then **sifts down**: while
+        either child is smaller than the current node, swap with the smaller
+        child. Raise `IndexError` on an empty heap.
+      - `peek()` returns the smallest value without removing it. Raise
+        `IndexError` on an empty heap.
+
+      Getting `_sift_down` right means comparing against **both** children
+      and swapping with whichever is smaller — swapping with the wrong child
+      silently produces a structure that looks heap-shaped but returns
+      elements out of order on the second or third `pop`.
+    must_contain:
+      - "def _sift_up"
+      - "def _sift_down"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class MinHeap:
+              """A binary min-heap over a plain list, sift_up/sift_down written out."""
+
+              def __init__(self):
+                  self._data = []
+
+              def __len__(self):
+                  return len(self._data)
+
+              def peek(self):
+                  """Return the smallest value without removing it."""
+                  raise NotImplementedError("Start here")
+
+              def push(self, value):
+                  raise NotImplementedError
+
+              def pop(self):
+                  """Remove and return the smallest value."""
+                  raise NotImplementedError
+
+              def _sift_up(self, i):
+                  raise NotImplementedError
+
+              def _sift_down(self, i):
+                  raise NotImplementedError
+    tests:
+      - name: Pops come out in sorted order
+        code: |
+          h = MinHeap()
+          for v in [5, 3, 8, 1, 9, 2]:
+              h.push(v)
+          out = [h.pop() for _ in range(6)]
+          assert out == [1, 2, 3, 5, 8, 9], out
+      - name: Peek does not remove
+        code: |
+          h = MinHeap()
+          h.push(4)
+          h.push(2)
+          assert h.peek() == 2
+          assert len(h) == 2, "peek must not change the size"
+      - name: Popping an empty heap raises IndexError
+        code: |
+          h = MinHeap()
+          try:
+              h.pop()
+          except IndexError:
+              pass
+          else:
+              raise AssertionError("popping an empty heap should raise IndexError")
+      - name: Interleaved push and pop stay correct
+        code: |
+          h = MinHeap()
+          for v in [5, 1, 4]:
+              h.push(v)
+          assert h.pop() == 1
+          h.push(0)
+          assert h.pop() == 0
+          assert h.pop() == 4
+          assert h.pop() == 5
+          assert len(h) == 0
+      - name: Duplicate values are handled correctly
+        hidden: true
+        code: |
+          h = MinHeap()
+          for v in [3, 3, 1, 1, 2, 2]:
+              h.push(v)
+          out = [h.pop() for _ in range(6)]
+          assert out == [1, 1, 2, 2, 3, 3], out
+      - name: A larger sequence still comes out fully sorted
+        hidden: true
+        code: |
+          values = [17, 3, 45, 2, 8, 99, 1, 23, 56, 4, 12, 0]
+          h = MinHeap()
+          for v in values:
+              h.push(v)
+          out = [h.pop() for _ in range(len(values))]
+          assert out == sorted(values), out
+    solution_md: |
+      ```python
+      def _sift_up(self, i):
+          while i > 0:
+              parent = (i - 1) // 2
+              if self._data[i] < self._data[parent]:
+                  self._data[i], self._data[parent] = self._data[parent], self._data[i]
+                  i = parent
+              else:
+                  break
+
+      def _sift_down(self, i):
+          n = len(self._data)
+          while True:
+              left, right = 2 * i + 1, 2 * i + 2
+              smallest = i
+              if left < n and self._data[left] < self._data[smallest]:
+                  smallest = left
+              if right < n and self._data[right] < self._data[smallest]:
+                  smallest = right
+              if smallest == i:
+                  break
+              self._data[i], self._data[smallest] = self._data[smallest], self._data[i]
+              i = smallest
+      ```
+
+      The reason `pop` moves the *last* element to the root instead of just
+      deleting the root is that it keeps the tree complete — no gaps — which
+      is the invariant `_sift_down`'s index arithmetic depends on. Both sifts
+      touch at most `O(log n)` elements per call, which is the whole reason a
+      heap beats keeping the list sorted: insertion into a sorted list is
+      `O(n)`, a sift is `O(log n)`.
+
+  # ---------------------------------------------------------------- tries
+  - slug: trie-prefix-search-and-delete
+    concept: dsa-tries
+    title: A trie with prefix search and delete
+    tagline: Insert and search are easy. Delete is the one that looks easy and isn't.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 55
+    xp_reward: 160
+    brief_md: |
+      A trie stores strings by sharing prefixes: each node is a dict of
+      children keyed by the next character, plus a flag saying whether a
+      complete word ends there. That flag is the whole trick — without it,
+      `search("app")` cannot tell "someone stored the word app" apart from
+      "someone stored a longer word that happens to start with app."
+
+      Implement `Trie` in `solution.py`, using the `TrieNode` given to you.
+
+      - `insert(word)` walks the trie, creating nodes as needed, and marks
+        the final node as a word.
+      - `search(word)` returns `True` only if `word` was inserted — walking
+        the path is not enough, the final node's flag must be set.
+      - `starts_with(prefix)` returns `True` if any stored word begins with
+        `prefix` — this one does **not** check the word flag.
+      - `delete(word)` removes `word` if present and returns `True`
+        (`False` if it was never there). This is the hard part: after
+        unmarking the word flag, walk back up from the leaf and delete each
+        node **only if it has no children and is not itself a word
+        boundary**. Stop pruning the instant you hit a node still needed by
+        another stored word — deleting `"car"` must not touch `"cat"`, even
+        though they share `"ca"`.
+    must_contain:
+      - "class TrieNode"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class TrieNode:
+              def __init__(self):
+                  self.children = {}
+                  self.is_word = False
+
+
+          class Trie:
+              def __init__(self):
+                  self.root = TrieNode()
+
+              def insert(self, word: str) -> None:
+                  raise NotImplementedError("Start here")
+
+              def search(self, word: str) -> bool:
+                  raise NotImplementedError
+
+              def starts_with(self, prefix: str) -> bool:
+                  raise NotImplementedError
+
+              def delete(self, word: str) -> bool:
+                  """Remove `word` if present. Prune now-unneeded nodes on the
+                  way back up. Return True if a word was actually removed."""
+                  raise NotImplementedError
+    tests:
+      - name: Insert and exact search
+        code: |
+          t = Trie()
+          t.insert("cat")
+          t.insert("car")
+          assert t.search("cat") is True
+          assert t.search("ca") is False, "'ca' was never inserted as a word"
+          assert t.starts_with("ca") is True
+          assert t.starts_with("d") is False
+      - name: search does not mistake a prefix for a stored word
+        code: |
+          t = Trie()
+          t.insert("apple")
+          assert t.search("app") is False
+          assert t.starts_with("app") is True
+          assert t.search("apple") is True
+      - name: Deleting a word does not disturb a sibling that shares a prefix
+        code: |
+          t = Trie()
+          t.insert("cat")
+          t.insert("car")
+          assert t.delete("car") is True
+          assert t.search("car") is False
+          assert t.search("cat") is True
+          assert t.starts_with("ca") is True
+      - name: Deleting a word that is also a prefix of another leaves the other intact
+        code: |
+          t = Trie()
+          t.insert("app")
+          t.insert("apple")
+          assert t.delete("app") is True
+          assert t.search("app") is False
+          assert t.search("apple") is True
+          assert t.starts_with("app") is True
+      - name: Deleting a word that was never inserted is a no-op
+        hidden: true
+        code: |
+          t = Trie()
+          t.insert("cat")
+          assert t.delete("dog") is False
+          assert t.search("cat") is True
+      - name: Deletion actually prunes the now-dead branch
+        hidden: true
+        code: |
+          t = Trie()
+          t.insert("cat")
+          t.insert("car")
+          t.delete("car")
+          ca_node = t.root.children["c"].children["a"]
+          assert "r" not in ca_node.children, "the dead 'r' branch should be gone"
+          assert "t" in ca_node.children, "deleting 'car' must not touch 'cat'"
+    solution_md: |
+      ```python
+      def delete(self, word):
+          path = [self.root]
+          node = self.root
+          for ch in word:
+              node = node.children.get(ch)
+              if node is None:
+                  return False
+              path.append(node)
+
+          if not node.is_word:
+              return False
+          node.is_word = False
+
+          for i in range(len(word) - 1, -1, -1):
+              parent, child = path[i], path[i + 1]
+              if child.children or child.is_word:
+                  break
+              del parent.children[word[i]]
+          return True
+      ```
+
+      `path` records every node visited on the way down so delete can walk
+      back up without re-searching. The loop deletes from the leaf inward but
+      stops the instant a node is still load-bearing — either because it has
+      other children or because it is itself the end of a different word.
+      That check is the difference between a delete that works once and one
+      that quietly corrupts every other word sharing the prefix.
+
+  # ---------------------------------------------------------- stacks/queues
+  - slug: monotonic-stack-next-greater
+    concept: dsa-stacks-queues
+    title: Next greater value with a monotonic stack
+    tagline: One pass, no nested loop — the stack does the waiting for you.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 40
+    xp_reward: 130
+    brief_md: |
+      For every reading in a stream, you want to know the next reading
+      further along that is strictly greater — say, so you can alert
+      "pressure will rise again at step 7." The brute-force answer scans
+      forward from every position, which is `O(n^2)`. A monotonic stack does
+      it in one forward pass.
+
+      Implement `next_greater(nums)` in `solution.py`. Return a list the same
+      length as `nums`, where `result[i]` is the next value after index `i`
+      that is strictly greater than `nums[i]`, or `-1` if none exists.
+
+      The trick: keep a stack of indices whose answer is still unknown. When
+      the current value is bigger than the value at the top of the stack, that
+      top index has found its answer — pop it, record the current value, and
+      keep checking the new top against the same current value. Only once
+      nothing left on the stack is smaller do you push the current index.
+      Every index is pushed once and popped at most once, which is what
+      makes the whole pass `O(n)` even though it looks like nested loops.
+    must_contain:
+      - "def next_greater"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def next_greater(nums: list) -> list:
+              """For each index, the next strictly-greater value ahead of it,
+              or -1 if none exists. Must run in a single forward pass."""
+              raise NotImplementedError("Start here")
+    tests:
+      - name: A small mixed example
+        code: |
+          out = next_greater([2, 1, 2, 4, 3])
+          assert out == [4, 2, 4, -1, -1], out
+      - name: A strictly decreasing sequence has no answers
+        code: |
+          out = next_greater([5, 4, 3, 2, 1])
+          assert out == [-1, -1, -1, -1, -1], out
+      - name: Equal values do not count as 'greater'
+        code: |
+          out = next_greater([3, 3, 3])
+          assert out == [-1, -1, -1], out
+      - name: An empty input returns an empty list
+        code: |
+          assert next_greater([]) == []
+      - name: Duplicates that do eventually get beaten
+        hidden: true
+        code: |
+          out = next_greater([1, 3, 2, 3])
+          assert out == [3, -1, 3, -1], out
+      - name: A single rising value at the end resolves the whole stack
+        hidden: true
+        code: |
+          out = next_greater([9, 8, 7, 6, 100])
+          assert out == [100, 100, 100, 100, -1], out
+    solution_md: |
+      ```python
+      def next_greater(nums):
+          result = [-1] * len(nums)
+          stack = []  # indices whose answer is still unknown
+
+          for i, value in enumerate(nums):
+              while stack and nums[stack[-1]] < value:
+                  j = stack.pop()
+                  result[j] = value
+              stack.append(i)
+
+          return result
+      ```
+
+      Watch what happens on `[9, 8, 7, 6, 100]`: the stack grows to
+      `[0, 1, 2, 3]` (each value smaller than the last, so nothing pops), and
+      then `100` arrives and pops all four in one pass, giving each of them
+      the same answer. That is the whole payoff — a value that resolves many
+      pending indices does it in the same single sweep, not one lookup per
+      index.
+
+  # ---------------------------------------------------------- binary search
+  - slug: minimum-ship-capacity
+    concept: dsa-binary-search
+    title: "Binary search on the answer: minimum ship capacity"
+    tagline: The array of weights isn't sorted. The space of possible answers is.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 150
+    brief_md: |
+      Packages arrive in a fixed order and must ship within `days` days. Each
+      day, you load consecutive packages onto a ship with a fixed weight
+      capacity, without exceeding it; once a package would overflow the
+      current day's load, the rest wait for the next day. Find the **smallest**
+      capacity that still gets every package shipped within `days` days.
+
+      This is not obviously a search problem — there is no sorted array in
+      sight. The insight is that the *answer itself* is monotonic: if
+      capacity `C` gets everything shipped in time, so does every capacity
+      greater than `C`. That means you can binary search directly over the
+      space of possible capacities, checking feasibility at each guess.
+
+      Implement two functions in `solution.py`:
+
+      - `days_needed(weights, capacity)` — simulate loading day by day and
+        return how many days it takes at that capacity (a greedy scan:
+        keep adding to today's load until the next package would overflow,
+        then start a new day).
+      - `min_capacity_to_ship(weights, days)` — binary search the capacity
+        range `[max(weights), sum(weights)]` (you can never ship less than
+        the heaviest single package, and you never need more than shipping
+        everything in one day), using `days_needed` as the feasibility check.
+    must_contain:
+      - "def days_needed"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def days_needed(weights: list, capacity: int) -> int:
+              """How many days it takes to ship every package at this capacity."""
+              raise NotImplementedError("Start here")
+
+
+          def min_capacity_to_ship(weights: list, days: int) -> int:
+              """The smallest capacity that ships everything within `days` days."""
+              raise NotImplementedError
+    tests:
+      - name: days_needed simulates the greedy loading correctly
+        code: |
+          assert days_needed([1, 2, 3, 4, 5], 10) == 2, days_needed([1, 2, 3, 4, 5], 10)
+          assert days_needed([1, 2, 3, 4, 5], 15) == 1
+          assert days_needed([1, 2, 3, 4, 5], 1) == 5
+      - name: One day means the capacity must hold everything
+        code: |
+          weights = [3, 6, 2, 8, 4]
+          assert min_capacity_to_ship(weights, 1) == sum(weights)
+      - name: As many days as packages means capacity is just the heaviest one
+        code: |
+          weights = [3, 6, 2, 8, 4]
+          assert min_capacity_to_ship(weights, len(weights)) == max(weights)
+      - name: A known middle case
+        code: |
+          weights = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          assert min_capacity_to_ship(weights, 5) == 15, min_capacity_to_ship(weights, 5)
+      - name: The result found is verified feasible by days_needed itself
+        hidden: true
+        code: |
+          weights = [7, 2, 5, 10, 8]
+          days = 2
+          capacity = min_capacity_to_ship(weights, days)
+          assert days_needed(weights, capacity) <= days
+          assert days_needed(weights, capacity - 1) > days, (
+              "capacity - 1 should NOT be enough, or the answer isn't minimal"
+          )
+      - name: A single package just needs its own weight
+        hidden: true
+        code: |
+          assert min_capacity_to_ship([42], 1) == 42
+    solution_md: |
+      ```python
+      def days_needed(weights, capacity):
+          days, load = 1, 0
+          for w in weights:
+              if load + w > capacity:
+                  days += 1
+                  load = 0
+              load += w
+          return days
+
+      def min_capacity_to_ship(weights, days):
+          lo, hi = max(weights), sum(weights)
+          while lo < hi:
+              mid = lo + (hi - lo) // 2
+              if days_needed(weights, mid) <= days:
+                  hi = mid
+              else:
+                  lo = mid + 1
+          return lo
+      ```
+
+      `days_needed` is monotonic in capacity — more capacity never needs more
+      days — which is exactly the property binary search requires. The loop
+      shrinks `hi` toward feasible answers and pushes `lo` past infeasible
+      ones until they meet, landing on the smallest capacity for which
+      `days_needed` is still `<= days`. The array of weights never gets
+      sorted or searched at all; the search happens entirely in the space of
+      possible capacities.
+
+  # -------------------------------------------------------------- graphs
+  - slug: dijkstra-with-your-own-heap
+    concept: dsa-graphs
+    title: Dijkstra's algorithm on your own priority queue
+    tagline: The algorithm is ten lines. The heap discipline is what makes it correct and fast.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 55
+    xp_reward: 170
+    brief_md: |
+      BFS finds shortest paths when every edge costs the same. The moment
+      edges have different weights, "fewest hops" and "shortest path" stop
+      being the same question — Dijkstra's algorithm is BFS's answer to that,
+      always expanding the *closest known* unvisited node next instead of
+      just the next one in a queue.
+
+      Implement `shortest_paths(graph, source)` in `solution.py`. `graph` is
+      an adjacency list `{node: [(neighbor, weight), ...]}` with
+      **non-negative** weights. Return a dict of the shortest distance from
+      `source` to every node it can reach (nodes it cannot reach are simply
+      absent — do not include them with `float('inf')`).
+
+      - Use `heapq` as the priority queue: push `(distance, node)`, always
+        pop the smallest.
+      - A node can be pushed onto the heap more than once (once per edge that
+        improves its known distance) — when you pop a node you have already
+        finalized, skip it rather than reprocessing it.
+      - Only relax an edge — update a neighbor's distance and push it — when
+        the new distance is strictly better than what you already have.
+    must_contain:
+      - "heapq"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import heapq
+
+
+          def shortest_paths(graph: dict, source) -> dict:
+              """Shortest distance from `source` to every reachable node.
+
+              `graph` is {node: [(neighbor, weight), ...]}, weights >= 0.
+              Unreachable nodes are absent from the result.
+              """
+              raise NotImplementedError("Start here")
+    tests:
+      - name: A small graph with one clearly shorter route
+        code: |
+          graph = {
+              "A": [("B", 4), ("C", 1)],
+              "B": [("D", 1)],
+              "C": [("B", 1), ("D", 5)],
+              "D": [],
+          }
+          assert shortest_paths(graph, "A") == {"A": 0, "C": 1, "B": 2, "D": 3}
+      - name: Unreachable nodes are absent, not infinite
+        code: |
+          graph = {"A": [("B", 1)], "B": [], "C": []}
+          out = shortest_paths(graph, "A")
+          assert out == {"A": 0, "B": 1}, out
+          assert "C" not in out, "an unreachable node must not appear in the result"
+      - name: A path with more hops but less total weight wins
+        code: |
+          graph = {
+              "S": [("A", 2), ("B", 1)],
+              "A": [("T", 1)],
+              "B": [("A", 1), ("T", 10)],
+              "T": [],
+          }
+          assert shortest_paths(graph, "S") == {"S": 0, "B": 1, "A": 2, "T": 3}
+      - name: The source alone, with no outgoing edges
+        code: |
+          graph = {"only": []}
+          assert shortest_paths(graph, "only") == {"only": 0}
+      - name: A self-loop and a zero-weight edge don't break anything
+        hidden: true
+        code: |
+          graph = {"X": [("X", 5), ("Y", 0)], "Y": []}
+          assert shortest_paths(graph, "X") == {"X": 0, "Y": 0}
+      - name: A stale heap entry for an already-finalized node is skipped
+        hidden: true
+        code: |
+          graph = {
+              "A": [("B", 1), ("C", 4)],
+              "B": [("C", 1), ("D", 5)],
+              "C": [("D", 1)],
+              "D": [],
+          }
+          # B is finalized at distance 1 before C's worse route to it is
+          # even considered; a correct implementation must not let a stale
+          # heap entry overwrite an already-correct distance.
+          assert shortest_paths(graph, "A") == {"A": 0, "B": 1, "C": 2, "D": 3}
+    solution_md: |
+      ```python
+      def shortest_paths(graph, source):
+          distances = {source: 0}
+          heap = [(0, source)]
+          visited = set()
+
+          while heap:
+              dist, node = heapq.heappop(heap)
+              if node in visited:
+                  continue
+              visited.add(node)
+
+              for neighbor, weight in graph.get(node, []):
+                  new_dist = dist + weight
+                  if neighbor not in distances or new_dist < distances[neighbor]:
+                      distances[neighbor] = new_dist
+                      heapq.heappush(heap, (new_dist, neighbor))
+
+          return distances
+      ```
+
+      The `visited` set is what makes stale heap entries harmless: a node can
+      sit in the heap multiple times at different candidate distances, but
+      once it is popped for the first time — necessarily at its true shortest
+      distance, because the heap always yields the smallest pending distance
+      first — every later, worse copy of it is just skipped. This only works
+      because weights are non-negative; a negative edge could make a
+      "finalized" distance wrong, which is exactly why Dijkstra requires it.
+
+  # -------------------------------------------------------- dynamic programming
+  - slug: longest-increasing-subsequence-patience
+    concept: dsa-dynamic-programming
+    title: Longest increasing subsequence in O(n log n)
+    tagline: Patience sorting turns an O(n^2) DP into a binary search over piles.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 55
+    xp_reward: 170
+    brief_md: |
+      The textbook DP for longest increasing subsequence (LIS) is `O(n^2)`:
+      for each element, scan every earlier element to see if it extends a
+      shorter increasing run. There is a faster formulation that replaces the
+      inner scan with a binary search — it comes from patience sorting, the
+      card game where you deal cards into piles, each pile kept
+      non-increasing top to bottom, always placing a card on the leftmost
+      pile whose top it can legally sit on.
+
+      Implement `longest_increasing_subsequence(nums)` in `solution.py`. It
+      returns `(length, subsequence)`: the length of the longest strictly
+      increasing subsequence, and **one valid subsequence** of that length
+      (any one — there can be several correct answers, and the tests accept
+      any of them).
+
+      The mechanism: keep a list `tails`, where `tails[k]` is the index of
+      the smallest possible tail value among all increasing subsequences of
+      length `k + 1` found so far. For each new value, binary-search `tails`
+      for where it belongs — extending the run if it is bigger than every
+      tail, replacing a tail otherwise — and separately track, per index, the
+      index it followed in *its own* subsequence so you can reconstruct the
+      actual sequence afterward, not just its length.
+    must_contain:
+      - "bisect"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import bisect
+
+
+          def longest_increasing_subsequence(nums: list):
+              """Return (length, subsequence) for the longest strictly increasing
+              subsequence of `nums`, computed in O(n log n)."""
+              raise NotImplementedError("Start here")
+    tests:
+      - name: A known example
+        code: |
+          length, seq = longest_increasing_subsequence([10, 9, 2, 5, 3, 7, 101, 18])
+          assert length == 4, length
+          assert len(seq) == 4, seq
+      - name: An already-sorted list uses the whole thing
+        code: |
+          length, seq = longest_increasing_subsequence([1, 2, 3, 4, 5])
+          assert length == 5, length
+          assert seq == [1, 2, 3, 4, 5], seq
+      - name: A strictly decreasing list has length 1
+        code: |
+          length, seq = longest_increasing_subsequence([5, 4, 3, 2, 1])
+          assert length == 1, length
+          assert len(seq) == 1
+      - name: An empty input
+        code: |
+          assert longest_increasing_subsequence([]) == (0, [])
+      - name: The returned subsequence is genuinely valid, not just the right length
+        hidden: true
+        code: |
+          def is_valid(nums, seq):
+              if not seq:
+                  return True
+              i = 0
+              for v in seq:
+                  while i < len(nums) and nums[i] != v:
+                      i += 1
+                  if i == len(nums):
+                      return False
+                  i += 1
+              return all(seq[j] < seq[j + 1] for j in range(len(seq) - 1))
+
+          nums = [3, 10, 2, 1, 20, 4, 5, 6, 30]
+          length, seq = longest_increasing_subsequence(nums)
+          assert is_valid(nums, seq), f"{seq} is not a valid increasing subsequence of {nums}"
+          assert len(seq) == length == 5, (length, seq)
+      - name: Duplicates never count as increasing
+        hidden: true
+        code: |
+          length, seq = longest_increasing_subsequence([2, 2, 2, 2])
+          assert length == 1, length
+    solution_md: |
+      ```python
+      def longest_increasing_subsequence(nums):
+          if not nums:
+              return 0, []
+
+          tails = []                 # indices into nums
+          parent = [None] * len(nums)
+
+          for i, value in enumerate(nums):
+              pos = bisect.bisect_left([nums[t] for t in tails], value)
+              if pos > 0:
+                  parent[i] = tails[pos - 1]
+              if pos == len(tails):
+                  tails.append(i)
+              else:
+                  tails[pos] = i
+
+          seq, idx = [], tails[-1]
+          while idx is not None:
+              seq.append(nums[idx])
+              idx = parent[idx]
+          seq.reverse()
+          return len(tails), seq
+      ```
+
+      `tails` only ever tracks the *smallest possible* tail for each length,
+      never a full subsequence — that is what keeps each step to a binary
+      search instead of a scan. `parent` is the piece the pure length-only
+      version of this algorithm skips: it is what lets you walk backward from
+      the end of the longest run and recover an actual sequence, the same way
+      a DP table's backpointers reconstruct a path instead of just a score.
+
+  # --------------------------------------------------- advanced strings
+  - slug: kmp-pattern-matcher
+    concept: dsa-advanced-string-algorithms
+    title: A pattern matcher with KMP's failure function
+    tagline: Precompute what the pattern already tells you about itself, and never re-scan a character.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 55
+    xp_reward: 170
+    brief_md: |
+      Naive substring search restarts from scratch on every mismatch, which
+      is `O(n * m)` in the worst case. Knuth-Morris-Pratt avoids the restart
+      by precomputing, from the pattern alone, exactly how much of a partial
+      match can be reused after a mismatch — so the scan over the text never
+      backs up.
+
+      Implement two functions in `solution.py`:
+
+      - `build_failure_function(pattern)` — for every prefix of `pattern`,
+        the length of the longest proper prefix of *that prefix* which is
+        also a suffix of it. (`"proper"` means not the whole prefix itself.)
+      - `find_all(text, pattern)` — every starting index in `text` where
+        `pattern` occurs, found using the failure function: when a character
+        mismatches, jump the pattern pointer back using the failure function
+        instead of restarting the whole comparison, and never move the text
+        pointer backward.
+
+      Both together must run in `O(len(text) + len(pattern))` — `find_all`
+      calling `str.find` in a loop, or comparing every position from scratch,
+      defeats the entire point of computing the failure function first.
+    must_contain:
+      - "def build_failure_function"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def build_failure_function(pattern: str) -> list:
+              """fail[i] = length of the longest proper prefix of pattern[:i+1]
+              that is also a suffix of it."""
+              raise NotImplementedError("Start here")
+
+
+          def find_all(text: str, pattern: str) -> list:
+              """Every starting index where `pattern` occurs in `text`, via KMP."""
+              raise NotImplementedError
+    tests:
+      - name: A pattern with genuine internal repetition
+        code: |
+          fail = build_failure_function("ababaca")
+          assert fail == [0, 0, 1, 2, 3, 0, 1], fail
+      - name: A simple single occurrence
+        code: |
+          assert find_all("hello world", "world") == [6]
+      - name: Overlapping occurrences are all found
+        code: |
+          assert find_all("aaaaa", "aa") == [0, 1, 2, 3]
+      - name: A pattern that never occurs
+        code: |
+          assert find_all("abcdef", "xyz") == []
+      - name: A pattern longer than the text
+        hidden: true
+        code: |
+          assert find_all("ab", "abc") == []
+      - name: Repeated internal structure does not trick the matcher
+        hidden: true
+        code: |
+          assert find_all("abcabcabcabc", "abcabc") == [0, 3, 6], find_all("abcabcabcabc", "abcabc")
+    solution_md: |
+      ```python
+      def build_failure_function(pattern):
+          n = len(pattern)
+          fail = [0] * n
+          k = 0
+          for i in range(1, n):
+              while k > 0 and pattern[i] != pattern[k]:
+                  k = fail[k - 1]
+              if pattern[i] == pattern[k]:
+                  k += 1
+              fail[i] = k
+          return fail
+
+      def find_all(text, pattern):
+          if not pattern or len(pattern) > len(text):
+              return []
+          fail = build_failure_function(pattern)
+          matches, k = [], 0
+          for i, ch in enumerate(text):
+              while k > 0 and ch != pattern[k]:
+                  k = fail[k - 1]
+              if ch == pattern[k]:
+                  k += 1
+              if k == len(pattern):
+                  matches.append(i - k + 1)
+                  k = fail[k - 1]
+          return matches
+      ```
+
+      Both functions share the same core loop shape: "on a mismatch, fall
+      back using the failure function instead of resetting to zero." Building
+      the failure function is literally matching the pattern against itself —
+      which is why it has the same while-loop structure as `find_all` one
+      level up. Once you see that symmetry, the algorithm stops looking like
+      a memorized trick and starts looking like one idea applied twice.
+
+  # ------------------------------------------------------- binary search trees
+  - slug: bst-with-delete
+    concept: dsa-binary-search-trees
+    title: A binary search tree, three-case delete included
+    tagline: Leaf, one child, two children — the case people get wrong is the third one.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 160
+    brief_md: |
+      Insert and search in a BST are the easy half: follow the invariant
+      (smaller left, bigger right) down until you find the spot. Delete is
+      where a BST implementation actually gets tested, because removing a
+      node can break the tree's shape in three genuinely different ways.
+
+      Implement `insert`, `contains`, `inorder` and `delete` on the `BST`
+      class in `solution.py`, using the `BSTNode` given to you.
+
+      - `insert(value)` — descend by comparison, attach a new node in the
+        right spot. Ignore duplicate values.
+      - `contains(value)` — descend by comparison, `True`/`False`.
+      - `inorder()` — left, node, right, returned as a list. For a valid BST
+        this is always sorted — that is the invariant every delete test
+        below checks.
+      - `delete(value)` — three cases:
+        1. **Leaf** — just remove it.
+        2. **One child** — splice the child up to take the deleted node's
+           place.
+        3. **Two children** — find the *inorder successor* (the smallest
+           value in the right subtree), copy its value into the node being
+           deleted, then recursively delete that successor from the right
+           subtree. The successor is guaranteed to have at most one child,
+           so this reduces case 3 to a case you already solved.
+    must_contain:
+      - "def delete"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class BSTNode:
+              def __init__(self, value):
+                  self.value = value
+                  self.left = None
+                  self.right = None
+
+
+          class BST:
+              def __init__(self):
+                  self.root = None
+
+              def insert(self, value) -> None:
+                  raise NotImplementedError("Start here")
+
+              def contains(self, value) -> bool:
+                  raise NotImplementedError
+
+              def inorder(self) -> list:
+                  raise NotImplementedError
+
+              def delete(self, value) -> None:
+                  raise NotImplementedError
+    tests:
+      - name: Insert and contains
+        code: |
+          t = BST()
+          for v in [5, 3, 8, 1, 4]:
+              t.insert(v)
+          assert t.contains(4) is True
+          assert t.contains(10) is False
+      - name: Inorder traversal is always sorted
+        code: |
+          t = BST()
+          for v in [5, 3, 8, 1, 4, 7, 9]:
+              t.insert(v)
+          assert t.inorder() == [1, 3, 4, 5, 7, 8, 9], t.inorder()
+      - name: Deleting a leaf
+        code: |
+          t = BST()
+          for v in [5, 3, 8]:
+              t.insert(v)
+          t.delete(3)
+          assert t.inorder() == [5, 8], t.inorder()
+          assert t.contains(3) is False
+      - name: Deleting a node with exactly one child
+        code: |
+          t = BST()
+          for v in [5, 3, 8, 1]:
+              t.insert(v)
+          t.delete(3)
+          assert t.inorder() == [1, 5, 8], t.inorder()
+          assert t.contains(1) is True
+      - name: Deleting the root when it has two children
+        hidden: true
+        code: |
+          t = BST()
+          for v in [5, 3, 8, 1, 4, 7, 9]:
+              t.insert(v)
+          t.delete(5)
+          assert t.inorder() == [1, 3, 4, 7, 8, 9], t.inorder()
+          assert t.contains(5) is False
+          assert len(t.inorder()) == 6
+      - name: Deleting a value that isn't there is a no-op
+        hidden: true
+        code: |
+          t = BST()
+          for v in [5, 3, 8]:
+              t.insert(v)
+          t.delete(100)
+          assert t.inorder() == [3, 5, 8], t.inorder()
+    solution_md: |
+      ```python
+      def delete(self, value):
+          self.root = self._delete(self.root, value)
+
+      def _delete(self, node, value):
+          if node is None:
+              return None
+          if value < node.value:
+              node.left = self._delete(node.left, value)
+          elif value > node.value:
+              node.right = self._delete(node.right, value)
+          else:
+              if node.left is None:
+                  return node.right
+              if node.right is None:
+                  return node.left
+              successor = node.right
+              while successor.left is not None:
+                  successor = successor.left
+              node.value = successor.value
+              node.right = self._delete(node.right, successor.value)
+          return node
+      ```
+
+      The two-child case never actually deletes the node the caller asked to
+      delete — it overwrites its *value* with the successor's, then deletes
+      the successor instead, which by construction has at most one child
+      (it's the leftmost node of a subtree, so it can't have a left child).
+      That's what keeps the function from needing a fourth case: two-children
+      delete reduces to a case you've already written.
+
+  # ---------------------------------------------------- sliding window
+  - slug: sliding-window-distinct-substring
+    concept: dsa-sliding-window-two-pointers
+    title: Longest substring with at most K distinct characters
+    tagline: Grow the window until it breaks the rule. Shrink until it doesn't.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 140
+    brief_md: |
+      A brute-force answer checks every substring — `O(n^2)` of them, each
+      taking `O(n)` to scan for distinct characters, so `O(n^3)` overall. A
+      sliding window does it in one pass: grow the right edge, and the moment
+      the window holds too many distinct characters, shrink the left edge
+      until it is legal again, tracking the best length seen along the way.
+
+      Implement `longest_substring_k_distinct(s, k)` in `solution.py`: the
+      length of the longest contiguous substring of `s` containing **at
+      most** `k` distinct characters.
+
+      Maintain a frequency dict for the current window. Growing the window
+      means incrementing a count; shrinking means decrementing one and
+      **deleting the key entirely once its count hits zero** — if you leave
+      zero-count keys lying around, `len(counts)` stops accurately reporting
+      how many distinct characters are actually in the window, and the whole
+      algorithm silently shrinks too aggressively or not enough.
+    must_contain:
+      - "def longest_substring_k_distinct"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def longest_substring_k_distinct(s: str, k: int) -> int:
+              """Length of the longest substring of `s` with at most `k`
+              distinct characters."""
+              raise NotImplementedError("Start here")
+    tests:
+      - name: A known example
+        code: |
+          assert longest_substring_k_distinct("eceba", 2) == 3, longest_substring_k_distinct("eceba", 2)
+      - name: k = 0 always gives an empty window
+        code: |
+          assert longest_substring_k_distinct("abcabc", 0) == 0
+      - name: k at least the number of distinct characters uses the whole string
+        code: |
+          assert longest_substring_k_distinct("abaccc", 3) == 6
+      - name: An empty string
+        code: |
+          assert longest_substring_k_distinct("", 5) == 0
+      - name: A single repeated character with k = 1
+        hidden: true
+        code: |
+          assert longest_substring_k_distinct("aaaa", 1) == 4
+      - name: Repeated shrinking within one growth step
+        hidden: true
+        code: |
+          assert longest_substring_k_distinct("aabbcc", 1) == 2, longest_substring_k_distinct("aabbcc", 1)
+    solution_md: |
+      ```python
+      def longest_substring_k_distinct(s, k):
+          if k <= 0:
+              return 0
+
+          counts, left, best = {}, 0, 0
+          for right, ch in enumerate(s):
+              counts[ch] = counts.get(ch, 0) + 1
+
+              while len(counts) > k:
+                  left_ch = s[left]
+                  counts[left_ch] -= 1
+                  if counts[left_ch] == 0:
+                      del counts[left_ch]
+                  left += 1
+
+              best = max(best, right - left + 1)
+
+          return best
+      ```
+
+      `left` never moves backward and `right` never moves backward either —
+      each pointer sweeps the string exactly once, which is what makes this
+      `O(n)` instead of `O(n^2)`. The `del` on a zero count is easy to skip
+      and easy to regret: without it, `len(counts)` overcounts distinct
+      characters forever, and the window shrinks far more than it needs to.
+
+  # -------------------------------------------------------------- binary trees
+  - slug: iterative-tree-traversals
+    concept: dsa-binary-trees
+    title: Tree traversals without the call stack
+    tagline: Recursion works fine until the tree is deep enough to blow Python's stack.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 140
+    brief_md: |
+      `inorder`, `preorder` and `postorder` are almost always taught as five
+      lines of recursion, and that recursion is exactly the call stack — the
+      interpreter is doing the bookkeeping for you. That bookkeeping has a
+      limit: a sufficiently deep or unbalanced tree overflows Python's
+      recursion limit long before it overflows any real constraint on tree
+      size. Managing that stack **yourself**, with an explicit list, removes
+      the limit.
+
+      Implement `inorder(root)`, `preorder(root)` and `postorder(root)` in
+      `solution.py`, each returning a list of values, **without any
+      recursive function calls**. Each needs its own approach:
+
+      - `preorder` (node, left, right) is the simplest: push right before
+        left onto a stack so left is popped first.
+      - `inorder` (left, node, right) needs to walk all the way left,
+        pushing as you go, before you can record anything.
+      - `postorder` (left, right, node) is easiest built as a reversed
+        "node, right, left" — push left before right (mirroring preorder),
+        then reverse the collected result at the end.
+
+      An empty tree (`root is None`) returns `[]` for all three.
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class TreeNode:
+              def __init__(self, value, left=None, right=None):
+                  self.value = value
+                  self.left = left
+                  self.right = right
+
+
+          def inorder(root) -> list:
+              raise NotImplementedError("Start here")
+
+
+          def preorder(root) -> list:
+              raise NotImplementedError
+
+
+          def postorder(root) -> list:
+              raise NotImplementedError
+    tests:
+      - name: preorder on a small tree
+        code: |
+          root = TreeNode(1, TreeNode(2, TreeNode(4), TreeNode(5)), TreeNode(3))
+          assert preorder(root) == [1, 2, 4, 5, 3], preorder(root)
+      - name: inorder on the same tree
+        code: |
+          root = TreeNode(1, TreeNode(2, TreeNode(4), TreeNode(5)), TreeNode(3))
+          assert inorder(root) == [4, 2, 5, 1, 3], inorder(root)
+      - name: postorder on the same tree
+        code: |
+          root = TreeNode(1, TreeNode(2, TreeNode(4), TreeNode(5)), TreeNode(3))
+          assert postorder(root) == [4, 5, 2, 3, 1], postorder(root)
+      - name: An empty tree returns an empty list for all three
+        code: |
+          assert inorder(None) == []
+          assert preorder(None) == []
+          assert postorder(None) == []
+      - name: A single-node tree
+        hidden: true
+        code: |
+          root = TreeNode(7)
+          assert inorder(root) == [7]
+          assert preorder(root) == [7]
+          assert postorder(root) == [7]
+      - name: A tree 3000 nodes deep does not blow the call stack
+        hidden: true
+        code: |
+          root = TreeNode(1)
+          node = root
+          for i in range(2, 3001):
+              node.left = TreeNode(i)
+              node = node.left
+
+          result = inorder(root)
+          assert len(result) == 3000, f"got {len(result)} values"
+          assert result[0] == 3000 and result[-1] == 1, (result[0], result[-1])
+
+          pre = preorder(root)
+          assert pre[0] == 1 and pre[-1] == 3000 and len(pre) == 3000
+    solution_md: |
+      ```python
+      def inorder(root):
+          result, stack, node = [], [], root
+          while stack or node is not None:
+              while node is not None:
+                  stack.append(node)
+                  node = node.left
+              node = stack.pop()
+              result.append(node.value)
+              node = node.right
+          return result
+
+      def preorder(root):
+          if root is None:
+              return []
+          result, stack = [], [root]
+          while stack:
+              node = stack.pop()
+              result.append(node.value)
+              if node.right is not None:
+                  stack.append(node.right)
+              if node.left is not None:
+                  stack.append(node.left)
+          return result
+
+      def postorder(root):
+          if root is None:
+              return []
+          result, stack = [], [root]
+          while stack:
+              node = stack.pop()
+              result.append(node.value)
+              if node.left is not None:
+                  stack.append(node.left)
+              if node.right is not None:
+                  stack.append(node.right)
+          result.reverse()
+          return result
+      ```
+
+      `postorder` is the cute one: pushing left before right and recording
+      each node on the way produces "node, right, left" — the exact reverse
+      of "left, right, node." Reversing the whole result at the end is
+      cheaper than writing postorder's genuinely trickier two-pass iterative
+      algorithm from scratch, and it is exactly the kind of shortcut that
+      only becomes obvious once you're forced to stop leaning on recursion.
+
+  # -------------------------------------------------------------------- arrays
+  - slug: range-sum-fenwick-tree
+    concept: dsa-arrays
+    title: A Fenwick tree for range sums and point updates
+    tagline: Prefix sums answer a query in O(1) but cost O(n) to update. Fenwick trees give you both in O(log n).
+    runtime: python
+    difficulty: advanced
+    est_minutes: 55
+    xp_reward: 160
+    brief_md: |
+      A plain prefix-sum array answers "sum of everything up to index i" in
+      O(1) — but changing one value means recomputing every prefix after it,
+      O(n). A Fenwick tree (binary indexed tree) gets both operations down to
+      O(log n) by having each array slot own the sum of a specific,
+      power-of-two-sized range, chosen by the slot's own binary
+      representation.
+
+      Implement `FenwickTree` in `solution.py`, over `size` values that all
+      start at zero.
+
+      - `update(index, delta)` — add `delta` to the value at `index`
+        (0-indexed). Internally, walk **up** through the slots that cover
+        `index`, using `i += i & (-i)` on a 1-indexed position, adding
+        `delta` to each.
+      - `prefix_sum(index)` — the sum of everything in `[0, index]`
+        inclusive. Walk **down** using `i -= i & (-i)`, accumulating each
+        slot's value.
+      - `range_sum(left, right)` — the sum of `[left, right]` inclusive,
+        built from two calls to `prefix_sum` (`prefix_sum(right)` minus
+        `prefix_sum(left - 1)`, with the obvious special case when
+        `left == 0`).
+
+      `i & (-i)` isolates the lowest set bit of `i` — that single expression
+      is the whole mechanism: it is both how far `update` needs to jump up to
+      the next slot that also needs this delta, and how far `prefix_sum`
+      needs to jump down to the next slot whose range it still needs to add.
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class FenwickTree:
+              """A Fenwick (binary indexed) tree over `size` zero-initialised slots."""
+
+              def __init__(self, size: int):
+                  self.size = size
+                  self.tree = [0] * (size + 1)
+
+              def update(self, index: int, delta: int) -> None:
+                  """Add `delta` to the value at `index` (0-indexed)."""
+                  raise NotImplementedError("Start here")
+
+              def prefix_sum(self, index: int) -> int:
+                  """Sum of [0, index] inclusive (0-indexed)."""
+                  raise NotImplementedError
+
+              def range_sum(self, left: int, right: int) -> int:
+                  """Sum of [left, right] inclusive (0-indexed)."""
+                  raise NotImplementedError
+    tests:
+      - name: Building from a list of values, prefix sums are correct
+        code: |
+          values = [1, 3, 5, 7, 9, 11]
+          ft = FenwickTree(len(values))
+          for i, v in enumerate(values):
+              ft.update(i, v)
+          assert ft.prefix_sum(2) == 9, ft.prefix_sum(2)
+          assert ft.prefix_sum(5) == 36, ft.prefix_sum(5)
+      - name: range_sum matches a plain slice sum
+        code: |
+          values = [1, 3, 5, 7, 9, 11]
+          ft = FenwickTree(len(values))
+          for i, v in enumerate(values):
+              ft.update(i, v)
+          assert ft.range_sum(1, 3) == 15, ft.range_sum(1, 3)
+          assert ft.range_sum(0, 5) == 36
+      - name: A point update changes exactly the sums that include it
+        code: |
+          values = [1, 3, 5, 7, 9, 11]
+          ft = FenwickTree(len(values))
+          for i, v in enumerate(values):
+              ft.update(i, v)
+          ft.update(2, 10)          # index 2 (value 5) becomes 15
+          assert ft.prefix_sum(1) == 4, "sums before index 2 must be untouched"
+          assert ft.prefix_sum(2) == 19, ft.prefix_sum(2)
+      - name: A single-element range
+        code: |
+          ft = FenwickTree(5)
+          ft.update(3, 42)
+          assert ft.range_sum(3, 3) == 42
+          assert ft.range_sum(0, 2) == 0
+      - name: A sequence of updates matches a brute-force list simulation
+        hidden: true
+        code: |
+          values = [2, 4, 6, 8, 10]
+          ft = FenwickTree(len(values))
+          for i, v in enumerate(values):
+              ft.update(i, v)
+
+          for idx, delta in [(0, 5), (3, -3), (4, 1), (1, 10)]:
+              ft.update(idx, delta)
+              values[idx] += delta
+
+          for l in range(len(values)):
+              for r in range(l, len(values)):
+                  expected = sum(values[l:r + 1])
+                  got = ft.range_sum(l, r)
+                  assert got == expected, f"range_sum({l},{r}) = {got}, expected {expected}"
+      - name: A fresh tree is all zeros
+        hidden: true
+        code: |
+          ft = FenwickTree(4)
+          assert ft.prefix_sum(3) == 0
+          assert ft.range_sum(0, 3) == 0
+    solution_md: |
+      ```python
+      def update(self, index, delta):
+          i = index + 1
+          while i <= self.size:
+              self.tree[i] += delta
+              i += i & (-i)
+
+      def prefix_sum(self, index):
+          i = index + 1
+          total = 0
+          while i > 0:
+              total += self.tree[i]
+              i -= i & (-i)
+          return total
+
+      def range_sum(self, left, right):
+          if left == 0:
+              return self.prefix_sum(right)
+          return self.prefix_sum(right) - self.prefix_sum(left - 1)
+      ```
+
+      `i & (-i)` works because of how two's-complement negation flips every
+      bit up to and including the lowest set bit — the AND of a number and
+      its negation is exactly that lowest set bit, isolated. `update` uses it
+      to climb toward larger-and-larger ranges that all cover `index`;
+      `prefix_sum` uses the same expression to descend, peeling off one
+      covered range at a time. It is the same bit trick read in two
+      directions, which is the whole reason the class needs no recursion and
+      no rebuilding.

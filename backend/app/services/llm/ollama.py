@@ -46,7 +46,16 @@ class OllamaProvider:
             for name in installed
         )
 
-    async def stream_chat(self, messages: list[ChatMessage]) -> AsyncIterator[str]:
+    async def stream_chat(
+        self, messages: list[ChatMessage], options: dict | None = None
+    ) -> AsyncIterator[str]:
+        """Stream an answer.
+
+        `options` is for *callers inside this codebase* — the anonymous helper
+        caps `num_predict` with it. It is never populated from a request body;
+        an unauthenticated caller must not be able to choose the model or its
+        sampling parameters.
+        """
         payload = {
             "model": self.chat_model,
             "messages": messages,
@@ -56,6 +65,7 @@ class OllamaProvider:
                 # not a creative writer.
                 "temperature": 0.3,
                 "num_ctx": 8192,
+                **(options or {}),
             },
         }
         try:
@@ -78,6 +88,35 @@ class OllamaProvider:
                             yield fragment
                         if chunk.get("done"):
                             break
+        except httpx.HTTPError as exc:
+            raise LLMUnavailable(f"Ollama request failed: {exc}") from exc
+
+    async def chat_with_tools(self, messages: list[ChatMessage], tools: list[dict]) -> dict:
+        """Non-streaming chat that supports tool calling.
+
+        Returns the full assistant message dict, which may include a
+        ``tool_calls`` list if the model decided to invoke a tool.
+        """
+        payload = {
+            "model": self.chat_model,
+            "messages": messages,
+            "stream": False,
+            "tools": tools,
+            "options": {
+                "temperature": 0.3,
+                "num_ctx": 8192,
+            },
+        }
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/chat", json=payload
+                )
+                response.raise_for_status()
+                data = response.json()
+                if data.get("error"):
+                    raise LLMUnavailable(str(data["error"]))
+                return data.get("message", {})
         except httpx.HTTPError as exc:
             raise LLMUnavailable(f"Ollama request failed: {exc}") from exc
 

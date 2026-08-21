@@ -221,7 +221,7 @@ def get_concept(slug: str, db: DbSession, user: OptionalUser):
         )
         missing = graph.missing_prerequisites(concept.id, completed)
         detail.status = own.status if own else None
-        detail.is_locked = bool(missing)
+        detail.is_locked = not graph.is_unlocked(concept.id, completed)
         detail.missing_prerequisites = [
             concept_summary(related[i]) for i in sorted(missing) if i in related
         ]

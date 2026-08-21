@@ -19,25 +19,32 @@ def slugs_for(db, ids) -> list[str]:
 
 def test_closure_pulls_in_transitive_prerequisites(db):
     graph = ConceptGraph.load(db)
-    closure = slugs_for(db, graph.closure(ids_for(db, "system-design-basics")))
+    closure = slugs_for(db, graph.closure(ids_for(db, "backend-caching")))
 
     # Directly required
-    assert "caching-strategies" in closure
-    # Required by a requirement — two hops away
-    assert "rest-api-design" in closure
-    assert "programming-language-python" in closure
+    assert "backend-relational-databases" in closure
+    # Required by a requirement — two levels up
+    assert "backend-introduction" in closure
 
 
-def test_closure_crosses_track_boundaries(db):
-    """The AI track needs Docker, which is curated under the backend track."""
+def test_closure_stays_inside_its_roadmap(db):
+    """Concepts are per-roadmap since the roadmap.sh import.
+
+    The hand-authored graph deliberately shared nodes between tracks, so the AI
+    track's closure reached Docker over in the backend track. roadmap.sh
+    publishes each roadmap as a self-contained canvas, and the importer
+    namespaces every concept by roadmap, so a closure no longer leaves its own
+    track. This pins that down: if concept sharing is ever reintroduced, this
+    test should be the thing that fails.
+    """
     graph = ConceptGraph.load(db)
-    closure = slugs_for(db, graph.closure(ids_for(db, "mlops-deployment")))
-    assert "containers-docker" in closure
+    closure = slugs_for(db, graph.closure(ids_for(db, "backend-caching")))
+    assert all(slug.startswith("backend-") for slug in closure), sorted(closure)
 
 
 def test_topological_order_puts_prerequisites_first(db):
     graph = ConceptGraph.load(db)
-    subset = graph.closure(ids_for(db, "system-design-basics", "ci-cd"))
+    subset = graph.closure(ids_for(db, "backend-caching", "devops-containers"))
     ordered = graph.topological_order(subset)
     position = {cid: i for i, cid in enumerate(ordered)}
 
@@ -49,7 +56,7 @@ def test_topological_order_puts_prerequisites_first(db):
 
 def test_topological_order_is_deterministic(db):
     graph = ConceptGraph.load(db)
-    subset = graph.closure(ids_for(db, "system-design-basics"))
+    subset = graph.closure(ids_for(db, "backend-caching"))
     assert graph.topological_order(subset) == graph.topological_order(subset)
 
 
@@ -65,15 +72,27 @@ def test_cycle_is_detected(db):
         graph.topological_order({a, b})
 
 
-def test_unlocked_requires_every_prerequisite(db):
-    graph = ConceptGraph.load(db)
-    (rest_api,) = ids_for(db, "rest-api-design")
-    (http,) = ids_for(db, "internet-and-http")
-    (python,) = ids_for(db, "programming-language-python")
+def test_prerequisites_are_advisory_not_a_gate(db):
+    """Nothing is locked, but the recommended order is still recorded.
 
-    assert not graph.is_unlocked(rest_api, completed=set())
-    assert not graph.is_unlocked(rest_api, completed={http})
-    assert graph.is_unlocked(rest_api, completed={http, python})
+    `HARD_PREREQUISITES` is off, so `is_unlocked` is always true. That is
+    deliberate rather than incidental: the 85 imported tracks have no real
+    dependency data — each concept simply chains to the previous one in reading
+    order — and gating on that would lock a learner out of "Caching" until they
+    had finished seven unrelated concepts. The edges still have to be there
+    either way; they drive the plan's ordering and the "usually covered after"
+    hint, and in the authored tracks they are genuine dependencies.
+    """
+    graph = ConceptGraph.load(db)
+    (caching,) = ids_for(db, "backend-caching")
+    (databases,) = ids_for(db, "backend-relational-databases")
+
+    assert graph.is_unlocked(caching, completed=set())
+
+    chain = graph.closure({caching}) - {caching}
+    assert databases in chain
+    assert graph.missing_prerequisites(caching, completed=set()) == {databases}
+    assert graph.missing_prerequisites(caching, completed={databases}) == set()
 
 
 # --- scheduling ----------------------------------------------------------
@@ -109,11 +128,11 @@ def test_chunking_handles_an_empty_plan():
 
 def test_plan_skips_known_concepts_and_their_orphaned_prerequisites(db):
     graph = ConceptGraph.load(db)
-    track = db.scalar(select(Track).where(Track.slug == "backend-developer"))
+    track = db.scalar(select(Track).where(Track.slug == "backend"))
     curated = track_concept_ids(db, track.id)
 
     full = plan_concepts(graph, curated, known=set())
-    known = ids_for(db, "internet-and-http", "git-version-control")
+    known = ids_for(db, "backend-introduction", "backend-version-control-systems")
     reduced = plan_concepts(graph, curated, known=known)
 
     assert len(reduced) == len(full) - len(known)

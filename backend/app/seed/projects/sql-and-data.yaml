@@ -1,0 +1,1132 @@
+# Projects for SQL and data-wrangling concepts — one per concept.
+#
+# Six run under sql.js (SQLite in the browser): standard SQLite only, no
+# Postgres-specific syntax and no extensions. Four run under Pyodide in
+# standard-library-only Python — no pandas, no numpy. `csv`, `json`,
+# `collections`, `statistics` and `itertools` are the toolbox.
+#
+# For `runtime: sql`, `tests[].code` is a SQL statement with `{{query}}`
+# substituted for the learner's query (stripped of its trailing `;`); its
+# result set is compared against `tests[].expected`, a JSON array of rows.
+# For `runtime: python`, `tests[].code` is executed against the learner's
+# module namespace and passes when nothing raises.
+#
+# `must_contain` lists substrings the submission must include. Use it only
+# where the brief genuinely requires a particular approach, never as a style
+# check.
+
+projects:
+  # -------------------------------------------------------------- subqueries
+  - slug: dedupe-keep-newest
+    concept: sql-subqueries
+    title: Keep the newest, drop the rest
+    tagline: A dedup query for a signup form that lets bots resubmit.
+    runtime: sql
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 130
+    brief_md: |
+      A signup form with no client-side guard means every network hiccup
+      produces a second row: same email, later timestamp. Before you can
+      report "how many people signed up," you need one row per person — the
+      most recent one.
+
+      `signups` (read `schema.sql`) has duplicate emails. Write **one** query
+      in `query.sql` that returns exactly one row per email: the row with the
+      latest `created_at`. Columns, in this order:
+
+      | email | created_at | source |
+      |-------|------------|--------|
+
+      **The tie-break that matters:** two rows for the same email can share
+      the exact same `created_at` — a retry that resent within the same
+      second. When that happens, keep the row with the higher `id`; it was
+      written second, so it is the one the signup form actually settled on.
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: email, created_at, source. One row per email.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE signups (
+            id         INTEGER PRIMARY KEY,
+            email      TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            source     TEXT NOT NULL
+          );
+
+          INSERT INTO signups (id, email, created_at, source) VALUES
+            (1, 'asha@x.com',  '2026-01-01T10:00:00', 'landing'),
+            (2, 'asha@x.com',  '2026-01-03T09:00:00', 'referral'),
+            (3, 'bo@x.com',    '2026-01-02T12:00:00', 'landing'),
+            (4, 'carla@x.com', '2026-01-05T08:00:00', 'ad'),
+            (5, 'carla@x.com', '2026-01-05T08:00:00', 'landing'),
+            (6, 'dan@x.com',   '2026-01-01T00:00:00', 'landing');
+    tests:
+      - name: One row survives per email, the newest one
+        code: "{{query}}"
+        expected: |
+          [["asha@x.com", "2026-01-03T09:00:00", "referral"],
+           ["bo@x.com", "2026-01-02T12:00:00", "landing"],
+           ["carla@x.com", "2026-01-05T08:00:00", "landing"],
+           ["dan@x.com", "2026-01-01T00:00:00", "landing"]]
+      - name: Exactly one row per distinct email
+        code: "SELECT COUNT(*) FROM ({{query}})"
+        expected: "[[4]]"
+      - name: A same-timestamp tie is broken by the higher id
+        code: "SELECT created_at, source FROM ({{query}}) WHERE email = 'carla@x.com'"
+        expected: '[["2026-01-05T08:00:00", "landing"]]'
+      - name: A customer with only one signup is unaffected
+        code: "SELECT created_at FROM ({{query}}) WHERE email = 'dan@x.com'"
+        expected: '[["2026-01-01T00:00:00"]]'
+      - name: Carla's tie collapses to exactly one surviving row
+        hidden: true
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE email = 'carla@x.com'"
+        expected: "[[1]]"
+    solution_md: |
+      ```sql
+      SELECT email, created_at, source
+      FROM (
+        SELECT email, created_at, source,
+               ROW_NUMBER() OVER (
+                 PARTITION BY email ORDER BY created_at DESC, id DESC
+               ) AS rn
+        FROM signups
+      )
+      WHERE rn = 1
+      ORDER BY email;
+      ```
+
+      The inner query is a subquery that ranks every row *within its email*,
+      newest first, with `id DESC` as the tiebreaker for a dead-heat
+      timestamp. The outer query keeps only rank 1. `GROUP BY email` with
+      `MAX(created_at)` looks tempting but only gets you the winning
+      timestamp — you would need a second correlated subquery to get back to
+      `source`, and a third to handle the tie. Ranking once and filtering
+      once does both jobs.
+
+  # ---------------------------------------------------------- window totals
+  - slug: running-total-report
+    concept: sql-advanced-functions
+    title: A running total of daily revenue
+    tagline: Window functions do the two-pass math a self-join would fake.
+    runtime: sql
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      Finance wants two numbers for every day: that day's revenue, and the
+      total so far this period. The second number needs every prior day's
+      total re-summed for each row — exactly what a window function is for.
+
+      `sales` (read `schema.sql`) has one row per sale; a day can have zero,
+      one or several. Write **one** query in `query.sql` returning, per day,
+      in this order:
+
+      | sale_date | daily_total | running_total |
+      |-----------|-------------|---------------|
+
+      `daily_total` is the sum of `revenue` for that day. `running_total` is
+      the sum of every day's `daily_total` up to and including that day,
+      ordered by date. A day with zero sales does not disappear — it must
+      appear with `daily_total = 0` and a `running_total` unchanged from the
+      day before.
+    must_contain:
+      - "OVER"
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: sale_date, daily_total, running_total.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE sales (
+            id        INTEGER PRIMARY KEY,
+            sale_date TEXT NOT NULL,
+            revenue   REAL NOT NULL
+          );
+
+          INSERT INTO sales (id, sale_date, revenue) VALUES
+            (1, '2026-01-01', 100.0),
+            (2, '2026-01-01',  50.0),
+            (3, '2026-01-02',  75.0),
+            (4, '2026-01-03',   0.0),
+            (5, '2026-01-04', 200.0);
+    tests:
+      - name: Daily and running totals for every day
+        code: "{{query}}"
+        expected: |
+          [["2026-01-01", 150.0, 150.0],
+           ["2026-01-02", 75.0, 225.0],
+           ["2026-01-03", 0.0, 225.0],
+           ["2026-01-04", 200.0, 425.0]]
+      - name: A zero-revenue day still appears, with daily_total 0
+        code: "SELECT daily_total FROM ({{query}}) WHERE sale_date = '2026-01-03'"
+        expected: "[[0.0]]"
+      - name: The running total is cumulative, not per-day
+        code: "SELECT running_total FROM ({{query}}) WHERE sale_date = '2026-01-04'"
+        expected: "[[425.0]]"
+      - name: Multiple sales on the same day are combined before the running total
+        hidden: true
+        code: "SELECT daily_total FROM ({{query}}) WHERE sale_date = '2026-01-01'"
+        expected: "[[150.0]]"
+      - name: Four days of sales produce exactly four rows
+        hidden: true
+        code: "SELECT COUNT(*) FROM ({{query}})"
+        expected: "[[4]]"
+    solution_md: |
+      ```sql
+      SELECT sale_date,
+             SUM(revenue) AS daily_total,
+             SUM(SUM(revenue)) OVER (ORDER BY sale_date) AS running_total
+      FROM sales
+      GROUP BY sale_date
+      ORDER BY sale_date;
+      ```
+
+      `GROUP BY` collapses same-day sales into one row per date; the window
+      function then runs *after* that aggregation, summing `daily_total`
+      across every row up to and including the current one. Nesting an
+      aggregate inside a window frame (`SUM(SUM(...))  OVER (...)`) is legal
+      precisely because `GROUP BY` has already turned the sale rows into day
+      rows by the time the window sees them — the alternative, a self-join on
+      `sale_date <=`, does the same thing at O(n²) instead of one sorted pass.
+
+  # ---------------------------------------------------------------- self join
+  - slug: skip-level-manager
+    concept: sql-join-queries
+    title: Find each employee's skip-level manager
+    tagline: Two self-joins answer a question your HR system usually can't.
+    runtime: sql
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 130
+    brief_md: |
+      An org chart is a table joined to itself. Most self-join exercises stop
+      at "find each employee's manager" — one join. The next question up the
+      ladder, "who does *their* manager report to," needs a second join
+      against the same table, and it is where people get the direction of
+      the join backwards.
+
+      `employees` (read `schema.sql`) stores `manager_id`, a self-reference.
+      Write **one** query in `query.sql` returning every employee's name and
+      their **skip-level manager's** name — their manager's manager — in
+      this order:
+
+      | name | skip_level_manager |
+      |------|---------------------|
+
+      Two kinds of employee have no skip-level manager: the person at the
+      top, and anyone who reports directly to them. `skip_level_manager`
+      must be `NULL` for both — do not drop the row.
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: name, skip_level_manager.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE employees (
+            id         INTEGER PRIMARY KEY,
+            name       TEXT NOT NULL,
+            manager_id INTEGER REFERENCES employees(id)
+          );
+
+          INSERT INTO employees (id, name, manager_id) VALUES
+            (1, 'Priya',  NULL),
+            (2, 'Quinn',  1),
+            (3, 'Rafael', 2),
+            (4, 'Sofia',  3),
+            (5, 'Tariq',  4),
+            (6, 'Uma',    2);
+    tests:
+      - name: The person at the top has no manager at any level
+        code: "SELECT skip_level_manager FROM ({{query}}) WHERE name = 'Priya'"
+        expected: "[[null]]"
+      - name: A direct report to the top has no skip-level manager either
+        code: "SELECT skip_level_manager FROM ({{query}}) WHERE name = 'Quinn'"
+        expected: "[[null]]"
+      - name: Two levels down, the skip-level manager is the grandboss
+        code: "SELECT skip_level_manager FROM ({{query}}) WHERE name = 'Rafael'"
+        expected: '[["Priya"]]'
+      - name: Every employee gets exactly one row
+        code: "SELECT COUNT(*) FROM ({{query}})"
+        expected: "[[6]]"
+      - name: Two employees under different managers can share a skip-level manager
+        hidden: true
+        code: "SELECT name FROM ({{query}}) WHERE skip_level_manager = 'Priya' ORDER BY name"
+        expected: '[["Rafael"], ["Uma"]]'
+    solution_md: |
+      ```sql
+      SELECT e.name AS name, gm.name AS skip_level_manager
+      FROM employees e
+      LEFT JOIN employees m  ON m.id = e.manager_id
+      LEFT JOIN employees gm ON gm.id = m.manager_id
+      ORDER BY e.id;
+      ```
+
+      `e` is every employee, `m` is their manager, `gm` ("grandmanager") is
+      the manager's manager — three aliases of the same table, joined in a
+      chain. Both joins have to be `LEFT JOIN`: an `INNER JOIN` on `m` would
+      silently drop the CEO (no manager to match), and an `INNER JOIN` on
+      `gm` would drop everyone who reports directly to the CEO. The hidden
+      test is the payoff — Rafael and Uma reach `Priya` through different
+      immediate managers, which a query that special-cased "chain of three"
+      instead of following the actual foreign key would get wrong.
+
+  # ------------------------------------------------------------ performance
+  - slug: index-aware-union-rewrite
+    concept: sql-performance-optimization
+    title: Rewrite an OR across two indexes as a UNION
+    tagline: One predicate, two indexed columns — the planner can only use one.
+    runtime: sql
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 140
+    brief_md: |
+      `products` (read `schema.sql`) is indexed on `stock` and separately on
+      `recalled` — two ordinary single-column indexes. The obvious query for
+      "needs attention" is:
+
+      ```sql
+      SELECT sku FROM products WHERE stock = 0 OR recalled = 1;
+      ```
+
+      That query can use only *one* index per pass over the table, because an
+      `OR` across two different columns is not something a single index
+      lookup can satisfy — the planner falls back to scanning every row.
+      Rewrite it in `query.sql` as two indexed lookups combined with `UNION`,
+      each hitting its own index, instead of one query that hits neither.
+
+      Return `sku` only, one row per product, sorted alphabetically. A
+      product that is **both** out of stock and recalled must still appear
+      exactly once — that is the detail `UNION ALL` would get wrong.
+    must_contain:
+      - "UNION"
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: sku. One row per product needing attention.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE products (
+            id       INTEGER PRIMARY KEY,
+            sku      TEXT NOT NULL,
+            category TEXT NOT NULL,
+            stock    INTEGER NOT NULL,
+            recalled INTEGER NOT NULL DEFAULT 0
+          );
+          CREATE INDEX idx_products_stock    ON products(stock);
+          CREATE INDEX idx_products_recalled ON products(recalled);
+
+          INSERT INTO products (id, sku, category, stock, recalled) VALUES
+            (1, 'SKU-A', 'kitchen', 0, 0),
+            (2, 'SKU-B', 'kitchen', 5, 1),
+            (3, 'SKU-C', 'garden',  0, 1),
+            (4, 'SKU-D', 'garden', 10, 0),
+            (5, 'SKU-E', 'toys',    3, 0);
+    tests:
+      - name: Out-of-stock and recalled products are both included
+        code: "{{query}}"
+        expected: '[["SKU-A"], ["SKU-B"], ["SKU-C"]]'
+      - name: A fully healthy, in-stock product is excluded
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE sku = 'SKU-D'"
+        expected: "[[0]]"
+      - name: An in-stock, non-recalled product is excluded
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE sku = 'SKU-E'"
+        expected: "[[0]]"
+      - name: A product matching both conditions appears exactly once
+        hidden: true
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE sku = 'SKU-C'"
+        expected: "[[1]]"
+      - name: The result has no duplicate rows at all
+        hidden: true
+        code: "SELECT COUNT(*) FROM ({{query}})"
+        expected: "[[3]]"
+    solution_md: |
+      ```sql
+      SELECT sku FROM products WHERE stock = 0
+      UNION
+      SELECT sku FROM products WHERE recalled = 1
+      ORDER BY sku;
+      ```
+
+      Each half of the `UNION` is a plain equality lookup against its own
+      index — `idx_products_stock` for the first, `idx_products_recalled`
+      for the second — so both can be answered without touching every row.
+      `UNION` (not `UNION ALL`) is what de-duplicates SKU-C, which matches
+      both halves; `UNION ALL` would hand it back twice and the third hidden
+      test would catch it. The general shape — turn `WHERE a OR b` on
+      differently-indexed columns into `SELECT ... WHERE a UNION SELECT ...
+      WHERE b` — is one of the few query rewrites you can do without ever
+      looking at an actual query plan.
+
+  # ------------------------------------------------------------- conditional
+  - slug: pivot-monthly-sales
+    concept: sql-conditional
+    title: Pivot months into columns
+    tagline: Conditional aggregation turns long data into the wide report finance wants.
+    runtime: sql
+    difficulty: beginner
+    est_minutes: 40
+    xp_reward: 120
+    brief_md: |
+      Finance does not want "product, month, amount" rows — they want a
+      spreadsheet: one row per product, one column per month. SQLite has no
+      `PIVOT` keyword, but `SUM(CASE WHEN ...)` does the same job, one
+      column at a time.
+
+      `monthly_sales` (read `schema.sql`) has one row per sale. Write **one**
+      query in `query.sql` returning one row per product with a total for
+      each month, in this order:
+
+      | product | jan_total | feb_total | mar_total |
+      |---------|-----------|-----------|-----------|
+
+      A product can have several sales in the same month — sum them into
+      that one column. A product with no sales in a given month gets `0` in
+      that column, not a missing row and not `NULL`.
+    must_contain:
+      - "CASE"
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: product, jan_total, feb_total, mar_total.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE monthly_sales (
+            id      INTEGER PRIMARY KEY,
+            product TEXT NOT NULL,
+            month   TEXT NOT NULL,
+            amount  REAL NOT NULL
+          );
+
+          INSERT INTO monthly_sales (id, product, month, amount) VALUES
+            (1, 'Mouse',    'Jan',  900.0),
+            (2, 'Mouse',    'Feb',  450.0),
+            (3, 'Mouse',    'Jan',  300.0),
+            (4, 'Keyboard', 'Mar', 1200.0),
+            (5, 'Keyboard', 'Jan',  600.0),
+            (6, 'Monitor',  'Feb', 12000.0);
+    tests:
+      - name: Each product's monthly totals land in the right column
+        code: "{{query}}"
+        expected: |
+          [["Keyboard", 600.0, 0, 1200.0],
+           ["Monitor", 0, 12000.0, 0],
+           ["Mouse", 1200.0, 450.0, 0]]
+      - name: A month with no sales for a product is 0, not missing
+        code: "SELECT mar_total FROM ({{query}}) WHERE product = 'Monitor'"
+        expected: "[[0]]"
+      - name: Every product gets exactly one row
+        code: "SELECT COUNT(*) FROM ({{query}})"
+        expected: "[[3]]"
+      - name: Mouse's two January sales are combined, not left as separate rows
+        hidden: true
+        code: "SELECT jan_total FROM ({{query}}) WHERE product = 'Mouse'"
+        expected: "[[1200.0]]"
+      - name: Rows come back sorted by product name
+        hidden: true
+        code: "SELECT product FROM ({{query}})"
+        expected: '[["Keyboard"], ["Monitor"], ["Mouse"]]'
+    solution_md: |
+      ```sql
+      SELECT product,
+        SUM(CASE WHEN month = 'Jan' THEN amount ELSE 0 END) AS jan_total,
+        SUM(CASE WHEN month = 'Feb' THEN amount ELSE 0 END) AS feb_total,
+        SUM(CASE WHEN month = 'Mar' THEN amount ELSE 0 END) AS mar_total
+      FROM monthly_sales
+      GROUP BY product
+      ORDER BY product;
+      ```
+
+      Each `CASE` turns "was this row's month the one I'm summing" into a
+      number the outer `SUM` can add: the row's `amount` if it matches,
+      `0` if it doesn't. Three `CASE` expressions, three columns, one pass
+      over the table — the pivot is just aggregation with the grouping done
+      by column instead of by row.
+
+  # ---------------------------------------------------- anti-pattern rewrite
+  - slug: nth-highest-per-group
+    concept: postgresql-dba-sql-query-patterns-anti-patterns
+    title: The second-highest salary, correctly, per department
+    tagline: LIMIT/OFFSET is a single-group trick; ROW_NUMBER breaks on ties.
+    runtime: sql
+    difficulty: advanced
+    est_minutes: 55
+    xp_reward: 160
+    brief_md: |
+      "Second-highest salary per department" gets solved wrong two different
+      ways, constantly. `LIMIT 1 OFFSET 1` only works for *one* group — there
+      is no per-group `LIMIT`. And `ROW_NUMBER()` looks like the fix until
+      two employees are tied for the top salary: `ROW_NUMBER` still hands out
+      1 and 2 to the tied pair, so the "second-highest" it reports is
+      actually a second employee at the *same* top salary, not the next
+      distinct one down.
+
+      `salaries` (read `schema.sql`) has a tie for the highest salary in one
+      department. Write **one** query in `query.sql` returning every
+      employee who earns the **second-highest distinct salary** in their
+      department, in this order:
+
+      | department | employee | salary |
+      |------------|----------|--------|
+
+      A department with only one distinct salary contributes no rows — there
+      is no second one to report.
+    must_contain:
+      - "DENSE_RANK"
+    files:
+      - path: query.sql
+        entry: true
+        content: |
+          -- One query. Return: department, employee, salary.
+          SELECT
+          ;
+      - path: schema.sql
+        readonly: true
+        content: |
+          CREATE TABLE salaries (
+            id         INTEGER PRIMARY KEY,
+            department TEXT NOT NULL,
+            employee   TEXT NOT NULL,
+            salary     INTEGER NOT NULL
+          );
+
+          INSERT INTO salaries (id, department, employee, salary) VALUES
+            (1, 'eng',    'Asha',   190000),
+            (2, 'eng',    'Bo',     190000),
+            (3, 'eng',    'Carla',  170000),
+            (4, 'eng',    'Dan',    150000),
+            (5, 'sales',  'Elin',   120000),
+            (6, 'sales',  'Foo',    110000),
+            (7, 'sales',  'Gita',   110000),
+            (8, 'design', 'Hana',    95000);
+    tests:
+      - name: The tie for highest in eng does not count as a second value
+        code: "{{query}}"
+        expected: |
+          [["eng", "Carla", 170000],
+           ["sales", "Foo", 110000],
+           ["sales", "Gita", 110000]]
+      - name: Neither of the two tied top earners is reported as second
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE employee IN ('Asha', 'Bo')"
+        expected: "[[0]]"
+      - name: A tie for second place returns both employees who share it
+        code: "SELECT employee FROM ({{query}}) WHERE department = 'sales' ORDER BY employee"
+        expected: '[["Foo"], ["Gita"]]'
+      - name: A department with only one distinct salary has no second-highest
+        hidden: true
+        code: "SELECT COUNT(*) FROM ({{query}}) WHERE department = 'design'"
+        expected: "[[0]]"
+      - name: The second-highest in eng is the next distinct salary, not the next row
+        hidden: true
+        code: "SELECT salary FROM ({{query}}) WHERE department = 'eng'"
+        expected: "[[170000]]"
+    solution_md: |
+      ```sql
+      SELECT department, employee, salary
+      FROM (
+        SELECT department, employee, salary,
+               DENSE_RANK() OVER (
+                 PARTITION BY department ORDER BY salary DESC
+               ) AS rnk
+        FROM salaries
+      )
+      WHERE rnk = 2
+      ORDER BY department, employee;
+      ```
+
+      `DENSE_RANK` gives every distinct salary in a department the next
+      integer rank, with ties sharing a rank and no gap afterwards — Asha and
+      Bo both land on rank 1, and Carla, the next *distinct* value down,
+      lands on rank 2 rather than rank 3. `RANK()` would leave a gap (1, 1,
+      3) and skip the row you want; `ROW_NUMBER()` would break the tie
+      arbitrarily and hand you a second row at the *same* salary. `DENSE_RANK`
+      is the one of the three that answers "second-highest value," as opposed
+      to "second row" or "second-highest, unless there's a tie for first."
+
+  # --------------------------------------------------------- data cleanup
+  - slug: csv-column-profiler
+    concept: data-analyst-data-cleanup
+    title: Profile a CSV before you trust it
+    tagline: Per-column null counts and type guesses, the first pass over any new export.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      Every CSV you are handed lies a little: a numeric column with a stray
+      `"N/A"`, a code that is sometimes lowercase `"n/a"` instead of empty,
+      a column that looks numeric until row 40. Before you join it to
+      anything, you profile it — and the profile is the whole deliverable,
+      not a stepping stone to one.
+
+      `rows` is a CSV loaded the way `csv.DictReader` gives it to you: a list
+      of dicts, every value a **string**, because CSV has no types of its
+      own. Implement `profile(rows)` in `solution.py`. Return one entry per
+      column:
+
+      ```python
+      {
+        "age": {
+          "null_count": 2, "int_count": 3, "float_count": 0,
+          "text_count": 0, "distinct_count": 2,
+        },
+        ...
+      }
+      ```
+
+      Rules the tests check:
+
+      - A value counts as **null** when it is empty, `"NULL"`, or `"N/A"` —
+        matched case-insensitively and after stripping surrounding
+        whitespace. Everything else is exactly one of int / float / text.
+      - Classify by trying `int()` first, then `float()`, then it is text.
+        `"91"` is an int; `"88.5"` is a float, not also counted as an int.
+      - `distinct_count` counts unique **non-null** values, comparing them
+        after stripping whitespace — nulls never contribute to it.
+    must_contain:
+      - "def profile"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def profile(rows: list[dict]) -> dict:
+              """Return per-column null/type/distinct stats for a CSV export."""
+              raise NotImplementedError("Start here")
+      - path: fixtures.py
+        readonly: true
+        content: |
+          ROWS = [
+              {"id": "1", "age": "34",    "score": "88.5", "country": "IN", "notes": "N/A"},
+              {"id": "2", "age": "",      "score": "N/A",  "country": "SE", "notes": ""},
+              {"id": "3", "age": "29",    "score": "91",   "country": "n/a", "notes": "NULL"},
+              {"id": "4", "age": "NULL",  "score": "76.0", "country": "MX", "notes": "n/a"},
+              {"id": "5", "age": " 34 ",  "score": "88.5", "country": "IN", "notes": "N/A"},
+          ]
+    tests:
+      - name: Empty string and NULL are both counted as null
+        code: |
+          from fixtures import ROWS
+          stats = profile(ROWS)
+          assert stats["age"]["null_count"] == 2, stats["age"]
+      - name: Int and float are classified separately, int tried first
+        code: |
+          from fixtures import ROWS
+          stats = profile(ROWS)
+          assert stats["score"]["int_count"] == 1, stats["score"]
+          assert stats["score"]["float_count"] == 3, stats["score"]
+      - name: "N/A is null regardless of case"
+        code: |
+          from fixtures import ROWS
+          stats = profile(ROWS)
+          assert stats["country"]["null_count"] == 1, stats["country"]
+          assert stats["country"]["text_count"] == 4, stats["country"]
+      - name: distinct_count ignores whitespace and never counts nulls
+        code: |
+          from fixtures import ROWS
+          stats = profile(ROWS)
+          assert stats["age"]["distinct_count"] == 2, stats["age"]
+      - name: A column that is null in every row reports zero everywhere else
+        hidden: true
+        code: |
+          from fixtures import ROWS
+          stats = profile(ROWS)
+          notes = stats["notes"]
+          assert notes["null_count"] == 5, notes
+          assert notes["int_count"] == notes["float_count"] == notes["text_count"] == 0, notes
+          assert notes["distinct_count"] == 0, notes
+      - name: Every column present in the input gets a profile entry
+        hidden: true
+        code: |
+          from fixtures import ROWS
+          stats = profile(ROWS)
+          assert set(stats) == {"id", "age", "score", "country", "notes"}, set(stats)
+    solution_md: |
+      ```python
+      def profile(rows):
+          columns = {col: [] for row in rows for col in row}
+          for col in columns:
+              columns[col] = [row.get(col, "") for row in rows]
+
+          result = {}
+          for col, values in columns.items():
+              null_count = int_count = float_count = text_count = 0
+              distinct = set()
+              for raw in values:
+                  value = raw.strip()
+                  if value.lower() in {"", "null", "n/a"}:
+                      null_count += 1
+                      continue
+                  distinct.add(value)
+                  try:
+                      int(value)
+                      int_count += 1
+                      continue
+                  except ValueError:
+                      pass
+                  try:
+                      float(value)
+                      float_count += 1
+                      continue
+                  except ValueError:
+                      pass
+                  text_count += 1
+              result[col] = {
+                  "null_count": null_count, "int_count": int_count,
+                  "float_count": float_count, "text_count": text_count,
+                  "distinct_count": len(distinct),
+              }
+          return result
+      ```
+
+      The `try: int() / except: try: float() / except: text` ladder is the
+      whole trick, and the order is not arbitrary: every int string also
+      parses as a float, so checking float first would make `int_count`
+      always zero. `continue` after each successful branch is what keeps a
+      single value from being counted twice.
+
+  # ----------------------------------------------------- descriptive stats
+  - slug: groupby-aggregate-report
+    concept: data-analyst-descriptive-analysis
+    title: "Group, aggregate, and don't let the mean lie to you"
+    tagline: Count, sum, mean, median and p90 per group — no pandas required.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      "Average latency is 1.4 seconds" can be true and still hide the fact
+      that three-quarters of requests finish in a fifth of a second — one
+      slow outlier drags the mean wherever it wants. The median doesn't care,
+      and the 90th percentile tells you what your slowest real users
+      actually see.
+
+      Implement `summarize(rows, group_by, value_field)` in `solution.py`.
+      `rows` is a list of dicts; group by the value of `group_by`, and
+      summarize `value_field` within each group:
+
+      ```python
+      {
+        "checkout": {
+          "count": 4, "total": 5660, "mean": 1415.0,
+          "median": 270.0, "p90": 5000,
+        },
+        ...
+      }
+      ```
+
+      - Groups are keyed in the result dict in **order of first appearance**.
+      - `mean` and `median` are exactly what they say — round both to 2
+        decimal places. Use `statistics.median`; it already handles the
+        even-count average-of-two-middles case correctly.
+      - `p90` uses **nearest rank**: sort the group's values ascending, take
+        the value at index `ceil(0.9 * n) - 1`. For a single-value group,
+        `p90` is that value.
+    must_contain:
+      - "def summarize"
+      - "statistics"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import math
+          import statistics
+
+
+          def summarize(rows: list[dict], group_by: str, value_field: str) -> dict:
+              """Group `rows` by `group_by` and summarize `value_field` per group."""
+              raise NotImplementedError("Start here")
+      - path: fixtures.py
+        readonly: true
+        content: |
+          ROWS = [
+              {"service": "checkout", "latency_ms": 120},
+              {"service": "checkout", "latency_ms": 340},
+              {"service": "search",   "latency_ms": 80},
+              {"service": "checkout", "latency_ms": 200},
+              {"service": "search",   "latency_ms": 95},
+              {"service": "checkout", "latency_ms": 5000},
+              {"service": "auth",     "latency_ms": 50},
+              {"service": "billing",  "latency_ms": 10},
+              {"service": "billing",  "latency_ms": 10},
+              {"service": "billing",  "latency_ms": 11},
+          ]
+    tests:
+      - name: Groups keep the order they first appear in, with correct count and total
+        code: |
+          from fixtures import ROWS
+          result = summarize(ROWS, "service", "latency_ms")
+          assert list(result) == ["checkout", "search", "auth", "billing"], list(result)
+          assert result["checkout"]["count"] == 4, result["checkout"]
+          assert result["checkout"]["total"] == 5660, result["checkout"]
+      - name: One outlier moves the mean far more than the median
+        code: |
+          from fixtures import ROWS
+          result = summarize(ROWS, "service", "latency_ms")
+          checkout = result["checkout"]
+          assert checkout["mean"] == 1415.0, checkout
+          assert checkout["median"] == 270.0, checkout
+      - name: p90 is the value at the nearest-rank index
+        code: |
+          from fixtures import ROWS
+          result = summarize(ROWS, "service", "latency_ms")
+          assert result["checkout"]["p90"] == 5000, result["checkout"]
+          assert result["search"]["p90"] == 95, result["search"]
+      - name: A single-value group has identical mean, median and p90
+        code: |
+          from fixtures import ROWS
+          result = summarize(ROWS, "service", "latency_ms")
+          auth = result["auth"]
+          assert auth["mean"] == auth["median"] == auth["p90"] == 50.0, auth
+      - name: mean is rounded to 2 decimal places, not truncated
+        hidden: true
+        code: |
+          from fixtures import ROWS
+          result = summarize(ROWS, "service", "latency_ms")
+          billing = result["billing"]
+          assert billing["mean"] == 10.33, billing
+          assert billing["median"] == 10, billing
+          assert billing["p90"] == 11, billing
+      - name: Every input row is accounted for across all groups
+        hidden: true
+        code: |
+          from fixtures import ROWS
+          result = summarize(ROWS, "service", "latency_ms")
+          assert sum(g["count"] for g in result.values()) == len(ROWS), result
+    solution_md: |
+      ```python
+      def summarize(rows, group_by, value_field):
+          groups = {}
+          for row in rows:
+              groups.setdefault(row[group_by], []).append(row[value_field])
+
+          result = {}
+          for key, values in groups.items():
+              ordered = sorted(values)
+              n = len(ordered)
+              rank = math.ceil(0.9 * n)
+              p90 = ordered[min(max(rank, 1), n) - 1]
+              result[key] = {
+                  "count": n,
+                  "total": round(sum(values), 2),
+                  "mean": round(sum(values) / n, 2),
+                  "median": round(statistics.median(values), 2),
+                  "p90": round(p90, 2),
+              }
+          return result
+      ```
+
+      `dict.setdefault` builds the groups in first-appearance order for free.
+      The `checkout` group is the point of the exercise: one 5000ms request
+      among four drags the mean past 1400ms, while the median — the middle
+      value once sorted — barely moves, because it only cares about rank, not
+      magnitude. That is precisely why SLOs are written against percentiles
+      and not averages.
+
+  # -------------------------------------------------------- mongo-style agg
+  - slug: mini-aggregation-pipeline
+    concept: mongodb-aggregation
+    title: Build a mini aggregation pipeline
+    tagline: $match, $group, $sort, $limit — the four stages behind most Mongo queries.
+    runtime: python
+    difficulty: advanced
+    est_minutes: 65
+    xp_reward: 180
+    brief_md: |
+      A MongoDB aggregation pipeline is a list of stages, each one
+      transforming the document stream the previous stage produced. You
+      don't need a database running to learn the shape of it — you need a
+      list of dicts and four `if` branches.
+
+      Implement `aggregate(docs, pipeline)` in `solution.py`. `docs` is a
+      list of plain dicts; `pipeline` is a list of single-key stage dicts,
+      applied in order. Support exactly these four stages:
+
+      - `{"$match": {field: value, ...}}` — keep documents where **every**
+        listed field equals the given value.
+      - `{"$group": {"_id": "$field" | None, out: {"$sum": "$field" | 1}, ...}}`
+        — group by the value of `$field` (or a single group when `_id` is
+        `None`). Each output field is one accumulator: `{"$sum": "$field"}`
+        totals that field, `{"$sum": 1}` counts documents, `{"$avg":
+        "$field"}` means it, rounded to 2 decimals. Groups come out **in
+        order of first appearance**.
+      - `{"$sort": {field: 1 | -1}}` — sort ascending (`1`) or descending
+        (`-1`) by one field.
+      - `{"$limit": n}` — keep only the first `n` documents.
+
+      Each stage receives the *output* of the one before it — `$sort` after
+      `$group` sorts the grouped documents, not the originals. That chaining
+      is the entire idea; get the four stages right individually and
+      pipelines of them fall out for free.
+    must_contain:
+      - "def aggregate"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def aggregate(docs: list[dict], pipeline: list[dict]) -> list[dict]:
+              """Run a small MongoDB-style aggregation pipeline over `docs`."""
+              raise NotImplementedError("Start here")
+      - path: fixtures.py
+        readonly: true
+        content: |
+          ORDERS = [
+              {"customer": "Asha",  "region": "IN", "amount": 100},
+              {"customer": "Bo",    "region": "SE", "amount": 50},
+              {"customer": "Asha",  "region": "IN", "amount": 300},
+              {"customer": "Carla", "region": "MX", "amount": 75},
+              {"customer": "Bo",    "region": "SE", "amount": 125},
+              {"customer": "Dan",   "region": "IN", "amount": 10},
+          ]
+    tests:
+      - name: $match keeps only documents where every field matches
+        code: |
+          from fixtures import ORDERS
+          result = aggregate(ORDERS, [{"$match": {"region": "IN"}}])
+          assert len(result) == 3, result
+          assert all(doc["region"] == "IN" for doc in result), result
+      - name: $group sums a field per _id, in order of first appearance
+        code: |
+          from fixtures import ORDERS
+          result = aggregate(ORDERS, [
+              {"$group": {"_id": "$region", "total": {"$sum": "$amount"}}},
+          ])
+          assert result == [
+              {"_id": "IN", "total": 410},
+              {"_id": "SE", "total": 175},
+              {"_id": "MX", "total": 75},
+          ], result
+      - name: "$sum: 1 counts documents, $avg means the field"
+        code: |
+          from fixtures import ORDERS
+          result = aggregate(ORDERS, [
+              {"$group": {"_id": "$customer", "orders": {"$sum": 1}, "avg_amount": {"$avg": "$amount"}}},
+          ])
+          by_customer = {doc["_id"]: doc for doc in result}
+          assert by_customer["Asha"] == {"_id": "Asha", "orders": 2, "avg_amount": 200.0}, by_customer["Asha"]
+          assert by_customer["Bo"]["avg_amount"] == 87.5, by_customer["Bo"]
+      - name: A full pipeline chains each stage's output into the next stage's input
+        code: |
+          from fixtures import ORDERS
+          result = aggregate(ORDERS, [
+              {"$match": {"region": "IN"}},
+              {"$group": {"_id": "$customer", "total": {"$sum": "$amount"}}},
+              {"$sort": {"total": -1}},
+              {"$limit": 1},
+          ])
+          assert result == [{"_id": "Asha", "total": 400}], result
+      - name: "_id: None groups every document into a single result"
+        hidden: true
+        code: |
+          from fixtures import ORDERS
+          result = aggregate(ORDERS, [{"$group": {"_id": None, "total": {"$sum": "$amount"}}}])
+          assert result == [{"_id": None, "total": 660}], result
+      - name: $limit past the end of the result changes nothing
+        hidden: true
+        code: |
+          from fixtures import ORDERS
+          result = aggregate(ORDERS, [{"$match": {"region": "MX"}}, {"$limit": 50}])
+          assert result == [{"customer": "Carla", "region": "MX", "amount": 75}], result
+    solution_md: |
+      ```python
+      def aggregate(docs, pipeline):
+          data = list(docs)
+          for stage in pipeline:
+              if "$match" in stage:
+                  criteria = stage["$match"]
+                  data = [d for d in data if all(d.get(k) == v for k, v in criteria.items())]
+              elif "$group" in stage:
+                  spec = stage["$group"]
+                  id_field = spec.get("_id")
+                  groups, sums, counts, order = {}, {}, {}, []
+                  for doc in data:
+                      if isinstance(id_field, str) and id_field.startswith("$"):
+                          key = doc.get(id_field[1:])
+                      else:
+                          key = id_field
+                      if key not in groups:
+                          groups[key] = {"_id": key}
+                          sums[key], counts[key] = {}, {}
+                          order.append(key)
+                      for out_field, acc in spec.items():
+                          if out_field == "_id":
+                              continue
+                          if "$sum" in acc:
+                              expr = acc["$sum"]
+                              value = 1 if expr == 1 else doc.get(expr[1:], 0)
+                              sums[key][out_field] = sums[key].get(out_field, 0) + value
+                              groups[key][out_field] = sums[key][out_field]
+                          elif "$avg" in acc:
+                              expr = acc["$avg"]
+                              value = doc.get(expr[1:], 0)
+                              sums[key][out_field] = sums[key].get(out_field, 0) + value
+                              counts[key][out_field] = counts[key].get(out_field, 0) + 1
+                              groups[key][out_field] = round(
+                                  sums[key][out_field] / counts[key][out_field], 2
+                              )
+                  data = [groups[k] for k in order]
+              elif "$sort" in stage:
+                  for field, direction in reversed(list(stage["$sort"].items())):
+                      data = sorted(data, key=lambda d, f=field: d.get(f), reverse=(direction == -1))
+              elif "$limit" in stage:
+                  data = data[: stage["$limit"]]
+          return data
+      ```
+
+      The `order` list is what makes groups come out in first-appearance
+      order instead of whatever order a plain dict's hashing happens to
+      produce for the keys — Python dicts preserve *insertion* order, so
+      appending to `order` exactly when a key is first seen is enough.
+      Threading `data = ...` through the loop, reassigning it at every stage,
+      is the whole pipeline: each stage only ever needs to know the rows it
+      was handed, never the original `docs`.
+
+  # ------------------------------------------------------------ reconcile
+  - slug: reconcile-two-datasets
+    concept: backend-more-about-databases
+    title: Reconcile two exports and report every difference
+    tagline: The diff a migration or a nightly sync needs, keyed and field-level.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      After a migration, or after any nightly sync between two systems,
+      "does it match?" is not a yes/no question — it is a list. Which rows
+      exist on only one side, and for the rows on both sides, which *fields*
+      actually differ. A schema difference — a column present in only one
+      export — is not a data difference and should not be reported as one.
+
+      Implement `reconcile(source, target, key)` in `solution.py`. `source`
+      and `target` are lists of dicts describing the same entity from two
+      exports; `key` is the field name that identifies a row across both.
+      Return:
+
+      ```python
+      {
+        "added":   [key, ...],   # in target, not in source — sorted
+        "removed": [key, ...],   # in source, not in target — sorted
+        "changed": {
+          key: {field: [old_value, new_value], ...}, ...
+        },
+      }
+      ```
+
+      A row is **changed** only when a field present on *both* sides has a
+      different value. A field that exists on only one side is a schema
+      difference, not a data one — ignore it entirely. A row identical on
+      every shared field must not appear in `changed` at all, not even as an
+      empty dict.
+    must_contain:
+      - "def reconcile"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def reconcile(source: list[dict], target: list[dict], key: str) -> dict:
+              """Diff two exports of the same entity, keyed by `key`."""
+              raise NotImplementedError("Start here")
+      - path: fixtures.py
+        readonly: true
+        content: |
+          SOURCE = [
+              {"id": 1, "name": "Asha",   "country": "IN"},
+              {"id": 2, "name": "Bo",     "country": "SE"},
+              {"id": 3, "name": "Carla",  "country": "MX"},
+              {"id": 4, "name": "Dan",    "country": "NG"},
+              {"id": 6, "name": "Fatima", "country": "EG"},
+              {"id": 9, "name": "Gita",   "country": "NP"},
+          ]
+
+          TARGET = [
+              {"id": 1, "name": "Asha",        "country": "IN"},
+              {"id": 2, "name": "Bo",          "country": "NO"},
+              {"id": 4, "name": "Dan",         "country": "NG", "vip": True},
+              {"id": 6, "name": "Fatima Noor", "country": "QA"},
+              {"id": 8, "name": "Hassan",      "country": "AE"},
+              {"id": 5, "name": "Elin",        "country": "FI"},
+          ]
+    tests:
+      - name: Rows missing from the target are reported as removed, sorted
+        code: |
+          from fixtures import SOURCE, TARGET
+          result = reconcile(SOURCE, TARGET, "id")
+          assert result["removed"] == [3, 9], result["removed"]
+      - name: Rows new in the target are reported as added, sorted
+        code: |
+          from fixtures import SOURCE, TARGET
+          result = reconcile(SOURCE, TARGET, "id")
+          assert result["added"] == [5, 8], result["added"]
+      - name: A changed field reports its old and new value
+        code: |
+          from fixtures import SOURCE, TARGET
+          result = reconcile(SOURCE, TARGET, "id")
+          assert result["changed"][2] == {"country": ["SE", "NO"]}, result["changed"][2]
+      - name: A field that only exists on one side is not a data change
+        code: |
+          from fixtures import SOURCE, TARGET
+          result = reconcile(SOURCE, TARGET, "id")
+          assert 4 not in result["changed"], result["changed"]
+      - name: A row with two changed fields reports both
+        hidden: true
+        code: |
+          from fixtures import SOURCE, TARGET
+          result = reconcile(SOURCE, TARGET, "id")
+          assert result["changed"][6] == {
+              "name": ["Fatima", "Fatima Noor"],
+              "country": ["EG", "QA"],
+          }, result["changed"][6]
+      - name: An identical row never appears in changed
+        hidden: true
+        code: |
+          from fixtures import SOURCE, TARGET
+          result = reconcile(SOURCE, TARGET, "id")
+          assert 1 not in result["changed"], result["changed"]
+    solution_md: |
+      ```python
+      def reconcile(source, target, key):
+          src = {row[key]: row for row in source}
+          tgt = {row[key]: row for row in target}
+
+          removed = sorted(k for k in src if k not in tgt)
+          added = sorted(k for k in tgt if k not in src)
+
+          changed = {}
+          for k in src:
+              if k not in tgt:
+                  continue
+              old, new = src[k], tgt[k]
+              shared = set(old) & set(new)
+              diffs = {f: [old[f], new[f]] for f in shared if old[f] != new[f]}
+              if diffs:
+                  changed[k] = diffs
+
+          return {"added": added, "removed": removed, "changed": changed}
+      ```
+
+      `set(old) & set(new)` is the line doing the real work: it is the
+      intersection of each row's *keys*, so `vip` — present only in the
+      target's row for id 4 — never gets compared to anything and never
+      becomes a false "change." Only building a `changed[k]` entry `if
+      diffs` (rather than always, sometimes with an empty dict) is what keeps
+      identical row 1 out of the report entirely.

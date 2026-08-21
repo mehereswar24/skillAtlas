@@ -18,7 +18,6 @@ import { AppShell } from '@/components/app-shell';
 import { ConceptQuiz } from '@/components/concept-quiz';
 import { Markdown } from '@/components/markdown';
 import { SiteHeader } from '@/components/site-header';
-import { TutorLauncher } from '@/components/tutor-launcher';
 import { apiOrNull } from '@/lib/api';
 import { requireUser } from '@/lib/dal';
 import { cn } from '@/lib/utils';
@@ -66,7 +65,7 @@ export default async function ConceptPage({
   })).filter((group) => group.items.length > 0);
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'concept', conceptSlug: concept.slug }}>
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6">
@@ -98,26 +97,36 @@ export default async function ConceptPage({
           <p className="mt-3 text-lg text-muted-foreground">{concept.summary}</p>
         </header>
 
-        {concept.is_locked ? (
-          <div className="rounded-xl border border-dashed bg-muted/30 p-8 text-center">
-            <Lock className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
-            <h2 className="font-display text-xl font-semibold">Not unlocked yet</h2>
-            <p className="mx-auto mt-2 max-w-md text-muted-foreground">
-              This one builds on things you have not finished. Complete these first:
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {concept.missing_prerequisites.map((prereq) => (
-                <Link
-                  key={prereq.slug}
-                  href={`/concepts/${prereq.slug}`}
-                  className="rounded-full border px-3 py-1.5 text-sm transition-colors hover:border-primary hover:text-primary"
-                >
-                  {prereq.name}
-                </Link>
-              ))}
+        {/* Prerequisites are a recommended reading order, not a gate — the
+            source material has no real dependency data, so this suggests
+            rather than blocks. */}
+        {concept.missing_prerequisites.length > 0 && (
+          <div className="mb-8 rounded-xl border border-dashed bg-muted/30 p-5">
+            <div className="flex items-start gap-3">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <div>
+                <h2 className="text-sm font-semibold">
+                  Usually covered after
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Most routes put these first. You can read this now regardless.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {concept.missing_prerequisites.map((prereq) => (
+                    <Link
+                      key={prereq.slug}
+                      href={`/concepts/${prereq.slug}`}
+                      className="rounded-full border px-3 py-1.5 text-sm transition-colors hover:border-primary hover:text-primary"
+                    >
+                      {prereq.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        ) : (
+        )}
+
           <div className="space-y-10">
             <article>
               <Markdown>{concept.content_md}</Markdown>
@@ -268,10 +277,7 @@ export default async function ConceptPage({
               </section>
             )}
           </div>
-        )}
       </main>
-
-      <TutorLauncher conceptSlug={concept.slug} />
     </AppShell>
   );
 }

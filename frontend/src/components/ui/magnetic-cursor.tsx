@@ -2,7 +2,8 @@
 
 import React, { useRef, useEffect, FC, ReactNode, useState } from 'react';
 import gsap from 'gsap';
-import { vec2, Vec2 } from 'vecteur';
+// `vecteur` exports the class as `Vector2`; `Vec2` was never a real export.
+import { vec2, type Vector2 } from 'vecteur';
 
 interface MagneticCursorProps {
   children: ReactNode;
@@ -30,9 +31,9 @@ interface MagneticCursorProps {
 interface CursorState {
   el: HTMLDivElement | null;
   pos: {
-    current: Vec2;
-    target: Vec2;
-    previous: Vec2;
+    current: Vector2;
+    target: Vector2;
+    previous: Vector2;
   };
   hover: { isHovered: boolean };
   isDetaching: boolean;
@@ -197,7 +198,7 @@ export const MagneticCursor: FC<MagneticCursorProps> = ({
         rotate: 0,
         duration: 0.3,
         ease: 'power3.out',
-        overwrite: 'all',
+        overwrite: true,   // GSAP 3 spells "kill other tweens of these targets" as true
       });
     };
 
@@ -228,7 +229,7 @@ export const MagneticCursor: FC<MagneticCursorProps> = ({
         scaleY: 1,
         duration: detachDuration,
         ease: 'power3.out',
-        overwrite: 'all',
+        overwrite: true,   // GSAP 3 spells "kill other tweens of these targets" as true
         onComplete: () => {
           state.isDetaching = false;
         },
@@ -325,7 +326,7 @@ export const MagneticCursor: FC<MagneticCursorProps> = ({
     position: 'fixed',
     top: 0,
     left: 0,
-    zIndex: 9999,
+    zIndex: 999999,
     pointerEvents: 'none',
     willChange: 'transform, width, height, border-radius',
     backgroundColor: cursorColor,

@@ -27,9 +27,14 @@ type Options = {
 };
 
 function createWorker(runtime: 'python' | 'sql'): Worker {
-  // Classic workers, deliberately: both runtimes are pulled in with
-  // importScripts, which does not exist in a module worker. The URL must be a
-  // static `new URL(..., import.meta.url)` for the bundler to emit the chunk.
+  // Classic workers, and not really a choice: Turbopack bootstraps every worker
+  // with a classic stub that pulls the compiled chunks in with importScripts,
+  // so `{ type: 'module' }` here changes nothing. sql.js wants that anyway —
+  // it ships only a UMD bundle. Pyodide 0.28+ refuses to boot in a classic
+  // worker, which pyodide.worker.ts deals with on its own side.
+  //
+  // The URL must be a static `new URL(..., import.meta.url)` for the bundler
+  // to emit the chunk.
   return runtime === 'python'
     ? new Worker(new URL('./pyodide.worker.ts', import.meta.url))
     : new Worker(new URL('./sql.worker.ts', import.meta.url));

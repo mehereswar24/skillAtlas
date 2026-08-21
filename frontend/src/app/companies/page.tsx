@@ -24,7 +24,7 @@ export default async function CompaniesPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'companies' }}>
       <SiteHeader />
 
       <main className="flex-1 px-4 py-10 sm:px-6 lg:px-8">

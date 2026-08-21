@@ -78,16 +78,16 @@ roles:
       "what did the data say") are where unprepared candidates unravel,
       because you cannot improvise a specific metric you never had.
     focus_areas:
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
           notes: "Practical over exotic. Trees, graphs, heaps, hash maps, two-pointer." }
       - { label: "The 16 Leadership Principles", weight: 5,
           notes: "Two or three quantified STAR stories each. This is roughly half the evaluation." }
-      - { concept: data-modeling, label: "Object-oriented and data modelling", weight: 4,
+      - { concept: bi-analyst-data-modeling-for-bi, label: "Object-oriented and data modelling", weight: 4,
           notes: "'Design a parking lot / library system' style rounds are common at SDE-1." }
-      - { concept: system-design-basics, label: "System design basics", weight: 3,
+      - { concept: computer-science-system-design, label: "System design basics", weight: 3,
           notes: "Lighter than at SDE-2, but you should be able to sketch a queue-backed service." }
-      - { concept: relational-databases-sql, label: "Databases", weight: 3 }
-      - { concept: async-and-message-queues, label: "Queues and async work", weight: 3,
+      - { concept: backend-relational-databases, label: "Databases", weight: 3 }
+      - { concept: server-side-game-developer-message-queues, label: "Queues and async work", weight: 3,
           notes: "Amazon's architecture is queue-shaped; SQS semantics come up constantly." }
     questions:
       - kind: online-assessment
@@ -225,17 +225,17 @@ roles:
       do not manage. Have Sesame stories about projects you *scoped*, not just
       ones you completed.
     focus_areas:
-      - { concept: system-design-basics, label: "System design, in depth", weight: 5,
+      - { concept: computer-science-system-design, label: "System design, in depth", weight: 5,
           notes: "Partitioning, hot keys, idempotency, zero-downtime migration." }
-      - { concept: async-and-message-queues, label: "Queues, retries and idempotency", weight: 5,
+      - { concept: server-side-game-developer-message-queues, label: "Queues, retries and idempotency", weight: 5,
           notes: "At-least-once delivery is Amazon's default assumption. Know what that forces on consumers." }
       - { label: "Leadership Principles at scope", weight: 5,
           notes: "Ambiguity, disagreement, influence without authority. Different stories from SDE-1." }
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 4 }
-      - { concept: observability, label: "Operating what you build", weight: 4,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4 }
+      - { concept: devops-observability, label: "Operating what you build", weight: 4,
           notes: "Amazon teams carry pagers. Expect questions about an outage you owned." }
-      - { concept: caching-strategies, label: "Caching", weight: 3 }
-      - { concept: data-modeling, label: "Data modelling and access patterns", weight: 4,
+      - { concept: backend-caching, label: "Caching", weight: 3 }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "Data modelling and access patterns", weight: 4,
           notes: "DynamoDB thinking: design the table from the queries, not from the entities." }
     questions:
       - kind: interview

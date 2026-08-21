@@ -4,11 +4,11 @@ import { Compass, Sparkles } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { ButtonLink } from '@/components/button-link';
 import { RoadmapTimeline } from '@/components/roadmap-timeline';
+import { RouteSwitcher } from '@/components/route-switcher';
 import { SiteHeader } from '@/components/site-header';
-import { TutorLauncher } from '@/components/tutor-launcher';
 import { apiOrNull } from '@/lib/api';
 import { requireUser } from '@/lib/dal';
-import type { Roadmap } from '@/lib/types';
+import type { Roadmap, RoadmapSummary } from '@/lib/types';
 
 export const metadata: Metadata = {
   title: 'Your route',
@@ -17,15 +17,20 @@ export const metadata: Metadata = {
 
 export default async function RoadmapPage() {
   await requireUser('/roadmap');
-  const roadmap = await apiOrNull<Roadmap>('/api/v1/roadmaps/current');
+  const [roadmap, routes] = await Promise.all([
+    apiOrNull<Roadmap>('/api/v1/roadmaps/current'),
+    apiOrNull<RoadmapSummary[]>('/api/v1/roadmaps'),
+  ]);
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'roadmap' }}>
       <SiteHeader />
 
       <main className="flex-1 px-4 py-10 sm:px-6 lg:px-8">
         {roadmap ? (
           <div className="mx-auto max-w-3xl">
+            {routes && routes.length > 0 && <RouteSwitcher routes={routes} />}
+
             <header className="mb-12 border-b pb-8">
               <p className="eyebrow">{roadmap.track.target_role}</p>
               <h1 className="mt-3 font-display text-4xl font-semibold">
@@ -74,7 +79,7 @@ export default async function RoadmapPage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                <ButtonLink variant="outline" size="sm" href="/onboarding">
+                <ButtonLink variant="outline" size="sm" href="/explore">
                   Change route or pace
                 </ButtonLink>
                 <ButtonLink variant="ghost" size="sm" href="/dashboard">
@@ -95,15 +100,13 @@ export default async function RoadmapPage() {
               Pick a destination and tell us how much time you have. We will plot a
               week-by-week route through the graph and skip anything you already know.
             </p>
-            <ButtonLink size="lg" className="mt-8" href="/onboarding">
+            <ButtonLink size="lg" className="mt-8" href="/explore">
               <Sparkles />
               Plot my route
             </ButtonLink>
           </div>
         )}
       </main>
-
-      <TutorLauncher />
     </AppShell>
   );
 }

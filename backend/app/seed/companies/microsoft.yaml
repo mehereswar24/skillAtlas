@@ -75,16 +75,16 @@ roles:
       problems here, parsing and matching; let me do parsing first" is worth
       more than silently arriving at the answer.
     focus_areas:
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
           notes: "Trees, strings and dynamic programming recur. 45-minute rounds, so pace yourself." }
       - { concept: backend-testing, label: "Testing and edge cases", weight: 4,
           notes: "'How would you test this?' is asked more here than anywhere else in big tech." }
-      - { concept: system-design-basics, label: "System design", weight: 4,
+      - { concept: computer-science-system-design, label: "System design", weight: 4,
           notes: "Tied for the second most important round, and sometimes run by the hiring manager." }
-      - { concept: programming-language-python, label: "One language, fluently", weight: 4,
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 4,
           notes: "Your choice — there is no house language." }
-      - { concept: data-modeling, label: "Object-oriented design", weight: 3 }
-      - { concept: cloud-fundamentals, label: "Cloud fundamentals", weight: 3,
+      - { concept: bi-analyst-data-modeling-for-bi, label: "Object-oriented design", weight: 3 }
+      - { concept: devops-cloud-providers, label: "Cloud fundamentals", weight: 3,
           notes: "For Azure teams especially: regions, availability zones, managed identity." }
     questions:
       - kind: interview
@@ -204,17 +204,16 @@ roles:
       result, what should the team do?* A candidate who reports a number
       without a recommendation has answered half.
     focus_areas:
-      - { concept: relational-databases-sql, label: "SQL, including window functions", weight: 5,
+      - { concept: backend-relational-databases, label: "SQL, including window functions", weight: 5,
           notes: "Written live. Joins, aggregation, ranking and cohorting." }
-      - { concept: statistics-probability, label: "Statistics and inference", weight: 5,
+      - { concept: machine-learning-probability, label: "Statistics and inference", weight: 5,
           notes: "What a p-value is, what it is not, and what a confidence interval actually covers." }
-      - { concept: experiment-design, label: "A/B testing and experiment design", weight: 5,
+      - { concept: computer-science-design-patterns, label: "A/B testing and experiment design", weight: 5,
           notes: "Power, sample size, novelty effects, peeking, and when not to run an experiment." }
-      - { concept: numpy-pandas, label: "Python for analysis", weight: 4 }
-      - { concept: data-visualization, label: "Communicating a result", weight: 4,
+      - { concept: python-data-analysis-numpy, label: "Python for analysis", weight: 4 }
+      - { concept: bi-analyst-visualization-fundamentals, label: "Communicating a result", weight: 4,
           notes: "The round usually ends with 'so what should we do?'" }
-      - { concept: classical-ml, label: "Classical ML", weight: 3 }
-      - { concept: model-evaluation, label: "Model evaluation", weight: 3 }
+      - { concept: machine-learning-what-is-model-evaluation, label: "Model evaluation", weight: 3 }
     questions:
       - kind: interview
         round: technical

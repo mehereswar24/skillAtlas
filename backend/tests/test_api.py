@@ -1,5 +1,7 @@
 """Content, roadmap, dashboard and community endpoints."""
 
+import pytest
+
 from tests.conftest import complete_concept
 
 
@@ -11,7 +13,7 @@ def test_every_domain_has_content(client):
     domains = client.get("/api/v1/domains").json()
     tracks = client.get("/api/v1/tracks").json()
 
-    assert len(domains) >= 27
+    assert len(domains) >= 15
     without = [d["slug"] for d in domains if not d["has_content"]]
     assert without == [], f"domains with no track: {without}"
 
@@ -20,34 +22,43 @@ def test_every_domain_has_content(client):
 
 
 def test_quiz_answers_are_never_sent_to_the_client(client):
-    concept = client.get("/api/v1/concepts/internet-and-http").json()
-    assert concept["quiz"], "this concept should have a quiz"
+    concept = client.get("/api/v1/concepts/backend-introduction").json()
+    assert concept["quiz"], (
+        "backend-introduction has no quiz, so this test would prove nothing — "
+        "seed app/seed/quizzes/ before trusting a pass here"
+    )
     serialised = str(concept)
     assert "is_correct" not in serialised
     assert "correct" not in {k for q in concept["quiz"] for o in q["options"] for k in o}
 
 
 def test_concept_detail_includes_graph_edges(client):
-    concept = client.get("/api/v1/concepts/rest-api-design").json()
+    concept = client.get("/api/v1/concepts/backend-learn-about-apis").json()
+    # Edges in and edges out, from the authored backend track's real
+    # dependencies rather than the imported reading-order chain.
     assert {p["slug"] for p in concept["prerequisites"]} == {
-        "internet-and-http",
-        "programming-language-python",
+        "backend-introduction",
     }
-    assert "caching-strategies" in {u["slug"] for u in concept["unlocks"]}
+    assert "backend-api-styles" in {u["slug"] for u in concept["unlocks"]}
 
 
 def test_unknown_concept_returns_404(client):
     assert client.get("/api/v1/concepts/does-not-exist").status_code == 404
 
 
-def test_lock_state_is_only_computed_for_a_signed_in_caller(client, auth):
-    anonymous = client.get("/api/v1/concepts/rest-api-design").json()
+def test_progress_state_is_only_computed_for_a_signed_in_caller(client, auth):
+    anonymous = client.get("/api/v1/concepts/backend-learn-about-apis").json()
     assert anonymous["status"] is None
-    assert anonymous["is_locked"] is False  # nothing to compute against
+    assert anonymous["missing_prerequisites"] == []  # nothing to compute against
 
     headers, _ = auth()
-    identified = client.get("/api/v1/concepts/rest-api-design", headers=headers).json()
-    assert identified["is_locked"] is True
+    identified = client.get(
+        "/api/v1/concepts/backend-learn-about-apis", headers=headers
+    ).json()
+    # Prerequisites advise rather than gate, so nothing is ever locked — but a
+    # signed-in caller does get the "usually covered after" list.
+    assert identified["is_locked"] is False
+    assert identified["missing_prerequisites"]
 
 
 # --- roadmaps -------------------------------------------------------------
@@ -59,12 +70,12 @@ def test_pace_changes_the_number_of_weeks(client, auth):
 
     slow = client.post(
         "/api/v1/roadmaps",
-        json={"track_slug": "backend-developer", "daily_hours": 1},
+        json={"track_slug": "backend", "daily_hours": 1},
         headers=slow_headers,
     ).json()
     fast = client.post(
         "/api/v1/roadmaps",
-        json={"track_slug": "backend-developer", "daily_hours": 8},
+        json={"track_slug": "backend", "daily_hours": 8},
         headers=fast_headers,
     ).json()
 
@@ -78,22 +89,22 @@ def test_prior_knowledge_shortens_the_plan(client, auth):
 
     baseline = client.post(
         "/api/v1/roadmaps",
-        json={"track_slug": "backend-developer", "daily_hours": 3},
+        json={"track_slug": "backend", "daily_hours": 3},
         headers=baseline_headers,
     ).json()
     reduced = client.post(
         "/api/v1/roadmaps",
         json={
-            "track_slug": "backend-developer",
+            "track_slug": "backend",
             "daily_hours": 3,
-            "known_concept_slugs": ["internet-and-http", "git-version-control"],
+            "known_concept_slugs": ["backend-introduction", "backend-version-control-systems"],
         },
         headers=headers,
     ).json()
 
     assert reduced["total_concepts"] == baseline["total_concepts"] - 2
     scheduled = {i["concept"]["slug"] for w in reduced["weeks"] for i in w["items"]}
-    assert "internet-and-http" not in scheduled
+    assert "backend-introduction" not in scheduled
 
 
 def test_prior_knowledge_does_not_award_xp(client, auth):
@@ -102,9 +113,9 @@ def test_prior_knowledge_does_not_award_xp(client, auth):
     client.post(
         "/api/v1/roadmaps",
         json={
-            "track_slug": "backend-developer",
+            "track_slug": "backend",
             "daily_hours": 3,
-            "known_concept_slugs": ["internet-and-http"],
+            "known_concept_slugs": ["backend-introduction"],
         },
         headers=headers,
     )
@@ -135,24 +146,24 @@ def test_roadmap_can_be_created_from_a_goal_title(client, auth):
     headers, _ = auth()
     response = client.post(
         "/api/v1/roadmaps",
-        json={"goal": "Become a Backend Developer", "daily_hours": 2},
+        json={"goal": "Backend Developer", "daily_hours": 2},
         headers=headers,
     )
     assert response.status_code == 201
-    assert response.json()["track"]["slug"] == "backend-developer"
+    assert response.json()["track"]["slug"] == "backend"
 
 
 def test_adding_a_concept_also_adds_its_prerequisites(client, learner):
     headers, _, _ = learner
     updated = client.post(
         "/api/v1/roadmaps/current/items",
-        json={"concept_slugs": ["nlp-transformers"]},
+        json={"concept_slugs": ["devops-containers"]},
         headers=headers,
     ).json()
 
     slugs = {i["concept"]["slug"] for w in updated["weeks"] for i in w["items"]}
-    assert "nlp-transformers" in slugs
-    assert "pytorch-fundamentals" in slugs  # its prerequisite came along
+    assert "devops-containers" in slugs
+    assert "devops-operating-system" in slugs  # its prerequisite came along
 
 
 def test_roadmap_items_belong_to_their_owner(client, learner, auth):
@@ -189,21 +200,23 @@ def test_dashboard_readiness_rises_with_real_progress(client, learner):
     headers, _, _ = learner
     before = client.get("/api/v1/dashboard", headers=headers).json()
 
-    complete_concept(client, headers, "internet-and-http")
-    complete_concept(client, headers, "git-version-control")
+    # A concept the junior role actually measures. Completing it drags in its
+    # whole prerequisite chain, so counts are compared rather than hard-coded.
+    complete_concept(client, headers, "backend-version-control-systems")
 
     after = client.get("/api/v1/dashboard", headers=headers).json()
     junior_before = next(r for r in before["roles"] if r["slug"] == "junior-backend-developer")
     junior_after = next(r for r in after["roles"] if r["slug"] == "junior-backend-developer")
 
     assert junior_after["percent"] > junior_before["percent"]
-    assert after["stats"]["concepts_completed"] == 2
-    assert after["stats"]["hours_invested"] == 2  # two 60-minute sessions
+    completed = after["stats"]["concepts_completed"]
+    assert completed > before["stats"]["concepts_completed"]
+    assert after["stats"]["hours_invested"] == completed  # one 60-minute session each
 
 
 def test_missing_skills_target_the_chosen_goal(client, learner):
     headers, _, _ = learner
-    complete_concept(client, headers, "internet-and-http")
+    complete_concept(client, headers, "backend-introduction")
 
     data = client.get("/api/v1/dashboard", headers=headers).json()
     assert data["missing_skills"], "there should be gaps left"

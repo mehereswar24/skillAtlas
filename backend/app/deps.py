@@ -36,20 +36,20 @@ def _user_from_token(token: str, db: Session) -> User | None:
 
 
 def get_current_user(db: DbSession, credentials: Credentials) -> User:
-    """Auto-return a test user to bypass auth."""
-    from sqlalchemy import select
-    user = db.scalar(select(User).limit(1))
-    if not user:
-        user = User(email="test@example.com", display_name="Test", password_hash="x")
-        db.add(user)
-        db.flush()
-        db.add(UserProfile(user_id=user.id))
-        db.commit()
+    """The user named by the bearer token, or 401."""
+    if credentials is None:
+        raise _UNAUTHORIZED
+    user = _user_from_token(credentials.credentials, db)
+    if user is None:
+        raise _UNAUTHORIZED
     return user
 
 
 def get_optional_user(db: DbSession, credentials: Credentials) -> User | None:
-    return get_current_user(db, credentials)
+    """Same, but anonymous callers are allowed through as ``None``."""
+    if credentials is None:
+        return None
+    return _user_from_token(credentials.credentials, db)
 
 
 def get_profile(db: Session, user: User) -> UserProfile:

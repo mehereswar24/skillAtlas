@@ -21,6 +21,7 @@ from app.models.progress import (
     UserRoadmap,
     UserRoadmapItem,
 )
+from app.models.user import UserProfile
 from app.services.graph import ConceptGraph, track_concept_ids
 
 # A concept bigger than one week's budget still gets its own week rather than
@@ -84,7 +85,13 @@ def build_roadmap(
     daily_hours: int,
     known_concept_ids: set[int] | None = None,
 ) -> UserRoadmap:
-    """Create (or replace) the user's active roadmap for ``track``."""
+    """Create (or rebuild) the user's roadmap for ``track``.
+
+    A learner can run several routes at once, so this leaves their other
+    roadmaps alone. Building the same track twice rebuilds that one route in
+    place rather than stacking duplicates — the plan depends on what they have
+    since completed, so a rebuild is the point.
+    """
     graph = ConceptGraph.load(db)
 
     completed = set(
@@ -100,21 +107,26 @@ def build_roadmap(
     ordered = plan_concepts(graph, track_concept_ids(db, track.id), known)
     weeks = chunk_into_weeks(ordered, graph.hours, daily_hours * 7)
 
-    # Only one roadmap is active at a time; older ones are kept for history.
-    for existing in db.scalars(
+    roadmap = db.scalar(
         select(UserRoadmap).where(
-            UserRoadmap.user_id == user_id, UserRoadmap.is_active.is_(True)
+            UserRoadmap.user_id == user_id,
+            UserRoadmap.track_id == track.id,
+            UserRoadmap.is_active.is_(True),
         )
-    ).all():
-        existing.is_active = False
-
-    roadmap = UserRoadmap(
-        user_id=user_id,
-        track_id=track.id,
-        daily_hours=daily_hours,
-        is_active=True,
     )
-    db.add(roadmap)
+    if roadmap is None:
+        roadmap = UserRoadmap(
+            user_id=user_id,
+            track_id=track.id,
+            daily_hours=daily_hours,
+            is_active=True,
+        )
+        db.add(roadmap)
+    else:
+        roadmap.daily_hours = daily_hours
+        # Clear before appending: (roadmap_id, concept_id) is unique, so the
+        # replacements would collide with the old rows still in the session.
+        roadmap.items.clear()
     db.flush()
 
     for week in weeks:
@@ -152,12 +164,37 @@ def sync_item_statuses(db: Session, roadmap: UserRoadmap, user_id: int) -> None:
     db.flush()
 
 
-def get_active_roadmap(db: Session, user_id: int) -> UserRoadmap | None:
-    return db.scalar(
-        select(UserRoadmap)
-        .where(UserRoadmap.user_id == user_id, UserRoadmap.is_active.is_(True))
-        .order_by(UserRoadmap.created_at.desc())
+def get_active_roadmaps(db: Session, user_id: int) -> list[UserRoadmap]:
+    """Every route the learner is running, newest first."""
+    return list(
+        db.scalars(
+            select(UserRoadmap)
+            .where(UserRoadmap.user_id == user_id, UserRoadmap.is_active.is_(True))
+            .order_by(UserRoadmap.created_at.desc())
+        ).all()
     )
+
+
+def get_active_roadmap(db: Session, user_id: int) -> UserRoadmap | None:
+    """The route the learner is currently focused on.
+
+    Several can run at once, so "current" is the one their profile points at —
+    the dashboard, the tutor and the company add-to-roadmap actions all mean
+    *that* route. Falling back to the newest keeps older accounts (and anyone
+    whose focused track was removed) working.
+    """
+    roadmaps = get_active_roadmaps(db, user_id)
+    if not roadmaps:
+        return None
+
+    focused_track_id = db.scalar(
+        select(UserProfile.current_track_id).where(UserProfile.user_id == user_id)
+    )
+    if focused_track_id is not None:
+        for roadmap in roadmaps:
+            if roadmap.track_id == focused_track_id:
+                return roadmap
+    return roadmaps[0]
 
 
 def append_concepts(
@@ -219,3 +256,53 @@ def concept_ids_by_slug(db: Session, slugs: list[str]) -> set[int]:
     return set(
         db.scalars(select(Concept.id).where(Concept.slug.in_(slugs))).all()
     )
+
+
+def insert_module_at_week(
+    db: Session, roadmap: UserRoadmap, concept_slug: str, target_week: int
+) -> dict:
+    """Insert a concept into the roadmap at a specific week.
+
+    Called by the AI tutor's tool-calling loop. Returns a result dict
+    describing what happened, which gets fed back to the LLM as a tool
+    response.
+    """
+    concept = db.scalar(select(Concept).where(Concept.slug == concept_slug))
+    if concept is None:
+        # Try fuzzy: maybe the LLM sent a name instead of a slug.
+        concept = db.scalar(
+            select(Concept).where(Concept.name.ilike(f"%{concept_slug}%"))
+        )
+    if concept is None:
+        return {"ok": False, "error": f"No concept matching '{concept_slug}' exists in our catalogue."}
+
+    # Already on the roadmap?
+    if any(item.concept_id == concept.id for item in roadmap.items):
+        return {"ok": False, "error": f"'{concept.name}' is already on the roadmap."}
+
+    # Clamp week_no to valid range
+    max_week = max((item.week_no for item in roadmap.items), default=1)
+    target_week = max(1, min(target_week, max_week + 1))
+
+    # Find max sort_order for the target week
+    max_order = max(
+        (item.sort_order for item in roadmap.items if item.week_no == target_week),
+        default=-1,
+    )
+
+    item = UserRoadmapItem(
+        concept_id=concept.id,
+        week_no=target_week,
+        sort_order=max_order + 1,
+        status=STATUS_PENDING,
+    )
+    roadmap.items.append(item)
+    db.flush()
+
+    return {
+        "ok": True,
+        "concept_name": concept.name,
+        "concept_slug": concept.slug,
+        "week_no": target_week,
+        "message": f"Added '{concept.name}' to Week {target_week} of the roadmap.",
+    }

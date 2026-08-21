@@ -1,10 +1,44 @@
+# Server logs from run-dev.ps1 / ad-hoc starts.
+.backend.out.log
+.backend.err.log
+.frontend.out.log
+.frontend.err.log
+.backup-preroadmapsh/
+
 backend/venv/
 backend/*.db
 backend/*.db-wal
 backend/*.db-shm
 backend/.env
 backend/.pytest_cache/
+# Rejection log from scripts/generate_quizzes.py.
+backend/.quizgen.log
 __pycache__/
 frontend/node_modules/
 frontend/.next/
 frontend/.env.local
+
+# Content imported from roadmap.sh by backend/scripts/import_roadmapsh.py.
+# roadmap.sh's licence permits personal use but forbids redistributing the
+# material, so the generated tracks stay out of the repo — ship the importer,
+# not its output. Regenerate with:
+#   python scripts/import_roadmapsh.py --repo <developer-roadmap checkout>
+backend/app/seed/tracks/*.yaml
+# ...except tracks we wrote ourselves, which are ours to publish.
+!backend/app/seed/tracks/authored-*.yaml
+
+# Authoring and QA scratch. `.authoring/` and `.frag/` hold the per-chapter
+# fragments an authored track is concatenated from, and `.qa*/` the ad-hoc
+# probes written during a QA pass. The fragments are ours, but the assembled
+# `authored-<slug>.yaml` is the artefact — keeping both would mean two copies
+# of every track in the repo, drifting apart.
+backend/.authoring/
+backend/.frag/
+backend/.qa/
+backend/.qa-backend.log
+backend/qa/
+frontend/.qa/
+frontend/.qa-cross/
+frontend/qa/
+.pyodiag.txt
+.runtimes.txt

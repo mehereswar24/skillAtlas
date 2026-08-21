@@ -35,5 +35,14 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
 export async function requireUser(returnTo?: string): Promise<User> {
   const user = await getCurrentUser();
   if (user) return user;
-  return null as any;
+
+  const next = returnTo ?? '/dashboard';
+  const hasCookie = (await getAccessToken()) || (await getRefreshToken());
+  // A stale cookie has to be cleared by a Route Handler before we land on
+  // /login, or the optimistic Proxy check bounces us straight back here.
+  redirect(
+    hasCookie
+      ? `/api/auth/logout?next=${encodeURIComponent(next)}`
+      : `/login?next=${encodeURIComponent(next)}`,
+  );
 }

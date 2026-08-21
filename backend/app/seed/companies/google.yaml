@@ -97,16 +97,16 @@ roles:
       cache and why it can go stale, where the write bottleneck is, what breaks
       first at 10x.
     focus_areas:
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
           notes: "Three of five rounds. Graphs, trees, hashing, two-pointer and DP are the recurring shapes." }
-      - { concept: system-design-basics, label: "System design", weight: 4,
+      - { concept: computer-science-system-design, label: "System design", weight: 4,
           notes: "One full round from L4 upward. Trade-offs out loud, not memorised architectures." }
-      - { concept: programming-language-python, label: "One language, fluently", weight: 4,
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 4,
           notes: "You pick it. Fluent beats broad — you cannot look up syntax in the round." }
-      - { concept: relational-databases-sql, label: "Databases and indexing", weight: 3,
+      - { concept: backend-relational-databases, label: "Databases and indexing", weight: 3,
           notes: "Comes up inside design rounds: what to index, where the read amplification is." }
-      - { concept: caching-strategies, label: "Caching and invalidation", weight: 3 }
-      - { concept: internet-and-http, label: "How the web actually works", weight: 2,
+      - { concept: backend-caching, label: "Caching and invalidation", weight: 3 }
+      - { concept: frontend-internet, label: "How the web actually works", weight: 2,
           notes: "Latency budgets, DNS, TLS handshakes — the substrate every design answer sits on." }
       - { label: "Googleyness & leadership", weight: 3,
           notes: "A graded round, not a formality. Have three stories with a concrete result and what you would change." }
@@ -262,17 +262,17 @@ roles:
       latency, and the difference between availability and reliability are the
       vocabulary of the whole loop.
     focus_areas:
-      - { concept: observability, label: "SLOs, error budgets and alerting", weight: 5,
+      - { concept: devops-observability, label: "SLOs, error budgets and alerting", weight: 5,
           notes: "The SRE book is effectively the syllabus. Know why you alert on burn rate, not on errors." }
-      - { concept: linux-and-shell, label: "Linux internals and the shell", weight: 5,
+      - { concept: devops-operating-system, label: "Linux internals and the shell", weight: 5,
           notes: "Troubleshooting rounds are live: strace, /proc, load average, what the OOM killer does." }
-      - { concept: system-design-basics, label: "Large system design", weight: 4 }
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 4,
+      - { concept: computer-science-system-design, label: "Large system design", weight: 4 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4,
           notes: "The coding bar is not lowered for SRE." }
-      - { concept: incident-response, label: "Incident response and postmortems", weight: 4,
+      - { concept: devsecops-incident-response, label: "Incident response and postmortems", weight: 4,
           notes: "Blameless postmortems are a cultural expectation, and they will ask about one you wrote." }
-      - { concept: containers-docker, label: "Containers", weight: 3 }
-      - { concept: kubernetes-orchestration, label: "Orchestration at scale", weight: 3 }
+      - { concept: devops-containers, label: "Containers", weight: 3 }
+      - { concept: devops-container-orchestration, label: "Orchestration at scale", weight: 3 }
     questions:
       - kind: interview
         round: technical

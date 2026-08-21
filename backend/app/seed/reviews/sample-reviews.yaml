@@ -1,0 +1,148 @@
+# SAMPLE REVIEWS — ILLUSTRATIVE, NOT REAL TESTIMONY.
+#
+# Every review in this file is written by us to demonstrate the reviews
+# section, so a company page is not blank the first time anyone opens it. None
+# of it is a real person's account of a real interview, and none of it should
+# ever be presented as one.
+#
+# Three things keep that honest, and all three are load-bearing:
+#   * every row is loaded with `is_sample: true`, which the API returns and the
+#     UI renders as a visible "Sample" label;
+#   * the authors below are placeholder accounts whose display names say
+#     "sample", on `.invalid` addresses (RFC 2606 — guaranteed undeliverable),
+#     with an unusable password hash so nobody can sign in as them;
+#   * the wording describes process, not people, and makes no claim a reader
+#     could mistake for insider information.
+#
+# The moment real members start writing reviews, this file's job is done and it
+# can be deleted. Do not add reviews here that assert anything factual about a
+# company — those belong in `seed/companies/*.yaml`, where a source URL is
+# mandatory.
+
+authors:
+  - key: sample-a
+    display_name: Sample reviewer A
+  - key: sample-b
+    display_name: Sample reviewer B
+  - key: sample-c
+    display_name: Sample reviewer C
+
+reviews:
+  - company: google
+    role: software-engineer
+    author: sample-a
+    rating: 4
+    title: Sample — four rounds, all of them about how you think
+    interview_outcome: offer
+    interview_year: 2025
+    body_md: |
+      **This is a sample review, written to demonstrate the format.** It is not
+      a real person's account.
+
+      What a review is useful for: the shape of the process and what you wish
+      you had practised. A hypothetical write-up might note that the loop ran
+      to four technical rounds over two weeks, that the interviewers cared more
+      about the reasoning out loud than the final line of code, and that the
+      candidate had underprepared for the "why this approach and not that one"
+      follow-up.
+
+      Compare that against the sourced hiring-process notes further up this
+      page, which are checked against the company's own published material. A
+      review is one person's experience; the profile above is the researched
+      part.
+
+  - company: google
+    role: site-reliability-engineer
+    author: sample-b
+    rating: 3
+    title: Sample — strong process, long wait between stages
+    interview_outcome: rejected
+    interview_year: 2024
+    is_anonymous: true
+    body_md: |
+      **Sample content for demonstration — not a real interview account.**
+
+      This one exists to show what an anonymous review looks like: the rating,
+      the outcome and the text are all here, but no name is attached. The API
+      never returns the author for a review marked anonymous, and never returns
+      any reviewer's email at all.
+
+      A real version of this review might describe a three-week gap between the
+      screen and the panel, and note that a rejection came with no specific
+      feedback — the kind of thing only a candidate can tell you, which is
+      exactly why this section exists alongside the researched profile.
+
+  - company: infosys
+    role: systems-engineer
+    author: sample-a
+    rating: 4
+    title: Sample — aptitude first, then a short technical conversation
+    interview_outcome: offer
+    interview_year: 2025
+    body_md: |
+      **Sample review. Illustrative only — nobody's real experience.**
+
+      Placeholder text showing how a fresher-hiring review reads: an online
+      aptitude stage taken under time pressure, a technical round that stayed
+      close to core language questions, and an HR conversation about relocation
+      and training.
+
+      If you have actually been through this process, replace this sample with
+      what really happened. Concrete detail about what was asked, and what you
+      wish you had revised, is worth more to the next reader than a rating.
+
+  - company: tcs
+    role: ninja-digital
+    author: sample-c
+    rating: 3
+    title: Sample — the written stage is the real filter
+    interview_outcome: pending
+    interview_year: 2026
+    body_md: |
+      **Sample review, provided as demo content.** Not a real candidate's
+      account of a real hiring round.
+
+      An example of a review written while the process is still open — the
+      outcome is recorded as pending rather than guessed at. The body would
+      normally cover which sections of the written stage ate the most time and
+      what the candidate would revise first if they sat it again.
+
+      Ratings on a review are about one person's experience of being hired, not
+      a verdict on the company.
+
+  - company: razorpay
+    role: sde-1
+    author: sample-b
+    rating: 5
+    title: Sample — take-home task, then a walkthrough of your own code
+    interview_outcome: offer
+    interview_year: 2025
+    body_md: |
+      **Sample review for demonstration purposes. Not real testimony.**
+
+      Illustrative write-up of a take-home-first loop: a scoped task done over
+      a weekend, followed by a session where the interviewers read the
+      submission back and asked why each decision was made.
+
+      The useful part of a review like this is the preparation advice — that
+      being able to defend your own choices mattered more than the task being
+      perfect. That is a claim about one experience, and this section labels it
+      as such rather than presenting it as researched fact.
+
+  - company: zoho
+    role: member-technical-staff
+    author: sample-c
+    rating: 4
+    title: Sample — long day on site, mostly programming
+    interview_outcome: withdrew
+    interview_year: 2024
+    body_md: |
+      **Sample content — written by us, not submitted by a member.**
+
+      An example of a review from someone who withdrew part-way. That outcome
+      is worth recording: a process someone walked away from tells a reader
+      something a completed loop does not, and the form has an explicit option
+      for it rather than forcing a false "rejected".
+
+      Real reviews here should stay about the process and the candidate's own
+      experience of it, never about named individuals.

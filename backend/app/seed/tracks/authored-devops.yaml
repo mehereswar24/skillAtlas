@@ -1,0 +1,1948 @@
+# Hand-authored SkillAtlas content. Do NOT regenerate with
+# scripts/import_roadmapsh.py — the importer skips any roadmap that has an
+# `authored-<slug>.yaml` beside it, and this file is that exit.
+#
+# Independent curation and independent prose. The syllabus is deliberately
+# outcome-shaped rather than a topic checklist: it walks one service from a
+# laptop to production and then teaches what happens to it at 3am. Written
+# against primary sources — the Linux man pages, the kernel cgroup-v2 admin
+# guide, Docker/Kubernetes/Terraform/Prometheus documentation, the AWS
+# Well-Architected and Builders' Library material, the public Google SRE book
+# and workbook, and published RFCs.
+#
+# Slug policy: every `devops-*` slug that other seed data references is kept.
+# Three slugs are repurposed because their original topic did not earn a place
+# in this syllabus; each says so in a comment above it.
+
+track:
+  slug: devops
+  title: "DevOps: From Laptop to Production, and What Wakes You at 3am"
+  domain: devops
+  target_role: "DevOps / Platform / Site Reliability Engineer"
+  difficulty: intermediate
+  description: "A 33-step path that follows one real service through its whole life: the machine it runs on, the shell you debug it from, the container you package it in, the network in front of it, the cloud account under it, the pipeline that promotes it, the orchestrator that keeps it alive, and the telemetry, on-call rotation, backups and budget that decide whether it survives its first bad night. Every stage teaches the mechanism first and then the failure that mechanism causes when you get it wrong."
+
+concepts:
+  - slug: devops-operating-system
+    name: "How an Operating System Actually Runs Your Service"
+    domain: devops
+    est_hours: 10
+    difficulty: beginner
+    prerequisites: []
+    summary: |-
+      Processes, scheduling, virtual memory, the page cache, and the cgroup and namespace primitives that later turn into containers — the layer every production incident eventually bottoms out in.
+    content_md: |-
+      Nearly every hard production problem resolves into one of four resources: CPU time, memory, disk I/O, or network. An operating system's whole job is to multiplex those four across processes that each believe they own the machine. If you understand how it does that, most "the server is slow" mysteries stop being mysteries.
+
+      ### Scheduling and what "load average" means
+
+      The kernel scheduler hands runnable threads slices of CPU. A thread is *runnable* when it has work and is only waiting for a core; it is *blocked* when it is waiting on I/O, a lock, or a timer. Linux's load average counts both runnable and uninterruptible-sleep tasks, which is why a box with load 40 and 3% CPU is usually stuck on disk or on a hung network mount, not short of compute. This is the single most misread number in operations: load average is not CPU utilisation, and comparing it across machines with different core counts is meaningless unless you divide by core count.
+
+      ### Virtual memory, RSS, and the number that lies
+
+      Each process gets a virtual address space that the MMU maps to physical pages on demand. Because pages are shared (libraries, copy-on-write forks) and lazily allocated, the memory numbers you see are all partial truths. Virtual size (VSZ) counts address space a process has *reserved* and is often absurdly large and harmless. Resident set size (RSS) counts pages currently in physical memory, but double-counts shared pages across processes. PSS ("proportional set size", in `/proc/<pid>/smaps`) divides shared pages by the number of sharers and is the number you actually want when asking "how much of this box is that process using".
+
+      Linux also overcommits by default: it will hand out more address space than it can back. When the promises come due and there is nowhere to reclaim from, the OOM killer picks a victim by score and kills it. A service that "randomly restarts with no logs and exit code 137" was almost certainly OOM-killed — check `dmesg` and the kernel log before you go looking for a bug in the application.
+
+      ### The page cache is not a leak
+
+      Free memory on a healthy Linux box is close to zero, because the kernel uses everything spare as page cache for file data. Monitoring that alerts on "free memory low" will page you constantly and teach you nothing. The number that matters is *available* memory (`MemAvailable` in `/proc/meminfo`), which estimates what could be reclaimed under pressure.
+
+      ### cgroups and namespaces: the two ideas containers are made of
+
+      Control groups (cgroup v2, documented in the kernel admin guide) account for and cap a process tree's CPU, memory, I/O and PIDs. Namespaces give a process tree its own view of a resource kind — its own PID numbering, mount table, network stack, hostname, user IDs. Neither is a container; a container is a process started with a fresh set of namespaces and a cgroup attached. Knowing this makes container behaviour predictable rather than magical, and it explains a classic surprise later in this track: a runtime or thread pool that sizes itself from the host's core count while running inside a container capped at half a core.
+
+      ### The mistakes people actually make
+
+      Treating load average as CPU. Alerting on free memory rather than available memory. Assuming a memory cap produces a graceful error — under a cgroup memory limit the process is killed, and cgroup-level OOM kills do not always appear where you expect in logs. And sizing thread pools, connection pools or heaps from `nproc` inside a container, which reports the host's CPUs unless the runtime is explicitly cgroup-aware.
+    resources:
+      - kind: doc
+        title: "proc(5) — the /proc filesystem"
+        url: "https://man7.org/linux/man-pages/man5/proc.5.html"
+      - kind: doc
+        title: "Linux kernel: Control Group v2 admin guide"
+        url: "https://docs.kernel.org/admin-guide/cgroup-v2.html"
+      - kind: doc
+        title: "namespaces(7) — overview of Linux namespaces"
+        url: "https://man7.org/linux/man-pages/man7/namespaces.7.html"
+      - kind: article
+        title: "Brendan Gregg: Linux Load Averages — Solving the Mystery"
+        url: "https://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html"
+      - kind: book
+        title: "Systems Performance, 2nd edition — Brendan Gregg"
+        url: "https://www.brendangregg.com/systems-performance-2nd-edition-book.html"
+      - kind: book
+        title: "The Linux Programming Interface — Michael Kerrisk"
+        url: "https://man7.org/tlpi/"
+
+  - slug: devops-unix
+    name: "The Unix Process Model: File Descriptors, Signals and How Services Die"
+    domain: devops
+    est_hours: 8
+    difficulty: beginner
+    prerequisites:
+      - devops-operating-system
+    summary: |-
+      fork/exec, file descriptors, exit codes, and the signal handling that decides whether your deploy drains cleanly or drops in-flight requests.
+    content_md: |-
+      The Unix process model is small enough to hold in your head and it explains an enormous amount of production behaviour — how a service starts, how it gets its configuration, how it is asked to stop, and what happens when it refuses.
+
+      ### fork, exec, and where environment variables come from
+
+      A new process is made by `fork()` (duplicate the current process) followed by `exec()` (replace its image with a new program). The child inherits the parent's environment, open file descriptors, working directory and user. That inheritance is why an environment variable exported in your shell is visible to the program you launch but not to a process someone else started an hour ago, and why "it works in my terminal but not under systemd" is nearly always an environment or working-directory difference rather than a code difference.
+
+      ### File descriptors are the universal handle
+
+      Every open file, socket, pipe and terminal is a small integer in a per-process table. Descriptors 0, 1 and 2 are stdin, stdout and stderr by convention. Redirection and pipes are just the shell rearranging that table before `exec`. Two operational consequences follow. Descriptors are a limited resource (`ulimit -n`), and "too many open files" is a leaked-socket or leaked-file bug far more often than a genuine need for a higher limit. And a deleted file whose descriptor is still open keeps consuming disk — which is why `df` can report a full disk that `du` cannot account for, until you restart the process holding the handle.
+
+      ### Signals, and the four seconds that ruin your deploy
+
+      Signals are the OS's way of interrupting a process. The two that matter operationally are SIGTERM ("please stop") and SIGKILL ("stop, no negotiation, uncatchable"). Well-behaved services catch SIGTERM, stop accepting new work, finish in-flight requests, close connections and exit. Orchestrators lean on exactly this: Kubernetes sends SIGTERM, waits for `terminationGracePeriodSeconds`, then sends SIGKILL. If your process ignores SIGTERM — or, more commonly, never *receives* it — every deploy silently drops requests.
+
+      Why it might never receive it: PID 1 in a container has special signal semantics and does not get default signal dispositions, so a shell wrapper running as PID 1 will happily swallow SIGTERM and never pass it on. This is the most common containerisation bug in this entire track. Use `exec` in entrypoint scripts so the real binary *becomes* PID 1, or run a tiny init that forwards signals and reaps zombies.
+
+      ### Exit codes are an API
+
+      Zero means success; anything else is a failure your supervisor, CI job or shell pipeline will act on. Termination by signal is reported as 128 + signal number, which is where the two codes you will see most come from: 143 (128 + 15, SIGTERM — a normal shutdown) and 137 (128 + 9, SIGKILL — usually an OOM kill or an expired grace period). Reading a restart loop correctly starts with reading that number.
+
+      ### Common mistakes
+
+      Wrapping a service in `sh -c` without `exec`. Failing to reap child processes and accumulating zombies. Assuming SIGKILL can be handled — it cannot, so anything that must happen at shutdown must happen on SIGTERM. And raising `ulimit -n` to hide a descriptor leak instead of finding it with `lsof` or `ls /proc/<pid>/fd`.
+    resources:
+      - kind: doc
+        title: "signal(7) — overview of signals"
+        url: "https://man7.org/linux/man-pages/man7/signal.7.html"
+      - kind: doc
+        title: "fork(2) — create a child process"
+        url: "https://man7.org/linux/man-pages/man2/fork.2.html"
+      - kind: doc
+        title: "Kubernetes: Pod lifecycle and termination"
+        url: "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
+      - kind: doc
+        title: "Dockerfile reference: ENTRYPOINT, CMD and signal delivery"
+        url: "https://docs.docker.com/reference/dockerfile/"
+      - kind: doc
+        title: "systemd.service(5) — service unit configuration"
+        url: "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html"
+      - kind: book
+        title: "The Linux Programming Interface — process and signal chapters"
+        url: "https://man7.org/tlpi/"
+
+  - slug: devops-terminal-knowledge
+    name: "Living in a Shell: Pipelines, Job Control and Text as an Interface"
+    domain: devops
+    est_hours: 8
+    difficulty: beginner
+    prerequisites:
+      - devops-unix
+    summary: |-
+      Composing small tools into answers — pipes, redirection, grep/sed/awk/jq, find, xargs — plus the job control and quoting rules that separate a useful one-liner from an outage.
+    content_md: |-
+      The Unix answer to "how do I inspect this system" is not one program, it is many small programs and a way of gluing them together. Fluency here is what separates an engineer who can answer a question during an incident from one who has to go build a dashboard first.
+
+      ### The composition model
+
+      A pipe connects one process's stdout to the next's stdin, and the processes run concurrently — data streams rather than buffering the whole result. That means you can grep a 40GB log without loading it into memory, and it also means a pipeline's exit status is by default only the *last* command's status, which is exactly how failures hide. (`set -o pipefail`, in the scripting chapter, fixes that.)
+
+      ### The tools that pay for themselves
+
+      `grep` for filtering by pattern, with `-c` to count, `-v` to invert and `-o` to extract just the match. `sed` for stream substitution. `awk` for anything involving columns and arithmetic — `awk '{s+=$3} END {print s/NR}'` is faster to write than the equivalent script and works on any box you can SSH into. `sort | uniq -c | sort -rn` is the canonical "top N by frequency" idiom and answers a startling proportion of log questions. `jq` does the same job for JSON and is worth real study now that structured logging is the norm. `find … -print0 | xargs -0` handles bulk operations on filenames safely, including the ones with spaces that break naive loops.
+
+      ### Job control and long-running work
+
+      `Ctrl-Z` suspends, `bg`/`fg` move a job between background and foreground, `jobs` lists them. The operational fact that matters is that a background job is still a child of your shell, so closing the SSH session sends SIGHUP and kills it. Anything that must outlive your connection belongs in `tmux`, `screen`, `nohup`, or better, a systemd unit.
+
+      ### Quoting is where people get hurt
+
+      Unquoted variable expansion in the shell undergoes word splitting and glob expansion. `rm $file` where `file` contains a space deletes two wrong things; `rm "$file"` deletes one right thing. The habit to build now is to quote every expansion unless you have a specific reason not to. The companion habit is to test destructive one-liners by replacing the destructive command with `echo` first — running the pipeline that *prints* what would be deleted costs three seconds and has saved more production data than any backup policy.
+
+      ### Common mistakes
+
+      Parsing `ls` output instead of using `find` or globs. Using `cat file | grep x` when `grep x file` does it. Assuming a pipeline succeeded because the last stage did. Writing a bash loop to do what one `awk` invocation does, then discovering it takes twenty minutes on a large file. And running an unquoted, untested `rm -rf "$DIR/"` where `DIR` was never set — which, with an unset variable and no `set -u`, expands to something catastrophic.
+    resources:
+      - kind: doc
+        title: "GNU Bash Reference Manual"
+        url: "https://www.gnu.org/software/bash/manual/bash.html"
+      - kind: doc
+        title: "GNU Awk User's Guide"
+        url: "https://www.gnu.org/software/gawk/manual/gawk.html"
+      - kind: doc
+        title: "jq manual"
+        url: "https://jqlang.github.io/jq/manual/"
+      - kind: doc
+        title: "find(1) manual page"
+        url: "https://man7.org/linux/man-pages/man1/find.1.html"
+      - kind: article
+        title: "Greg's Wiki: BashPitfalls"
+        url: "https://mywiki.wooledge.org/BashPitfalls"
+      - kind: doc
+        title: "GNU Coreutils manual"
+        url: "https://www.gnu.org/software/coreutils/manual/coreutils.html"
+
+  - slug: devops-linux
+    name: "Debugging a Linux Box That Is Misbehaving"
+    domain: devops
+    est_hours: 12
+    difficulty: intermediate
+    prerequisites:
+      - devops-terminal-knowledge
+    summary: |-
+      A repeatable method — the USE checklist — plus the tools that answer "why is this slow": top, vmstat, iostat, ss, strace, perf, dmesg and journalctl, and the four causes that explain most single-box incidents.
+    content_md: |-
+      The difference between a junior and a senior on an incident call is rarely knowledge of an exotic tool. It is having a *method*, so that ten minutes in you have eliminated three of the four possible resources instead of guessing at a fourth.
+
+      ### The USE method
+
+      Brendan Gregg's USE checklist is the fastest general-purpose approach: for every resource (CPU, memory, disk, network, and any relevant software resource such as a thread pool or connection pool), check **U**tilisation, **S**aturation and **E**rrors. Utilisation is the fraction of time the resource was busy; saturation is the amount of queued work it could not serve; errors are outright failures. Saturation is the one people skip and the one that usually explains user-visible latency — a disk at 100% utilisation with a queue depth of 1 is fine, and the same disk with a queue depth of 60 is an outage.
+
+      ### The tool for each question
+
+      "Is it CPU?" — `top` or `htop` for the per-process split, and crucially the breakdown between user, system, iowait and steal time. High `sy` points at syscall or kernel overhead; high `wa` means processes are blocked on I/O; non-zero `st` on a virtual machine means the hypervisor is giving your CPU to someone else, which no amount of application tuning will fix.
+
+      "Is it memory?" — `free -m` (read *available*, not free), `/proc/meminfo`, and `dmesg -T | grep -i oom` for kills. Swap *activity* in `vmstat 1` (the `si`/`so` columns) is a much better distress signal than swap usage.
+
+      "Is it disk?" — `iostat -xz 1` for per-device await and queue depth, `df -h` for space, `df -i` for inodes (a disk with free bytes and zero free inodes fails in a way that confuses everyone the first time), and `du -xh --max-depth=1` to find the offender.
+
+      "Is it network?" — `ss -s` for a socket summary, `ss -tn state time-wait | wc -l` for TIME_WAIT accumulation, `ss -ltn` to confirm the service is even listening on the interface you think it is, and `tcpdump` or `mtr` when you need to prove where packets stop.
+
+      "What is the process actually doing?" — `strace -f -p <pid>` to see syscalls (expensive, since it slows the target, so use it deliberately), `perf top` for CPU profiles, and `/proc/<pid>/stack` or a language-level thread dump for hangs.
+
+      ### The four classics
+
+      Most single-box incidents are one of: disk full (or inodes full), file descriptors exhausted, out of memory, or a dependency timing out and backing up a thread pool. Checking those four takes ninety seconds and resolves a large fraction of pages before you need anything cleverer.
+
+      ### Common mistakes
+
+      Reaching for a profiler before checking `df`. Reading five-minute averages when the incident lasted forty seconds — always sample at a resolution finer than the event. Trusting `top`'s instantaneous percentages for short-lived processes. Running `strace` against a busy production process without appreciating that you have just made it several times slower. And, most commonly, fixing the symptom (restarting the process, growing the disk) without capturing the evidence the postmortem will need — take the thread dump and copy the logs *before* you restart.
+    resources:
+      - kind: article
+        title: "Brendan Gregg: The USE Method"
+        url: "https://www.brendangregg.com/usemethod.html"
+      - kind: article
+        title: "Brendan Gregg: Linux Performance tools index"
+        url: "https://www.brendangregg.com/linuxperf.html"
+      - kind: doc
+        title: "iostat(1) manual page"
+        url: "https://man7.org/linux/man-pages/man1/iostat.1.html"
+      - kind: doc
+        title: "ss(8) — socket statistics"
+        url: "https://man7.org/linux/man-pages/man8/ss.8.html"
+      - kind: doc
+        title: "journalctl(1) — query the systemd journal"
+        url: "https://www.freedesktop.org/software/systemd/man/latest/journalctl.html"
+      - kind: doc
+        title: "strace(1) manual page"
+        url: "https://man7.org/linux/man-pages/man1/strace.1.html"
+
+  # REPURPOSED SLUG: roadmap.sh uses `devops-editors` for "pick Vim, Nano or
+  # Emacs". Editor choice is not a DevOps competency. The slug is kept so that
+  # nothing referencing it is orphaned, and now carries the skill that actually
+  # matters in its place: getting onto a remote machine safely and working
+  # there without becoming the incident.
+  - slug: devops-editors
+    name: "Remote Access and Session Hygiene: SSH, Bastions and tmux"
+    domain: devops
+    est_hours: 6
+    difficulty: beginner
+    prerequisites:
+      - devops-terminal-knowledge
+    summary: |-
+      Key-based SSH, bastion hosts and the agent-forwarding trap, tmux for work that must outlive your connection, and why hand-editing a production box is itself an incident.
+    content_md: |-
+      Every engineer who operates systems ends up on a machine they did not build, under time pressure, with a shell prompt and no safety net. How you get there, and how you behave once you are there, is a real skill with real failure modes.
+
+      ### Key-based SSH and nothing else
+
+      Password authentication on an internet-reachable SSH port is attacked continuously and should simply be off (`PasswordAuthentication no`, `PermitRootLogin no`). Authentication is by keypair: your private key never leaves your machine, the public key goes in the server's `authorized_keys`. Prefer Ed25519 keys, protect them with a passphrase, and load them into `ssh-agent` so the passphrase is typed once per session rather than never used at all.
+
+      The scaling problem with `authorized_keys` is revocation: removing a departing engineer's access means editing files on every host, and you will miss one. The mature answer is short-lived SSH certificates issued by a CA the hosts trust, so access expires by default instead of being cleaned up by hand.
+
+      ### Bastions, jump hosts, and the agent-forwarding trap
+
+      Production hosts normally have no public address; you reach them through a bastion. Use `ssh -J bastion target` (ProxyJump), which tunnels the connection and terminates encryption on the target itself. Do **not** reflexively use agent forwarding (`-A`): forwarding your agent to a host means anyone with root on that host can use your key, for as long as you are connected, to authenticate anywhere your key is trusted. ProxyJump gives you the same convenience without that exposure. Put your hosts, users, ports and jump configuration in `~/.ssh/config` so the safe form is also the short form.
+
+      ### Sessions that survive the network
+
+      A dropped VPN kills your SSH connection, which SIGHUPs everything it was running. Any migration, backfill, restore or long build should start inside `tmux` (or `screen`), so you can reattach — and, importantly, so a colleague can attach to the same session and see what you are doing during an incident. Learn four things and stop there: create and attach (`tmux new -s name`, `tmux a -t name`), detach (`Ctrl-b d`), split panes, and scrollback.
+
+      ### Editing on a live box
+
+      You will need a survivable editor. Knowing enough `vi` to open, search, edit, save and quit is genuinely non-optional, because it is the one editor present on every machine. But the real lesson is that *configuration edited by hand does not exist*. A hand-patched web server config survives until the next instance is created from the image, then vanishes, and now two servers behave differently for reasons nobody can reconstruct. Anything you change by hand under pressure must be written back into the repository that generates it — a rule the configuration-management and GitOps chapters later make mechanical rather than a matter of discipline.
+
+      ### Common mistakes
+
+      Sharing one generic login between people so the audit log cannot attribute anything. Blindly accepting an unknown host fingerprint — that prompt is the only thing standing between you and a machine-in-the-middle. Leaving `-A` in your muscle memory. Running a four-hour migration in a bare SSH session. And, worst, fixing production by hand and neither telling anyone nor writing it down.
+    resources:
+      - kind: doc
+        title: "OpenSSH manual pages"
+        url: "https://www.openssh.com/manual.html"
+      - kind: doc
+        title: "ssh_config(5) — client configuration, including ProxyJump"
+        url: "https://man.openbsd.org/ssh_config.5"
+      - kind: doc
+        title: "sshd_config(5) — server configuration"
+        url: "https://man.openbsd.org/sshd_config.5"
+      - kind: doc
+        title: "Mozilla InfoSec: OpenSSH security guidelines"
+        url: "https://infosec.mozilla.org/guidelines/openssh"
+      - kind: doc
+        title: "tmux: getting started"
+        url: "https://github.com/tmux/tmux/wiki/Getting-Started"
+      - kind: doc
+        title: "Vim documentation"
+        url: "https://vimhelp.org/"
+
+  - slug: devops-scripting
+    name: "Shell Scripting That Will Not Betray You"
+    domain: devops
+    est_hours: 8
+    difficulty: beginner
+    prerequisites:
+      - devops-terminal-knowledge
+    summary: |-
+      The safety preamble, quoting, traps, idempotence and exit-code discipline that turn a throwaway one-liner into an automation step you can run at 3am without reading it first.
+    content_md: |-
+      Shell scripts are the connective tissue of every infrastructure estate. They are also the most dangerous code most teams write, because they run with high privilege, are rarely reviewed, and fail silently by default. The gap between a hazardous script and a safe one is about six lines of discipline.
+
+      ### The preamble that changes the default
+
+      Bash's defaults come from a 1980s interactive shell, not from a deployment tool. `set -euo pipefail` fixes the three worst ones. `-e` aborts on an unhandled non-zero exit instead of merrily continuing. `-u` turns an unset variable into an error rather than an empty string — this is the line that stops `rm -rf "$PREFIX/data"` from becoming `rm -rf /data` when a typo means `PREFIX` was never assigned. `-o pipefail` makes a pipeline fail if any stage fails, not merely the last one, which is what stops `curl … | tar -x` from reporting success after `curl` returned a 404 page.
+
+      Know the limits of `-e` too: it does not fire inside a command that is part of a conditional, or on the left of `&&`, and it interacts badly with functions whose return value you test. It is a strong default, not a guarantee.
+
+      ### Quoting, arrays and `local`
+
+      Quote every expansion: `"$var"`, `"$@"`, `"${arr[@]}"`. `$@` unquoted is subtly broken with arguments containing spaces; `"$@"` is correct. Use arrays for argument lists rather than building a string and hoping word splitting does the right thing. Declare function variables `local` — bash variables are global by default, and a function that clobbers `$i` in a caller's loop produces a bug that takes an afternoon to find.
+
+      ### Cleanup with traps
+
+      `trap 'rm -rf "$tmpdir"' EXIT` guarantees cleanup on normal exit, on error, and on Ctrl-C. Create temporary files with `mktemp -d` rather than a fixed `/tmp/mything` path, which is both a race and a trivially predictable symlink target. If your script takes a lock, release it in the trap as well; a stale lock from a script that died is a recurring source of "the cron job stopped running three weeks ago and nobody noticed".
+
+      ### Idempotence is the property that matters
+
+      An automation script will be re-run: because it half-failed, because someone was not sure it ran, because a pipeline retried it. Write it so that running it twice is the same as running it once — check before you create, use `mkdir -p`, use `install -m` instead of `cp` plus `chmod`, make database steps conditional on their own result rather than on a flag file. Idempotence is also what makes a script safe to put behind a retry, and retries are how almost everything in this track recovers.
+
+      ### When to stop writing shell
+
+      A shell script that needs data structures, real error handling, concurrency, JSON manipulation beyond `jq`, or unit tests has outgrown the language. Roughly: past a hundred lines or the first nested data structure, port it. The next chapter is about what to port it to.
+
+      ### Common mistakes
+
+      Omitting the preamble and shipping a script that continues after a failed step, leaving a half-configured host. Parsing `ls`. Using `[ ]` string comparison where numeric comparison was meant. Writing to a fixed temp path. Testing with `sh script.sh` when the shebang says bash (or the reverse — on many distributions `/bin/sh` is dash, and bashisms fail in ways that only appear on the production image). And not running `shellcheck`, which catches most of the above statically and costs nothing to add to CI.
+    resources:
+      - kind: doc
+        title: "GNU Bash Reference Manual: the set builtin"
+        url: "https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html"
+      - kind: doc
+        title: "ShellCheck — static analysis for shell scripts"
+        url: "https://www.shellcheck.net/"
+      - kind: article
+        title: "Greg's Wiki: BashGuide"
+        url: "https://mywiki.wooledge.org/BashGuide"
+      - kind: doc
+        title: "mktemp(1) manual page"
+        url: "https://man7.org/linux/man-pages/man1/mktemp.1.html"
+      - kind: doc
+        title: "POSIX Shell Command Language (Open Group specification)"
+        url: "https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html"
+      - kind: doc
+        title: "Google Shell Style Guide"
+        url: "https://google.github.io/styleguide/shellguide.html"
+
+  - slug: devops-learn-a-programming-language
+    name: "When Bash Is Not Enough: A Real Language for Ops Tooling"
+    domain: devops
+    est_hours: 20
+    difficulty: intermediate
+    prerequisites:
+      - devops-scripting
+    summary: |-
+      Choosing and using one general-purpose language (Go or Python) for the tools, controllers and API glue that shell cannot carry — plus the packaging and testing habits that make ops code maintainable.
+    content_md: |-
+      Platform work is software engineering. Every team eventually needs a tool that talks to three APIs, retries intelligently, emits metrics, and is run by people who will not read its source. That is not a shell script, and pretending otherwise produces the 800-line bash file every organisation has and nobody dares touch.
+
+      ### Picking one, and why the two obvious candidates differ
+
+      **Go** compiles to a single static binary with no runtime to install, which is exactly what you want for something that must run inside a minimal container image or be dropped onto a host. Its concurrency primitives suit tools that fan out across hundreds of machines, its standard library covers HTTP and TLS well, and most of the ecosystem you operate — Kubernetes, Terraform, Prometheus, Docker — is written in it, so reading their source becomes possible. The cost is verbosity and explicit error handling everywhere.
+
+      **Python** wins on speed of writing, on data manipulation, and on the breadth of cloud SDKs and automation libraries. The cost is deployment: you now care about interpreter versions and virtual environments on every machine that runs your tool, which is a real operational burden unless you package it carefully.
+
+      Pick one and get genuinely good at it. Two shallow languages are worth less than one you can debug under pressure.
+
+      ### What ops code needs that application code often does not
+
+      *Exit codes and machine-readable output.* Your tool will be called from a pipeline. Return non-zero on failure and offer a `--json` mode so the next stage does not have to scrape human text.
+
+      *Timeouts on everything.* An HTTP client with no timeout will, sooner or later, hang forever holding a lock. Set a deadline on every outbound call; this is the single most common defect in internal tooling.
+
+      *Retries with backoff and jitter, and idempotent operations behind them.* The reliability chapters later in this track explain why the jitter matters; the habit starts here.
+
+      *Structured logging and a metric or two.* A tool that runs in CI or on a schedule needs to explain itself after the fact, because nobody is watching it live.
+
+      *Configuration precedence.* Flags override environment, environment overrides file, file overrides default. State it, document it, and never read configuration from two places that silently disagree.
+
+      ### Packaging and tests
+
+      Ship a static binary, a container image, or a properly pinned package — never "clone the repo and run it". Pin dependencies with a lockfile so a build today and a build in six months produce the same artefact. Write tests for the parsing and decision logic even if you cannot test the API calls; the bugs that hurt in ops tooling are usually in the "which resources do I touch" logic, and that part is pure and testable.
+
+      ### Common mistakes
+
+      Writing a tool that only works on the author's laptop because of an unpinned dependency or an assumed local file. No timeouts. Swallowing errors and exiting zero, so a pipeline goes green on a step that did nothing. Reimplementing a cloud SDK's pagination badly and silently processing only the first page — a bug that stays invisible until you cross the page-size threshold in production. And building a bespoke tool where a well-maintained existing one would do, which is how platform teams end up maintaining more software than the product teams they serve.
+    resources:
+      - kind: doc
+        title: "Go: Effective Go"
+        url: "https://go.dev/doc/effective_go"
+      - kind: doc
+        title: "Go standard library documentation"
+        url: "https://pkg.go.dev/std"
+      - kind: doc
+        title: "Python 3 documentation"
+        url: "https://docs.python.org/3/"
+      - kind: doc
+        title: "Go: Tutorial — get started"
+        url: "https://go.dev/doc/tutorial/getting-started"
+      - kind: doc
+        title: "The Twelve-Factor App: config, logs and disposability"
+        url: "https://12factor.net/"
+      - kind: doc
+        title: "Python Packaging User Guide"
+        url: "https://packaging.python.org/en/latest/"
+
+  - slug: devops-version-control-systems
+    name: "Git as a Data Structure"
+    domain: devops
+    est_hours: 8
+    difficulty: beginner
+    prerequisites: []
+    summary: |-
+      Commits as an immutable DAG of snapshots, what branches and merges really are, and the recovery tools — reflog, bisect, revert — that make Git a safety net instead of a source of fear.
+    content_md: |-
+      Almost everyone learns Git as a list of commands to memorise, and almost everyone stays frightened of it as a result. Learn the data model instead — it is small — and the commands become obvious consequences.
+
+      ### The model
+
+      A commit is an immutable snapshot of the whole tree, plus metadata, plus pointers to its parents. Commits form a directed acyclic graph. A branch is nothing but a movable pointer to one commit; `HEAD` is a pointer to the branch you are on. Nothing in Git modifies a commit — operations that appear to (amend, rebase) create new commits and move pointers, leaving the originals reachable through the reflog until garbage collection.
+
+      Once you hold that picture, the confusing operations resolve. Merging creates a new commit with two parents, preserving both histories exactly as they happened. Rebasing replays your commits onto a new base, producing new commit objects with new hashes and a linear history that is easier to read but no longer literally true. Neither is correct in the abstract: rebase local work you have not shared, merge (or use a merge queue) for anything others have already pulled. The rule that prevents pain is simply never to rewrite history that someone else's branch is based on.
+
+      ### The three areas
+
+      Working tree, index (staging area), and repository. `git add` moves changes from tree to index; `git commit` moves index to repository. `git status` is the map, and `git diff` versus `git diff --staged` shows the two different gaps. Staging is not bureaucratic overhead — it is what lets you commit one coherent change out of a messy working tree, which is the difference between a history you can bisect and one you cannot.
+
+      ### The recovery tools nobody teaches early enough
+
+      `git reflog` records every position `HEAD` has held, so a "lost" commit after a bad reset or rebase is nearly always still there and recoverable by hash. `git bisect` binary-searches history for the commit that introduced a bug, which turns a day of guessing into a dozen builds — and works even better with a script (`git bisect run`). `git revert` creates a new commit that undoes an old one, which is the only safe way to back out a change that has already been pushed. `git cherry-pick` moves one commit somewhere else, invaluable for hotfixes. `git blame -w -C` finds who last touched a line while ignoring whitespace and code movement.
+
+      ### Commits as documentation
+
+      Small, focused commits with messages that explain *why* rather than *what* are what make `bisect`, `blame` and revert useful. A message reading "fix stuff" is a note to your future self that you have chosen to make the next incident harder. The diff already says what changed; the message exists to say what you were trying to achieve and what you rejected.
+
+      ### Common mistakes
+
+      Committing secrets — remember that removing them in a later commit does not remove them from history, so the credential must be rotated, not merely deleted. Committing generated artefacts or dependency directories. Force-pushing a shared branch. Using `git reset --hard` as a general-purpose undo without understanding that it discards uncommitted work irrecoverably (unlike almost everything else in Git). And giant "end of week" commits that make every archaeology tool useless.
+    resources:
+      - kind: book
+        title: "Pro Git (free, official)"
+        url: "https://git-scm.com/book/en/v2"
+      - kind: doc
+        title: "Git internals: objects, refs and the commit graph"
+        url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects"
+      - kind: doc
+        title: "git-bisect documentation"
+        url: "https://git-scm.com/docs/git-bisect"
+      - kind: doc
+        title: "git-reflog documentation"
+        url: "https://git-scm.com/docs/git-reflog"
+      - kind: doc
+        title: "git-rebase documentation"
+        url: "https://git-scm.com/docs/git-rebase"
+      - kind: doc
+        title: "Conventional Commits specification"
+        url: "https://www.conventionalcommits.org/en/v1.0.0/"
+
+  - slug: devops-vcs-hosting
+    name: "Collaboration Mechanics: Reviews, Protected Branches and Ownership"
+    domain: devops
+    est_hours: 6
+    difficulty: beginner
+    prerequisites:
+      - devops-version-control-systems
+    summary: |-
+      Turning a hosted repository into a control plane: branch protection, required checks, code owners, merge queues, and the branching model that actually fits how often you deploy.
+    content_md: |-
+      A hosting platform is not just a place to keep the repository. It is where your change-management controls live, and for most teams it is the only place they live — the repository is the audit trail an auditor will ask for and the gate a bad change has to get past.
+
+      ### Branching models, chosen by deploy frequency
+
+      *Trunk-based development* keeps one long-lived branch, with short-lived feature branches merged within a day or two and incomplete work hidden behind feature flags. It is what teams that deploy several times a day use, and the research programme behind the DORA reports repeatedly associates it with better delivery outcomes.
+
+      *Release branches* make sense when you must support multiple versions in the field — self-hosted software, mobile apps with staged rollout, anything a customer pins to.
+
+      *Long-lived develop/feature/release/hotfix structures* impose a large merge tax and mostly exist because a diagram was popular. Adopt one only if you can name the constraint that forces it.
+
+      The trade-off to reason about: long-lived branches defer integration pain rather than removing it, and the cost of a merge grows superlinearly with how long the branch has diverged.
+
+      ### The controls worth turning on
+
+      Protect the default branch: no direct pushes, no force-pushes, no deletion. Require a pull request, at least one review from someone other than the author, and require status checks to pass — with "branches must be up to date before merging" if your test suite is sensitive to semantic conflicts (two changes that each pass alone and fail together). Require conversations to be resolved. If you deploy from tags, protect the tags too.
+
+      A `CODEOWNERS` file routes reviews automatically to the team that owns each path and can be made a hard requirement for merging. This is how a platform team keeps a hand on shared Terraform or CI configuration without becoming a bottleneck on ordinary product changes.
+
+      A **merge queue** solves the up-to-date problem without making everyone rebase constantly: it batches and tests candidate merges against the real head before landing them. If your CI takes long enough that queued changes conflict, this is the fix.
+
+      ### Reviews that are worth the time
+
+      Small pull requests get real review; a 2,000-line pull request gets "LGTM". Aim to submit changes a reviewer can hold in their head. As a reviewer, separate blocking objections from preferences and say which is which. Automate everything mechanical — formatting, linting, licence checks — so humans spend their attention on design, failure handling and blast radius rather than on comma placement.
+
+      ### Common mistakes
+
+      Requiring reviews but allowing administrators to bypass them, so the control is decorative. Letting CI be advisory rather than required. Leaving secrets scanning off. Granting broad write access to the whole organisation instead of per-team permissions. Giving CI service accounts more repository scope than they need — a compromised workflow token with write access to every repository is a very bad afternoon. And letting a release branch drift for months and then discovering that merging it back is a multi-week project.
+    resources:
+      - kind: doc
+        title: "GitHub Docs: about protected branches"
+        url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+      - kind: doc
+        title: "GitHub Docs: about code owners"
+        url: "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners"
+      - kind: doc
+        title: "GitHub Docs: merge queue"
+        url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue"
+      - kind: doc
+        title: "GitLab Docs: protected branches"
+        url: "https://docs.gitlab.com/ee/user/project/repository/branches/protected.html"
+      - kind: article
+        title: "DORA: trunk-based development capability"
+        url: "https://dora.dev/capabilities/trunk-based-development/"
+      - kind: book
+        title: "Accelerate — the research behind the DORA metrics"
+        url: "https://itrevolution.com/product/accelerate/"
+
+  - slug: devops-containers
+    name: "Containers: What They Actually Are, and How to Build a Good Image"
+    domain: devops
+    est_hours: 12
+    difficulty: intermediate
+    prerequisites:
+      - devops-unix
+      - devops-operating-system
+    summary: |-
+      Namespaces plus cgroups plus a layered filesystem — nothing more — and the build discipline (layer caching, small bases, non-root, correct PID 1) that separates a 40MB image from a 1.8GB one.
+    content_md: |-
+      A container is not a lightweight virtual machine. It is an ordinary Linux process, started with its own set of namespaces so it sees its own filesystem, network and process table, placed in a cgroup so its CPU and memory are capped, running against a root filesystem assembled from stacked read-only layers plus one writable layer on top. There is no hypervisor and no guest kernel — the container shares the host's kernel, which is simultaneously why it starts in milliseconds and why kernel-level isolation is weaker than a VM's.
+
+      ### Images, layers and the cache
+
+      An image is an ordered stack of filesystem layers plus a configuration blob, addressed by content digest. Each build instruction that changes the filesystem produces a layer. The builder caches layers and reuses them when the instruction and its inputs are unchanged — but a cache miss invalidates every layer after it. This single rule dictates good Dockerfile order: install the things that change rarely first (base image, system packages), then dependency manifests, then dependency installation, and only then copy your application source. Copying the whole source tree before installing dependencies means every one-line code change re-downloads the world.
+
+      A related and constant surprise: deleting a file in a later layer does not shrink the image, because the earlier layer still contains it. A secret written and then removed in a subsequent instruction is still in the image and still extractable. Use build secrets (`--mount=type=secret`) or multi-stage builds, never a `COPY` followed by an `RM`.
+
+      ### Multi-stage builds and small bases
+
+      Build in a fat stage with compilers and toolchains, then copy only the produced artefact into a minimal runtime stage. A compiled binary can end up on `distroless` or `scratch`; an interpreted app can sit on a slim or Alpine base. The payoff is not vanity: smaller images pull faster (which shortens every scale-up and every node replacement), and they contain fewer packages, which means dramatically fewer CVEs for someone to triage every week.
+
+      Alpine's musl libc is a genuine trade-off rather than a free win — DNS resolution behaviour and some native extensions differ, and certain runtimes perform measurably worse. Choose it deliberately.
+
+      ### Runtime correctness
+
+      Run as a non-root user (`USER`), and prefer a read-only root filesystem with explicit writable volumes. Pin base images by digest, not by a floating tag, so a rebuild is reproducible and a compromised upstream tag cannot silently change your build. Make the process handle SIGTERM as PID 1 — `exec` the real binary from any entrypoint script, or use `--init`. Log to stdout and stderr and let the platform collect them; writing log files inside a container is how you fill an ephemeral disk and lose the evidence when the container is replaced.
+
+      ### The container/host boundary
+
+      Containers see the host's CPU count unless the runtime reads cgroup limits, so a runtime that sizes its thread pool or garbage collector from `nproc` will over-provision itself inside a small container and thrash. Modern runtimes are mostly cgroup-aware, but verify rather than assume. Likewise, memory limits are enforced by the kernel killing you, not by an allocation returning an error.
+
+      ### Common mistakes
+
+      `COPY . .` at the top of the Dockerfile, destroying the cache. `latest` tags everywhere, so you cannot say what is running. Running as root because it was easier. Baking configuration or credentials into the image instead of injecting them at runtime, which means a config change requires a rebuild and a secret change requires a rebuild *and* a rotation. Ignoring `.dockerignore` and shipping the `.git` directory into the build context. And treating the container as a machine — installing an SSH daemon, running cron and a log rotator inside it — instead of as one process with one job.
+    resources:
+      - kind: doc
+        title: "Docker: building best practices"
+        url: "https://docs.docker.com/build/building/best-practices/"
+      - kind: doc
+        title: "Docker: build cache"
+        url: "https://docs.docker.com/build/cache/"
+      - kind: doc
+        title: "Docker: build secrets"
+        url: "https://docs.docker.com/build/building/secrets/"
+      - kind: doc
+        title: "OCI Image Format Specification"
+        url: "https://github.com/opencontainers/image-spec/blob/main/spec.md"
+      - kind: doc
+        title: "cgroups(7) — control groups"
+        url: "https://man7.org/linux/man-pages/man7/cgroups.7.html"
+      - kind: project
+        title: "Distroless container images"
+        url: "https://github.com/GoogleContainerTools/distroless"
+      - kind: doc
+        title: "Podman documentation (rootless containers)"
+        url: "https://docs.podman.io/en/latest/"
+
+  - slug: devops-artifact-management
+    name: "Artifacts and Registries: Build Once, Promote Everywhere"
+    domain: devops
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - devops-containers
+    summary: |-
+      Immutable versioned artefacts, content digests versus mutable tags, registry layout and retention, and why rebuilding per environment quietly destroys your ability to reason about production.
+    content_md: |-
+      The central rule of release engineering is: **build the artefact once, then promote the same artefact through environments.** If staging and production are built from separate pipeline runs, they are different artefacts — different dependency resolutions, different base image contents, different build-time timestamps — and every test you ran in staging tested something that is not what you shipped.
+
+      ### Tags lie, digests do not
+
+      A tag is a mutable pointer. `myapp:1.4.2` can be overwritten, and `myapp:latest` certainly will be. A digest (`myapp@sha256:…`) names the exact bytes and cannot be repointed. Use tags for human convenience and digests for anything that must be reproducible: deployment manifests, base images in Dockerfiles, and any "what exactly is running in production" question. Many registries can enforce tag immutability; turn it on.
+
+      Give every build a version that maps back to a commit. A tag containing the semantic version plus the short commit SHA is the pragmatic default, because it is readable by humans and still unambiguous during an incident.
+
+      ### What belongs in a registry
+
+      Container images, language packages, OS packages, Helm charts, Terraform modules and signed release binaries all want the same treatment: a versioned, immutable, access-controlled home with a retention policy. Most estates run a single artefact platform for all of them, plus pull-through caches of public registries — which is worth doing for three separate reasons: it survives an upstream outage, it removes public rate limits from your critical path, and it gives you one place to scan and one place to block a known-bad version.
+
+      ### Retention and cost
+
+      Registries grow without bound if nobody says otherwise, and storage for years of untagged intermediate layers becomes a genuine line item. Write a policy — keep all released versions, keep the last N builds per branch, expire untagged manifests after a short window — and make sure it cannot delete something a running deployment still references. That last constraint bites people: garbage-collecting an image that a Kubernetes node needs to re-pull during a scale-up is a self-inflicted outage.
+
+      ### Provenance starts here
+
+      An artefact should be traceable to the commit, the pipeline run and the inputs that produced it. Registries can store signatures and attestations alongside the image, which is the substrate the supply-chain chapter later builds on. Recording it at publish time costs nothing; reconstructing it after an incident is often impossible.
+
+      ### Common mistakes
+
+      Rebuilding per environment. Mutable tags in deployment manifests, so a rollback deploys the wrong bytes. No retention policy until the storage bill forces an emergency cleanup that deletes something load-bearing. Depending directly on a public registry from production pulls, then discovering rate limits during an incident-driven scale-up. And storing artefacts in a bucket with no index, no versioning discipline and no access control, which is a registry with all the features removed.
+    resources:
+      - kind: doc
+        title: "OCI Distribution Specification"
+        url: "https://github.com/opencontainers/distribution-spec/blob/main/spec.md"
+      - kind: doc
+        title: "Docker Hub and registry: tags, digests and pulls"
+        url: "https://docs.docker.com/reference/cli/docker/image/pull/"
+      - kind: doc
+        title: "Harbor: open-source registry documentation"
+        url: "https://goharbor.io/docs/"
+      - kind: doc
+        title: "Amazon ECR: image tag mutability and lifecycle policies"
+        url: "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html"
+      - kind: doc
+        title: "Helm: chart repositories and OCI registries"
+        url: "https://helm.sh/docs/topics/registries/"
+      - kind: doc
+        title: "Semantic Versioning specification"
+        url: "https://semver.org/"
+
+  - slug: devops-networking-protocols
+    name: "The Network Path a Request Actually Takes"
+    domain: devops
+    est_hours: 12
+    difficulty: intermediate
+    prerequisites:
+      - devops-linux
+    summary: |-
+      DNS, TCP handshakes and state, TLS, HTTP/1.1 versus HTTP/2, and the operational limits — MTU, ephemeral ports, conntrack, keepalives — that produce the weirdest production failures you will ever debug.
+    content_md: |-
+      "The network is slow" is almost never a useful statement. Being able to say *which hop*, *which layer* and *which limit* is the skill, and it requires knowing what happens between a client typing a hostname and a byte arriving at your process.
+
+      ### The path
+
+      Resolve the name (DNS, cached at several levels with TTLs that are frequently ignored), open a TCP connection (three-way handshake, one round trip), negotiate TLS (one or two more round trips depending on version and resumption), send the HTTP request, wait, receive the response. On a 100ms round trip, a cold HTTPS request has spent 300ms on setup before the server has done any work. This is why connection reuse — HTTP keep-alive, connection pools, TLS session resumption — is usually the single largest latency win available to a client, and why a pool configured with a maximum lifetime shorter than the request rate quietly re-pays that cost forever.
+
+      ### TCP states that show up in incidents
+
+      TIME_WAIT is a normal, correct state held by whichever side closed first, for roughly two minutes, to absorb stray packets. Thousands of them are fine; hundreds of thousands on a client-side box means you are opening a fresh connection per request and will eventually exhaust ephemeral ports (the default range is about 28,000 per destination tuple). The fix is connection reuse, not tuning the timeout down and hoping.
+
+      CLOSE_WAIT is different and is always a bug in *your* process: the peer closed, your application has not called `close()`. Growing CLOSE_WAIT counts mean a leaked socket and a descriptor exhaustion in your near future.
+
+      ### The middle layers that bite
+
+      *MTU and fragmentation.* Tunnels (VPN, overlay networks, some cloud networking) reduce the usable MTU. If path MTU discovery is broken by an over-zealous firewall dropping ICMP, small requests succeed and large ones hang forever — the classic "it works until the payload is over 1400 bytes" bug.
+
+      *Connection tracking.* Stateful firewalls and NAT gateways keep a table entry per flow. Fill the table and new connections are dropped with no useful error. Idle timeouts in that table also silently blackhole long-lived connections, which is why database connection pools need a TCP keepalive shorter than the NAT idle timeout, or they will hand out a dead socket that hangs until the OS timeout expires.
+
+      *HTTP versions.* HTTP/1.1 needs one connection per concurrent request. HTTP/2 multiplexes many streams over one connection, which removes head-of-line blocking at the HTTP layer but not at the TCP layer, and interacts unexpectedly with layer-4 load balancers — one client connection carrying all the traffic can pin a huge share of load onto one backend. HTTP/3 over QUIC moves transport into userspace to fix the remaining head-of-line blocking.
+
+      ### Tools that answer the question
+
+      `dig +trace` for resolution, `curl -v --resolve` to bypass DNS and test one specific backend, `curl -w` with a timing format to split DNS, connect, TLS and time-to-first-byte, `openssl s_client -connect` for certificate chains, `ss -tin` for per-socket congestion state, `mtr` for per-hop loss, and `tcpdump` when you need to prove it.
+
+      ### Common mistakes
+
+      Assuming DNS TTL is honoured — many runtimes cache resolutions for the life of the process, which is why a failover that changes a DNS record does not move all your traffic. Not setting client timeouts, so a slow dependency turns into an exhausted thread pool. Terminating TLS somewhere and forgetting the certificate expires — expiry is still one of the most common causes of major outages. Blaming the network for what is a full connection pool. And leaving IPv6 half-configured, so resolution returns an AAAA record to a host with no route and every connection waits out a timeout first.
+    resources:
+      - kind: doc
+        title: "RFC 9110 — HTTP Semantics"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+      - kind: doc
+        title: "RFC 9113 — HTTP/2"
+        url: "https://www.rfc-editor.org/rfc/rfc9113.html"
+      - kind: doc
+        title: "RFC 8446 — TLS 1.3"
+        url: "https://www.rfc-editor.org/rfc/rfc8446.html"
+      - kind: doc
+        title: "tcp(7) — the Linux TCP protocol and its tunables"
+        url: "https://man7.org/linux/man-pages/man7/tcp.7.html"
+      - kind: doc
+        title: "MDN: an overview of HTTP"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview"
+      - kind: doc
+        title: "BIND 9 manual pages — dig and the resolution tools"
+        url: "https://bind9.readthedocs.io/en/latest/manpages.html"
+      - kind: book
+        title: "High Performance Browser Networking — Ilya Grigorik (free online)"
+        url: "https://hpbn.co/"
+
+  - slug: devops-web-server
+    name: "Web Servers and Reverse Proxies"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-networking-protocols
+    summary: |-
+      What sits in front of your application — TLS termination, timeouts, buffering, header handling, compression and static content — using nginx, Caddy or Envoy, and the misconfigurations that cause silent 502s.
+    content_md: |-
+      Practically no application server faces the internet directly. Something sits in front: terminating TLS, enforcing timeouts, buffering slow clients, serving static files, adding headers, and giving you a place to change routing without redeploying the app. Understanding that layer is how you stop guessing at 502s.
+
+      ### What the proxy is for
+
+      *TLS termination* concentrates certificate management in one place, so renewal is one job rather than one per service. Caddy and most cloud load balancers automate ACME issuance; nginx typically pairs with an ACME client. Whatever you use, the renewal must be automated and monitored — set an alert on days-to-expiry, because the failure mode of a broken renewal is a total outage at a moment nobody chose.
+
+      *Buffering* protects the application from slow clients. Without it, a client trickling a request body at one byte per second occupies an application worker for minutes. The proxy accepts the whole request quickly, then delivers it to the backend in one go. The same applies to responses.
+
+      *Timeouts* are the proxy's most important setting and the one most often left at defaults that do not match reality. There are several and they are not interchangeable: connect timeout to the backend, time to read the response header, time between bytes of the response body, and how long an idle upstream keep-alive connection is held. A read timeout shorter than a legitimately slow endpoint produces intermittent 504s that look like backend flakiness; a very long one turns a backend hang into an exhausted proxy.
+
+      ### Headers, and the trust boundary
+
+      A proxy rewrites what the backend sees. `X-Forwarded-For` and `X-Forwarded-Proto` (or the standardised `Forwarded` header) carry the client's real address and scheme, and the application must be configured to trust them *only* from your proxy's addresses — an application that trusts a client-supplied `X-Forwarded-For` has an IP-based rate limiter and audit log that anyone can forge. Getting the `Host` header right matters too, since virtual-host routing and generated redirect URLs both depend on it, and the classic symptom of getting it wrong is a redirect loop or a login that bounces users to `localhost`.
+
+      ### Static content and compression
+
+      Serving static assets from the proxy avoids waking the application at all, and correct `Cache-Control` headers here are what make a CDN in front of it effective later. Enable compression, but not for already-compressed formats, and be aware that compressing responses that mix secrets with attacker-influenced content has a real (if narrow) attack history — which is why compression and TLS are configured together thoughtfully rather than switched on blindly.
+
+      ### Choosing one
+
+      nginx is the conservative default with enormous operational literature. Caddy trades some flexibility for automatic HTTPS and a far smaller config. Envoy is the right answer when you want dynamic configuration through an API, rich load-balancing policies and first-class observability — it is what most service meshes and modern gateways are built on, and it is the bridge to the orchestration chapters.
+
+      ### Common mistakes
+
+      Default timeouts everywhere, matched to nothing. Forgetting that adding a proxy adds a hop that also needs its own health checks and metrics. Not enabling upstream keep-alives, so every proxied request pays a fresh TCP handshake. Leaving verbose server version banners on. Reloading rather than validating first — always run the config test before reload. And, on Linux, forgetting that the proxy needs its own generous file-descriptor limit, since it holds two sockets per request.
+    resources:
+      - kind: doc
+        title: "nginx documentation"
+        url: "https://nginx.org/en/docs/"
+      - kind: doc
+        title: "nginx: HTTP proxy module reference (timeouts and buffering)"
+        url: "https://nginx.org/en/docs/http/ngx_http_proxy_module.html"
+      - kind: doc
+        title: "Caddy documentation"
+        url: "https://caddyserver.com/docs/"
+      - kind: doc
+        title: "Envoy: architecture overview"
+        url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/arch_overview"
+      - kind: doc
+        title: "RFC 7239 — Forwarded HTTP Extension"
+        url: "https://www.rfc-editor.org/rfc/rfc7239.html"
+      - kind: doc
+        title: "Mozilla SSL Configuration Generator"
+        url: "https://ssl-config.mozilla.org/"
+
+  # REPURPOSED SLUG: roadmap.sh uses `devops-what-is-and-how-to-setup-x` as a
+  # placeholder node ("what is X and how do I set it up" for proxies, firewalls,
+  # caches). That is not a teachable concept. The slug is kept and now carries
+  # load balancing, which the original syllabus only mentions in passing and
+  # which is where most traffic-layer incidents actually originate.
+  - slug: devops-what-is-and-how-to-setup-x
+    name: "Load Balancing, Health Checks and Connection Draining"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-web-server
+    summary: |-
+      L4 versus L7, the algorithms and when round-robin is actively wrong, health checks that mean something, and how to remove an instance from rotation without dropping requests.
+    content_md: |-
+      A load balancer is the component that decides which of your instances handles a request. It is also, more importantly, the component that decides which of your instances is considered alive — and a health check that answers the wrong question is one of the most reliable ways to turn a partial degradation into a total outage.
+
+      ### L4 versus L7
+
+      A layer-4 balancer forwards TCP connections without looking inside them. It is fast, protocol-agnostic and cheap, but it balances *connections*, not requests — so with HTTP/2 or long-lived gRPC channels, one connection carries thousands of requests and load distribution becomes badly uneven. A layer-7 balancer parses HTTP, balances per request, and can route on path, header or method, retry idempotent requests, and inject tracing headers. The cost is CPU and an extra place where TLS terminates. For HTTP/2 and gRPC traffic, L7 (or a client-side balancer that is aware of streams) is essentially mandatory.
+
+      ### Algorithms, and why round-robin misleads
+
+      Round-robin assumes every request costs the same and every backend is equally capable. Neither is true: one instance may be garbage-collecting, on a noisy host, or freshly started with cold caches. Round-robin will keep sending it work at the same rate as everything else, so your slowest instance sets your tail latency.
+
+      **Least outstanding requests** (sometimes "least connections") is the better default in almost all cases: it sends the next request to the backend with the fewest in flight, which automatically routes around a temporarily slow instance without any explicit health signal. Consistent hashing is the right choice when a backend holds per-key state or cache locality matters. Weighted variants let you shift traffic gradually, which is the mechanism canary deploys are built on. Session affinity ("sticky sessions") should be an admission of a design constraint, not a default — it undermines even distribution and makes deploys and scale-in disruptive.
+
+      ### Health checks that mean something
+
+      A check hitting `/health` and returning 200 unconditionally tells you the process is running, nothing more. A check that verifies every downstream dependency is worse: when the shared database has a hiccup, every instance simultaneously reports unhealthy, the balancer removes them all, and a partial degradation becomes a complete outage. This is the failure mode to internalise.
+
+      The workable split is a *liveness* check that only asks "is this process wedged, should it be restarted" and a *readiness* check that asks "can this instance serve traffic right now" — with dependency checks handled by shedding or degrading rather than by declaring death. Make health checks cheap; they run constantly from every balancer node. And keep a fail-open safety valve: many balancers will, correctly, send traffic to all backends when *every* backend is failing its check, on the theory that a possibly-broken backend beats a guaranteed outage.
+
+      ### Draining, and the requests you drop at deploy time
+
+      Removing an instance is not instantaneous. The correct sequence is: mark it unready, keep serving in-flight requests, wait longer than the balancer's check interval times its unhealthy threshold *plus* any DNS or config propagation delay, and only then send SIGTERM. Skip that wait and the balancer will keep sending requests to a process that has already begun shutting down — the classic source of a small spike of 502s on every single deploy, which teams learn to ignore instead of fix.
+
+      ### Common mistakes
+
+      Health checks that test dependencies and take down the whole fleet at once. Health check intervals so long that a dead instance keeps receiving traffic for a minute. No connection draining. Assuming the load balancer itself is redundant when it is a single instance. Balancing gRPC at layer 4 and wondering why one pod is at 90% CPU and the rest are idle. And forgetting that the balancer has its own connection limits and its own metrics that must be monitored separately from the backends'.
+    resources:
+      - kind: article
+        title: "AWS Builders' Library: implementing health checks"
+        url: "https://aws.amazon.com/builders-library/implementing-health-checks/"
+      - kind: doc
+        title: "Envoy: load balancing overview"
+        url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/overview"
+      - kind: doc
+        title: "Kubernetes: configure liveness, readiness and startup probes"
+        url: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+      - kind: doc
+        title: "AWS: Application Load Balancer deregistration delay and draining"
+        url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-attributes.html"
+      - kind: article
+        title: "Google SRE Book: load balancing in the datacenter"
+        url: "https://sre.google/sre-book/load-balancing-datacenter/"
+      - kind: doc
+        title: "HAProxy documentation"
+        url: "https://docs.haproxy.org/"
+
+  # REPURPOSED SLUG: roadmap.sh uses `devops-email-protocols` for a glossary of
+  # SMTP/IMAP/POP3. Reading mailboxes is not a DevOps task, but *sending* mail
+  # that arrives is — password resets and receipts are on-call territory. The
+  # slug is kept and now teaches deliverability and the DNS authentication
+  # records ops teams own.
+  - slug: devops-email-protocols
+    name: "Transactional Email and Deliverability: SPF, DKIM and DMARC"
+    domain: devops
+    est_hours: 5
+    difficulty: intermediate
+    prerequisites:
+      - devops-networking-protocols
+    summary: |-
+      Why password-reset emails end up in spam, the three DNS records that fix it, and how to run an outbound mail path you can actually debug.
+    content_md: |-
+      Sooner or later a page arrives that says "customers cannot log in". The cause is that password-reset emails are being silently dropped by a major mailbox provider, and the reason is a DNS record nobody owns. Outbound mail is infrastructure, and it fails in ways application logs never reveal — because a message your provider reports as "sent" may still be discarded on receipt.
+
+      ### SMTP in one paragraph
+
+      Mail is delivered by SMTP: the sender looks up the recipient domain's MX records, connects, and hands over the message. There is no acknowledgement of delivery to a human inbox — only acceptance by a server. Rejection can be immediate (a 5xx bounce), deferred (a 4xx, retried for days), or entirely silent (accepted, then filed as spam or discarded). That last case is the dangerous one, because everything upstream reports success.
+
+      ### The three records, and what each proves
+
+      **SPF** (RFC 7208) is a TXT record listing which servers may send mail for your domain. It authenticates the envelope sender's domain against the connecting IP. Its weakness is that it breaks on forwarding, since the forwarding server is not in your list, and it has a hard limit of ten DNS lookups — adding one more `include:` for a new vendor silently invalidates the whole record, which is a genuinely common self-inflicted outage.
+
+      **DKIM** (RFC 6376) attaches a cryptographic signature to the message, with the public key published in DNS. Because it signs the message rather than the connection, it survives forwarding. Each sending service gets its own selector and key, so adding a vendor does not endanger the existing setup.
+
+      **DMARC** (RFC 7489) ties the two together. It publishes a policy — `none`, `quarantine` or `reject` — for what a receiver should do when a message claiming to be from your domain passes neither SPF nor DKIM *aligned with the visible From address*. Alignment is the subtle part: a message can pass raw SPF for your vendor's bounce domain and still fail DMARC because that domain is not your From domain. DMARC also requests aggregate reports, which is the only real visibility you get into who is sending as you.
+
+      Roll it out in that order: publish SPF and DKIM, publish DMARC at `p=none` with a reporting address, read the reports for a few weeks until every legitimate sender is accounted for, then move to `quarantine` and finally `reject`. Jumping straight to `reject` will bin your own invoices, and the people affected will not be able to email you about it.
+
+      ### Operating the send path
+
+      Send transactional mail through a dedicated provider rather than your own relay — deliverability depends on IP and domain reputation that takes months to build. Separate transactional mail from marketing mail, ideally on different subdomains, so a bad campaign cannot poison password resets. Treat the provider's webhooks (delivered, bounced, complained) as a telemetry stream: alert on bounce and complaint rates, not just on send failures. Suppress hard bounces permanently; repeatedly mailing dead addresses is itself a reputation signal.
+
+      ### Common mistakes
+
+      Adding an eleventh SPF lookup and silently breaking authentication for every sender. Setting `p=reject` before reading reports. Signing with DKIM but letting the key rot at 1024 bits, or never rotating selectors. Sending from a `no-reply@` address with no monitored mailbox, which harms reputation and infuriates users. Assuming the provider's "sent" metric means "arrived". And having no alert whatsoever on the bounce rate, so the first signal is a support ticket.
+    resources:
+      - kind: doc
+        title: "RFC 7208 — Sender Policy Framework (SPF)"
+        url: "https://www.rfc-editor.org/rfc/rfc7208.html"
+      - kind: doc
+        title: "RFC 6376 — DomainKeys Identified Mail (DKIM)"
+        url: "https://www.rfc-editor.org/rfc/rfc6376.html"
+      - kind: doc
+        title: "RFC 7489 — DMARC"
+        url: "https://www.rfc-editor.org/rfc/rfc7489.html"
+      - kind: doc
+        title: "RFC 5321 — Simple Mail Transfer Protocol"
+        url: "https://www.rfc-editor.org/rfc/rfc5321.html"
+      - kind: doc
+        title: "RFC 8058 — one-click unsubscribe, which bulk senders must honour"
+        url: "https://www.rfc-editor.org/rfc/rfc8058.html"
+      - kind: doc
+        title: "M3AAWG sender best common practices"
+        url: "https://www.m3aawg.org/published-documents"
+
+  - slug: devops-cloud-providers
+    name: "Cloud Building Blocks: Identity, Network, and the Shared Responsibility Line"
+    domain: devops
+    est_hours: 14
+    difficulty: intermediate
+    prerequisites:
+      - devops-networking-protocols
+    summary: |-
+      The five primitives every provider sells (identity, network, compute, storage, managed data), how regions and availability zones constrain your design, and why IAM and quotas cause more outages than hardware.
+    content_md: |-
+      Cloud providers differ enormously in naming and hardly at all in structure. Learn the structure once and moving between AWS, GCP and Azure becomes a translation exercise rather than a re-education. The five things you are buying are identity, network, compute, storage, and managed data services — plus the bill, which is a design constraint of its own.
+
+      ### Identity is the control plane, and the first thing to get right
+
+      Every API call is authorised by a policy. The habits that matter: humans authenticate through a single sign-on identity provider with short-lived credentials, never long-lived access keys; workloads get an identity attached to the compute they run on (an instance profile, a service account, a workload identity) so no secret is ever stored; and permissions are scoped to the smallest set that works, granted to roles rather than to individuals.
+
+      Separate environments into separate accounts, projects or subscriptions. This is the strongest blast-radius control available, and it is nearly free at the start and very expensive to retrofit. A misconfigured policy in a development account should not be able to touch production data, and the only reliable way to guarantee that is an account boundary.
+
+      Two failure modes to internalise. First, the wildcard policy: `Action: "*"` on `Resource: "*"` attached to something long-lived is the root cause of a large share of published cloud breaches. Second, the confused deputy: a role that a third party can assume without an external ID or condition can be assumed by *anyone* who knows the role's name.
+
+      ### Regions, zones, and what actually shares fate
+
+      A region is a geographic area; an availability zone is an isolated set of datacentres within it, with independent power and cooling but low-latency links to its siblings. Spreading across zones protects against the most common infrastructure failures at very low latency cost, and it should be the default for anything that matters. Spreading across regions protects against a regional event but introduces tens of milliseconds of latency, data-residency questions, and the whole replication problem — do it when you have a stated requirement, not reflexively.
+
+      The important subtlety is *shared fate*. Two zones are independent for power, but the region's control plane, your DNS provider, your identity provider and your deployment pipeline are usually not. Many outages that look like multi-zone failures are single-control-plane failures. This is why "static stability" — designing so that a running system keeps working when the control plane is unavailable, without needing to launch anything new — is the most valuable cloud design idea in this whole chapter.
+
+      ### Compute and storage, chosen by shape
+
+      Compute runs from raw virtual machines through managed container services to functions; the trade is control against operational surface. Storage divides into block (a disk for one instance), file (a shared POSIX mount), and object (HTTP, effectively unlimited, cheap, with per-object semantics and no filesystem). Choosing object storage where you wanted a filesystem, or a network filesystem where you wanted object storage, is a design error that surfaces months later as an unfixable performance problem.
+
+      Managed databases, queues and caches are usually the correct choice: the provider's operational burden is genuinely lower than yours, and the differentiating work is rarely in running the database. The trade-offs are cost at scale, version lag, and the fact that you cannot fix what you cannot log into.
+
+      ### Quotas are real limits
+
+      Every account has service quotas — instances per region, API requests per second, addresses, concurrent function executions. They are not theoretical. The characteristic incident is an autoscaling event that stops halfway because the instance quota was reached, at which point you have a half-scaled fleet and a support ticket that takes hours. Inventory the quotas on your critical path, alert at 70–80% of each, and request increases before you need them.
+
+      ### Common mistakes
+
+      Long-lived access keys in CI. One account for everything. Assuming multi-AZ makes you immune to a regional control-plane event. Public object storage buckets, still the most common cloud data leak. No tagging discipline, so nothing can be attributed for cost or ownership. Building on a proprietary service without knowing what exit would cost — the answer may well be "acceptable", but it should be a decision rather than a discovery.
+    resources:
+      - kind: doc
+        title: "AWS Well-Architected Framework"
+        url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html"
+      - kind: article
+        title: "AWS Builders' Library: static stability using availability zones"
+        url: "https://aws.amazon.com/builders-library/static-stability-using-availability-zones/"
+      - kind: doc
+        title: "AWS IAM: security best practices"
+        url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+      - kind: doc
+        title: "Google Cloud Architecture Framework"
+        url: "https://cloud.google.com/architecture/framework"
+      - kind: doc
+        title: "Azure Architecture Center: fundamentals"
+        url: "https://learn.microsoft.com/en-us/azure/architecture/guide/"
+      - kind: doc
+        title: "Google Cloud: IAM overview"
+        url: "https://cloud.google.com/iam/docs/overview"
+
+  - slug: devops-provisioning
+    name: "Infrastructure as Code: Terraform, State and Drift"
+    domain: devops
+    est_hours: 14
+    difficulty: intermediate
+    prerequisites:
+      - devops-cloud-providers
+    summary: |-
+      Declarative provisioning with Terraform or OpenTofu — the state file and why it is the whole game, plan/apply discipline, modules, locking, and the operations that destroy things you did not intend to touch.
+    content_md: |-
+      Clicking through a console is fine for learning and unacceptable for anything you must reproduce. Infrastructure as code makes the environment a reviewable artefact: you can diff it, roll it back, stamp out an identical copy for testing, and answer "who changed this and why" from the commit log rather than from memory.
+
+      ### The declarative model
+
+      You describe the desired end state; the tool computes the difference against reality and produces a plan of creates, updates, replacements and destroys. The plan is the product. Read it every time. In particular, look for the difference between an in-place update and a *replacement* — some attribute changes force the provider to destroy and recreate a resource, and on a database, a volume, or anything holding an address, that is data loss or an outage dressed up as a routine change.
+
+      ### State is the whole game
+
+      Terraform keeps a state file mapping your configuration's resource addresses to the real resource identifiers. Everything follows from that. State must live in shared remote storage (an object store with versioning) rather than on a laptop, because two people applying from divergent local copies will each try to create what the other already made. State must be *locked* during an apply, so concurrent runs cannot interleave. State contains secrets in plaintext — database passwords, generated keys — so the backend must be encrypted and access-controlled as tightly as a credentials store, a fact teams routinely miss.
+
+      State also drifts. Someone fixes something in the console at 3am, and now reality and state disagree; the next plan proposes to undo the fix. Detecting drift on a schedule and treating each instance as an incident to explain is what keeps the code authoritative rather than aspirational.
+
+      When state is wrong, `import` brings an existing resource under management, `state mv` renames an address without touching infrastructure, and `state rm` forgets a resource without deleting it. These are sharp tools; take a copy of the state file before using them.
+
+      ### Structure that survives growth
+
+      Split state by blast radius and change frequency: networking, data stores and applications should not share one state file, because a single mistake then risks everything and every plan takes ten minutes. Use modules for genuine reuse, but resist over-abstracting early — a module with forty optional variables is harder to reason about than duplicated, obvious code. Pin provider and module versions; an unpinned provider upgrade can rewrite plans overnight. Keep environments as separate state with the same modules and different variable files, rather than as branches, which invites drift between environments that are supposed to be identical.
+
+      ### Where it stops
+
+      Terraform provisions resources; it is not a configuration manager for the inside of a machine, not an application deployer, and a poor choice for anything requiring a loop of observation and correction. The next two chapters cover those. Also treat any `local-exec` provisioner as a smell: it is imperative code hiding inside a declarative graph, it does not run on subsequent applies, and it cannot be planned.
+
+      ### Common mistakes
+
+      Local state. Unlocked state. Unencrypted state containing secrets. Applying without reading the plan — the destroy count in the plan summary is the single most important number in this chapter. Hand-editing resources that Terraform manages. One monolithic state for the entire estate. Interpolating a secret into the configuration so it lands in both state and the plan output. And running `apply` from laptops instead of from a pipeline with an audit trail and a required approval.
+    resources:
+      - kind: doc
+        title: "Terraform documentation"
+        url: "https://developer.hashicorp.com/terraform/docs"
+      - kind: doc
+        title: "Terraform: state and remote backends"
+        url: "https://developer.hashicorp.com/terraform/language/state"
+      - kind: doc
+        title: "Terraform: importing existing infrastructure"
+        url: "https://developer.hashicorp.com/terraform/language/import"
+      - kind: doc
+        title: "OpenTofu documentation"
+        url: "https://opentofu.org/docs/"
+      - kind: doc
+        title: "Terraform: module composition and structure"
+        url: "https://developer.hashicorp.com/terraform/language/modules/develop/composition"
+      - kind: doc
+        title: "AWS CloudFormation user guide"
+        url: "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html"
+      - kind: doc
+        title: "Pulumi documentation"
+        url: "https://www.pulumi.com/docs/"
+
+  - slug: devops-configuration-management
+    name: "Configuring the Inside of a Machine, and Immutable Infrastructure"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-provisioning
+    summary: |-
+      Ansible, cloud-init and image baking — convergent versus immutable approaches, why configuration drift is inevitable in the mutable model, and how to decide which you are running.
+    content_md: |-
+      Provisioning creates the machine. Something still has to decide what is on it. There are two coherent answers, and the failure mode is having neither, or drifting between both without noticing.
+
+      ### The convergent model
+
+      Ansible, Chef, Puppet and Salt describe a desired end state for a machine's packages, files, users and services, then repeatedly *converge* reality towards it. Ansible is the common choice now because it is agentless — it works over SSH and needs nothing pre-installed on the target — and because its YAML playbooks are readable by people who do not write Ruby.
+
+      The property that makes any of this safe is idempotence: a task must be expressible as "ensure this is true", not "run this command". `ensure package X is present` can run a hundred times harmlessly; a shell task that appends a line to a file adds a hundred lines. When you must drop to a shell command, guard it with a `creates`/`removes` condition or a `changed_when` so re-running is a no-op.
+
+      Convergence has an inherent limit: it can only fix what it knows about. A file someone added by hand, a package installed manually, a kernel parameter someone tuned — none of it is in the playbook, so none of it is corrected. Machines that live for months accumulate this divergence, and it is why two servers "configured identically" behave differently, and why a rebuild after a failure produces a host that mysteriously does not work.
+
+      ### The immutable model
+
+      The alternative is to never modify a running machine. Bake a complete image (with Packer, a Dockerfile, or a cloud image pipeline), version it, and deploy changes by replacing instances rather than updating them. Drift becomes structurally impossible: the image is the artefact and the artefact is what runs. Rollback is redeploying the previous image. Scale-up produces an instance identical to the ones already running, rather than one that runs a newer package version because it converged today.
+
+      The cost is build time, image storage, and the need for genuinely stateless instances — anything with local state must be handled separately, which forces a healthy conversation about where state actually lives.
+
+      Containers are the immutable model taken to its conclusion, which is why this track spends more time there. But the same discipline applies to virtual machines, and a bake-then-replace pipeline for VMs is often the right answer for workloads that do not suit containers.
+
+      ### Boot-time configuration
+
+      `cloud-init` runs on first boot and handles the small, instance-specific part: hostname, users, keys, fetching the machine's role from instance metadata, starting the agent that does the rest. Keep it small. A cloud-init script that installs and configures the whole application is a slow, unmonitored, unrepeatable deployment that runs exactly once and cannot be debugged after the fact.
+
+      ### Common mistakes
+
+      Non-idempotent shell tasks. Playbooks that only work from a clean image, so nobody dares run them against a live host. Secrets committed into playbooks or inventories in plaintext rather than in a vault. Running convergence manually and irregularly, so the code stops matching reality and everyone stops trusting it. Mixing models — baking an image and *also* converging it at boot, so what is running depends on when the instance launched. And long-lived pet servers with SSH access for everyone, which no tool can save you from.
+    resources:
+      - kind: doc
+        title: "Ansible documentation"
+        url: "https://docs.ansible.com/ansible/latest/"
+      - kind: doc
+        title: "Ansible: playbook best practices and project structure"
+        url: "https://docs.ansible.com/ansible/latest/tips_tricks/ansible_tips_tricks.html"
+      - kind: doc
+        title: "cloud-init documentation"
+        url: "https://cloudinit.readthedocs.io/en/latest/"
+      - kind: doc
+        title: "Packer documentation"
+        url: "https://developer.hashicorp.com/packer/docs"
+      - kind: doc
+        title: "Ansible Vault: encrypting content"
+        url: "https://docs.ansible.com/ansible/latest/vault_guide/index.html"
+      - kind: doc
+        title: "Puppet documentation"
+        url: "https://www.puppet.com/docs/puppet/latest/puppet_index.html"
+
+  - slug: devops-serverless
+    name: "Serverless and Managed Runtimes: Where They Fit and Where They Do Not"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-cloud-providers
+    summary: |-
+      Functions and managed container runtimes — the concurrency and cold-start model, the connection-pooling problem with relational databases, and an honest account of the workloads where serverless is the wrong tool.
+    content_md: |-
+      Serverless does not mean there is no server; it means you do not size, patch or scale one, and you pay per unit of work rather than per hour of capacity. That trade is excellent for some workloads and quietly terrible for others, and the difference is worth understanding before you commit an architecture to it.
+
+      ### The execution model
+
+      A function platform keeps a pool of execution environments. A request arrives; if a warm environment is free it runs immediately, and if not, the platform creates one — downloading your code, starting the runtime, and executing your initialisation before your handler runs. That creation is the **cold start**, and it is the defining characteristic of the model. It is a few hundred milliseconds for a small package on a fast runtime and several seconds for a large one on a heavy runtime.
+
+      The concurrency model is the part people get wrong: most function platforms run **one request per environment at a time**. Ten concurrent requests means ten environments. This is different from a threaded server handling ten requests in one process, and it has two large consequences. Anything you cache in memory is cached per environment, so a hit rate you measured on one server is not what you will get. And each environment opens its own connections.
+
+      ### The database connection problem
+
+      A relational database supports a bounded number of connections — often a few hundred. A function scaling to a thousand concurrent executions will attempt a thousand connections and exhaust the database, taking down everything else that uses it. This is the most common serverless production failure. The answers are a connection proxy or pooler that sits between functions and the database, a data API that speaks HTTP rather than a database wire protocol, concurrency caps on the function, or a datastore that is itself HTTP-native and designed for this pattern.
+
+      ### Where serverless genuinely wins
+
+      Spiky or unpredictable traffic, where paying for idle capacity is pure waste. Event handling — reacting to an object upload, a queue message, a schedule. Glue between managed services. Low-volume internal endpoints where the operational savings dwarf the runtime cost. Anything where the work is naturally short, stateless and independent.
+
+      ### Where it does not
+
+      Steady high-volume traffic, where per-request pricing exceeds the cost of a right-sized always-on fleet, sometimes by a lot. Work with strict low tail latency where cold starts are unacceptable (provisioned concurrency helps, at which point you are paying for idle capacity and have reinvented servers with extra steps). Long-running jobs that exceed the platform's execution limit. Anything needing large local state, persistent connections, or specialised hardware. And workloads whose vendor lock-in is genuinely uncomfortable, since the event and permission model is not portable.
+
+      Managed container runtimes sit between the two: you still ship a container, but the platform scales it to zero and back, allows several concurrent requests per instance, and drops most of the cluster operations. For many teams that is the more comfortable point on the curve.
+
+      ### Common mistakes
+
+      Doing setup work inside the handler rather than at module scope, so every invocation re-pays it. Doing heavy setup at module scope and inflating the cold start. Assuming the environment is destroyed after each request — it is reused, so leaked global state and temporary files persist. Fanning out an unbounded number of concurrent invocations against a downstream service with a much lower limit. No dead-letter queue on asynchronous invocations, so failures vanish silently. And building a synchronous chain of six functions calling each other, which multiplies cold starts, cost and failure probability all at once.
+    resources:
+      - kind: doc
+        title: "AWS Lambda developer guide"
+        url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html"
+      - kind: doc
+        title: "AWS Lambda: execution environment lifecycle and cold starts"
+        url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html"
+      - kind: doc
+        title: "Google Cloud Run documentation"
+        url: "https://cloud.google.com/run/docs"
+      - kind: doc
+        title: "Amazon RDS Proxy — connection pooling for serverless"
+        url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html"
+      - kind: doc
+        title: "Azure Functions documentation"
+        url: "https://learn.microsoft.com/en-us/azure/azure-functions/"
+      - kind: doc
+        title: "Cloudflare Workers documentation"
+        url: "https://developers.cloudflare.com/workers/"
+
+  - slug: devops-container-orchestration
+    name: "Kubernetes: The Reconciliation Loop"
+    domain: devops
+    est_hours: 24
+    difficulty: advanced
+    prerequisites:
+      - devops-containers
+      - devops-cloud-providers
+    summary: |-
+      One idea — controllers driving actual state towards declared state — and everything it generates: Deployments, Services, probes, requests and limits, scheduling, and the resource settings that cause most cluster incidents.
+    content_md: |-
+      Kubernetes looks like an enormous API surface. It is really one idea repeated: you declare desired state in an object, a controller watches that object, compares it with reality, and takes an action to close the gap — forever, in a loop. Every feature is a controller. If you learn to ask "which controller owns this, and what is it comparing?", the system becomes debuggable instead of mysterious.
+
+      ### The objects that matter, and why there are so many
+
+      A **Pod** is the unit of scheduling: one or more containers sharing a network namespace and storage, always co-located. You rarely create one directly. A **ReplicaSet** keeps N identical pods running. A **Deployment** manages ReplicaSets to give you rolling updates and rollback — this layering is exactly why a rollout works: the Deployment creates a new ReplicaSet and shifts replicas from old to new according to `maxSurge` and `maxUnavailable`.
+
+      A **Service** provides a stable virtual address and DNS name in front of a changing set of pods, selected by label. A pod's IP is ephemeral and changes on every restart; the Service is what makes that survivable. **Ingress** or a **Gateway** handles external HTTP routing and TLS.
+
+      **StatefulSets** give stable network identity and stable storage for things like databases; **DaemonSets** run one pod per node for agents; **Jobs** and **CronJobs** run work to completion. **ConfigMaps** and **Secrets** inject configuration — and note that Secrets are only base64-encoded at rest unless encryption at rest is explicitly enabled, which surprises people who assume the name implies protection.
+
+      ### Requests and limits: the setting that causes the most incidents
+
+      A CPU/memory **request** is what the scheduler reserves when placing the pod; a **limit** is the hard cap the kernel enforces. The gap between them is where trouble lives.
+
+      Memory has no elasticity: exceed the limit and the kernel kills the container (that 137 exit code again). So the memory limit must be set from observed usage plus real headroom, and for most workloads request and limit should be equal.
+
+      CPU behaves differently — exceeding a CPU limit does not kill anything, it **throttles**. The container is stopped for the remainder of each scheduling period. This produces latency spikes with no error, no restart and no obvious signal unless you are watching throttling metrics specifically, and it is one of the most common causes of "the p99 is terrible and nothing looks wrong". A widely held (and defensible) position is to set CPU requests carefully and often to leave CPU limits off entirely for latency-sensitive services, while always setting memory limits.
+
+      Requests that are far below actual usage cause the opposite problem: the scheduler overpacks a node, and everything on it degrades together.
+
+      ### Probes, and the ones that make things worse
+
+      A **readiness** probe controls whether the pod receives traffic; a **liveness** probe restarts the container when it fails. Liveness probes are dangerous when misused: a probe with a short timeout against a service that is merely slow under load will restart every pod at exactly the moment the system is most stressed, converting a degradation into an outage. Keep liveness checks trivially cheap and generous, keep dependency checks out of them entirely, and use **startup** probes for slow-booting applications instead of loosening the liveness timing forever.
+
+      ### Scheduling and availability
+
+      The scheduler places pods by requests, node selectors, taints and tolerations, affinity rules and topology spread constraints. If you do nothing, all replicas can land on one node, and losing that node loses the service — so spreading across nodes and zones must be stated explicitly. **PodDisruptionBudgets** tell voluntary operations (node drains, cluster upgrades) the minimum availability to preserve; without one, a routine cluster upgrade can evict every replica at once. Autoscaling comes in three flavours that people conflate: horizontal pod autoscaling (more replicas), vertical (bigger requests), and cluster autoscaling (more nodes).
+
+      ### Debugging
+
+      `kubectl describe pod` first — its events explain most failures directly, including `ImagePullBackOff`, `CrashLoopBackOff` and, very commonly, `FailedScheduling` with the reason no node fits. `kubectl logs --previous` gets the logs of the container that just died, which is the only place the actual crash appears. `kubectl get events --sort-by=.lastTimestamp` for cluster-level context.
+
+      ### Common mistakes
+
+      No resource requests at all, so the scheduler is guessing. Memory limits set from a single afternoon's observation. Liveness probes that check downstream dependencies. `latest` image tags, which make rollback meaningless. No PodDisruptionBudget. Storing configuration in the image and rebuilding for every environment. Reaching for Kubernetes when three virtual machines and a load balancer would do — the operational cost is real, and it is a poor first platform for a small team.
+    resources:
+      - kind: doc
+        title: "Kubernetes: concepts"
+        url: "https://kubernetes.io/docs/concepts/"
+      - kind: doc
+        title: "Kubernetes: managing resources for containers"
+        url: "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+      - kind: doc
+        title: "Kubernetes: Deployments and rolling updates"
+        url: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+      - kind: doc
+        title: "Kubernetes: liveness, readiness and startup probes"
+        url: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+      - kind: doc
+        title: "Kubernetes: Pod Disruption Budgets"
+        url: "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      - kind: doc
+        title: "Kubernetes: pod topology spread constraints"
+        url: "https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"
+      - kind: doc
+        title: "Helm documentation"
+        url: "https://helm.sh/docs/"
+
+  - slug: devops-service-mesh
+    name: "Service Meshes and Sidecars — and Whether You Need One"
+    domain: devops
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - devops-container-orchestration
+    summary: |-
+      Moving mTLS, retries, timeouts, traffic splitting and per-call telemetry out of application libraries and into a proxy — and an honest account of the operational cost that buys.
+    content_md: |-
+      Once you have more than a handful of services, the same problems recur in every one: encrypt service-to-service traffic, time out and retry sensibly, split traffic for a canary, and emit consistent per-call telemetry. You can solve those in a shared library in every language you use, or you can solve them once in the network. A service mesh is the second option.
+
+      ### How it works
+
+      A proxy (usually Envoy) is injected beside each workload, and traffic is transparently redirected through it. The proxies form the **data plane**; a **control plane** configures them from declarative policy. Because every call now traverses a proxy on each side, the mesh can do things no single application can: issue and rotate workload certificates automatically for mutual TLS, apply uniform timeout and retry policy, break circuits, mirror traffic to a new version, split traffic by weight or header, and produce a consistent set of metrics and spans for every hop regardless of language.
+
+      Newer designs move much of this out of per-pod sidecars into a per-node component, trimming the resource overhead that made the sidecar model expensive at scale. The concepts are the same.
+
+      ### What it genuinely gives you
+
+      *Identity-based mTLS everywhere*, with rotation, without touching application code — this alone justifies a mesh in regulated environments and is very hard to retrofit by hand across many languages.
+
+      *Uniform, correct resilience policy.* Timeouts and retries configured in one place, and — importantly — retry *budgets*, so the mesh will not amplify an overload the way naive per-client retries do.
+
+      *Progressive delivery primitives.* Weighted traffic splitting is the mechanism a canary controller drives, and it is far more precise than replica-count-based approximations.
+
+      *A service graph for free*, which is often the first time anyone can see what actually calls what.
+
+      ### What it costs
+
+      Every request pays two extra proxy hops of latency. Every pod pays extra CPU and memory. You have added a distributed system with its own control plane, its own upgrade cycle, its own certificates and its own failure modes — and mesh misconfiguration produces failures that are genuinely hard to attribute, because the application logs show a connection error with no explanation and the answer is in the proxy's configuration dump. Debugging now requires understanding Envoy, not just your service.
+
+      ### The honest recommendation
+
+      Do not start here. Get timeouts, retries and structured telemetry right in your services first — you need to understand those policies before you delegate them. Adopt a mesh when you have a specific driver: a compliance requirement for encryption in transit, a service count where per-language libraries have become unmaintainable, or a real need for traffic-shaping you cannot get from your ingress. Consider whether a lighter option covers you: many teams need only mTLS (available from the CNI layer) or only traffic splitting (available from a Gateway implementation), not the whole mesh.
+
+      ### Common mistakes
+
+      Adopting a mesh to solve a problem the team has not yet had. Enabling retries at both the mesh and the application layer, silently multiplying load on a struggling dependency. Turning on strict mTLS in one namespace and breaking every client outside the mesh. Forgetting that the sidecar has its own lifecycle — a sidecar that starts after the app misses early requests, and one that shuts down before the app breaks in-flight calls at every deploy. And under-provisioning the proxies, so the mesh becomes the bottleneck it was meant to observe.
+    resources:
+      - kind: doc
+        title: "Istio: concepts and architecture"
+        url: "https://istio.io/latest/docs/concepts/"
+      - kind: doc
+        title: "Envoy: architecture overview"
+        url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/arch_overview"
+      - kind: doc
+        title: "Linkerd documentation"
+        url: "https://linkerd.io/docs/"
+      - kind: doc
+        title: "Kubernetes Gateway API"
+        url: "https://gateway-api.sigs.k8s.io/"
+      - kind: doc
+        title: "SPIFFE — workload identity specification"
+        url: "https://spiffe.io/docs/latest/spiffe-about/overview/"
+      - kind: doc
+        title: "Istio: traffic management (splitting, mirroring, retries)"
+        url: "https://istio.io/latest/docs/concepts/traffic-management/"
+
+  - slug: devops-ci-cd-tools
+    name: "Pipelines: Fast, Trustworthy, and Hard to Subvert"
+    domain: devops
+    est_hours: 12
+    difficulty: intermediate
+    prerequisites:
+      - devops-vcs-hosting
+      - devops-artifact-management
+    summary: |-
+      Continuous integration and delivery as an engineering problem — pipeline stages, caching, flaky tests, ephemeral runners, least-privilege credentials, and the DORA metrics that tell you whether any of it is working.
+    content_md: |-
+      A pipeline is the machine that turns a commit into a deployable artefact and a verdict. Two properties determine whether it helps or hurts: how fast it gives an answer, and whether people believe the answer. A slow pipeline stops people integrating; an untrustworthy one teaches them to re-run until green, which is worse than having no tests at all.
+
+      ### Stages, and what belongs in each
+
+      Roughly: lint and static analysis (seconds), unit tests (a couple of minutes), build the artefact **once**, integration tests against real dependencies in containers, security and dependency scanning, publish the artefact, then deploy by promoting that same artefact through environments. Put the fastest, most likely-to-fail checks first so feedback arrives early. Everything from the artefact onwards operates on an immutable digest, never on a rebuild.
+
+      ### Speed is a feature
+
+      Target under ten minutes to a verdict on a pull request. Get there by caching dependencies (keyed on the lockfile hash, not on a branch name), splitting test suites across parallel runners, running only what a change can affect in large repositories, and reserving slow end-to-end suites for a post-merge or scheduled run rather than blocking every pull request. Measure your pipeline's own duration over time and treat a regression in it as a defect, because nobody ever notices the day it went from six minutes to twenty.
+
+      ### Flaky tests are a production issue
+
+      A test that fails 2% of the time in a suite of 500 tests means most runs go red for no reason. The organisational response — "just re-run it" — destroys the signal, and the real failure that follows gets re-run too. Track flakiness per test, quarantine the offenders automatically, and fix or delete them on a deadline. The common causes are shared mutable state between tests, real time and real sleeps, dependence on test execution order, and unpinned external calls.
+
+      ### The pipeline is production infrastructure
+
+      Your CI system can deploy to production, which makes it one of the most privileged systems you own and a genuine target. The controls that matter: **ephemeral runners** that are destroyed after each job, so one job cannot leave anything for the next; **short-lived credentials** obtained by federated identity (OIDC) rather than long-lived cloud keys stored as secrets; **pinned third-party actions or plugins** by commit SHA rather than by a mutable tag; secrets scoped to the specific environment and unavailable to pull-request builds from forks; and mandatory human approval on the production deployment step. Log everything, and make the deployment log say which artefact digest went where.
+
+      ### Are you actually getting better?
+
+      The four DORA measures are the ones with real evidence behind them: deployment frequency, lead time from commit to production, change failure rate, and time to restore service. They are useful precisely because you cannot game the set — shipping less often to protect the failure rate makes lead time worse. Instrument them from the pipeline and the incident tracker rather than estimating them.
+
+      ### Common mistakes
+
+      Rebuilding per environment. Tests that need a shared, mutable staging database, so two pipelines cannot run at once. Secrets exported into the environment of every step. Unpinned third-party actions with write access to your repository. No timeouts on jobs, so a hung step burns a runner for six hours. Manual steps between stages that are documented in someone's head. And a green pipeline that does not actually assert anything meaningful, which is the most comfortable and most dangerous state of all.
+    resources:
+      - kind: doc
+        title: "GitHub Actions documentation"
+        url: "https://docs.github.com/en/actions"
+      - kind: doc
+        title: "GitHub Actions: security hardening for workflows"
+        url: "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions"
+      - kind: doc
+        title: "GitHub Actions: OIDC federation to cloud providers"
+        url: "https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect"
+      - kind: doc
+        title: "GitLab CI/CD documentation"
+        url: "https://docs.gitlab.com/ee/ci/"
+      - kind: article
+        title: "DORA: the four key metrics"
+        url: "https://dora.dev/guides/dora-metrics-four-keys/"
+      - kind: book
+        title: "Continuous Delivery — Humble and Farley"
+        url: "https://continuousdelivery.com/"
+
+  - slug: devops-deployment-strategies
+    name: "Getting a Change to Production Without Anyone Noticing"
+    domain: devops
+    est_hours: 10
+    difficulty: advanced
+    prerequisites:
+      - devops-ci-cd-tools
+      - devops-container-orchestration
+    summary: |-
+      Rolling, blue/green and canary releases, feature flags, and the expand-contract discipline that lets a database schema change safely while two versions of the code are running at once.
+    content_md: |-
+      Deployment is the moment your change meets reality, and the goal is to make that moment boring: small, reversible, and observed. The strategies below all exist to shrink either the blast radius or the time to undo.
+
+      ### The four shapes
+
+      **Recreate** stops the old version and starts the new one. Simple, and it has downtime. Fine for internal tools; not for anything a user is holding.
+
+      **Rolling** replaces instances a few at a time. It is the default in most orchestrators and it has no downtime, but it necessarily runs both versions simultaneously — which is the source of most deployment surprises and the reason the compatibility section below matters more than the strategy choice.
+
+      **Blue/green** runs a complete second environment on the new version, then switches traffic across at once. Rollback is switching back, which is as fast as anything gets. The costs are double the infrastructure during the change and the problem of shared state: both colours usually talk to the same database, so the schema still has to work for both, and the switch is instantaneous for the web tier but not for in-flight background jobs.
+
+      **Canary** sends a small fraction of traffic — 1%, then 5%, then 25% — to the new version and *decides based on measured behaviour* whether to continue. This is the only strategy on the list that gives you evidence rather than hope, and it is the one to aim for. It requires that your metrics can be sliced by version, which is a prerequisite worth building before you attempt it.
+
+      ### Deploy is not release
+
+      A **feature flag** separates shipping code from turning behaviour on. Code goes to production dark, is enabled for internal users, then a percentage, then everyone, and can be turned off in seconds without a deployment. This is what makes trunk-based development practical and what turns "roll back the deploy" into "flip the flag" for behavioural problems.
+
+      The discipline: flags are inventory. A flag that has been at 100% for six months is dead code plus a branch in every test matrix. Give each flag an owner and a removal date and enforce it, or you will accumulate a configuration space nobody can reason about.
+
+      ### The hard part: schema and contract changes
+
+      Every strategy above runs two versions of your code at the same time. Therefore **every change must be compatible with the version before it**, in both directions, for the duration of the rollout. The pattern is expand-contract, in three separate deployments:
+
+      1. **Expand.** Add the new column, nullable, with a default. Add the new API field. Deploy code that writes both old and new, and reads the old.
+      2. **Migrate.** Backfill existing rows in batches. Switch reads to the new field. Verify.
+      3. **Contract.** Stop writing the old field. Only then, in a later deployment, drop the column.
+
+      Never combine steps. A single deployment that renames a column breaks the old version instantly, which means it also breaks your rollback — and discovering that your rollback path is gone, during an incident, at 3am, is the specific experience this chapter exists to prevent. Note also that some schema operations take locks that block writes on a large table; check what your database actually does before running the migration, and do it in a controlled window with a way to stop.
+
+      ### Rollback must be tested
+
+      A rollback plan you have never executed is a hypothesis. Practise it. Know its limits: code rolls back, data usually does not. Anything that has already written data in a new format constrains how far back you can go, which is one more argument for expand-contract.
+
+      ### Common mistakes
+
+      Deploying a schema change and a code change together. Canary analysis by eye at 3pm rather than by automated metric comparison. No traffic-splitting mechanism, so "canary" means one pod out of ten and an unreadable signal. Feature flags with no cleanup. Rolling updates with a `maxUnavailable` that removes more capacity than the remaining instances can absorb, so the deploy itself causes the overload. And deploying at 5pm on a Friday, not because of superstition, but because the people who understand the change will not be watching it.
+    resources:
+      - kind: article
+        title: "Martin Fowler: feature toggles"
+        url: "https://martinfowler.com/articles/feature-toggles.html"
+      - kind: article
+        title: "Martin Fowler: blue-green deployment"
+        url: "https://martinfowler.com/bliki/BlueGreenDeployment.html"
+      - kind: doc
+        title: "Argo Rollouts: canary and blue-green strategies"
+        url: "https://argo-rollouts.readthedocs.io/en/stable/"
+      - kind: doc
+        title: "Flagger: progressive delivery with automated analysis"
+        url: "https://docs.flagger.app/"
+      - kind: article
+        title: "Google SRE Workbook: canarying releases"
+        url: "https://sre.google/workbook/canarying-releases/"
+      - kind: article
+        title: "Martin Fowler: parallel change (expand and contract)"
+        url: "https://martinfowler.com/bliki/ParallelChange.html"
+      - kind: doc
+        title: "gh-ost — online schema migration without long locks"
+        url: "https://github.com/github/gh-ost"
+
+  - slug: devops-gitops
+    name: "GitOps: The Repository as the Source of Truth"
+    domain: devops
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - devops-deployment-strategies
+      - devops-provisioning
+    summary: |-
+      Pull-based reconciliation with Argo CD or Flux — declarative desired state in Git, continuous drift correction, and the environment-promotion and secrets problems GitOps does not solve for free.
+    content_md: |-
+      GitOps is one claim: the desired state of a system lives in a version-controlled repository, and an agent running inside the target environment continuously reconciles reality against it. The change to your workflow is that nothing is deployed by *pushing*; things are deployed by committing, and the cluster pulls.
+
+      ### Why pull beats push
+
+      A push pipeline needs credentials for every environment it can deploy to, held outside those environments. That is a large, permanent, attractive target — compromise CI and you have production. With a pull model, the agent lives inside the cluster, holds the permissions it needs locally, and reaches out to read the repository. CI's job shrinks to building an artefact and opening a commit, so CI never needs production credentials at all. For most organisations this is the strongest argument.
+
+      The second argument is drift. A push pipeline deploys and then stops caring; whatever anyone changes by hand afterwards persists silently. A reconciler compares continuously and either reports or reverts the difference, so "what is in Git" and "what is running" cannot quietly diverge. That is the property that makes the repository a genuine audit trail rather than a hopeful one.
+
+      ### The shape in practice
+
+      Keep two repositories, or at least two clear paths: application source, and the environment manifests. CI builds an image, pushes it, and opens a commit that updates the digest in the environment repository. That commit is the deployment, reviewable and revertible like any other. Promotion from staging to production is a commit that copies a digest between directories. Rollback is `git revert`.
+
+      Use Kustomize overlays or Helm values to express "the same application, different environment", rather than copying manifests per environment — copies drift, and the whole point was to eliminate drift. Configure the reconciler to prune resources removed from Git, otherwise deleting a manifest leaves the object running forever, which is a subtle and lasting source of mystery workloads.
+
+      ### The two problems it does not solve
+
+      **Secrets.** You cannot commit plaintext credentials to a repository. The workable options are encrypted-in-Git (SOPS with a KMS key, or Sealed Secrets, so the ciphertext is committable and only the cluster can decrypt), or an operator that syncs from an external secret store into the cluster and keeps only a reference in Git. The second is generally better because it centralises rotation. What is not an option is "we will remember to do it manually".
+
+      **Ordering and long-running changes.** Reconciliation is convergent, not sequential. A database migration that must complete before the new version starts, or a change that must be applied to three clusters in a specific order, needs an explicit mechanism — hooks, waves, or a dedicated progressive-delivery controller. Assuming the reconciler will figure out ordering is how you get a new version crash-looping against an old schema.
+
+      ### Common mistakes
+
+      Committing plaintext secrets, then rotating nothing after removing them (they remain in history). Auto-sync with pruning enabled on a cluster where humans still make manual changes, so the reconciler deletes something important at an unpredictable moment. One giant application object covering the whole cluster, so any failure blocks everything. No alerting on reconciliation failure — the agent can be silently unable to sync for days while everyone believes the repository is authoritative. And treating Git as authoritative for the manifests while the cluster and its node pools are still created by hand, which leaves the most important layer unmanaged.
+    resources:
+      - kind: doc
+        title: "OpenGitOps: principles"
+        url: "https://opengitops.dev/"
+      - kind: doc
+        title: "Argo CD documentation"
+        url: "https://argo-cd.readthedocs.io/en/stable/"
+      - kind: doc
+        title: "Flux documentation"
+        url: "https://fluxcd.io/flux/"
+      - kind: doc
+        title: "Kustomize: overlays and bases"
+        url: "https://kubectl.docs.kubernetes.io/references/kustomize/"
+      - kind: doc
+        title: "SOPS — encrypted secrets in Git"
+        url: "https://github.com/getsops/sops"
+      - kind: doc
+        title: "External Secrets Operator"
+        url: "https://external-secrets.io/latest/"
+
+  - slug: devops-secret-management
+    name: "Secrets: The Lifecycle, Not the Vault"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-ci-cd-tools
+      - devops-cloud-providers
+    summary: |-
+      Where credentials come from, how they reach a workload without ever being written down, how rotation actually works, and what to do in the first hour after one leaks.
+    content_md: |-
+      Most teams treat secret management as "pick a vault". The vault is the easy part. The hard parts are how a secret gets into a running process without passing through a file someone can read, how it is replaced without downtime, and what happens the day one appears in a public repository.
+
+      ### Eliminate the secret where you can
+
+      The best-managed secret is the one that does not exist. Workload identity removes an entire class: a process running on a cloud instance, in a Kubernetes pod with a bound service account, or in a CI job with OIDC federation can obtain short-lived credentials from the platform based on *what it is* rather than on a shared string it holds. Adopting this for cloud API access and for CI-to-cloud authentication removes the majority of long-lived credentials in a typical estate. Do this before you optimise the vault.
+
+      For databases and other systems that need a real credential, prefer **dynamic secrets**: the secret manager creates a credential on demand with a short lease and revokes it at expiry. Nothing long-lived exists to leak.
+
+      ### Getting a secret into a process
+
+      In rough order of preference: injected by the platform as an environment variable or a memory-backed file from a secret store at start-up; fetched by the application at start-up using its workload identity; mounted from a file with restrictive permissions. Avoid baking secrets into images (they persist in layers forever), avoid command-line arguments (visible in the process table to every user on the box), and be aware that environment variables leak more readily than people expect — into crash dumps, error trackers, child processes, and `/proc/<pid>/environ`.
+
+      ### Rotation, and why it is a design problem
+
+      Rotation is not "change the password". It is "change the password while forty processes are using it, without dropping a request". The design that makes this possible is supporting *two valid credentials at once*: issue the new one, let clients pick it up on their refresh cycle, verify nothing is still using the old one, then revoke. If your application reads its secret once at start-up and never again, rotation requires a restart of every consumer, which is why so many organisations have credentials that are five years old — rotation was theoretically possible and practically an outage. Build the refresh path early.
+
+      Rotation frequency should follow risk, and it should be automated. A documented quarterly manual rotation is a documented quarterly outage risk that eventually stops being performed.
+
+      ### Detection and response
+
+      Run secret scanning on commits, on pull requests, and on history — and enable push protection so the credential never lands in the first place. When one does leak, the order is: **rotate first, then investigate**. Deleting the commit does not help, because the value existed in history, in clones, in CI logs and in forks. Assume it is compromised, revoke it, then read the audit log to see whether it was used. The organisations that handle this well have practised it; the ones that do not spend the first hour debating whether the repository was really public.
+
+      ### Common mistakes
+
+      Secrets in environment variables in a committed compose or manifest file. One shared credential used by every service, so rotating it means coordinating across teams and therefore never happens. Vault access policies so broad that any workload can read any secret, which reduces the vault to an expensive file share. No audit logging on secret reads. Kubernetes Secrets without encryption at rest, mistaken for encryption. Secrets printed in debug logs or included in error reports sent to a third-party tracker. And no rehearsed leak procedure, so the response depends on who happens to be online.
+    resources:
+      - kind: doc
+        title: "HashiCorp Vault documentation"
+        url: "https://developer.hashicorp.com/vault/docs"
+      - kind: doc
+        title: "Vault: dynamic database secrets"
+        url: "https://developer.hashicorp.com/vault/docs/secrets/databases"
+      - kind: doc
+        title: "AWS Secrets Manager: rotation"
+        url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html"
+      - kind: doc
+        title: "Kubernetes: encrypting secret data at rest"
+        url: "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/"
+      - kind: doc
+        title: "GitHub: secret scanning and push protection"
+        url: "https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning"
+      - kind: doc
+        title: "OWASP Secrets Management Cheat Sheet"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+
+  - slug: devops-supply-chain-security
+    name: "Supply Chain: What You Ship That You Did Not Write"
+    domain: devops
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - devops-artifact-management
+      - devops-ci-cd-tools
+    summary: |-
+      Dependency pinning and provenance, SBOMs, artefact signing and verification, and treating the build system itself as the highest-value target in your estate.
+    content_md: |-
+      Your application is mostly other people's code, built by a system with credentials to production. Attackers worked this out some time ago, and the notable incidents of recent years have overwhelmingly come through the build rather than through the running service. This chapter is about the three questions you must be able to answer: what is in this artefact, where did it come from, and can I prove it was not tampered with.
+
+      ### What is in it: SBOMs and scanning
+
+      A software bill of materials lists every component and version in an artefact, in a machine-readable format (SPDX or CycloneDX). Generate it at build time, when the resolved dependency graph is actually known, and store it with the artefact. Its value is the day a critical vulnerability is announced in a widely used library and the question is "are we affected, and where" — with SBOMs stored per artefact this is a query that takes minutes; without them it is a week of archaeology across every repository.
+
+      Scan images and dependencies continuously, not just at build time, because vulnerabilities are discovered after you ship. Then do the harder organisational work: triage. A scanner reporting four hundred findings on a base image produces exactly as much security as reporting none, because nobody reads it. Filter by reachability and severity, fix what matters, and record why the rest was accepted.
+
+      ### Where it came from: pinning and provenance
+
+      Pin everything: dependencies by version *and* integrity hash via a lockfile, base images by digest, CI actions and plugins by commit SHA. A floating tag is an invitation for an upstream account compromise to become your compromise, silently, on a rebuild you did not think of as a change.
+
+      Provenance goes further: a signed attestation recording which source commit, which builder, and which inputs produced this artefact. The SLSA framework describes levels of increasing rigour here, and its central requirement is that provenance is generated by the build platform rather than asserted by the person who ran the build.
+
+      Beware **dependency confusion**: if your build resolves an internal package name from a public registry, anyone can publish that name publicly and have it pulled into your build. Configure your package manager to scope internal names to your private registry explicitly.
+
+      ### Can you prove it: signing and verification
+
+      Sign artefacts at publish time and *verify signatures at deploy time*. Signing without verification is theatre — the value is entirely in the enforcement point that refuses to run an unsigned or unrecognised image. Keyless signing tied to workload identity (as Sigstore provides) removes the key-management problem that stopped most teams from doing this at all. Enforce it with an admission controller so an unverified image cannot start.
+
+      ### The build system is the crown jewels
+
+      Anyone who can modify a pipeline definition can exfiltrate every secret it touches and ship arbitrary code to production. Therefore: pipeline definitions are protected by code owners and review like any production change; runners are ephemeral and isolated per job; workflows triggered by pull requests from forks never receive secrets; token permissions default to read-only and are widened per job; and third-party actions are pinned and, ideally, vendored. Treat a change to CI configuration with more scrutiny than a change to application code, not less.
+
+      ### Common mistakes
+
+      Generating SBOMs and never querying them. Scanning at build time only. Signing but not verifying. Unpinned third-party CI actions. Permissive default token scopes. Letting a fork's pull request run privileged workflows. Ignoring transitive dependencies, where most of the risk actually lives. And treating the whole subject as a compliance checkbox, which produces artefacts nobody uses and a build system that is still wide open.
+    resources:
+      - kind: doc
+        title: "SLSA — supply chain levels for software artifacts"
+        url: "https://slsa.dev/spec/v1.0/levels"
+      - kind: doc
+        title: "Sigstore documentation — signing and verification"
+        url: "https://docs.sigstore.dev/"
+      - kind: doc
+        title: "CycloneDX SBOM specification"
+        url: "https://cyclonedx.org/specification/overview/"
+      - kind: doc
+        title: "SPDX specification"
+        url: "https://spdx.dev/use/specifications/"
+      - kind: doc
+        title: "OpenSSF Scorecard"
+        url: "https://github.com/ossf/scorecard"
+      - kind: project
+        title: "Trivy — vulnerability and SBOM scanner"
+        url: "https://github.com/aquasecurity/trivy"
+      - kind: doc
+        title: "GitHub Actions: using OIDC and hardening third-party actions"
+        url: "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions"
+
+  - slug: devops-infrastructure-monitoring
+    name: "Metrics: Instrumenting a System So It Can Explain Itself"
+    domain: devops
+    est_hours: 10
+    difficulty: intermediate
+    prerequisites:
+      - devops-container-orchestration
+    summary: |-
+      The dimensional metric model, counters/gauges/histograms, RED and USE as instrumentation checklists, percentiles done correctly, and the cardinality mistake that takes down your monitoring system.
+    content_md: |-
+      Metrics are cheap, aggregatable numbers sampled over time. They answer "is it broken, how broken, and since when" for the whole fleet at once, which is why they are the backbone of alerting. They cannot answer "why is this specific request slow" — that is what traces and logs are for, in the next two chapters.
+
+      ### The dimensional model
+
+      A modern metric is a name plus a set of key/value labels, and each unique label combination is a separate time series stored independently. `http_requests_total{service="checkout", method="POST", status="500"}` lets you slice by any dimension after the fact, which is what makes exploratory debugging possible.
+
+      The three types you need: a **counter** only increases and is queried as a rate (requests, errors, bytes); a **gauge** goes up and down and is read as an instantaneous value (queue depth, connections, memory); a **histogram** buckets observations so you can compute percentiles across many instances. Almost all confusion comes from choosing wrong — recording latency as a gauge, for instance, means you have the last value only, and can never say anything about the distribution.
+
+      ### What to instrument: two checklists
+
+      For anything serving requests, **RED**: Rate, Errors, Duration — per endpoint and per dependency. For anything that is a resource, **USE**: Utilisation, Saturation, Errors — for CPU, memory, disk, network, thread pools, and connection pools. Between them these cover the large majority of questions, and a service instrumented with both can be debugged by someone who has never seen it.
+
+      Add the business metric too. Orders per minute is often the fastest indicator that something is wrong, and it is the one that catches failures your technical metrics call healthy — a 200 response containing an empty result set is invisible to RED and obvious in the order rate.
+
+      ### Percentiles, and how averages lie
+
+      An average latency of 200ms is consistent with everyone getting 200ms, or with 95% getting 50ms and 5% getting three seconds. Only the second is an incident, and only percentiles show it. Alert on p99 and p99.9, not the mean.
+
+      Two technical points that trip people up. First, **percentiles do not average**: taking the mean of per-instance p99s is not the fleet p99. You must aggregate the underlying histogram buckets and compute the percentile from the sum, which is exactly what histogram-based systems are designed for. Second, histogram accuracy is bounded by bucket boundaries, so choose them to span your actual latency range — default buckets that top out at 10 seconds cannot distinguish a 30-second request from a 5-minute one.
+
+      ### Cardinality is the failure mode
+
+      Every distinct combination of label values is a stored time series. Put a user ID, a request ID, an email address or a full URL path into a label and you create millions of series, and your monitoring system falls over — often during the incident that caused the cardinality explosion, which is precisely when you need it. Keep labels to bounded, low-cardinality dimensions: service, endpoint template (`/users/{id}`, never `/users/12345`), method, status class, region, version. High-cardinality identifiers belong in traces and logs.
+
+      ### Pull, push, and standards
+
+      Prometheus popularised a pull model: targets expose a metrics endpoint and the server scrapes them, which gives you target-health for free and makes "is it up" a first-class signal. Push models suit short-lived jobs that will not exist when a scrape arrives. OpenTelemetry now provides a vendor-neutral API and wire protocol for metrics, traces and logs, and instrumenting against it rather than a vendor SDK is the choice that ages best.
+
+      ### Common mistakes
+
+      Unbounded label values. Averages in dashboards. Metrics only from infrastructure and none from the application, so you know the CPU is fine and nothing about whether users are served. Scrape intervals coarser than the events you care about. Dashboards nobody has looked at since the day they were built. And instrumenting after an incident rather than as part of the change — the questions you wish you could answer at 3am must be answerable before 3am.
+    resources:
+      - kind: doc
+        title: "Prometheus: overview and data model"
+        url: "https://prometheus.io/docs/introduction/overview/"
+      - kind: doc
+        title: "Prometheus: metric and label naming practices"
+        url: "https://prometheus.io/docs/practices/naming/"
+      - kind: doc
+        title: "Prometheus: histograms and summaries"
+        url: "https://prometheus.io/docs/practices/histograms/"
+      - kind: doc
+        title: "OpenTelemetry documentation"
+        url: "https://opentelemetry.io/docs/"
+      - kind: article
+        title: "Google SRE Book: monitoring distributed systems"
+        url: "https://sre.google/sre-book/monitoring-distributed-systems/"
+      - kind: article
+        title: "Brendan Gregg: The USE Method"
+        url: "https://www.brendangregg.com/usemethod.html"
+      - kind: doc
+        title: "Grafana documentation"
+        url: "https://grafana.com/docs/grafana/latest/"
+
+  - slug: devops-logs-management
+    name: "Logs: Structured Events, Sampling and the Bill"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-infrastructure-monitoring
+    summary: |-
+      Structured logging with correlation IDs, the collection pipeline, retention tiers, sampling, and why log volume becomes one of your largest infrastructure costs if nobody owns it.
+    content_md: |-
+      Logs are the high-detail, high-cost signal: they tell you what happened to one specific request when metrics have already told you that something is wrong. Their weakness is volume, and volume is what makes them expensive and slow exactly when you need them most.
+
+      ### Structured, or it does not count
+
+      A log line should be an event object with fields, not a sentence. `{"ts":"…","level":"error","service":"checkout","trace_id":"…","user_id":"…","order_id":"…","msg":"payment declined","provider":"acme","latency_ms":812}` can be filtered, grouped and counted. `ERROR: payment failed for order 12345` requires a regular expression that will break the next time someone edits the message, and cannot be aggregated at all.
+
+      The single most valuable field is a **correlation identifier** propagated across every service a request touches — ideally the trace ID, so logs and traces link. Without it, debugging a request across five services means guessing by timestamp, which does not work under load. Propagate it in the standard W3C `traceparent` header so it survives hops through proxies and third-party libraries.
+
+      ### The pipeline
+
+      Applications write to stdout and stderr. A collector on each node (Fluent Bit, Vector, the OpenTelemetry Collector) reads, parses, enriches with pod/host/version metadata, and forwards to a backend. Keep the application ignorant of the destination: an application that ships directly to a log service now has a network dependency, a credential, and a buffering problem on its critical path, and it will block on a slow log endpoint.
+
+      The collector is where you drop noise, redact sensitive fields, and add metadata. Redaction deserves attention: personal data, tokens and card numbers land in logs constantly, usually through a well-meaning "log the whole request body" statement. Redact at the collector as a safety net, but also fix the source, because the collector is a backstop rather than a policy.
+
+      ### Levels, sampling and cost
+
+      Use levels with intent. ERROR means a human may need to act. WARN means something unexpected but handled. INFO is the audit trail of significant events. DEBUG is off in production, except when it is turned on deliberately and temporarily for one service. A service logging at INFO for every internal function call will generate more data than the requests themselves and will bury the one line that mattered.
+
+      For high-volume paths, sample: keep every error, keep a small percentage of successful requests, and — this is the trick worth knowing — sample *by trace*, so you keep all the logs for a sampled request rather than a random scattering of lines from different requests, which are useless individually.
+
+      Cost is a design constraint. Ingest and retention are usually charged by volume, and log spend routinely exceeds the compute it describes. Tier it: hot and searchable for a week or two, cheap object storage for the months you need for compliance, and delete on a schedule. Set retention deliberately rather than discovering it in a budget review, and put an alert on ingest volume so a debug flag left on in production is caught in hours rather than at the end of the month.
+
+      ### Common mistakes
+
+      Unstructured or inconsistently structured logs across services. No correlation ID. Logging secrets or personal data. Logging the same error at every layer as the exception propagates, multiplying volume and making the count meaningless. Writing to files inside containers, so the evidence dies with the pod. Unbounded retention. No alert on ingest volume. And treating logs as the primary alerting signal when metrics are far cheaper and faster for that job — alert on metrics, investigate in logs.
+    resources:
+      - kind: doc
+        title: "OpenTelemetry: logs specification and correlation"
+        url: "https://opentelemetry.io/docs/specs/otel/logs/"
+      - kind: doc
+        title: "W3C Trace Context recommendation"
+        url: "https://www.w3.org/TR/trace-context/"
+      - kind: doc
+        title: "Fluent Bit documentation"
+        url: "https://docs.fluentbit.io/manual"
+      - kind: doc
+        title: "Vector documentation"
+        url: "https://vector.dev/docs/"
+      - kind: doc
+        title: "Grafana Loki documentation"
+        url: "https://grafana.com/docs/loki/latest/"
+      - kind: doc
+        title: "Elastic Common Schema — field naming reference"
+        url: "https://www.elastic.co/guide/en/ecs/current/index.html"
+
+  - slug: devops-observability
+    name: "SLOs, Error Budgets and Alerts Worth Waking For"
+    domain: devops
+    est_hours: 12
+    difficulty: advanced
+    prerequisites:
+      - devops-infrastructure-monitoring
+      - devops-logs-management
+    summary: |-
+      Distributed tracing, and the SLI/SLO/error-budget framework that turns "is it healthy" into a number you can alert on — including burn-rate alerting, which is the technique that ends alert fatigue.
+    content_md: |-
+      Monitoring tells you whether the things you predicted would break have broken. Observability is the property of being able to answer questions about your system that you did not anticipate. The practical difference is whether, faced with a novel failure, you can explore your telemetry and find the answer, or can only confirm that all your existing dashboards are green while customers complain.
+
+      ### Traces: the third signal
+
+      A trace follows one request across every service it touches. Each hop is a span with a start, a duration, a parent, and attributes. Assembled, they give you a waterfall showing precisely where the time went and where the error originated — the question metrics fundamentally cannot answer, because metrics have already aggregated away the individual request.
+
+      What makes tracing work is **context propagation**: the trace ID must be passed through every hop, including through queues and background jobs, or your trace ends at the first boundary someone forgot. Use the W3C `traceparent` standard rather than a bespoke header. Because storing every trace is prohibitive, sample: head-based sampling decides at the start (cheap, but you may discard the interesting ones), while tail-based sampling buffers the trace and decides after seeing the outcome, which lets you keep all errors and all slow requests and 1% of the rest. Tail-based is what you want if you can afford the collector.
+
+      The high-cardinality identifiers you were forbidden from putting in metrics — user ID, order ID, tenant — belong on spans, where they are exactly what lets you answer "which customers were affected".
+
+      ### From signals to a promise: SLI, SLO, SLA
+
+      An **SLI** is a measurement of service quality from the user's point of view, expressed as a ratio of good events to total events: successful requests over all requests, or requests served under 300ms over all requests. Measure it as close to the user as you can — at the load balancer or the client, not deep inside a service that has no idea whether the response ever arrived.
+
+      An **SLO** is your internal target for that SLI over a window: 99.9% of requests succeed over 28 days. An **SLA** is a contractual promise with financial consequences, and should always be looser than your SLO so you notice trouble before a customer invoices you for it.
+
+      The **error budget** follows arithmetically: 99.9% over 28 days permits about 40 minutes of failure. That budget is the most useful management artefact in operations, because it converts an argument into a measurement. Budget remaining means you can ship aggressively. Budget exhausted means reliability work takes priority over features until it recovers. It also, crucially, says that 100% is the wrong target — chasing perfect reliability costs enormously and delivers nothing users can perceive, because their network is less reliable than your service.
+
+      ### Alert on symptoms, and on burn rate
+
+      Alert on user-visible symptoms — the SLI — rather than on causes. High CPU is not an incident; users receiving errors is. Cause-based alerts multiply endlessly, fire during harmless conditions, and still miss the failure you did not imagine.
+
+      Then make the alert respond to *severity of budget consumption*, not to a fixed threshold. A **burn-rate** alert asks how fast you are consuming the error budget: burning at 14× over the last hour will exhaust a 30-day budget in two days, so page immediately; burning at 2× over six hours is real but not urgent, so open a ticket. Combining a fast window and a slow window in one condition gives alerts that fire quickly on genuine outages and stay quiet during brief blips — which is the concrete technique that fixes alert fatigue.
+
+      Every page must be actionable, urgent and about something a human can fix now. If it does not meet all three, it should be a ticket or a dashboard. An on-call rotation that receives fifteen pages a night stops reading them, and then misses the one that mattered — this is the mechanism by which noisy alerting *causes* outages rather than merely annoying people.
+
+      ### Common mistakes
+
+      SLOs invented in a meeting instead of derived from measured behaviour and what users actually need. Measuring the SLI on the server side only, so requests that never arrived are counted as fine. Alerting on every cause. Paging on things nobody can act on at 3am. Traces that stop at the first asynchronous boundary. And an error budget policy that everyone agreed to and nobody has ever enforced, which is the same as not having one.
+    resources:
+      - kind: article
+        title: "Google SRE Book: service level objectives"
+        url: "https://sre.google/sre-book/service-level-objectives/"
+      - kind: article
+        title: "Google SRE Workbook: alerting on SLOs (burn rates)"
+        url: "https://sre.google/workbook/alerting-on-slos/"
+      - kind: article
+        title: "Google SRE Workbook: implementing SLOs"
+        url: "https://sre.google/workbook/implementing-slos/"
+      - kind: doc
+        title: "OpenTelemetry: traces and context propagation"
+        url: "https://opentelemetry.io/docs/concepts/signals/traces/"
+      - kind: doc
+        title: "W3C Trace Context recommendation"
+        url: "https://www.w3.org/TR/trace-context/"
+      - kind: article
+        title: "AWS Builders' Library: instrumenting distributed systems for operational visibility"
+        url: "https://aws.amazon.com/builders-library/instrumenting-distributed-systems-for-operational-visibility/"
+      - kind: book
+        title: "Site Reliability Engineering (free online)"
+        url: "https://sre.google/books/"
+
+  - slug: devops-incident-response
+    name: "On-Call, Incident Command and Blameless Postmortems"
+    domain: devops
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - devops-observability
+    summary: |-
+      What to do in the first ten minutes, how to run an incident with more than three people in it, and how to write a postmortem that actually changes the system rather than assigning blame.
+    content_md: |-
+      Everything before this chapter reduces the chance of an outage. This chapter is about the outage you are having anyway. Incident response is a practised skill, and the difference between teams is almost never technical depth — it is whether they have a structure to fall back on when everyone is stressed and the theories are multiplying.
+
+      ### The first ten minutes
+
+      In order: **acknowledge** the page so the escalation stops and everyone knows a human is on it. **Assess** the customer impact — what is broken, for whom, how badly — because this decides everything that follows. **Communicate** early, in one channel, with a timestamped status; a message saying "investigating, no cause yet" is genuinely valuable, because silence causes everyone else to start their own investigation and DM you about it. Then **mitigate before you diagnose**.
+
+      That last one is the hardest habit to build. Engineers want to understand the problem, and understanding is not the job during an outage — restoring service is. If a deploy went out twenty minutes ago, roll it back; you can find out why later, from a system that is serving users. The mitigations to reach for first are the reversible ones: roll back, flip the feature flag off, fail over, scale up, shed load, disable the expensive code path. Save the root cause for the postmortem.
+
+      ### Roles, once it is bigger than one person
+
+      Beyond a few responders, ad-hoc coordination fails: three people restart the same service, two conflicting changes go out, and nobody is talking to the customer.
+
+      The **Incident Commander** owns the incident, not the fix. They keep the timeline, decide what to try next, assign tasks explicitly by name, and deliberately do *not* type commands — the moment the commander starts debugging, coordination stops. **Operations** makes the changes, and only operations makes changes. **Communications** handles the status page and internal updates. **Scribe** keeps the timeline, which will be the postmortem's backbone and which nobody can reconstruct afterwards from memory.
+
+      One person can hold several roles in a small incident. The point is that the roles exist and someone is named for each. State the severity out loud, because it sets expectations about who to wake and how often to update.
+
+      ### Postmortems that change something
+
+      Write one for every significant incident, within a few days while memory is fresh. It needs a factual timeline with timestamps, the customer impact quantified, the contributing factors, what went well, what was luck, and action items with owners and dates.
+
+      **Blameless** is a technical stance, not a courtesy. The engineer who ran the command was operating a system that permitted a catastrophic action with no confirmation, no dry run and no staged rollout — the system's design is the finding, and "be more careful" is not an action item. Blame reliably produces the outcome you least want: people stop reporting incidents and stop volunteering what really happened, and the organisation loses the data it needs to improve.
+
+      Beware the phrase "root cause". Serious incidents in distributed systems almost always have several contributing factors that were individually survivable — a latent bug, a retry that amplified it, a health check that removed the wrong instances, an alert that fired late. Stopping at the first plausible cause leaves the other three in place.
+
+      Finally, action items decay. A postmortem whose actions are never completed is a document that made everyone feel better and changed nothing. Track them like any other work, with an owner and a date, and review completion rates.
+
+      ### Running a humane rotation
+
+      A rotation needs enough people that nobody is on call constantly, a clear escalation path, a documented (and usable) runbook per alert, and compensation or time back for nights disturbed. Hand over context at rotation change. Measure page volume and treat a rising trend as a defect in the alerting, not as a fact of life.
+
+      ### Common mistakes
+
+      Debugging instead of mitigating. No single channel, so context is scattered across four threads and two calls. Everyone typing commands. No timeline, so the postmortem is guesswork. Postmortems that name a person. Action items with no owner. And no practice — run game days and failure injection exercises, because the first time you fail over a database should not be during an outage.
+    resources:
+      - kind: article
+        title: "Google SRE Book: postmortem culture — learning from failure"
+        url: "https://sre.google/sre-book/postmortem-culture/"
+      - kind: article
+        title: "Google SRE Book: managing incidents"
+        url: "https://sre.google/sre-book/managing-incidents/"
+      - kind: article
+        title: "Google SRE Book: example postmortem"
+        url: "https://sre.google/sre-book/example-postmortem/"
+      - kind: doc
+        title: "PagerDuty Incident Response documentation (open source)"
+        url: "https://response.pagerduty.com/"
+      - kind: article
+        title: "Google SRE Book: being on-call"
+        url: "https://sre.google/sre-book/being-on-call/"
+      - kind: article
+        title: "A curated collection of public postmortems"
+        url: "https://github.com/danluu/post-mortems"
+      - kind: doc
+        title: "Principles of Chaos Engineering"
+        url: "https://principlesofchaos.org/"
+
+  - slug: devops-backup-and-recovery
+    name: "Backups, RTO/RPO and the Restore You Have Never Tested"
+    domain: devops
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - devops-provisioning
+      - devops-incident-response
+    summary: |-
+      Deriving recovery objectives from the business, the difference between snapshots and point-in-time recovery, immutable and off-account copies for ransomware, and why an untested backup is not a backup.
+    content_md: |-
+      Every other chapter here protects availability. This one protects the data, which is the only part you cannot rebuild from a repository. Data loss is the failure mode companies do not recover from, and the uncomfortable truth of the subject is that almost everyone has backups and far fewer have working restores.
+
+      ### Two numbers, decided by the business
+
+      **RPO** (recovery point objective) is how much data you can afford to lose, measured in time. **RTO** (recovery time objective) is how long you can afford to be down. They are not engineering preferences; they are business decisions with costs attached, and they should be written down per data store. An RPO of 24 hours means a nightly dump is fine. An RPO of five minutes means continuous archiving of the write-ahead log. An RPO near zero means synchronous replication and a much larger bill.
+
+      Deriving them honestly is the valuable exercise. Ask what happens if the last hour of orders disappears, and who has to be told. The answer usually differs sharply between the payments database and the analytics warehouse, and treating them identically means either overspending on one or under-protecting the other.
+
+      ### Snapshots are not point-in-time recovery
+
+      A volume snapshot gives you the state at one instant, and restores put you back to that instant — your RPO is the time since the last snapshot, which may be many hours. Continuous archiving (a base backup plus a stream of write-ahead log segments, as PostgreSQL's PITR provides) lets you restore to *any* moment, which is what you need when the incident is "a bad migration corrupted a table at 14:32" and you want 14:31. Choose per data store based on the RPO you wrote down.
+
+      Note also that a replica is not a backup. Replication faithfully copies your mistakes: `DELETE` without a `WHERE` clause reaches the replica in milliseconds. Replicas protect against hardware failure, backups protect against error and malice, and you need both.
+
+      ### The 3-2-1 idea, updated for ransomware
+
+      Three copies, two media or storage classes, one off-site remains a good starting rule. The modern addition is that at least one copy must be **immutable and outside the blast radius of your primary credentials**: object-lock or write-once storage, in a separate account or project, with separate credentials. This matters because the modern data-loss scenario is not a disk failure — it is an attacker (or a runaway script) with your production credentials deleting the data *and* the backups, which are usually reachable from exactly the same role. Encrypt backups, and store the keys somewhere that survives losing the environment.
+
+      ### Test the restore, on a schedule
+
+      This is the entire chapter in one line. Untested backups fail in mundane, predictable ways: the job has been erroring for three months and nobody read the output; the dump excludes a schema added last year; the restore takes eleven hours and your RTO is two; the encryption key lives only in the environment you just lost; the backup is consistent per table but not across tables, so the restored database violates its own foreign keys.
+
+      Run an automated restore into a scratch environment regularly, verify it with real queries (row counts, a checksum, an application smoke test), and record how long it took — that measured duration is your real RTO, and it is nearly always longer than the assumed one. Rehearse the full procedure with a human at least annually, and write the runbook while you are calm.
+
+      ### Common mistakes
+
+      Backing up the database and forgetting object storage, secrets, DNS zones and the configuration needed to rebuild the environment. Backups in the same account, reachable by the same credentials. No monitoring on backup success — the job silently stopped, and you learn this during the restore. Retention that does not cover the time to *detect* a problem: corruption discovered after 30 days when you keep 14 days of backups is unrecoverable. Never measuring restore time. And no documented plan, so the restore is improvised by whoever is awake.
+    resources:
+      - kind: doc
+        title: "PostgreSQL: continuous archiving and point-in-time recovery"
+        url: "https://www.postgresql.org/docs/current/continuous-archiving.html"
+      - kind: doc
+        title: "PostgreSQL: backup and restore overview"
+        url: "https://www.postgresql.org/docs/current/backup.html"
+      - kind: doc
+        title: "AWS Well-Architected: reliability pillar"
+        url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html"
+      - kind: doc
+        title: "Amazon S3 Object Lock — immutable backup copies"
+        url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html"
+      - kind: article
+        title: "Google SRE Book: data integrity — what you read is what you wrote"
+        url: "https://sre.google/sre-book/data-integrity/"
+      - kind: doc
+        title: "Velero — Kubernetes cluster and volume backup"
+        url: "https://velero.io/docs/latest/"
+
+  - slug: devops-cost-and-capacity
+    name: "Capacity, Autoscaling and What It All Costs"
+    domain: devops
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - devops-container-orchestration
+      - devops-observability
+    summary: |-
+      Sizing from measured demand, the three autoscaling dimensions and how they interact badly, and the FinOps practices that make cloud spend an engineering metric instead of a quarterly surprise.
+    content_md: |-
+      Cost is a non-functional requirement with the same standing as latency, and it is usually the one with no owner. In a cloud estate the architecture *is* the bill: every design decision about redundancy, retention, data transfer and instance type shows up as a number, and engineers are the only people who can change those numbers.
+
+      ### Capacity from measurement
+
+      Size from observed demand, not from intuition. You need the peak (with its shape — a daily spike is different from a monthly one), the growth trend, the headroom to absorb a burst while a scale-up happens, and the capacity to survive losing an availability zone. That last requirement is the one people forget: if you run across three zones at 80% utilisation, losing one leaves the survivors at 120%, and you have converted a zone failure into a total outage. Static stability means provisioning so the surviving capacity can carry the load without needing to launch anything, because control planes are often unavailable during exactly the events that require scaling.
+
+      Load test to find where it breaks, and load test the *scaling* path rather than a steady state — the question is not "can it serve 10,000 requests per second" but "what happens between the traffic arriving and the new capacity being ready".
+
+      ### The three autoscalers and their interactions
+
+      Horizontal scaling adds replicas, vertical scaling makes each replica bigger, and cluster scaling adds nodes. They interact in ways that produce their own incidents. Horizontal scaling cannot help if there are no nodes to place pods on, so it waits on the cluster autoscaler, which waits on the cloud API, which takes minutes — during which you are overloaded. Scaling on CPU is a lagging signal for a queue-backed workload; scaling on queue depth or on requests-in-flight responds far sooner. And aggressive scale-in causes thrash: instances are removed, latency rises, they are added back, and you pay for the churn while destroying warm caches. Set conservative scale-down with a stabilisation window and aggressive scale-up; the asymmetry is deliberate.
+
+      Also, autoscaling cannot fix a bottleneck it does not own. Adding fifty application replicas in front of a database at its connection limit makes things strictly worse.
+
+      ### Making cost visible
+
+      Tag everything by team, service and environment from day one — retrofitting attribution across an untagged estate is miserable. Then give each team a view of its own spend and a per-unit metric: cost per thousand requests, per active user, per tenant. Absolute spend rising is meaningless if traffic doubled; unit cost rising is a defect and can be treated like one.
+
+      The usual large wins, roughly in order: right-sizing over-provisioned instances (requests set from a guess and never revisited); committed-use discounts or reservations for the steady baseline with on-demand for the peak; spot or preemptible capacity for anything interruptible, such as CI runners and batch jobs; storage lifecycle policies moving old data to colder tiers; **cross-zone and egress data transfer**, which is invisible in architecture diagrams and frequently one of the largest lines on the bill; and log and metric retention, which grows silently forever.
+
+      Alert on cost anomalies. A misconfigured job or a runaway retry loop can multiply spend within hours, and the default detection mechanism — the monthly invoice — is far too slow.
+
+      ### The trade-off to state plainly
+
+      Every reliability decision in this track has a price: multi-region costs more than multi-zone, higher availability targets cost superlinearly, longer retention costs linearly forever. The engineering skill is presenting the choice with both numbers attached rather than choosing silently in either direction.
+
+      ### Common mistakes
+
+      No tags, so nothing can be attributed. Right-sizing once and never again. Scaling on the wrong signal. Ignoring data transfer. Non-production environments running at full size overnight and at weekends. Buying reservations for capacity whose shape is about to change. And treating cost as finance's problem, which guarantees it will be addressed by a spending freeze rather than by an engineering improvement.
+    resources:
+      - kind: doc
+        title: "AWS Well-Architected: cost optimization pillar"
+        url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html"
+      - kind: article
+        title: "FinOps Foundation: what is FinOps"
+        url: "https://www.finops.org/introduction/what-is-finops/"
+      - kind: doc
+        title: "Kubernetes: horizontal pod autoscaling"
+        url: "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
+      - kind: doc
+        title: "Kubernetes: cluster autoscaling"
+        url: "https://kubernetes.io/docs/concepts/cluster-administration/cluster-autoscaling/"
+      - kind: article
+        title: "AWS Builders' Library: reliability and constant work"
+        url: "https://aws.amazon.com/builders-library/reliability-and-constant-work/"
+      - kind: doc
+        title: "OpenCost — Kubernetes cost allocation"
+        url: "https://www.opencost.io/docs/"
+
+  - slug: devops-cloud-design-patterns
+    name: "Designing for the Cloud: Static Stability, Cells and Graceful Degradation"
+    domain: devops
+    est_hours: 10
+    difficulty: advanced
+    prerequisites:
+      - devops-observability
+      - devops-deployment-strategies
+      - devops-backup-and-recovery
+    summary: |-
+      The capstone: the architectural patterns that decide whether an incident is a blip or an outage — blast-radius containment, static stability, degradation over failure, and the anti-patterns that look like resilience.
+    content_md: |-
+      Everything in this track has been about running a system. This chapter is about shaping one so that the running is survivable. These are the decisions that determine whether the 3am page is "one shard of one region is degraded" or "everything is down".
+
+      ### Contain the blast radius
+
+      The first question of any resilient design is: when this fails, how much fails with it? Availability zones are the cheapest answer and should be the default. **Cell-based architecture** goes further: partition the whole stack — compute, data, queues — into independent cells, assign each customer to one cell, and ensure a cell failure affects only its own customers. Deployments then roll cell by cell, so a bad release is caught at a few percent of traffic rather than all of it. The cost is routing complexity and the operational burden of many small stacks instead of one large one.
+
+      **Shuffle sharding** is the elegant refinement, and worth understanding even if you never build cells: instead of assigning each customer to one shard, assign each to a random *combination* of a few nodes from a larger pool. With eight nodes and two per customer there are twenty-eight combinations, so one abusive or failing customer degrades only the small fraction of others sharing both of their nodes — and with client-side retry to the other node, most of those still succeed. You get near-isolation without paying for per-customer infrastructure.
+
+      ### Static stability
+
+      A statically stable system continues operating correctly when its dependencies' *control planes* are unavailable. The data plane keeps serving with what it already has, rather than needing to create, look up or reconfigure anything.
+
+      Concretely: pre-provision capacity for a zone failure rather than planning to launch instances during it — during a large event, everyone else is trying to launch too. Cache authorisation decisions and configuration so an identity or config service outage degrades rather than halts you. Keep serving a slightly stale value instead of failing when the source of truth is unreachable. The general principle is that the recovery path should use fewer dependencies than the normal path, never more.
+
+      This is also why **constant-work** designs are so robust: a system that does the same amount of work regardless of conditions — pushing a full configuration snapshot every ten seconds whether or not anything changed — has no surge in load when things go wrong, and no rarely-exercised code path that only runs during failures.
+
+      ### Degrade instead of failing
+
+      Rank your features by what the user actually needs. When a dependency is unavailable, drop the optional parts and serve the core: show the product page without personalised recommendations, accept the order and reconcile the loyalty points later, serve stale search results with a notice. This requires deciding in advance, per feature, what "degraded" means — a decision nobody makes well during an incident.
+
+      Be careful with **fallbacks**, though. A fallback path that is only exercised during failures is a path you have never tested, running for the first time under maximum stress, and it frequently makes things worse. Prefer a simpler design that degrades predictably over an elaborate one with a clever fallback you cannot verify.
+
+      ### Patterns that look like resilience and are not
+
+      Retries without a budget or jitter, which convert a slow dependency into a self-inflicted denial of service. Health checks that test dependencies and remove the entire fleet at once. Unbounded queues, which turn a brief overload into an hours-long backlog of requests whose clients gave up long ago — bound the queue and shed load instead. A cache with no protection against stampede, so its expiry becomes a synchronised thundering herd at the origin. And multi-region active-active adopted for resilience by a team that has never failed over, which adds consistency problems, cost and complexity in exchange for a capability nobody has tested.
+
+      ### Putting it together
+
+      A design you can defend states, for each dependency, what happens when it is slow, when it is down, and when it is *wrong*. It names the blast radius of each component, the degradation behaviour of each feature, and the recovery path — and it says which of those have actually been exercised. That last column is the one that separates a system that survives its first bad night from one that merely looked good on a diagram.
+
+      ### Common mistakes
+
+      Designing for total failure while ignoring the far more common partial and grey failures, where a dependency is slow rather than down. Adding redundancy that shares fate — two instances in the same rack, two regions behind one DNS provider, everything depending on one identity service. Never testing failover. Treating the deployment pipeline as out of scope, when an inability to deploy during an incident is itself an outage. And building all of this before you have the telemetry to know whether any of it works.
+    resources:
+      - kind: article
+        title: "AWS Builders' Library: static stability using availability zones"
+        url: "https://aws.amazon.com/builders-library/static-stability-using-availability-zones/"
+      - kind: article
+        title: "AWS Builders' Library: workload isolation using shuffle sharding"
+        url: "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/"
+      - kind: article
+        title: "AWS Builders' Library: avoiding fallback in distributed systems"
+        url: "https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/"
+      - kind: article
+        title: "AWS Builders' Library: avoiding insurmountable queue backlogs"
+        url: "https://aws.amazon.com/builders-library/avoiding-insurmountable-queue-backlogs/"
+      - kind: doc
+        title: "Azure Architecture Center: cloud design patterns"
+        url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/"
+      - kind: article
+        title: "Google SRE Book: addressing cascading failures"
+        url: "https://sre.google/sre-book/addressing-cascading-failures/"
+      - kind: book
+        title: "Release It! — design and deploy production-ready software"
+        url: "https://pragprog.com/titles/mnee2/release-it-second-edition/"

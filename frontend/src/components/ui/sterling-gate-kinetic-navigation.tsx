@@ -109,8 +109,10 @@ export function SterlingGateKineticNavigation() {
         const fadeTargets = containerRef.current!.querySelectorAll("[data-menu-fade]");
         
         const menuButton = containerRef.current!.querySelector(".nav-close-btn");
-        const menuButtonTexts = menuButton?.querySelectorAll("p");
-        const menuButtonIcon = menuButton?.querySelector(".menu-button-icon");
+        // GSAP accepts null or an empty list as a no-op target, but not
+        // `undefined` — which is what `?.` yields when the button is absent.
+        const menuButtonTexts = menuButton ? menuButton.querySelectorAll("p") : [];
+        const menuButtonIcon = menuButton?.querySelector(".menu-button-icon") ?? null;
 
         const tl = gsap.timeline();
         

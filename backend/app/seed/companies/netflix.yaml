@@ -80,16 +80,16 @@ roles:
       who can name a system they decommissioned, and defend it, signals
       something the rest of the loop cannot.
     focus_areas:
-      - { concept: system-design-basics, label: "Distributed systems design", weight: 5,
+      - { concept: computer-science-system-design, label: "Distributed systems design", weight: 5,
           notes: "Regional failover, backpressure, circuit breakers, graceful degradation." }
-      - { concept: observability, label: "Operating at scale", weight: 5,
+      - { concept: devops-observability, label: "Operating at scale", weight: 5,
           notes: "Netflix invented much of this vocabulary. Know what you would measure and why." }
-      - { concept: incident-response, label: "Incident response and resilience", weight: 5,
+      - { concept: devsecops-incident-response, label: "Incident response and resilience", weight: 5,
           notes: "Chaos engineering is a Netflix export. Have an outage you owned end to end." }
-      - { concept: caching-strategies, label: "Caching and CDN behaviour", weight: 4,
+      - { concept: backend-caching, label: "Caching and CDN behaviour", weight: 4,
           notes: "Streaming is a caching problem before it is anything else." }
-      - { concept: async-and-message-queues, label: "Async and event-driven design", weight: 4 }
-      - { concept: data-structures-algorithms, label: "Practical coding", weight: 3,
+      - { concept: server-side-game-developer-message-queues, label: "Async and event-driven design", weight: 4 }
+      - { concept: computer-science-data-structures, label: "Practical coding", weight: 3,
           notes: "Real-world shaped rather than puzzle-shaped. The bar is competence, not speed." }
       - { label: "Judgement and candour", weight: 5,
           notes: "The culture memo is the rubric. Prepare stories about decisions and disagreements." }

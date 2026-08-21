@@ -38,9 +38,9 @@ def test_every_project_hangs_off_a_concept_and_has_tests(client):
 
 
 def test_projects_can_be_filtered_to_a_concept(client):
-    filtered = client.get("/api/v1/projects?concept=internet-and-http").json()
+    filtered = client.get("/api/v1/projects?concept=backend-caching").json()
     assert filtered
-    assert {p["concept_slug"] for p in filtered} == {"internet-and-http"}
+    assert {p["concept_slug"] for p in filtered} == {"backend-caching"}
 
 
 def test_the_solution_is_withheld_until_you_pass(client, auth):

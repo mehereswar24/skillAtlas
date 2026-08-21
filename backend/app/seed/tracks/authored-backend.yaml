@@ -1,0 +1,2038 @@
+# Hand-authored for SkillAtlas. Do NOT regenerate with scripts/import_roadmapsh.py.
+#
+# Written independently from our own knowledge of the subject and from primary
+# sources (RFCs, MDN, PostgreSQL/Kafka/Kubernetes documentation, the AWS
+# Builders' Library, the Google SRE book). Nothing here is derived from
+# roadmap.sh's backend roadmap.
+#
+# The syllabus is deliberately outcome-shaped rather than a topic checklist.
+# The spine is: understand one request end to end -> get the data layer right,
+# because that is where correctness actually lives -> build and structure the
+# service -> make it asynchronous where it must be -> prove it works -> ship
+# and operate it -> only then add AI features.
+#
+# Slugs are stable: projects, role skills, quizzes and company focus areas
+# reference them. A few slugs inherited from the imported track have been
+# repurposed to a topic that earns its place.
+
+track:
+  slug: backend
+  title: "Backend Engineering: From One Request to Production"
+  domain: backend
+  target_role: "Backend Developer"
+  difficulty: intermediate
+  description: "A 35-step path from 'what actually happens when a request arrives' to running a service other teams depend on. Data modelling and transactions come early, because that is where correctness lives; asynchronous work, integration and failure handling come before architecture, because you cannot choose a topology you have never operated; delivery and observability come before scale; AI features come last, treated as one more unreliable network dependency."
+
+concepts:
+  - slug: backend-introduction
+    name: "The Life of a Request"
+    domain: backend
+    est_hours: 5
+    difficulty: beginner
+    prerequisites: []
+    summary: |-
+      Trace one HTTP request from a browser's address bar to a database row and back, so that every later topic has somewhere concrete to attach itself.
+    content_md: |-
+      Almost every backend problem you will ever debug is a step in one journey that repeats billions of times a day. Learning the journey first — before frameworks, before languages — means that later topics stop being trivia and become "the part of the trip that went wrong."
+
+      ### The trip
+
+      A client types a URL. Before any of your code runs, the client resolves the hostname through DNS, which usually means a cached answer from a resolver rather than a fresh lookup. It opens a TCP connection to the resulting IP and port — one round trip for the handshake — then negotiates TLS on top of it, which historically cost two more round trips and costs one with TLS 1.3. Only then does the first byte of your HTTP request go out. On a connection to another continent, you have already spent a few hundred milliseconds before your handler exists.
+
+      The request arrives at something listening on port 443. In almost every real deployment that is *not* your application: it is a reverse proxy or load balancer, which terminates TLS, picks a healthy backend, and forwards the request onward, often over a pooled, already-warm connection. Your application process accepts it, parses the request line and headers, matches the path against a routing table, deserialises the body, and calls a handler.
+
+      The handler usually does the only genuinely slow thing in the whole trip: it talks to something else. A database query, a cache lookup, a call to another service. That I/O is where the milliseconds are, which is why the rest of this track spends so much time on data and on calls that cross a network. The handler builds a response, serialises it, sets a status code and headers, and the whole path unwinds — through the proxy, back over the same TCP connection if the client asked to keep it alive.
+
+      ### Where the time actually goes
+
+      Beginners assume their code is slow. It rarely is. In a typical request the CPU time spent in your language runtime is a fraction of a millisecond, while the wall-clock time is dominated by network round trips and by waiting on the database. This has an immediate practical consequence: making a handler do *fewer* round trips almost always beats making its code faster. One query returning a hundred rows will crush a hundred queries returning one row each, no matter how tight the loop around them is.
+
+      ### The mistakes people actually make
+
+      The first is assuming the request path is only their code, and so never learning what the proxy in front of them does — until a 60-second upstream default kills a long request and the logs show nothing, because the application never got to log a completion. The second is confusing concurrency with speed: adding worker processes does not make a single request faster, it only lets more of them wait at the same time. The third, and the most expensive, is not being able to say where a slow request spent its time, which is exactly the gap that tracing and structured logging exist to close later in this track.
+
+      **What you should be able to do next:** given a slow endpoint, name the five or six places the time could be going, and say which measurement would distinguish them.
+    resources:
+      - kind: doc
+        title: "MDN: An overview of HTTP"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview"
+      - kind: doc
+        title: "RFC 9110 — HTTP Semantics"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+      - kind: book
+        title: "High Performance Browser Networking — Primer on Latency and Bandwidth"
+        url: "https://hpbn.co/primer-on-latency-and-bandwidth/"
+      - kind: doc
+        title: "MDN: URIs and how they identify resources"
+        url: "https://developer.mozilla.org/en-US/docs/Web/URI"
+      - kind: article
+        title: "Cloudflare Learning Center: What is DNS?"
+        url: "https://www.cloudflare.com/learning/dns/what-is-dns/"
+      - kind: video
+        title: "Computerphile — networking and protocol explainers"
+        url: "https://www.youtube.com/@Computerphile"
+
+  - slug: backend-version-control-systems
+    name: "Git as a Directed Graph"
+    domain: backend
+    est_hours: 8
+    difficulty: beginner
+    prerequisites:
+      - backend-introduction
+    summary: |-
+      Commits, trees and refs as the data structure they really are, so that merges, rebases and recoveries stop being incantations copied from a search result.
+    content_md: |-
+      Git is taught badly almost everywhere, as a list of commands to memorise. It becomes far easier once you accept the underlying claim: a Git repository is a content-addressed object store, and history is a directed acyclic graph of commits.
+
+      ### The object model
+
+      Four object types, each named by the hash of its own contents. A **blob** is a file's bytes. A **tree** is a directory listing: names pointing at blobs and other trees. A **commit** points at one tree — a complete snapshot of the working tree, not a diff — plus zero or more parent commits, an author, and a message. A **tag** is a named pointer with its own metadata. Because objects are named by their hash, identical content is stored once, and any change anywhere changes every hash above it.
+
+      A **branch** is not a container of commits. It is a small file containing one commit hash, which moves forward when you commit. This single fact explains most of Git's behaviour: creating a branch is free, deleting a branch deletes no commits, and "losing work" almost always means losing a *pointer* while the commits sit untouched in the object store.
+
+      ### Merging, and what a merge base is
+
+      When you merge two branches, Git finds their **merge base** — the most recent commit reachable from both — and performs a three-way merge: for each file it compares base-to-yours and base-to-theirs. If only one side changed a region, that side wins with no conflict. If both changed the same region differently, you get a conflict, and Git is honest enough to refuse to guess. Understanding that conflicts come from *both sides diverging from a common ancestor* is what turns conflict resolution from panic into a decision.
+
+      Rebasing replays your commits onto a new base, producing new commits with new hashes and a linear history. Merging preserves what actually happened and records the join. Neither is universally correct: rebase local work you have not shared, and prefer merges for anything others have already pulled, because rewriting shared history forces everyone else to recover from it.
+
+      ### Recovery
+
+      `git reflog` records every position `HEAD` has held locally, including ones no branch points at any more. A "destroyed" branch after a bad reset is almost always one `git reset --hard <reflog-entry>` away. `git bisect` binary-searches history for the commit that introduced a bug, and with a scripted test it is fully automatic — an hour of bisecting beats a day of reading diffs.
+
+      ### The mistakes people actually make
+
+      Committing generated artefacts, virtual environments and secrets, then discovering that deleting a file in a later commit does not remove it from history — a leaked key must be rotated, not merely deleted. Using `git pull` without understanding that it is a fetch plus a merge, and so producing a tangle of merge commits nobody asked for. Force-pushing a shared branch. And treating commit messages as noise: the message is the only place the *reason* for a change can live, since the diff already shows the what.
+    resources:
+      - kind: book
+        title: "Pro Git (Chacon & Straub, free online)"
+        url: "https://git-scm.com/book/en/v2"
+      - kind: doc
+        title: "Git Internals — Git Objects"
+        url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects"
+      - kind: doc
+        title: "git-merge-base reference"
+        url: "https://git-scm.com/docs/git-merge-base"
+      - kind: doc
+        title: "git-bisect reference"
+        url: "https://git-scm.com/docs/git-bisect"
+      - kind: doc
+        title: "git-reflog reference"
+        url: "https://git-scm.com/docs/git-reflog"
+      - kind: course
+        title: "Learn Git Branching (interactive)"
+        url: "https://learngitbranching.js.org/"
+
+  - slug: backend-repo-hosting-services
+    name: "Collaborating on a Codebase: Review, Branching and Ownership"
+    domain: backend
+    est_hours: 4
+    difficulty: beginner
+    prerequisites:
+      - backend-version-control-systems
+    summary: |-
+      Pull requests, branch protection and code ownership as the mechanism that keeps a shared codebase from degrading — and what a review that actually finds bugs looks like.
+    content_md: |-
+      A hosting service (GitHub, GitLab, Bitbucket, a self-hosted Forgejo) adds three things to Git that Git itself does not have: a canonical remote everyone agrees on, a review workflow, and automation hooks. Learning the workflow matters more than learning any one vendor's buttons.
+
+      ### The pull request as a unit of change
+
+      A pull request proposes moving one branch's commits into another. Its real value is not the merge — Git could do that — but that it creates a reviewable, discussable, permanently-linked artefact tying a change to a reason. Branch protection rules turn that from convention into enforcement: require a passing pipeline, require one or two approvals, require the branch to be up to date with the target, forbid force-pushes to the default branch. Without protection, "we review everything" is a claim nobody can verify.
+
+      ### Trunk-based development versus long-lived branches
+
+      In **trunk-based** development everyone merges small changes into one main branch many times a day, and unfinished work hides behind feature flags rather than behind a branch. In **Gitflow**-style models, long-lived develop/release/hotfix branches accumulate changes for weeks. The trade is real: long-lived branches defer integration pain until it is maximal, because the longer two branches diverge, the more merge conflicts *and* semantic conflicts they accumulate — the ones where both sides merge cleanly and the result is still broken. Teams shipping continuously converge on trunk-based with short-lived branches for exactly this reason; teams shipping versioned, installed software have a legitimate reason to keep release branches.
+
+      ### Review that finds something
+
+      Effective review has a size limit. Review quality falls off sharply past a few hundred changed lines — past that, reviewers skim and approve. Split large changes into a mechanical refactor commit and a behavioural change commit, and reviewers can actually see the behaviour change. Ask, in order: is this correct at the boundaries (empty input, concurrent callers, failure of the thing it calls)? Does it change the data model or an API contract, and is that change backward compatible? Is there a test that would fail if this were reverted? Style belongs to a formatter and a linter, never to a human reviewer.
+
+      **CODEOWNERS** files route reviews automatically to the people who will maintain the code, which is how a growing codebase avoids the state where every change waits on one overloaded person.
+
+      ### The mistakes people actually make
+
+      Opening a 3,000-line pull request and being surprised it sat for a week. Treating approval as a formality between friends. Letting the default branch go red and living with it, which trains everyone to ignore the signal CI exists to give. And configuring protection on the default branch while leaving the release branch unprotected, so the only branch that reaches customers is the one nobody guards.
+    resources:
+      - kind: doc
+        title: "GitHub Docs: About protected branches"
+        url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+      - kind: doc
+        title: "GitHub Docs: About code owners"
+        url: "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners"
+      - kind: article
+        title: "Trunk Based Development"
+        url: "https://trunkbaseddevelopment.com/"
+      - kind: article
+        title: "Google Engineering Practices: How to do a code review"
+        url: "https://google.github.io/eng-practices/review/reviewer/"
+      - kind: article
+        title: "Google Engineering Practices: Small changelists"
+        url: "https://google.github.io/eng-practices/review/developer/small-cls.html"
+      - kind: doc
+        title: "GitLab Docs: Merge requests"
+        url: "https://docs.gitlab.com/ee/user/project/merge_requests/"
+
+  - slug: backend-server-side
+    name: "Concurrency Models: Processes, Threads, Sockets and Event Loops"
+    domain: backend
+    est_hours: 9
+    difficulty: intermediate
+    prerequisites:
+      - backend-introduction
+    summary: |-
+      How a single machine serves thousands of simultaneous connections, why the answer differs by runtime, and what actually runs out first.
+    content_md: |-
+      A server is a program that accepts connections and does not exit. Everything interesting about it comes from one question: while it is waiting for a slow thing, what else is it doing?
+
+      ### Sockets and file descriptors
+
+      The kernel gives a process a listening socket; each accepted connection becomes another file descriptor. File descriptors are limited per process (`ulimit -n`) and system-wide, and hitting either produces the memorable failure "too many open files" — a symptom that in practice almost always means a leak: connections, files or HTTP clients created per request and never closed.
+
+      ### Three ways to wait
+
+      **Thread- or process-per-request.** Each connection gets its own execution context, which blocks while waiting on I/O. Simple to reason about; the cost is memory per thread (an OS thread stack is typically around a megabyte by default on Linux) and context-switching overhead. This is classic Apache prefork, PHP-FPM, and most Java servlet containers before virtual threads.
+
+      **Event loop.** One thread, a readiness API (`epoll` on Linux, `kqueue` on BSD), and callbacks or coroutines. The loop asks the kernel "which of these ten thousand sockets is ready?" and processes only those. Memory per connection collapses to a small buffer. This is Node.js, nginx, and Python's `asyncio`. The cost is that **any blocking call poisons everything**: one synchronous CPU-heavy or blocking-I/O call on the loop stalls every other connection, which is why "why is my whole Node service slow" so often traces to a synchronous parse of a huge body or a password-hashing call on the main thread.
+
+      **Lightweight threads.** Go's goroutines and Java's virtual threads give you blocking-style code with event-loop economics: the runtime parks the lightweight thread on I/O and reuses the OS thread underneath. This is the model most new server runtimes converge on, because it keeps the readable code shape without the poisoning problem.
+
+      ### What runs out first
+
+      Rarely CPU. Usually one of: file descriptors; memory, since each in-flight request holds its buffers and objects; database connections, because a pool of twenty means at most twenty concurrent queries no matter how many requests are in flight; or an upstream's capacity. Concurrency limits are therefore not a tuning detail — they are the mechanism by which you decide *what to reject* when demand exceeds capacity. A server with no limit does not serve everyone; it queues everyone, exhausts its memory, and serves nobody.
+
+      ### The mistakes people actually make
+
+      Setting a worker count to a made-up number instead of deriving it from the bottleneck. Running an event-loop runtime and then calling a blocking library. Sizing a database connection pool larger than the database's own connection limit, so the failure moves from "requests queue" to "database refuses connections." And forgetting that a request with no timeout occupies its slot forever, so one hung upstream can consume the entire pool — the classic path from a partial outage to a total one.
+    resources:
+      - kind: doc
+        title: "Linux man page: epoll(7)"
+        url: "https://man7.org/linux/man-pages/man7/epoll.7.html"
+      - kind: doc
+        title: "Node.js: The event loop, timers and process.nextTick()"
+        url: "https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick"
+      - kind: doc
+        title: "Python docs: asyncio — Asynchronous I/O"
+        url: "https://docs.python.org/3/library/asyncio.html"
+      - kind: doc
+        title: "JEP 444: Virtual Threads"
+        url: "https://openjdk.org/jeps/444"
+      - kind: article
+        title: "The C10K problem (Dan Kegel)"
+        url: "https://www.kegel.com/c10k.html"
+      - kind: article
+        title: "AWS Builders' Library: Using load shedding to avoid overload"
+        url: "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/"
+
+  - slug: backend-learn-about-web-servers
+    name: "Reverse Proxies, TLS Termination and the Edge"
+    domain: backend
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - backend-server-side
+    summary: |-
+      What nginx, Caddy, Envoy or a cloud load balancer does in front of your application, and the handful of its settings that decide whether your service stays up.
+    content_md: |-
+      Your application almost never faces the internet directly. Something sits in front: nginx, Caddy, HAProxy, Envoy, or a managed load balancer. Learning what that layer is responsible for prevents an entire genre of "the logs show nothing" incidents.
+
+      ### What the proxy is for
+
+      **TLS termination.** Certificates, cipher suites and protocol negotiation (ALPN) live at the edge, so your application speaks plain HTTP on a private network. This centralises certificate renewal — with ACME, as Let's Encrypt popularised and Caddy automates by default — instead of scattering it across every service.
+
+      **Load balancing and health checks.** The proxy holds a pool of backends, checks their health on an interval, and stops sending traffic to unhealthy ones. This is why your application needs a health endpoint that is cheap and honest: one that checks nothing is useless, and one that checks every downstream dependency turns a partial outage into a total one by making every instance report unhealthy at once.
+
+      **Protocol translation.** The edge can speak HTTP/2 or HTTP/3 to clients — multiplexing many streams over one connection and removing head-of-line blocking at the HTTP layer — while speaking simple HTTP/1.1 to your app. Clients get the modern protocol without your framework implementing it.
+
+      **Buffering and slow clients.** A proxy can read a slow client's entire request before handing it to your application, so a mobile user on a bad connection occupies a cheap proxy connection rather than an expensive application worker. This is a real defence against Slowloris-style exhaustion.
+
+      **Cross-cutting concerns.** Compression, request size limits, static file serving, coarse rate limiting and access logs are all cheaper here than in your handler.
+
+      ### The settings that bite
+
+      Timeouts, in three flavours: how long to wait to connect to a backend, how long to wait for the first response byte, and how long to wait between subsequent bytes. Defaults are usually thirty or sixty seconds, and they are the reason a long-running request "just disappears" with a 504 while your application, unaware, keeps working on a response nobody will read. Set them deliberately, and set your application's own timeouts *shorter*, so the application is the component that logs the failure.
+
+      Header handling is the other trap. Behind a proxy the client's IP is in `X-Forwarded-For` or `Forwarded`, not in the socket's peer address; frameworks need explicit configuration to trust it, and trusting it blindly lets a client spoof its own IP and defeat your rate limiter. The same applies to `X-Forwarded-Proto`: get it wrong and your application generates `http://` redirect URLs on an HTTPS site, producing an infinite redirect loop.
+
+      ### The mistakes people actually make
+
+      Serving TLS at the edge and then leaving the internal hop unauthenticated on a network that is not actually private. Raising the maximum body size to accept uploads and discovering the upload now exhausts memory. And making the health check hit the database, so a database blip evicts every instance from the pool simultaneously.
+    resources:
+      - kind: doc
+        title: "nginx documentation"
+        url: "https://nginx.org/en/docs/"
+      - kind: doc
+        title: "NGINX Admin Guide: Reverse proxy"
+        url: "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/"
+      - kind: doc
+        title: "Caddy: Automatic HTTPS"
+        url: "https://caddyserver.com/docs/automatic-https"
+      - kind: doc
+        title: "Let's Encrypt documentation (ACME)"
+        url: "https://letsencrypt.org/docs/"
+      - kind: doc
+        title: "RFC 9113 — HTTP/2"
+        url: "https://www.rfc-editor.org/rfc/rfc9113.html"
+      - kind: doc
+        title: "RFC 7239 — Forwarded HTTP Extension"
+        url: "https://www.rfc-editor.org/rfc/rfc7239.html"
+      - kind: doc
+        title: "Envoy Proxy documentation"
+        url: "https://www.envoyproxy.io/docs/envoy/latest/"
+
+  - slug: backend-pick-a-backend-language
+    name: "Choosing a Runtime, and Living With Its Trade-offs"
+    domain: backend
+    est_hours: 6
+    difficulty: beginner
+    prerequisites:
+      - backend-server-side
+    summary: |-
+      Why the language choice is really a choice of concurrency model, memory behaviour, typing discipline and ecosystem — and why it matters less than people argue.
+    content_md: |-
+      Language debates consume enormous energy and decide very little. Every mainstream backend language can serve tens of thousands of requests per second on a modern machine, and essentially every performance problem in a real product is a database query, a network round trip or an algorithmic mistake — not the language. What the choice *does* determine is the shape of the problems you will have.
+
+      ### The four axes that matter
+
+      **Concurrency model.** Covered in the previous step, and it is the biggest real difference. Go and modern Java give you cheap lightweight threads with blocking-style code. Node.js and Python give you an event loop where a blocking call is a bug. Ruby and CPython have a global interpreter lock, meaning one process executes interpreted bytecode on one core, so you scale by running many processes — which multiplies memory and connection-pool usage in ways people forget to budget for.
+
+      **Memory and start-up.** A garbage-collected runtime trades predictable latency for developer speed; GC pauses show up in your tail latency, not your average. The JVM and .NET have excellent sustained throughput and slower cold starts, which matters a great deal if you deploy to a scale-to-zero platform and not at all if you run long-lived containers. Go and Rust produce a single binary that starts instantly. Rust additionally removes an entire class of memory bugs at compile time, at the cost of a genuinely steep ownership model.
+
+      **Typing.** Static types (Go, Java, C#, Rust, TypeScript, and Python with type hints checked by a tool) catch a category of refactoring mistake before runtime. Their real payoff arrives at the point where the codebase outgrows what one person keeps in their head, which is why so many large JavaScript and Python codebases eventually adopt TypeScript or a Python type checker.
+
+      **Ecosystem for your problem.** Data science and ML tooling lives in Python. High-throughput infrastructure and CLI tooling gravitates to Go. Enterprise integrations, batch processing and mature ORMs are a Java and .NET strength. Full-stack teams with one language often pick TypeScript for the reduced context-switching. Pick where the libraries you need are already good.
+
+      ### How to actually decide
+
+      In order: what does the team already know well enough to debug at 3 a.m.; what does the problem domain's ecosystem favour; what is the concurrency shape of the workload (many idle connections, or CPU-bound work); and only then, preference. A team fluent in a "worse" language will out-ship a team learning a "better" one.
+
+      ### The mistakes people actually make
+
+      Choosing on benchmark numbers that measure a hello-world loop no real service resembles. Introducing a second backend language for one service and permanently doubling the build, deploy, monitoring and on-call surface. And, most commonly, blaming the language for a latency problem that a missing index would have fixed.
+    resources:
+      - kind: doc
+        title: "Go: Effective Go"
+        url: "https://go.dev/doc/effective_go"
+      - kind: doc
+        title: "Python asyncio developer guide"
+        url: "https://docs.python.org/3/library/asyncio-dev.html"
+      - kind: doc
+        title: "Node.js: Don't block the event loop"
+        url: "https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop"
+      - kind: book
+        title: "The Rust Programming Language"
+        url: "https://doc.rust-lang.org/book/"
+      - kind: doc
+        title: "Java: Virtual threads (JEP 444)"
+        url: "https://openjdk.org/jeps/444"
+      - kind: doc
+        title: "TypeScript Handbook"
+        url: "https://www.typescriptlang.org/docs/handbook/intro.html"
+
+  - slug: backend-learn-the-basics
+    name: "Configuration, Secrets and Environments"
+    domain: backend
+    est_hours: 5
+    difficulty: beginner
+    prerequisites:
+      - backend-introduction
+    summary: |-
+      How the same build runs in development, staging and production without a code change — and how credentials stay out of your repository, your logs and your error reports.
+    content_md: |-
+      Configuration is the least glamorous topic in this track and the source of a startling share of production incidents. The rule that prevents most of them is simple: **the artefact you test is the artefact you deploy, and everything that differs between environments is injected from outside it.**
+
+      ### Config is not code
+
+      Anything that varies per environment — database URLs, feature toggles, log levels, upstream hostnames, credentials — is configuration. Anything that does not vary is code and belongs in the repository. The moment you write `if environment == "production"` inside a handler, you have created a code path your tests never execute, and you will find out whether it works by deploying it.
+
+      The conventional mechanism is environment variables, popularised by the Twelve-Factor App. They are language-agnostic, supported by every container and orchestration system, and impossible to accidentally commit. Their weaknesses are worth knowing: everything is a string, so parsing and validating types is on you; there is no structure; and they are visible to the whole process tree and often to crash dumps and child processes. Most teams therefore layer a config object over them — defined once, validated at start-up, read from a single module — rather than sprinkling environment lookups through the codebase.
+
+      **Validate at boot, not at first use.** A service that starts happily and then fails at 3 a.m. because `MAX_RETRIES` was the string `"three"` is far worse than one that refuses to start. Parse the entire configuration into a typed structure during start-up and exit non-zero on anything missing or malformed. That turns a latent config error into a failed deploy, which your rollout strategy already knows how to handle.
+
+      ### Secrets
+
+      Secrets are configuration that must never be readable. Practical rules, in descending order of importance. Never commit them — and if one is committed, rotate it, because history is permanent and public repositories are scraped within minutes of a push. Prefer a secret manager that supports rotation and audit over a static file on a server. Give every environment and every service its own credentials, scoped to what they actually need, so a leak has a bounded blast radius and a revocation story. Keep an example file with keys and dummy values in the repository so a new developer knows what is required.
+
+      The subtle failure is **leaking secrets through observability**. Exception reporters serialise local variables; loggers print request headers; a debug page renders the whole environment. Redact at the point of serialisation, and prefer an allowlist of loggable fields over a denylist of secret names — the denylist will always be one key out of date.
+
+      ### The mistakes people actually make
+
+      Baking configuration into a container image, so promoting the tested image from staging to production is impossible and you rebuild instead. Reading environment variables at module import time in a way that makes tests impossible to configure. Sharing one database credential across every service, so rotating it means a coordinated outage. And keeping a local environment file that has silently drifted from what production actually sets, which is how "works on my machine" survives into the container era.
+    resources:
+      - kind: article
+        title: "The Twelve-Factor App: Config"
+        url: "https://12factor.net/config"
+      - kind: doc
+        title: "Kubernetes: Secrets"
+        url: "https://kubernetes.io/docs/concepts/configuration/secret/"
+      - kind: doc
+        title: "Kubernetes: ConfigMaps"
+        url: "https://kubernetes.io/docs/concepts/configuration/configmap/"
+      - kind: doc
+        title: "HashiCorp Vault documentation"
+        url: "https://developer.hashicorp.com/vault/docs"
+      - kind: article
+        title: "OWASP Cheat Sheet: Secrets Management"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+      - kind: doc
+        title: "AWS Secrets Manager User Guide"
+        url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html"
+
+  - slug: backend-relational-databases
+    name: "Relational Modelling and SQL That Uses Its Indexes"
+    domain: backend
+    est_hours: 14
+    difficulty: intermediate
+    prerequisites:
+      - backend-introduction
+    summary: |-
+      Designing a schema that makes wrong states unrepresentable, and writing queries the planner can answer with an index instead of a full scan.
+    content_md: |-
+      The relational database is the most important piece of technology in this track. Frameworks come and go; a schema outlives them all, and a bad one taxes every feature built on top of it for years. This is also where most "backend performance" problems really live.
+
+      ### Modelling: constraints are the product
+
+      A table is a set of rows; a **primary key** is what makes a row identifiable; a **foreign key** is a promise, enforced by the database, that a reference points at something real. `NOT NULL`, `UNIQUE` and `CHECK` constraints are not bureaucracy — they are the only guarantees that survive a buggy deploy, a manual fix, a background job and a second service all writing to the same table. Application-level validation is a courtesy to the user; database constraints are the truth.
+
+      Normalisation is the discipline of storing each fact exactly once. First normal form: no repeating groups or comma-separated lists in a column. Second and third: every non-key column depends on the whole key and nothing but the key. The practical payoff is that an update touches one row, so contradictory data becomes impossible rather than merely unlikely. Denormalise later, deliberately, with a measurement in hand — and know that when you do, you have taken on the job of keeping the copies in sync.
+
+      ### Indexes and why your query is slow
+
+      A B-tree index is a sorted structure that lets the database find matching rows without reading the whole table. Understanding four properties covers most cases. **Order matters** in a composite index: an index on `(tenant_id, created_at)` serves a filter on `tenant_id` and a filter on both, but not a filter on `created_at` alone. **Selectivity matters**: an index on a boolean column that is `true` for 90% of rows will be ignored, correctly, because a sequential scan is cheaper. **Functions defeat indexes**: `WHERE lower(email) = ?` cannot use a plain index on `email`; you need an expression index or a stored normalised column. And **leading wildcards defeat them too**: `LIKE '%smith%'` cannot use a B-tree, which is why full-text search exists as a separate topic later in this track.
+
+      Every index also costs write throughput and disk, because each insert, update and delete must maintain it. Indexes are not free, and a table with fifteen of them is a table nobody profiled.
+
+      ### Read the plan
+
+      `EXPLAIN` (and `EXPLAIN ANALYZE`, which actually runs the query and reports real timings and row counts) is the single highest-leverage skill in this concept. You are looking for three things: a sequential scan on a large table where you expected an index scan; an estimated row count wildly different from the actual, which means the planner's statistics are stale or your predicate is not what you think; and a nested-loop join executing thousands of times.
+
+      ### The N+1 problem
+
+      The most common performance bug in every ORM-using codebase: you fetch a list of 100 orders, then loop over them accessing `order.customer`, and issue 100 more queries. Each is fast; together they are 101 round trips. The fix is to say up front that you need the related data — a join, or the ORM's eager-loading directive. Detect it by logging query counts per request in development and failing a test when the count exceeds a threshold, because it will silently reappear the moment someone adds a field to a serialiser.
+
+      ### The mistakes people actually make
+
+      Storing money in a float. Storing timestamps without a time zone, or in local time. Using `SELECT *` in application code so a new column silently changes payload sizes and breaks assumptions. Building pagination on `OFFSET` for deep pages, which forces the database to read and discard everything before the offset. And letting the ORM be the only mental model, so nobody on the team can read a query plan when it matters.
+    resources:
+      - kind: doc
+        title: "PostgreSQL: Indexes"
+        url: "https://www.postgresql.org/docs/current/indexes.html"
+      - kind: doc
+        title: "PostgreSQL: Using EXPLAIN"
+        url: "https://www.postgresql.org/docs/current/using-explain.html"
+      - kind: doc
+        title: "PostgreSQL: Data types"
+        url: "https://www.postgresql.org/docs/current/datatype.html"
+      - kind: book
+        title: "Use The Index, Luke! — SQL indexing and tuning"
+        url: "https://use-the-index-luke.com/"
+      - kind: article
+        title: "PostgreSQL Wiki: Don't Do This"
+        url: "https://wiki.postgresql.org/wiki/Don%27t_Do_This"
+      - kind: course
+        title: "PostgreSQL Exercises"
+        url: "https://pgexercises.com/"
+      - kind: course
+        title: "SQLBolt — interactive SQL lessons"
+        url: "https://sqlbolt.com/"
+      - kind: doc
+        title: "SQLite: Query planner"
+        url: "https://www.sqlite.org/queryplanner.html"
+
+  - slug: backend-more-about-databases
+    name: "Transactions, Isolation Levels and Concurrency Anomalies"
+    domain: backend
+    est_hours: 10
+    difficulty: advanced
+    prerequisites:
+      - backend-relational-databases
+    summary: |-
+      What a transaction actually guarantees, which anomalies each isolation level still permits, and why the bug that only appears under load is almost always in this list.
+    content_md: |-
+      Single-user correctness is easy. The bugs that survive code review and QA and then appear once a week in production are almost always concurrency bugs, and the vocabulary for them lives here.
+
+      ### What ACID buys you
+
+      **Atomicity**: the whole transaction commits or none of it does. **Consistency**: constraints hold at commit time. **Isolation**: concurrent transactions do not see each other's uncommitted mess — but *how much* they do not see is configurable, and this is where the surprises live. **Durability**: once committed, it survives a crash.
+
+      ### The anomalies, and the levels that allow them
+
+      The SQL standard names four isolation levels by which anomalies they forbid.
+
+      - **Read uncommitted** allows dirty reads — seeing another transaction's uncommitted writes. PostgreSQL does not actually implement this level; it silently behaves as read committed.
+      - **Read committed** (the PostgreSQL and Oracle default, and SQL Server's default) forbids dirty reads. It still allows **non-repeatable reads**: the same `SELECT` twice in one transaction can return different values, because each statement sees a fresh snapshot.
+      - **Repeatable read** (MySQL InnoDB's default) gives every statement in the transaction the same snapshot. In PostgreSQL this also eliminates phantom reads via snapshot isolation, but it still permits **write skew**: two transactions each read the same state, each decides its write is safe, and together they violate an invariant neither could violate alone. The canonical example is an on-call rota where two doctors simultaneously check "is someone else on call?", both see yes, and both go off duty.
+      - **Serializable** forbids everything by guaranteeing the outcome equals *some* serial order. PostgreSQL implements this with Serializable Snapshot Isolation, which does not lock but does abort transactions that would violate serialisability — so your application **must** be prepared to retry a transaction that fails with a serialisation error. Code that does not retry has not really enabled serializable isolation; it has just added a new source of 500s.
+
+      ### MVCC, in one paragraph
+
+      PostgreSQL and MySQL's InnoDB use multi-version concurrency control: a write creates a new row version rather than overwriting, and each transaction reads the versions visible to its snapshot. The enormous benefit is that readers never block writers and writers never block readers. The cost is dead row versions that a vacuum process must reclaim, and the fact that a long-running transaction pins old versions and prevents that reclamation — which is the mechanism behind table bloat and the surprising rule that an idle-in-transaction connection is genuinely dangerous.
+
+      ### Explicit locking, and the deadlock rule
+
+      When read-modify-write must be atomic and you are not on serializable, `SELECT ... FOR UPDATE` takes a row lock for the rest of the transaction. Deadlocks happen when two transactions take the same locks in opposite orders; the database detects the cycle and kills one. The prevention is a convention, not a clever algorithm: **always acquire locks in a consistent order**, for example ascending primary key.
+
+      ### The mistakes people actually make
+
+      Doing an HTTP call inside an open transaction, so a slow third party holds database locks and blocks vacuum. Wrapping an entire request handler in one transaction "for safety" and creating a five-second lock hold. Assuming a `UNIQUE` constraint means you never need to handle a duplicate-key error — two concurrent inserts will both pass a `SELECT`-then-`INSERT` check, and the constraint is what saves you, so catch the violation and treat it as success. And never testing under concurrency at all, which is why these bugs reach production.
+    resources:
+      - kind: doc
+        title: "PostgreSQL: Transaction Isolation"
+        url: "https://www.postgresql.org/docs/current/transaction-iso.html"
+      - kind: doc
+        title: "PostgreSQL: Concurrency Control (MVCC)"
+        url: "https://www.postgresql.org/docs/current/mvcc.html"
+      - kind: doc
+        title: "PostgreSQL: Explicit Locking"
+        url: "https://www.postgresql.org/docs/current/explicit-locking.html"
+      - kind: doc
+        title: "MySQL: InnoDB Transaction Isolation Levels"
+        url: "https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html"
+      - kind: article
+        title: "A Critique of ANSI SQL Isolation Levels (Berenson et al.)"
+        url: "https://www.microsoft.com/en-us/research/publication/a-critique-of-ansi-sql-isolation-levels/"
+      - kind: book
+        title: "Designing Data-Intensive Applications (Kleppmann)"
+        url: "https://dataintensive.net/"
+      - kind: doc
+        title: "PostgreSQL Wiki: Serializable Snapshot Isolation"
+        url: "https://wiki.postgresql.org/wiki/SSI"
+
+  - slug: backend-schema-migrations
+    name: "Schema Migrations Without Downtime"
+    domain: backend
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - backend-more-about-databases
+    summary: |-
+      Changing a live schema while old and new application code run side by side — the expand/contract discipline, and the DDL statements that quietly take a table-wide lock.
+    content_md: |-
+      Every schema change on a running system has a window during which two versions of your application are talking to one database: the old pods have not been drained, or the rollout is half done, or you need to be able to roll back. A migration that is only correct after every instance has restarted is a migration that causes an outage.
+
+      ### Expand and contract
+
+      The pattern that makes this tractable has three phases, deployed separately.
+
+      **Expand.** Make an additive change that both old and new code tolerate. Add the new nullable column; create the new table; add the new index concurrently. Old code ignores it, new code can use it.
+
+      **Migrate.** Deploy code that writes to both the old and new shape and reads from whichever is authoritative. Backfill existing rows in batches, not one giant `UPDATE` — a single statement touching ten million rows holds locks, generates enormous write-ahead log volume, and cannot be interrupted safely. Batch with a bounded loop, a small sleep, and a resumable cursor.
+
+      **Contract.** Only once every reader and writer is on the new shape, and only once you are confident you will not roll back, drop the old column or constraint.
+
+      Renaming a column in one step is the classic violation: for the duration of the rollout, half your instances reference a name that no longer exists. Rename by expand/contract instead — add, dual-write, backfill, switch reads, drop.
+
+      ### The locks nobody expects
+
+      DDL takes locks, and the level varies enormously by statement and by database version. In PostgreSQL, adding a nullable column with no default is effectively instant; adding a `NOT NULL` column with a non-volatile default is also fast on modern versions, but adding a `CHECK` constraint validates the whole table under an `ACCESS EXCLUSIVE` lock unless you add it `NOT VALID` and validate separately. `CREATE INDEX` locks out writes for the whole build; `CREATE INDEX CONCURRENTLY` does not, at the cost of two table passes and the possibility of leaving an invalid index behind if it fails.
+
+      The genuinely dangerous interaction: an `ACCESS EXCLUSIVE` lock request **queues behind** any existing transaction on the table, and every subsequent query queues behind the lock request. One long-running `SELECT` plus one `ALTER TABLE` equals a total outage on that table. The mitigation is to set a short `lock_timeout` before DDL and retry, so the migration fails fast instead of forming a queue.
+
+      ### Migrations as code
+
+      Migrations belong in version control, run in a deterministic order, and are recorded in a table so each runs once. Prefer forward-only fixes to `down` migrations: rolling a schema backwards on live data usually loses information, and in practice the recovery from a bad migration is another migration, not a reversal. Run migrations as a separate step in the deploy pipeline rather than at application start-up, where a dozen instances would race to run them at once.
+
+      ### The mistakes people actually make
+
+      Deploying the migration and the code that needs it in the same release. Backfilling in one statement. Adding a foreign key to a huge table during peak hours. And testing migrations only against an empty development database, where every one of them is instant.
+    resources:
+      - kind: doc
+        title: "PostgreSQL: ALTER TABLE (lock levels and notes)"
+        url: "https://www.postgresql.org/docs/current/sql-altertable.html"
+      - kind: doc
+        title: "PostgreSQL: CREATE INDEX (CONCURRENTLY)"
+        url: "https://www.postgresql.org/docs/current/sql-createindex.html"
+      - kind: article
+        title: "Martin Fowler: Evolutionary Database Design"
+        url: "https://martinfowler.com/articles/evodb.html"
+      - kind: article
+        title: "Martin Fowler: Parallel Change (expand/contract)"
+        url: "https://martinfowler.com/bliki/ParallelChange.html"
+      - kind: doc
+        title: "Alembic: Tutorial and operation reference"
+        url: "https://alembic.sqlalchemy.org/en/latest/tutorial.html"
+      - kind: doc
+        title: "Django: Migrations"
+        url: "https://docs.djangoproject.com/en/stable/topics/migrations/"
+      - kind: doc
+        title: "PostgreSQL: lock_timeout and statement_timeout"
+        url: "https://www.postgresql.org/docs/current/runtime-config-client.html"
+
+  - slug: backend-nosql-databases
+    name: "When a Relational Database Is the Wrong Tool"
+    domain: backend
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - backend-relational-databases
+    summary: |-
+      Document, key-value, wide-column, time-series and graph stores: what each one gives up to get what it gives you, and the honest version of "eventual consistency."
+    content_md: |-
+      "NoSQL" names an absence, not a category, which is why the term is so unhelpful. The useful question is: what does this store make cheap, and what does it make impossible?
+
+      ### The families
+
+      **Key-value** (Redis, DynamoDB in its simplest form, etcd). Get and put by exact key, extremely fast, trivially partitionable because the key determines the shard. You give up querying by anything other than the key. Excellent for caches, sessions, rate-limit counters, feature flags and leaderboards.
+
+      **Document** (MongoDB, Couchbase, and PostgreSQL's `jsonb`, which is why this is not really a database-choice question any more). Stores nested JSON-ish documents; a whole aggregate is read and written in one operation with no joins. Good when data is genuinely hierarchical, when the shape varies between records, or when the read pattern is "fetch this entire object." The cost is that relationships must be maintained by the application, and that a schema still exists — it has just moved from the database into every piece of code that reads the documents, where nothing enforces it.
+
+      **Wide-column** (Cassandra, ScyllaDB, HBase, Bigtable). Rows partitioned by a partition key and sorted within it by a clustering key. Enormous write throughput and linear scale-out. The design discipline is inverted: you model tables per query, duplicating data across several tables, because there are no joins and no ad-hoc queries. Choosing a partition key that concentrates traffic creates a hot partition, and there is no fixing it later without rewriting the data.
+
+      **Time-series** (TimescaleDB, InfluxDB, Prometheus). Append-heavy, time-ordered, aggregate-on-read, with retention and downsampling built in. Metrics and IoT telemetry fit this shape and fit a general-purpose relational schema badly.
+
+      **Graph** (Neo4j, and increasingly SQL recursive CTEs). Worth it when traversals of arbitrary depth are the primary query — recommendation, fraud rings, permission inheritance — and unnecessary when your "graph" is two joins deep.
+
+      ### Consistency, stated honestly
+
+      CAP says that when the network partitions, a distributed store must choose between remaining available and remaining consistent. It says nothing about the far more common case where the network is fine, which PACELC adds: even without a partition there is a latency-versus-consistency trade. **Eventual consistency** means replicas converge if writes stop, and its practical consequence is the one that catches teams out: a user writes and then immediately reads, hits a lagging replica, and sees their own change missing. Many stores offer tunable consistency per operation (a quorum read, a strongly-consistent read, or read-your-writes routing) — but the strong option costs latency, so it is a decision, not a default.
+
+      ### How to choose
+
+      Start relational unless you have a specific reason not to. Modern PostgreSQL covers documents (`jsonb`), key-value, full-text search, time series and geospatial adequately, and one operational surface is dramatically cheaper than five. Add a specialised store when you can name the property you need that Postgres cannot give you at your scale — and expect to then own the dual-write consistency problem between them.
+
+      ### The mistakes people actually make
+
+      Choosing a document store to "avoid migrations," and discovering that a schema you do not declare is a schema you migrate at read time, forever, in application code. Treating a cache as a database. Running a distributed database as a single node and getting all of the modelling constraints with none of the scale benefits. And adopting eventual consistency without ever deciding what the user should see immediately after they press save.
+    resources:
+      - kind: book
+        title: "Designing Data-Intensive Applications (Kleppmann)"
+        url: "https://dataintensive.net/"
+      - kind: doc
+        title: "PostgreSQL: JSON types and jsonb"
+        url: "https://www.postgresql.org/docs/current/datatype-json.html"
+      - kind: doc
+        title: "Amazon DynamoDB Developer Guide: Core components"
+        url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html"
+      - kind: doc
+        title: "Apache Cassandra: Data modelling"
+        url: "https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/index.html"
+      - kind: doc
+        title: "MongoDB Manual: Data modelling"
+        url: "https://www.mongodb.com/docs/manual/data-modeling/"
+      - kind: article
+        title: "Daniel Abadi: Consistency Tradeoffs (PACELC)"
+        url: "https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf"
+      - kind: article
+        title: "Jepsen: Consistency models"
+        url: "https://jepsen.io/consistency"
+
+  - slug: backend-scaling-databases
+    name: "Scaling the Data Layer: Pooling, Replication, Partitioning, Sharding"
+    domain: backend
+    est_hours: 10
+    difficulty: advanced
+    prerequisites:
+      - backend-more-about-databases
+      - backend-nosql-databases
+    summary: |-
+      The escalation ladder from a bigger machine to a sharded cluster, in the order you should actually climb it, and the read-your-writes bug that replication always introduces.
+    content_md: |-
+      Database scaling is a ladder, and almost every team that struggles has skipped rungs. Climb it in order and stop as soon as the problem goes away.
+
+      ### Rung 0: stop wasting what you have
+
+      Before anything else: fix the missing index, kill the N+1, delete the query nobody reads, add a cache. A single modern PostgreSQL instance on decent hardware handles workloads that most teams never reach. Sharding a database that has never been profiled is the most expensive way to avoid reading a query plan.
+
+      ### Rung 1: connection pooling
+
+      Every PostgreSQL connection is a backend process with its own memory; a few hundred is a lot, and `max_connections` is a real wall. Serverless functions and multi-process application servers hit it easily, because each instance holds its own pool. A pooler like PgBouncer multiplexes many client connections onto few server connections. Know the modes: **session** pooling assigns a server connection for the client's whole session and is safe but barely helps; **transaction** pooling returns the connection between transactions and is the useful mode — but it breaks anything that relies on session state, including prepared statements in some drivers, `SET` parameters, advisory locks and `LISTEN`/`NOTIFY`.
+
+      ### Rung 2: read replicas
+
+      Stream the write-ahead log to replicas and send read-only queries there. This scales reads and gives you a standby for failover. It does not scale writes at all, and it introduces the single most common bug in this area: **replication lag**. A user updates their profile, is redirected, the read hits a replica that is 200 ms behind, and their change appears to have vanished. The fixes are all deliberate choices, not defaults: route reads to the primary for a short window after a write, pin a session to the primary, or pass the write's log position and wait for the replica to catch up. Also budget for lag spikes — a bulk backfill or a long-running query on the replica can push it from milliseconds to minutes.
+
+      ### Rung 3: partitioning
+
+      Split one logical table into physical partitions by range (usually time) or by hash, inside the same database. Queries that include the partition key touch one partition instead of the whole table, and — often the real prize — dropping last year's data becomes a metadata operation instead of a `DELETE` of a billion rows. Cheap to adopt, low risk. Do this before you consider sharding.
+
+      ### Rung 4: sharding
+
+      Split data across separate databases by a shard key. This is the only rung that scales writes, and it is where the difficulty jumps. You lose cross-shard joins, cross-shard transactions and global uniqueness; you gain a routing layer, a rebalancing problem and a much harder operational story. The shard key decision is close to irreversible: pick something with high cardinality and even access distribution (tenant id is a natural choice until one tenant is a hundred times bigger than the rest, at which point you need a plan for that tenant).
+
+      ### The mistakes people actually make
+
+      Adding replicas to fix a write bottleneck. Enabling transaction pooling and then wondering why prepared statements fail intermittently. Sharding on a monotonically increasing key, which sends all new writes to one shard. Forgetting that a replica is not a backup — a `DROP TABLE` replicates faithfully in milliseconds — so you still need point-in-time recovery, and you still need to have practised a restore.
+    resources:
+      - kind: doc
+        title: "PostgreSQL: High availability, load balancing and replication"
+        url: "https://www.postgresql.org/docs/current/high-availability.html"
+      - kind: doc
+        title: "PostgreSQL: Table partitioning"
+        url: "https://www.postgresql.org/docs/current/ddl-partitioning.html"
+      - kind: doc
+        title: "PgBouncer: Features and pooling modes"
+        url: "https://www.pgbouncer.org/features.html"
+      - kind: doc
+        title: "PostgreSQL: Continuous archiving and point-in-time recovery"
+        url: "https://www.postgresql.org/docs/current/continuous-archiving.html"
+      - kind: book
+        title: "Database Internals (Petrov)"
+        url: "https://www.databass.dev/"
+      - kind: doc
+        title: "Vitess: Sharding"
+        url: "https://vitess.io/docs/reference/features/sharding/"
+      - kind: article
+        title: "AWS Builders' Library: Workload isolation using shuffle sharding"
+        url: "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/"
+
+  - slug: backend-caching
+    name: "Caching: Invalidation, Stampedes and a Staleness Budget"
+    domain: backend
+    est_hours: 9
+    difficulty: intermediate
+    prerequisites:
+      - backend-relational-databases
+    summary: |-
+      Where to put a cache, how entries get out of it, and the failure modes — stampede, inconsistency, and the cache that becomes a single point of failure — that only appear under load.
+    content_md: |-
+      Caching is the cheapest performance win available and the easiest place to introduce a correctness bug. The discipline is to decide, explicitly, how stale a piece of data is allowed to be, and then choose a mechanism that enforces that budget.
+
+      ### Where caches live
+
+      There are at least five layers, and confusing them causes most cache bugs. The **browser or client** cache, controlled by HTTP headers. A **CDN or edge** cache, same headers, shared across users — which is why a `Cache-Control: public` on a personalised response leaks one user's data to another. An **application in-process** cache, fastest and smallest, but per-instance, so ten instances mean ten different views of the truth and no way to invalidate them all. A **shared cache** such as Redis or Memcached, consistent across instances at the cost of a network hop. And the **database's own** buffer cache, which you influence but do not control.
+
+      ### Patterns
+
+      **Cache-aside** (lazy loading) is the default: read from the cache; on a miss, read the source, write it into the cache, return it. Simple, resilient — if the cache is down, everything still works, slowly. **Write-through** writes to cache and source together, keeping them consistent at the cost of write latency and of caching data nobody reads. **Write-behind** buffers writes and flushes asynchronously, which is fast and can lose data.
+
+      ### Invalidation
+
+      Two honest options. **Expiry** (TTL) is simple and self-healing; the cost is bounded staleness, and you must be able to say what bound is acceptable. **Explicit invalidation** on write is precise but only as good as your ability to enumerate every key affected by a change, which quietly becomes impossible as the codebase grows. A robust compromise is short TTLs plus explicit invalidation on the paths you care most about, so a missed invalidation self-corrects in seconds rather than never.
+
+      Key design carries most of the weight. Include everything that varies the result — entity id, version, locale, tenant, and the schema version of the serialised shape. Bumping a prefix in the key is then a global invalidation you can deploy, which is far easier than deleting keys by pattern.
+
+      ### The failure modes
+
+      **Stampede (thundering herd).** A popular key expires; a thousand concurrent requests all miss and all hit the database simultaneously. Mitigations: add random jitter to TTLs so keys do not expire in lockstep; use a lock or single-flight so only one request recomputes while the others wait; or serve the stale value while refreshing in the background.
+
+      **Cold-start collapse.** If your database can only survive because the cache absorbs 95% of reads, a cache restart is an outage. Test it. Warm critical keys on deploy, or shed load rather than pass it all through.
+
+      **Negative results.** If a miss is not cached, a stream of requests for non-existent ids becomes a stream of database queries — a cheap denial-of-service. Cache the "not found" too, with a short TTL.
+
+      ### The mistakes people actually make
+
+      Caching without measuring the hit rate, and so never learning the cache is useless. Caching a user-specific response under a key that omits the user. Setting a TTL of a day on something users expect to change instantly. And treating Redis as durable: it is a cache with optional persistence, and a plan that requires it never to lose data is a plan that will be tested.
+    resources:
+      - kind: doc
+        title: "MDN: HTTP caching"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching"
+      - kind: doc
+        title: "RFC 9111 — HTTP Caching"
+        url: "https://www.rfc-editor.org/rfc/rfc9111.html"
+      - kind: article
+        title: "AWS Builders' Library: Caching challenges and strategies"
+        url: "https://aws.amazon.com/builders-library/caching-challenges-and-strategies/"
+      - kind: doc
+        title: "Redis: Key eviction policies"
+        url: "https://redis.io/docs/latest/develop/reference/eviction/"
+      - kind: doc
+        title: "Redis documentation"
+        url: "https://redis.io/docs/latest/"
+      - kind: doc
+        title: "Memcached wiki"
+        url: "https://github.com/memcached/memcached/wiki"
+      - kind: article
+        title: "Optimal Probabilistic Cache Stampede Prevention (VLDB)"
+        url: "https://www.vldb.org/pvldb/vol8/p886-vattani.pdf"
+
+  - slug: backend-search-engines
+    name: "Full-Text Search and the Inverted Index"
+    domain: backend
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - backend-relational-databases
+    summary: |-
+      Why `LIKE '%term%'` cannot work at scale, what an analyzer and an inverted index actually do, and how to keep a search index in sync with your source of truth.
+    content_md: |-
+      Search feels like a feature and behaves like a second database. Treating it as one — with its own consistency story and its own failure modes — is most of what separates a search box that works from one that quietly returns nothing.
+
+      ### The mechanism
+
+      A B-tree index sorts whole values, so it can answer "starts with" but not "contains". Full-text search uses an **inverted index** instead: a map from each term to the list of documents containing it. Building it requires **analysis** — a pipeline that turns text into terms. Typically: tokenise on word boundaries, lowercase, strip or keep stop words, and **stem** or lemmatise so that "running", "runs" and "ran" collapse to one term. Querying applies the same analysis to the query text, then intersects posting lists.
+
+      This is why analysis choices are the whole game. Index with an English analyzer and query with a different one, and you get zero results for a document you can see with your own eyes. Choose aggressive stemming and "university" matches "universe". Language matters: a German analyzer must handle compound words, and a Chinese one cannot tokenise on spaces at all.
+
+      ### Ranking
+
+      Matching is boolean; usefulness is ranking. The standard is **BM25**, which scores a document higher when the query term appears often in it (with diminishing returns), when the term is rare across the corpus, and when the document is short relative to average. On top of that, real systems boost fields (a match in the title beats one in the body), boost recency, and boost business signals like popularity. Relevance tuning is empirical: capture real queries, build a judgement set of what *should* rank, and measure changes against it rather than eyeballing one example.
+
+      ### Postgres or a dedicated engine?
+
+      PostgreSQL's `tsvector`/`tsquery` with a GIN index is genuinely good: real analysis, ranking, phrase search, no extra system to operate, and — decisively — no synchronisation problem, because the index is in the same transaction as the data. Reach for Elasticsearch or OpenSearch when you need faceted aggregation over large corpora, per-field analyzers at scale, fuzzy matching and typo tolerance, "more like this", or horizontal scale beyond one machine. Vector search for semantic similarity is an increasingly common complement (`pgvector`, or the vector types in the dedicated engines), usually combined with BM25 in a hybrid ranking rather than replacing it.
+
+      ### Keeping the index in sync
+
+      With a separate engine you now have two stores and a consistency problem. The naive approach — write to the database, then write to the index — loses updates whenever the second write fails. Durable options: write an event to an outbox table in the same transaction as the data change and have a worker ship it to the index; or tail the database's replication log with change-data-capture. Either way, **plan for a full reindex from the source of truth**, script it, and run it periodically, because drift is not a possibility but a certainty.
+
+      ### The mistakes people actually make
+
+      Shipping `LIKE '%q%'` and only discovering at a million rows that it cannot use an index. Indexing the whole document including fields nobody searches, tripling index size. Forgetting that deletes must propagate, so search returns items that 404. Making the search engine the source of truth for anything. And exposing raw query syntax to users, so a stray colon or bracket returns a parse error instead of results.
+    resources:
+      - kind: doc
+        title: "PostgreSQL: Full Text Search"
+        url: "https://www.postgresql.org/docs/current/textsearch.html"
+      - kind: doc
+        title: "PostgreSQL: GIN and GiST index types"
+        url: "https://www.postgresql.org/docs/current/textsearch-indexes.html"
+      - kind: doc
+        title: "Elasticsearch documentation"
+        url: "https://www.elastic.co/docs/"
+      - kind: doc
+        title: "OpenSearch documentation"
+        url: "https://docs.opensearch.org/latest/"
+      - kind: doc
+        title: "Apache Lucene — scoring and BM25"
+        url: "https://lucene.apache.org/core/documentation.html"
+      - kind: article
+        title: "Elastic: Practical BM25 — the similarity algorithm"
+        url: "https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables"
+      - kind: project
+        title: "pgvector — vector similarity search for PostgreSQL"
+        url: "https://github.com/pgvector/pgvector"
+
+  - slug: backend-learn-about-apis
+    name: "The Interface Your Service Exposes"
+    domain: backend
+    est_hours: 6
+    difficulty: beginner
+    prerequisites:
+      - backend-introduction
+    summary: |-
+      An API as a promise to people you will never meet: what a contract contains, why compatibility is the constraint that shapes everything, and how HTTP's own semantics do half the work for you.
+    content_md: |-
+      Once someone else's code depends on your endpoint, you have taken on an obligation you cannot unilaterally revoke. Every design decision in this concept follows from that.
+
+      ### The contract
+
+      An API contract is more than a list of URLs. It specifies, for each operation: the path and method; what may appear in the request (parameters, headers, body shape, required versus optional, value ranges); what comes back on success (status code and body shape); what comes back on each failure and how a client should distinguish retryable from fatal; what authentication and authorisation are required; and what the operation costs in rate-limit terms. If any of that lives only in one engineer's head, clients discover it by guessing in production.
+
+      ### Let HTTP mean what it means
+
+      HTTP already defines properties your clients rely on, and reusing them is free correctness. **Safe** methods (`GET`, `HEAD`, `OPTIONS`) do not change state, which is why a crawler, a browser prefetch or a link-preview bot may call them at any time — putting a delete behind a `GET` is how a well-meaning corporate link scanner erases someone's data. **Idempotent** methods (`GET`, `PUT`, `DELETE`, plus the safe ones) can be retried without changing the outcome beyond the first call, which is exactly what a client with a flaky connection will do. `POST` is neither, which is why creating things needs the idempotency machinery covered later.
+
+      Status codes carry the same kind of meaning: `400` means the client should fix the request and not retry it, `401` means authenticate, `403` means authenticated but not permitted, `404` means no such resource, `409` means a state conflict, `429` means slow down and try later, `5xx` means our fault and probably retryable. Returning `200` with `{"error": ...}` inside throws all of that away and forces every client, proxy and monitoring system to parse your body to know whether anything worked.
+
+      ### Compatibility is the real constraint
+
+      A change is backward compatible if a client written against the old contract still works. Adding an optional request field, adding a response field, adding a new endpoint or a new enum value that old clients can ignore: compatible. Removing or renaming a field, tightening validation, changing a type, making an optional field required, changing a status code, changing the meaning of an existing value: breaking. The uncomfortable one is that even *adding* an enum value breaks clients that exhaustively switch on it — which is why documented forward-compatibility rules ("ignore values you do not recognise") are part of a good contract.
+
+      ### Write the contract down, mechanically
+
+      A machine-readable description — OpenAPI for HTTP, a protobuf or GraphQL schema for those styles — is what makes the contract enforceable rather than aspirational. It generates documentation, client libraries and server stubs; it lets you validate responses in tests; and it turns "did this pull request break the API?" into a diff a pipeline can fail on. The API Design track in this catalogue takes this much further.
+
+      ### The mistakes people actually make
+
+      Designing the API around the database schema, so every internal refactor becomes an externally breaking change. Designing it around the first screen of the first client, so the second client needs six round trips. Inventing a private error format per endpoint. And shipping without any written contract, then treating the current implementation's behaviour as the specification — including its bugs, which someone is now depending on.
+    resources:
+      - kind: doc
+        title: "RFC 9110 — HTTP Semantics (methods, status codes)"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+      - kind: doc
+        title: "MDN: HTTP request methods"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods"
+      - kind: doc
+        title: "MDN: HTTP response status codes"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status"
+      - kind: doc
+        title: "OpenAPI Specification"
+        url: "https://spec.openapis.org/oas/latest.html"
+      - kind: doc
+        title: "Google Cloud API Design Guide"
+        url: "https://cloud.google.com/apis/design"
+      - kind: article
+        title: "Microsoft REST API Guidelines"
+        url: "https://github.com/microsoft/api-guidelines/blob/vNext/azure/Guidelines.md"
+
+  - slug: backend-api-styles
+    name: "REST, GraphQL, gRPC and Async: Choosing a Style"
+    domain: backend
+    est_hours: 7
+    difficulty: intermediate
+    prerequisites:
+      - backend-learn-about-apis
+    summary: |-
+      Four transports with genuinely different cost models, and how to pick by consumer and traffic shape instead of by fashion.
+    content_md: |-
+      There is no best API style, only styles whose costs match or mismatch your consumers. Four dominate, and a mature system usually runs more than one.
+
+      ### REST over JSON
+
+      Resources identified by URLs, manipulated with HTTP methods, represented as JSON. Its advantages are unglamorous and enormous: every language, tool, proxy, CDN and browser understands it; it is debuggable with `curl`; HTTP caching works out of the box; and any engineer can read the traffic. Its weakness is fixed representations — a client that needs three related things makes three requests, and a mobile client that needs two fields still downloads forty.
+
+      ### GraphQL
+
+      One endpoint, a typed schema, and a query language that lets the client ask for exactly the fields it wants across related objects in one round trip. This genuinely solves over-fetching and under-fetching, and it is at its best with many heterogeneous clients evolving faster than the backend. The costs are real and often understated. HTTP caching largely stops working, because everything is a `POST` to one URL — you replace it with persisted queries and application-level caching. Rate limiting by request count becomes meaningless; you need query cost analysis, and a depth limit, or a hostile client can request a deeply nested cycle and exhaust your database. And naive resolvers produce N+1 queries by construction, which is why the dataloader batching pattern is not optional.
+
+      ### gRPC
+
+      Protocol Buffers over HTTP/2, with generated clients and servers from a `.proto` file. Compact binary payloads, real streaming in both directions, strict typed contracts, and excellent performance — the natural choice for high-volume service-to-service traffic inside your own network. The costs: it is not directly callable from a browser without a proxy layer; the payloads are not human-readable, so debugging needs tooling; and the schema's field numbers create their own compatibility discipline (never reuse a field number, never change a type).
+
+      ### Asynchronous and event-driven
+
+      Not a request/response style at all: the caller publishes an event or enqueues a command and does not wait. This is the right shape when work takes longer than a client should wait, when the producer should not know its consumers, or when you need to absorb bursts. It is covered properly later in this track; mention it here because "should this be an API call at all?" is a question worth asking before choosing between the other three.
+
+      ### Choosing
+
+      Public API for third parties: REST, because the ecosystem cost dominates everything else. Browser or mobile client with rich, varied data needs and a dedicated frontend team: GraphQL, usually via a gateway in front of internal services. Internal service-to-service on a hot path: gRPC. Work that outlives a request, or fan-out to many consumers: events. Webhooks are the fourth shape people forget — how *you* call *them*, and they come with their own delivery-guarantee problems.
+
+      ### The mistakes people actually make
+
+      Adopting GraphQL for a single first-party client and inheriting all its costs for none of its benefit. Calling something REST when it is really RPC with `POST /doThing` — which is fine, but then the HTTP semantics you assumed you were getting are not there. Exposing gRPC to browsers and discovering you need grpc-web plus a proxy. And running three styles over the same domain logic without a shared contract, so they drift and disagree.
+    resources:
+      - kind: doc
+        title: "GraphQL: Learn"
+        url: "https://graphql.org/learn/"
+      - kind: doc
+        title: "GraphQL: Best practices"
+        url: "https://graphql.org/learn/best-practices/"
+      - kind: doc
+        title: "gRPC: Introduction to gRPC"
+        url: "https://grpc.io/docs/what-is-grpc/introduction/"
+      - kind: doc
+        title: "Protocol Buffers: Proto3 language guide"
+        url: "https://protobuf.dev/programming-guides/proto3/"
+      - kind: doc
+        title: "RFC 9110 — HTTP Semantics"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+      - kind: doc
+        title: "AsyncAPI Specification"
+        url: "https://www.asyncapi.com/docs/reference/specification/latest"
+      - kind: article
+        title: "GraphQL: Serving over HTTP"
+        url: "https://graphql.org/learn/serving-over-http/"
+
+  - slug: backend-frontend-basics
+    name: "The Client Side of Your Contract"
+    domain: backend
+    est_hours: 6
+    difficulty: beginner
+    prerequisites:
+      - backend-learn-about-apis
+    summary: |-
+      What the browser does with your response — CORS, cookies, CSRF, client-side state and caching — so that the API you design is one a frontend can actually consume.
+    content_md: |-
+      A backend engineer does not need to write CSS. They do need to know what happens after their JSON leaves the building, because a surprising share of "backend bugs" are really contract mismatches with the browser's own rules.
+
+      ### The same-origin policy and CORS
+
+      Browsers isolate origins — scheme, host and port together. Script on `https://app.example.com` may send a request to `https://api.example.com`, but it may not *read* the response unless the server opts in with CORS headers. For anything beyond a short list of "simple" requests — a custom header, a JSON content type, a method other than `GET`/`POST`/`HEAD` — the browser first sends an `OPTIONS` **preflight** and only proceeds if the response permits the method, headers and origin. This is why your endpoint works in `curl` and fails in the browser: `curl` is not enforcing a policy that exists to protect users.
+
+      Two rules save hours. `Access-Control-Allow-Origin: *` cannot be combined with credentials; if the frontend sends cookies, you must echo the specific origin and set `Access-Control-Allow-Credentials: true`. And reflecting whatever `Origin` the request carried, unvalidated, is not "fixing CORS" — it is disabling the protection.
+
+      ### Cookies, tokens and CSRF
+
+      Cookies are attached by the browser automatically to matching requests, which is convenient and is exactly the property CSRF exploits: a malicious page can cause the user's browser to issue an authenticated request to your API. Defences, in combination: `SameSite=Lax` or `Strict` so cookies are not sent on cross-site requests; `HttpOnly` so script cannot read the session cookie, which limits what an XSS bug can steal; `Secure` so it never travels over plain HTTP; and, for state-changing endpoints, an anti-CSRF token or a strict origin check. Tokens held in memory or in a header are not sent automatically and so are not CSRF-prone — but tokens in `localStorage` are readable by any script that gets injected, which trades one attack for another.
+
+      ### State on the client
+
+      A frontend is a cache of your data with a user interacting with it, and it typically holds server state in a store: one source of truth, immutable updates, and subscribers that re-render when the slice they read changes. Knowing this shapes your API. Return the updated entity from a mutation, so the client does not need a follow-up `GET`. Give every entity a stable identifier so the client can normalise and deduplicate it. Keep response shapes consistent — a field that is sometimes an object and sometimes an id forces branching in every consumer. And return list results in a predictable envelope with pagination information, because the client is building an infinite scroll on top of it.
+
+      ### Rendering models change what the API needs
+
+      Server-rendered pages, single-page applications and the hybrid server-component approaches place different demands on you: an SPA needs many small endpoints and cares about round trips; server rendering happens on a machine you control, in a data centre next to your API, so latency matters less but reliability matters more, because a failing API means a failing page rather than a spinner.
+
+      ### The mistakes people actually make
+
+      Fixing preflight failures by allowing all origins with credentials. Putting a session token in `localStorage` without thinking about XSS. Returning `204 No Content` from an update and forcing a refetch. Returning timestamps in local time or in inconsistent formats. And changing a field from a string to an object "because it is only an internal client" — there is no such thing once the app is installed on someone's phone.
+    resources:
+      - kind: doc
+        title: "MDN: Cross-Origin Resource Sharing (CORS)"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
+      - kind: doc
+        title: "MDN: Using HTTP cookies"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies"
+      - kind: doc
+        title: "MDN: Same-origin policy"
+        url: "https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy"
+      - kind: article
+        title: "OWASP Cheat Sheet: Cross-Site Request Forgery Prevention"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+      - kind: doc
+        title: "MDN: Using the Fetch API"
+        url: "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch"
+      - kind: doc
+        title: "RFC 6265bis — Cookies (SameSite and prefixes)"
+        url: "https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis"
+
+  - slug: backend-applications
+    name: "Structuring an Application: Layers, Boundaries and the Domain"
+    domain: backend
+    est_hours: 7
+    difficulty: intermediate
+    prerequisites:
+      - backend-pick-a-backend-language
+      - backend-relational-databases
+    summary: |-
+      How to arrange code so that business rules are testable without a database, framework choices stay replaceable, and the codebase is still navigable at fifty thousand lines.
+    content_md: |-
+      Frameworks give you a way to answer a request. They do not give you a way to organise a system, and the default — everything in the route handler — degrades predictably: logic duplicated across endpoints, rules that only exist inside an HTTP request, and tests that need a live database to check an `if` statement.
+
+      ### The layering that actually earns its keep
+
+      Three responsibilities, kept separate.
+
+      The **transport layer** (controllers, route handlers, resolvers) deals with the protocol and nothing else: parse and validate input, call one thing, map the result or the error to a status code. It should contain no business rules, no queries, and no branching on domain state.
+
+      The **domain or service layer** holds the rules — what is allowed, what happens when, what invariants must hold. This is the part that is genuinely yours, and it should be callable from an HTTP handler, a background worker, a CLI command or a test with equal ease. If a rule can only run inside a request, a scheduled job will eventually violate it.
+
+      The **persistence layer** knows about tables, queries and the store. Whether you hide it behind a repository interface is a judgement call. The case for it is testability and a single place where query patterns live; the case against is that a repository which merely wraps an ORM adds a layer without adding a boundary. A useful rule: introduce the interface when you have a second implementation or a genuine need to test without I/O, not preemptively.
+
+      ### Keep I/O at the edges
+
+      The most portable structural idea in this concept is to push I/O outward and keep the middle pure. A function that takes data and returns a decision is trivially testable, deterministic and fast. A function that fetches, decides and writes is none of those. Concretely: load what you need, pass plain values into the rule, get a result, then perform the writes. This is the underlying idea behind hexagonal architecture, ports and adapters, and "functional core, imperative shell" — different names, same move.
+
+      ### Dependencies point inward
+
+      The domain should not import the web framework, the ORM's session, or the payment provider's SDK. It defines what it needs — an interface, a protocol, a callable — and the outer layers supply implementations at start-up. This is all dependency injection is; a container is optional and often unnecessary. The payoff is not swapping databases, which almost never happens; it is that a change to the framework, the queue or the third party touches the adapter and not the rules.
+
+      ### Organise by feature, not by layer
+
+      At the directory level, grouping `controllers/`, `services/`, `models/` means every feature is smeared across the tree and every change touches four directories. Grouping by feature — `billing/`, `orders/`, `identity/`, each containing its own transport, domain and persistence — keeps related code together, makes ownership obvious, and marks the seams along which a module could later become a separate service.
+
+      ### The mistakes people actually make
+
+      An "anemic" domain: data classes with only getters, all logic in a service, so the object cannot protect its own invariants. The opposite: a model class that knows about HTTP and email. A shared `utils` module that becomes a dependency magnet everything imports. And layering so elaborate that adding a field means editing seven files — layers are a tool for managing change, and if they are not paying for themselves, remove some.
+    resources:
+      - kind: article
+        title: "Martin Fowler: Patterns of Enterprise Application Architecture (catalogue)"
+        url: "https://martinfowler.com/eaaCatalog/"
+      - kind: article
+        title: "Alistair Cockburn: Hexagonal Architecture"
+        url: "https://alistair.cockburn.us/hexagonal-architecture/"
+      - kind: article
+        title: "Martin Fowler: AnemicDomainModel"
+        url: "https://martinfowler.com/bliki/AnemicDomainModel.html"
+      - kind: book
+        title: "Architecture Patterns with Python (free online)"
+        url: "https://www.cosmicpython.com/book/preface.html"
+      - kind: article
+        title: "Martin Fowler: Bounded Context"
+        url: "https://martinfowler.com/bliki/BoundedContext.html"
+      - kind: doc
+        title: "Domain-Driven Design Reference (Eric Evans, free PDF)"
+        url: "https://www.domainlanguage.com/ddd/reference/"
+
+  - slug: backend-hashing-algorithms
+    name: "Hashing: Passwords, Integrity and Identity"
+    domain: backend
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - backend-learn-the-basics
+    summary: |-
+      Why a password hash must be slow while a checksum must be fast, what a salt does that a pepper does not, and where HMAC and content hashes belong.
+    content_md: |-
+      "Hashing" covers several jobs with genuinely opposite requirements, and using the algorithm for one job to do another is the single most common security mistake in backend code.
+
+      ### Password storage: slow on purpose
+
+      A password hash exists to make offline brute force expensive after your database leaks. SHA-256 is therefore exactly the wrong choice: it is fast, and commodity hardware computes billions per second. Use a **password hashing function** designed to be tunably slow and, ideally, memory-hard: **Argon2id** is the current first choice, **scrypt** and **bcrypt** remain acceptable, and PBKDF2 is the option when a compliance regime demands it. Tune the cost parameters to the slowest hardware you must support — a common target is on the order of a few hundred milliseconds per hash — and revisit them as hardware improves.
+
+      A **salt** is a unique random value stored alongside each hash. It does not make any single password harder to crack; it makes attackers crack each one separately, defeating precomputed rainbow tables and hiding the fact that two users chose the same password. Modern password-hashing libraries generate and embed the salt for you, and you should let them — a hand-rolled salt scheme is a reliable source of bugs. A **pepper** is a secret value, identical for all users, mixed in and stored outside the database (in a secret manager or an HSM), so that a database-only leak yields hashes nobody can attack. It is a genuine defence-in-depth measure, and it complicates rotation, so decide deliberately.
+
+      Two implementation details matter as much as the algorithm. Compare using a **constant-time** comparison, because a byte-by-byte early return leaks information through timing. And store the algorithm and parameters *with* the hash — every serious library's output format already does — so you can upgrade cost factors by rehashing on next successful login.
+
+      ### Integrity: fast on purpose
+
+      For checksums, deduplication, cache keys, content addressing and ETags, you want speed and collision resistance, not slowness. SHA-256 is the safe default; BLAKE3 and xxHash are much faster where you do not need cryptographic strength (cache keys, shard selection). MD5 and SHA-1 are broken for anything adversarial: practical collisions exist, so they must not be used for signatures or to prove a file has not been tampered with. They remain merely unfashionable for non-adversarial checksums.
+
+      ### Authenticating a message: HMAC
+
+      A plain hash of `secret + message` is not a secure authentication tag — length-extension attacks defeat the naive construction. **HMAC** is the correct construction, and it is what webhook signatures, signed URLs and signed cookies use. Verify HMACs in constant time too, and include a timestamp inside the signed payload with a short acceptance window, or an attacker can replay a valid old request forever.
+
+      ### The hash that spreads load
+
+      **Consistent hashing** solves a different problem: mapping keys to a changing set of nodes so that adding or removing one node relocates roughly `1/n` of the keys instead of nearly all of them. It underpins distributed caches, sharded stores and load balancers with session affinity. Virtual nodes are the standard refinement, because without them the distribution across a small ring is badly uneven.
+
+      ### The mistakes people actually make
+
+      Hashing passwords with SHA-256 and a salt and believing that is sufficient. Reusing one salt for every user. Encrypting passwords instead of hashing them, which means a key leak reveals every plaintext. Comparing signatures with `==`. And putting sensitive data in a URL that is then hashed into an ETag or a log line.
+    resources:
+      - kind: article
+        title: "OWASP Cheat Sheet: Password Storage"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+      - kind: doc
+        title: "RFC 9106 — Argon2 Memory-Hard Function"
+        url: "https://www.rfc-editor.org/rfc/rfc9106.html"
+      - kind: doc
+        title: "RFC 2104 — HMAC: Keyed-Hashing for Message Authentication"
+        url: "https://www.rfc-editor.org/rfc/rfc2104.html"
+      - kind: doc
+        title: "NIST SP 800-63B — Digital Identity Guidelines: Authenticators"
+        url: "https://pages.nist.gov/800-63-3/sp800-63b.html"
+      - kind: article
+        title: "OWASP Cheat Sheet: Cryptographic Storage"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      - kind: article
+        title: "Consistent Hashing and Random Trees (Karger et al., 1997)"
+        url: "https://dl.acm.org/doi/10.1145/258533.258660"
+
+  - slug: backend-message-brokers
+    name: "Message Brokers: Queues, Logs and Delivery Guarantees"
+    domain: backend
+    est_hours: 9
+    difficulty: advanced
+    prerequisites:
+      - backend-server-side
+      - backend-relational-databases
+    summary: |-
+      The difference between a queue and a log, what "at-least-once" forces you to build, and the outbox pattern that stops your database and your broker from disagreeing.
+    content_md: |-
+      A broker decouples the producer of work from its consumer in time, in rate and in identity. That is genuinely powerful and it introduces an entire new class of bugs, all of which come from the same source: the message and your database are two systems that can disagree.
+
+      ### Queue or log?
+
+      **Queue brokers** (RabbitMQ, ActiveMQ, SQS, and Redis-based workers) hold messages until a consumer acknowledges them, then delete them. Routing can be rich — exchanges, topics, bindings, priorities, per-message TTL, delayed delivery. Competing consumers naturally share the load. What you cannot do is replay what has already been consumed.
+
+      **Log brokers** (Kafka, Redpanda, Pulsar) append messages to a partitioned, ordered, durable log and keep them for a retention period regardless of consumption. Each consumer group tracks its own offset, so a new consumer can start from the beginning, and a broken consumer can be fixed and replayed. Ordering is guaranteed *within a partition*, which is why the partition key is your most important design decision: key by entity id and all events for one entity stay ordered, at the cost of a hot partition if one entity dominates.
+
+      Choose a log when you need replay, multiple independent consumers of the same stream, or very high throughput. Choose a queue when you need per-message routing, delays, priorities, and simple work distribution.
+
+      ### Delivery guarantees, stated honestly
+
+      **At-most-once** loses messages on failure. **At-least-once** is what essentially every broker gives you in practice, and it means duplicates are not an edge case but a normal event: a consumer that processes a message and then crashes before acknowledging will see it again. **Exactly-once** end to end does not exist across system boundaries in the general case; what Kafka's transactional producer offers is exactly-once *within* Kafka, and the moment your consumer writes to an external database that guarantee stops applying.
+
+      The practical consequence is unavoidable: **consumers must be idempotent**. Either the operation is naturally idempotent (setting a value, upserting by a natural key) or you make it so by recording processed message ids in a table and skipping repeats, in the same transaction as the effect.
+
+      ### The dual-write problem and the outbox
+
+      The commonest bug in event-driven systems: your handler commits a database transaction and then publishes an event. If the publish fails, the world believes something that did not happen — or, in the other order, you publish and then the transaction rolls back, and consumers act on an event that was undone. There is no ordering of two independent writes that fixes this.
+
+      The **transactional outbox** does fix it. Write the event into an `outbox` table in the *same transaction* as the state change, so either both happen or neither. A separate relay process reads unpublished outbox rows and sends them to the broker, marking them sent. Since the relay can crash after sending and before marking, delivery becomes at-least-once — which is fine, because your consumers are already idempotent. Change-data-capture tools that tail the database log achieve the same effect from the other side.
+
+      ### Poison messages and dead letters
+
+      A message your consumer cannot process will be redelivered forever, blocking the partition or consuming the queue's capacity. Every consumer needs a retry limit and a **dead-letter queue** to park failures, plus an alert on its depth — a silently filling dead-letter queue is data loss on a delay.
+
+      ### The mistakes people actually make
+
+      Putting the whole payload in the message and then finding it stale by the time it is processed; often better to send an id plus an event type and re-read. Assuming ordering across partitions or across topics. Using a queue as a database. Retrying non-idempotent work without a deduplication key. And having no consumer-lag monitoring, so the first sign of a stalled consumer is a customer complaint.
+    resources:
+      - kind: doc
+        title: "Apache Kafka: Design"
+        url: "https://kafka.apache.org/documentation/#design"
+      - kind: doc
+        title: "Apache Kafka: Documentation"
+        url: "https://kafka.apache.org/documentation/"
+      - kind: doc
+        title: "RabbitMQ Tutorials"
+        url: "https://www.rabbitmq.com/tutorials"
+      - kind: article
+        title: "microservices.io: Transactional outbox pattern"
+        url: "https://microservices.io/patterns/data/transactional-outbox.html"
+      - kind: doc
+        title: "Amazon SQS: Developer Guide"
+        url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html"
+      - kind: book
+        title: "Designing Data-Intensive Applications — Stream Processing"
+        url: "https://dataintensive.net/"
+      - kind: doc
+        title: "Debezium: Change data capture documentation"
+        url: "https://debezium.io/documentation/reference/stable/index.html"
+
+  - slug: backend-background-jobs
+    name: "Background Jobs and Scheduled Work"
+    domain: backend
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - backend-message-brokers
+    summary: |-
+      Getting slow work out of the request path: job queues, retries with backoff and jitter, idempotent workers, scheduled tasks, and the visibility every one of them needs.
+    content_md: |-
+      Sending an email, generating a report, transcoding a video, calling a slow third party, expiring stale rows at midnight — none of these belong inside a user's request. Background work is the most common asynchronous pattern in real backends and, oddly, one of the least taught.
+
+      ### The shape
+
+      A handler enqueues a job — an identifier and a small payload — and returns immediately, usually `202 Accepted` with a way to check status. A pool of workers, running as a separate process or deployment, pulls jobs and executes them. The queue may be a broker, a managed service, or simply a table in your database with `SELECT ... FOR UPDATE SKIP LOCKED`, which is a perfectly respectable choice at moderate volume and has the enormous advantage of enqueueing in the same transaction as your data change.
+
+      ### Retries: backoff, jitter, and a ceiling
+
+      Jobs fail. Retrying immediately is almost always wrong: the dependency that just failed is usually still failing, and a tight retry loop turns a small outage into a self-inflicted denial of service. Use **exponential backoff** — one second, two, four, eight — with a maximum, and add **jitter**, a random component, because without it every job that failed during the same blip retries at exactly the same instant and produces a synchronised thundering herd. Cap the attempts and dead-letter the rest.
+
+      Retries make idempotency mandatory rather than optional. A worker can be killed at any point, including after the side effect and before recording success, so "charge the card" must be guarded by an idempotency key and "send the email" needs a sent-marker written transactionally, or the customer gets billed twice and emailed six times.
+
+      Distinguish **retryable** from **permanent** failures. A timeout or a `503` deserves a retry; a `400`, a validation error or a missing record does not, and retrying it thirty times just delays the alert and pollutes your metrics.
+
+      ### Scheduled work
+
+      Cron-style scheduling has a trap: run it on three instances and it fires three times. Solutions in ascending order of robustness: a single designated instance (fragile), a distributed lock or leader election around the job, or a scheduler that enqueues one job onto the shared queue and lets normal worker semantics take over. The last is usually best, because it reuses the retry, visibility and dead-letter machinery you already have. Remember that cron also does not fire at all if the machine was down at the time, so anything financial or legal needs a catch-up query — "process everything not yet processed" — rather than "process what happened in the last hour."
+
+      Long jobs need to be interruptible. Deploys kill workers, so a worker must handle `SIGTERM` by finishing or safely abandoning the current job within the shutdown grace period. Break large jobs into chunks that record progress, so a restart resumes rather than starting over.
+
+      ### Visibility
+
+      Background work fails silently by nature — no user is watching. The minimum instrumentation is: queue depth and oldest-job age per queue (age matters more than depth), success and failure counts by job type, execution duration, and an alert on the dead-letter queue. Give every job a correlation id from the request that created it, so a user's complaint can be traced into the worker logs.
+
+      ### The mistakes people actually make
+
+      Enqueueing a job inside a transaction that then rolls back, so a worker picks up an id that does not exist — enqueue after commit, or use the outbox. Passing whole objects rather than ids, so the worker acts on stale data. Sharing one queue for a five-millisecond job and a twenty-minute job, so the fast ones starve. Running workers in the same process as the web server, so a memory-hungry job takes down request serving. And having no way to re-run a failed job without a database edit.
+    resources:
+      - kind: article
+        title: "AWS Builders' Library: Timeouts, retries and backoff with jitter"
+        url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+      - kind: article
+        title: "AWS Architecture Blog: Exponential backoff and jitter"
+        url: "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/"
+      - kind: doc
+        title: "PostgreSQL: SELECT ... FOR UPDATE SKIP LOCKED"
+        url: "https://www.postgresql.org/docs/current/sql-select.html#SQL-FOR-UPDATE-SHARE"
+      - kind: doc
+        title: "Celery: User guide — tasks"
+        url: "https://docs.celeryq.dev/en/stable/userguide/tasks.html"
+      - kind: doc
+        title: "Sidekiq: Best practices"
+        url: "https://github.com/sidekiq/sidekiq/wiki/Best-Practices"
+      - kind: doc
+        title: "Kubernetes: CronJob"
+        url: "https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/"
+      - kind: doc
+        title: "Temporal: Core concepts for durable execution"
+        url: "https://docs.temporal.io/evaluate/understanding-temporal"
+
+  - slug: backend-real-time-data
+    name: "Real-Time: WebSockets, Server-Sent Events and Fan-Out"
+    domain: backend
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - backend-server-side
+      - backend-message-brokers
+    summary: |-
+      Pushing data to clients: choosing between polling, SSE and WebSockets, then surviving reconnects, sticky sessions and fan-out to a hundred thousand listeners.
+    content_md: |-
+      "Real-time" spans three genuinely different requirements — a notification badge, a live dashboard, and a collaborative editor — and the right transport differs for each.
+
+      ### The four options
+
+      **Polling** on an interval is unfashionable and frequently correct. It is stateless, cacheable, trivially load-balanced, and works through every proxy on earth. Its cost is wasted requests and latency equal to half the interval. For anything where a few seconds is fine, start here and stop.
+
+      **Long polling** holds the request open until data exists or a timeout fires, then the client immediately re-requests. Near-instant delivery over ordinary HTTP. It occupies a server connection per waiting client, which is fine on an event-loop or lightweight-thread runtime and expensive on thread-per-request.
+
+      **Server-Sent Events** is a one-way stream over a normal HTTP response: the server writes `data:` lines and the browser's `EventSource` delivers them, reconnecting automatically and resuming from the `Last-Event-ID` it saw. It is dramatically simpler than WebSockets, works with existing HTTP infrastructure and authentication, and is the right answer for notifications, progress, live feeds and streaming model output. It is one-way, and over HTTP/1.1 it consumes one of the browser's six connections per host — a real constraint that HTTP/2 removes.
+
+      **WebSockets** upgrade the connection to a persistent bidirectional frame-based channel. Necessary when the client sends a high rate of messages too — chat, multiplayer, collaborative editing, live cursors. The cost is that you leave HTTP behind: your own framing, your own reconnect logic, your own auth story, and proxies that need explicit configuration.
+
+      ### The problems that appear at scale
+
+      **Connection state.** A persistent connection pins a client to one instance. Deploys therefore disconnect everyone, so clients need reconnect with backoff and jitter — or a deploy becomes a self-inflicted thundering herd of reconnections. Load balancers need sticky sessions or a design that does not care which instance a client lands on.
+
+      **Fan-out.** With many instances, a message produced on instance A must reach subscribers on instances B and C. The standard solution is a backplane: publish to Redis Pub/Sub, NATS or a broker, and every instance forwards to its own local subscribers. Do not attempt instance-to-instance meshing.
+
+      **Delivery gaps.** A client that was disconnected for eight seconds missed whatever happened. Design for it explicitly: give every message a monotonic sequence number or id, let the client send the last id it saw on reconnect, and replay the gap from a short buffer. Otherwise "real-time" quietly means "real-time except when it matters."
+
+      **Backpressure.** A slow client whose messages you keep queuing will grow your memory until something dies. Bound the per-connection buffer and drop, coalesce (send only the latest state) or disconnect when it overflows.
+
+      **Auth and liveness.** Browsers cannot set headers on a `WebSocket` or `EventSource` handshake, so tokens usually arrive as a query parameter (which lands in access logs) or a cookie — pick deliberately. And a long-lived token on a connection that lasts for hours needs a revocation story. Finally, use heartbeats: TCP will happily keep a dead connection open for a long time, and an application-level ping is the only reliable way to notice.
+
+      ### The mistakes people actually make
+
+      Reaching for WebSockets when SSE or polling would do, and inheriting the whole operational cost. Broadcasting every event to every client and filtering in the browser, which leaks data and wastes bandwidth. Forgetting that a reconnect storm after a deploy is a load spike you must survive. And treating the stream as reliable, with no resume and no reconciliation against a plain HTTP fetch.
+    resources:
+      - kind: doc
+        title: "MDN: Using server-sent events"
+        url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+      - kind: doc
+        title: "MDN: The WebSocket API"
+        url: "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+      - kind: doc
+        title: "RFC 6455 — The WebSocket Protocol"
+        url: "https://www.rfc-editor.org/rfc/rfc6455.html"
+      - kind: doc
+        title: "WHATWG HTML: Server-sent events specification"
+        url: "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+      - kind: doc
+        title: "Redis: Pub/Sub"
+        url: "https://redis.io/docs/latest/develop/interact/pubsub/"
+      - kind: doc
+        title: "NATS: Core NATS concepts"
+        url: "https://docs.nats.io/nats-concepts/core-nats"
+      - kind: doc
+        title: "nginx: WebSocket proxying"
+        url: "https://nginx.org/en/docs/http/websocket.html"
+
+  - slug: backend-integration-patterns
+    name: "Calling Other Services Without Inheriting Their Outage"
+    domain: backend
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - backend-message-brokers
+    summary: |-
+      Timeouts, retries, circuit breakers, bulkheads and idempotency keys — the small set of patterns that stop one dependency's bad day from becoming yours.
+    content_md: |-
+      The moment your service calls another over a network, you have inherited its availability, its latency and its failure modes. Multiplied across five dependencies, "99.9% each" is not 99.9%. These patterns are how you break that coupling.
+
+      ### Timeouts, and the budget above them
+
+      Every network call needs an explicit timeout. Defaults are frequently infinite, and an infinite timeout is the mechanism by which a slow dependency exhausts your thread pool or connection pool and takes down endpoints that never touch it. Set the timeout from the dependency's observed high percentile — a little above its p99 — not from a round number someone liked.
+
+      Better still, propagate a **deadline**. The inbound request has a budget; each downstream call gets what remains, minus a margin. Without it, a chain of three services each allowing thirty seconds can spend ninety on a request whose caller gave up after five, doing work nobody will read.
+
+      ### Retries, and why they are dangerous
+
+      Retries fix transient failures and amplify overload. Three rules make them safe. Only retry what is safe to retry — an idempotent operation, or one guarded by an idempotency key. Always use exponential backoff **with jitter**. And bound the total: retry budgets (allow retries to be at most a small percentage of overall traffic) are better than per-call attempt limits, because during a broad failure per-call limits still multiply your load by three at the worst possible moment. Never retry at every layer of a chain simultaneously; four layers each retrying three times is eighty-one calls.
+
+      ### Circuit breakers and bulkheads
+
+      A **circuit breaker** watches the failure rate of calls to one dependency. Past a threshold it opens and fails immediately without attempting the call, which both protects the struggling dependency and, crucially, returns your own latency to normal instead of making every request wait for a timeout. After a cooling period it half-opens, allows a trial request, and closes on success. The design decision people skip is what an open circuit *returns*: cached data, a degraded response, an empty list, or a clear error. Decide per dependency.
+
+      A **bulkhead** limits how much of your capacity any one dependency can consume — a separate connection pool or concurrency limiter per downstream. Without it, the slowest dependency eventually owns all your workers.
+
+      ### Idempotency keys
+
+      For a `POST` that must not happen twice, let the caller supply a unique key, store it with the result, and on a repeat return the stored result rather than re-executing. This is how payment APIs make retries safe, and it is the correct answer whenever a client might not learn whether its request succeeded.
+
+      ### Webhooks: being called, and calling
+
+      When you receive a webhook: **verify the signature** (an HMAC over the raw body, compared in constant time, with a timestamp window against replay); respond quickly with a `2xx` and do the work asynchronously, because senders time out; and expect duplicates, because senders retry. When you send them: sign, retry with backoff, keep a delivery log the recipient can inspect, and provide a replay mechanism.
+
+      ### Distributed transactions
+
+      There is no cross-service `COMMIT`. When a business operation spans services, use a **saga**: a sequence of local transactions, each with a compensating action if a later step fails. Compensation is not rollback — refunding a charge is a new fact, not the erasure of an old one — so the domain must be designed to tolerate the intermediate states.
+
+      ### The mistakes people actually make
+
+      Testing only the happy path, so failure handling is first executed in production. Retrying a non-idempotent `POST`. Setting all timeouts to thirty seconds. Falling back to a stale cache without telling anyone, so a dependency is broken for a week before anyone notices. And logging the failure but returning a `200`, which hides the outage from every monitor you have.
+    resources:
+      - kind: article
+        title: "AWS Builders' Library: Timeouts, retries and backoff with jitter"
+        url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+      - kind: article
+        title: "Martin Fowler: CircuitBreaker"
+        url: "https://martinfowler.com/bliki/CircuitBreaker.html"
+      - kind: book
+        title: "Release It! (Nygard) — stability patterns"
+        url: "https://pragprog.com/titles/mnee2/release-it-second-edition/"
+      - kind: article
+        title: "AWS Builders' Library: Making retries safe with idempotent APIs"
+        url: "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+      - kind: article
+        title: "microservices.io: Saga pattern"
+        url: "https://microservices.io/patterns/data/saga.html"
+      - kind: doc
+        title: "Stripe: Idempotent requests"
+        url: "https://docs.stripe.com/api/idempotent_requests"
+      - kind: doc
+        title: "Stripe: Webhooks and signature verification"
+        url: "https://docs.stripe.com/webhooks"
+
+  - slug: backend-architectural-patterns
+    name: "Monolith, Modular Monolith, Microservices"
+    domain: backend
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - backend-integration-patterns
+      - backend-applications
+    summary: |-
+      What splitting a system across process boundaries actually buys, what it costs, and how to find a seam that is worth cutting along.
+    content_md: |-
+      This is the most over-discussed and under-analysed decision in backend engineering. It helps to be precise about what changes when a function call becomes a network call.
+
+      ### What the boundary changes
+
+      An in-process call is nanoseconds, cannot half-succeed, refactors atomically, and is typed by your compiler. A network call is milliseconds, can time out with the work having happened anyway, requires versioned compatibility because the two sides deploy separately, and needs its own auth, retries, tracing and monitoring. Everything good and everything bad about microservices follows from that single substitution.
+
+      What you gain is **independent deployability** — a team ships without coordinating with five others — plus independent scaling of a hot component, fault isolation if you actually built the isolation, and freedom to use different technologies. What you pay is distributed debugging, eventual consistency where you previously had transactions, network failure modes on every interaction, per-service operational overhead, and the need for real infrastructure maturity before you start.
+
+      ### The modular monolith
+
+      Most systems that "need microservices" actually need **modules**: one deployable, one database, but strict internal boundaries — each module owning its own tables, exposing an explicit interface, and forbidden by a lint rule or build constraint from reaching into another module's internals. You get most of the design benefit (clear ownership, contained change, comprehensible structure) with none of the distributed cost. And you get something better: if a module later needs to be extracted, the seam already exists and the extraction is mechanical. Starting with a monolith and splitting when a real pressure appears is the empirically better path than the reverse, because early on you do not yet know where the boundaries are.
+
+      ### Finding a seam
+
+      The best boundary follows **data ownership**: one service owns a set of tables, and nobody else writes to them. If two candidate services must be transactionally consistent, they are one service — a boundary that requires a distributed transaction to be correct is a boundary in the wrong place. Domain-driven design's bounded contexts are the vocabulary here, and the practical test is whether the two sides use the same word to mean different things. "Order" means something different in fulfilment and in billing, which is a strong hint about where the line goes.
+
+      Team structure matters too. Conway's law observes that systems mirror the communication structure of the organisations that build them; the inverse — arranging teams to match the architecture you want — is a real lever and is usually easier than fighting it.
+
+      ### The failure mode with a name
+
+      A **distributed monolith** is the worst of both: services split by technical layer or by CRUD entity rather than by capability, sharing a database, requiring lockstep deployment, and chattering synchronously so that any one being down means all are. Symptoms: you cannot deploy service A without deploying B; a single user action fans out to eight synchronous calls; two services write the same table. The cure is to merge them back and re-cut the boundary, which is embarrassing and much cheaper than continuing.
+
+      ### Migrating
+
+      Do not rewrite. The **strangler fig** pattern puts a routing layer in front of the existing system and moves one capability at a time behind it, with the old path available until the new one is proven. It is slower to plan and vastly more likely to finish.
+
+      ### The mistakes people actually make
+
+      Splitting for scale when only one component is hot — extract that one component and leave the rest. Giving each service its own database and then joining across them in application code. Adopting microservices without tracing, centralised logging, automated deployment or on-call rotation, so every incident is a manual scavenger hunt. And measuring success in service count rather than in how quickly a change reaches production.
+    resources:
+      - kind: article
+        title: "Martin Fowler: Microservices"
+        url: "https://martinfowler.com/articles/microservices.html"
+      - kind: article
+        title: "Martin Fowler: MonolithFirst"
+        url: "https://martinfowler.com/bliki/MonolithFirst.html"
+      - kind: article
+        title: "Martin Fowler: Strangler Fig Application"
+        url: "https://martinfowler.com/bliki/StranglerFigApplication.html"
+      - kind: article
+        title: "microservices.io: Pattern catalogue"
+        url: "https://microservices.io/patterns/index.html"
+      - kind: book
+        title: "Building Microservices, 2nd edition (Sam Newman)"
+        url: "https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/"
+      - kind: article
+        title: "Martin Fowler: Conway's Law"
+        url: "https://martinfowler.com/bliki/ConwaysLaw.html"
+      - kind: article
+        title: "Shopify Engineering: Deconstructing the monolith (modular monolith)"
+        url: "https://shopify.engineering/deconstructing-monolith-designing-software-maximizes-developer-productivity"
+
+  - slug: backend-testing
+    name: "Testing a Service You Cannot Fully Control"
+    domain: backend
+    est_hours: 10
+    difficulty: intermediate
+    prerequisites:
+      - backend-applications
+    summary: |-
+      Building a suite that is fast enough to run on every change and honest enough to be believed — fakes versus mocks, real databases in tests, and how flakiness destroys the whole thing.
+    content_md: |-
+      A test suite is not there to raise a coverage number. It is there so that a change can be made confidently by someone who did not write the original code. Every decision below follows from that.
+
+      ### The layers, and what each is for
+
+      **Unit tests** exercise one piece of logic with no I/O. They run in milliseconds, so you can have thousands, and they should target the domain layer — the rules — which is precisely why keeping I/O at the edges pays off here. A unit test that needs six mocks is telling you the unit has too many collaborators.
+
+      **Integration tests** exercise your code against the real things it talks to: an actual database, an actual cache. These catch what unit tests structurally cannot — a wrong SQL query, a migration that does not apply, a transaction boundary in the wrong place, a serialiser that drops a field. Tools like Testcontainers make running a real PostgreSQL per test session routine, and it is worth it: a mocked database proves only that your mock matches your assumptions.
+
+      **End-to-end tests** drive the whole system as a user or client would. They find integration mistakes nothing else can, and they are slow, brittle and expensive, so keep a handful covering the paths that must never break, not a hundred covering everything.
+
+      The classic pyramid says many unit, fewer integration, few end-to-end. The "testing trophy" argues for a fatter integration layer, and for most backend services that is the better shape, because the interesting bugs are at boundaries. Either way the constraint is the same: the suite must run fast enough that people run it.
+
+      ### Test doubles, chosen deliberately
+
+      A **fake** is a working implementation with shortcuts — an in-memory repository, a local file store. A **stub** returns canned answers. A **mock** additionally asserts it was called in a particular way. Prefer fakes and stubs; mocks that assert on interactions couple the test to the implementation, so a harmless refactor breaks fifty tests and the suite becomes a tax rather than a safety net.
+
+      For third-party HTTP, do not mock your own client wrapper — that tests nothing. Intercept at the HTTP layer with recorded or hand-written responses, and include the failure cases you actually need to handle: timeouts, `500`s, malformed bodies, `429`s. Then use **contract tests** to check that your recorded expectations still match the real provider, which is the gap consumer-driven contract testing exists to close.
+
+      ### Determinism is the whole game
+
+      A flaky test is worse than no test, because it trains the team to re-run and ignore. The usual causes are few and fixable. **Time**: inject a clock rather than calling the system clock, or tests fail at midnight and on leap days. **Randomness**: seed it. **Ordering**: never let tests depend on execution order or share mutable state; roll back or truncate between tests. **Concurrency and sleeps**: `sleep(0.5)` is a race waiting to lose on a loaded CI machine — wait for a condition instead. **External networks**: a test that hits the real internet fails when someone else's site is down.
+
+      ### What to actually assert
+
+      Test behaviour at the boundary, not internals. Cover the edges deliberately: empty collections, one element, maximum size, unicode, nulls, negative numbers, and concurrent callers. Property-based testing generates these for you and is startlingly effective on parsers, serialisers and anything with an invariant. And write the regression test *before* the fix for every production bug — that is the only test you can be certain would have caught something real.
+
+      Coverage is a weak signal. It tells you which lines ran, not whether any assertion would fail if the behaviour changed. High coverage with no assertions is common and worthless; mutation testing measures the real thing.
+
+      ### The mistakes people actually make
+
+      Mocking the database and shipping a broken query. Sharing one database that accumulates state across the suite. Testing getters. Writing tests that restate the implementation line for line, so they can never fail for a good reason. And letting the suite take forty minutes, at which point people stop running it locally and CI becomes the only feedback.
+    resources:
+      - kind: article
+        title: "Martin Fowler: The Practical Test Pyramid"
+        url: "https://martinfowler.com/articles/practical-test-pyramid.html"
+      - kind: article
+        title: "Martin Fowler: Mocks Aren't Stubs"
+        url: "https://martinfowler.com/articles/mocksArentStubs.html"
+      - kind: doc
+        title: "Testcontainers documentation"
+        url: "https://testcontainers.com/"
+      - kind: doc
+        title: "Pact: Consumer-driven contract testing"
+        url: "https://docs.pact.io/"
+      - kind: doc
+        title: "Hypothesis: property-based testing for Python"
+        url: "https://hypothesis.readthedocs.io/en/latest/"
+      - kind: doc
+        title: "pytest documentation"
+        url: "https://docs.pytest.org/en/stable/"
+      - kind: article
+        title: "Google Testing Blog: Test sizes"
+        url: "https://testing.googleblog.com/2010/12/test-sizes.html"
+
+  - slug: backend-ci-cd
+    name: "Continuous Integration and Deployments You Can Undo"
+    domain: backend
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - backend-testing
+      - backend-repo-hosting-services
+    summary: |-
+      A pipeline that gives fast, trustworthy feedback, and release strategies — canary, blue-green, feature flags — that make deploying boring.
+    content_md: |-
+      Continuous integration means everyone's work is merged and verified against the trunk many times a day. Continuous delivery means the trunk is always in a releasable state. Continuous deployment means it actually goes out automatically. The three are usually conflated and the distinction matters, because most teams should reach the second before attempting the third.
+
+      ### The pipeline
+
+      Order the stages by how quickly they can say "no": lint and format, type check, unit tests, build, integration tests, security scan, then deploy. Each is a gate, and failing fast saves everyone's time. The two properties that decide whether the pipeline is loved or bypassed are **speed** and **trust**. Under about ten minutes, people wait for it; beyond that, they context-switch and the feedback loop breaks. Caching dependencies and build layers, splitting tests across parallel runners, and only running expensive stages where they are relevant are the usual levers.
+
+      Trust is destroyed by flakiness. A red build that turns green on re-run teaches everyone to hit re-run, and from then on the pipeline signals nothing. Quarantine flaky tests immediately and fix them as real bugs, because they usually are.
+
+      **Build once, deploy many.** The artefact — a container image, a jar, a binary — is built one time and promoted through environments unchanged, configured from outside. If staging and production build separately, you have tested something you are not shipping.
+
+      ### Getting it out safely
+
+      **Rolling** replaces instances gradually; simple and the default in most orchestrators, but for a while both versions run, so your code and your database schema must tolerate that — which is why the expand/contract migration discipline is a prerequisite for safe deploys, not an optional nicety.
+
+      **Blue-green** runs two full environments and switches traffic at the load balancer. Rollback is instantaneous, and you pay for double capacity during the switch.
+
+      **Canary** sends a small percentage of traffic to the new version and watches error rate and latency before proceeding. This is the strongest technique available, because it catches problems that only real traffic reveals — but only if it is automated against real metrics, with an automatic abort. A canary a human is supposed to watch is a canary nobody watches.
+
+      **Feature flags** decouple deploying code from releasing behaviour. Ship the code dark, turn it on for internal users, then a percentage, then everyone; turn it off in seconds if something breaks, without a deploy. The discipline that keeps this from becoming a swamp is a removal policy — every flag gets an owner and an expiry, or you will accumulate hundreds of interacting conditionals nobody dares delete.
+
+      ### Migrations in a deploy
+
+      Run them as an explicit pipeline step before the new code rolls out, never at application start-up where every replica races. Because the migration and the code deploy separately, every migration must be compatible with both the old and new code for the duration of the rollout.
+
+      ### Measure the thing that matters
+
+      The DORA metrics — deployment frequency, lead time for changes, change failure rate, and time to restore service — are the useful summary, and the counter-intuitive finding of that research is that deploying more often correlates with *higher* stability, because each release is smaller and easier to diagnose.
+
+      ### The mistakes people actually make
+
+      Storing deploy credentials as plain repository secrets available to pull requests from forks. Having no tested rollback, so the recovery plan is "fix forward" under pressure. Deploying on Friday afternoon with nobody around. Coupling a database migration and the code that requires it into one release. And running a pipeline that is green while the deploy is broken, because nothing verifies the deployed thing actually serves traffic.
+    resources:
+      - kind: article
+        title: "Martin Fowler: Continuous Integration"
+        url: "https://martinfowler.com/articles/continuousIntegration.html"
+      - kind: article
+        title: "Martin Fowler: Feature Toggles"
+        url: "https://martinfowler.com/articles/feature-toggles.html"
+      - kind: doc
+        title: "DORA: Capabilities and research"
+        url: "https://dora.dev/"
+      - kind: doc
+        title: "GitHub Actions documentation"
+        url: "https://docs.github.com/en/actions"
+      - kind: doc
+        title: "GitLab CI/CD documentation"
+        url: "https://docs.gitlab.com/ee/ci/"
+      - kind: doc
+        title: "Kubernetes: Deployments and rolling updates"
+        url: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+      - kind: book
+        title: "Continuous Delivery (Humble & Farley)"
+        url: "https://continuousdelivery.com/"
+
+  - slug: backend-containerization
+    name: "Containers: Images, Layers and Reproducible Builds"
+    domain: backend
+    est_hours: 7
+    difficulty: intermediate
+    prerequisites:
+      - backend-ci-cd
+    summary: |-
+      What a container actually is at the kernel level, how to build an image that is small, cacheable and safe, and the runtime behaviours a containerised process must get right.
+    content_md: |-
+      A container is not a lightweight virtual machine. It is an ordinary Linux process with a restricted view of the system, and understanding that removes most of the mystery.
+
+      ### The mechanism
+
+      Two kernel features do the work. **Namespaces** give the process its own view of a resource class — its own process tree (so your app is PID 1), its own mount table and root filesystem, its own network stack and interfaces, its own hostname and user mapping. **Cgroups** limit and account for what it may consume: CPU shares, memory, I/O. The kernel is shared, which is why containers start in milliseconds and why the isolation boundary is weaker than a VM's.
+
+      An **image** is a stack of read-only filesystem layers plus metadata. At run time a thin writable layer sits on top; anything written there dies with the container. That immutability is the point — the same image runs identically everywhere — and it is why configuration and state must come from outside, via environment variables and mounted volumes.
+
+      ### Building a good image
+
+      **Layer order is cache strategy.** Each instruction produces a layer, and a layer is rebuilt when it or anything above it changes. Copy the dependency manifest and install dependencies *before* copying your source, and a source-only change reuses the dependency layer. Copy everything first and every build reinstalls from scratch.
+
+      **Multi-stage builds** are the single biggest win. Compile in a stage with the full toolchain, then copy only the resulting artefact into a minimal runtime stage. A Go service goes from hundreds of megabytes to a handful; a Node service ships without dev dependencies. Smaller images pull faster, which directly shortens deploys and autoscaling response, and they carry fewer packages for a scanner to find vulnerabilities in.
+
+      **Pin what you depend on.** `FROM node:latest` means your build is not reproducible and can break overnight. Pin to a specific version, or a digest for real reproducibility, and update deliberately.
+
+      **Do not put secrets in the image.** A build argument or a copied file remains visible in the layer history even if a later step deletes it. Use build-time secret mounts, or inject at run time.
+
+      Also: add a `.dockerignore` (or you will copy `.git`, `node_modules` and local environment files into your build context), and run as a **non-root user**, because a container escape from root is a much shorter path to the host.
+
+      ### Behaving well at run time
+
+      Log to stdout and stderr as unstructured-free-as-possible text — ideally JSON — and let the platform collect it; writing log files inside a container means writing them into a layer that disappears. Handle `SIGTERM`: the orchestrator sends it, waits a grace period, then sends `SIGKILL`, so a process that ignores it drops in-flight requests on every deploy. Watch out for PID 1 semantics — a shell-form entrypoint puts a shell at PID 1 which does not forward signals, so use the exec form or a small init. And set memory limits knowing that exceeding them gets you `OOMKill`ed by the kernel with no graceful exit and, often, no useful log line.
+
+      ### The mistakes people actually make
+
+      Shipping the build toolchain to production. Running `apt-get update` in a separate layer from `install`, so the cached update is stale. Storing user uploads on the container filesystem. Baking configuration into the image, which destroys promote-the-tested-artefact. And treating an image scanner's output as noise until an auditor asks.
+    resources:
+      - kind: doc
+        title: "Docker: Multi-stage builds"
+        url: "https://docs.docker.com/build/building/multi-stage/"
+      - kind: doc
+        title: "Docker: Build cache"
+        url: "https://docs.docker.com/build/cache/"
+      - kind: doc
+        title: "Docker: Dockerfile reference"
+        url: "https://docs.docker.com/reference/dockerfile/"
+      - kind: doc
+        title: "Linux man page: namespaces(7)"
+        url: "https://man7.org/linux/man-pages/man7/namespaces.7.html"
+      - kind: doc
+        title: "Linux man page: cgroups(7)"
+        url: "https://man7.org/linux/man-pages/man7/cgroups.7.html"
+      - kind: doc
+        title: "OCI Image Format Specification"
+        url: "https://github.com/opencontainers/image-spec/blob/main/spec.md"
+      - kind: article
+        title: "Docker: Build secrets"
+        url: "https://docs.docker.com/build/building/secrets/"
+
+  - slug: backend-container-orchestration
+    name: "Orchestration: Scheduling, Health and Graceful Rollouts"
+    domain: backend
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - backend-containerization
+    summary: |-
+      What Kubernetes and its alternatives actually do for you, the probe and resource settings that decide whether rollouts are safe, and how to know when you do not need any of it.
+    content_md: |-
+      Orchestration answers a small set of questions that become hard the moment you have more than one machine: where should this container run, is it healthy, how do other things find it, and how do I replace it without dropping traffic?
+
+      ### The reconciliation model
+
+      The idea that explains everything else is **declarative reconciliation**. You submit desired state — "five replicas of this image, with this configuration" — and controllers continuously compare it against actual state and act to close the gap. A crashed container is restarted, a dead node's pods are rescheduled, a changed image triggers a rollout. You never issue imperative commands; you edit the desired state.
+
+      The scheduler places pods on nodes using **resource requests** as its input, plus constraints you supply — node selectors, affinity and anti-affinity (spread replicas across zones so one zone's failure is survivable), taints and tolerations. **Services** give a stable virtual address and load-balance across the matching pods, so callers never track individual pod IPs.
+
+      ### The settings that decide whether a rollout is safe
+
+      **Requests versus limits.** The request is what the scheduler reserves and what you are effectively guaranteed; the limit is the hard ceiling. Exceeding a memory limit is fatal — the kernel `OOMKill`s the container, and the pod restarts with a status people spend hours misreading. Exceeding a CPU limit is not fatal but is throttling: the container is simply given less CPU, producing mysterious latency with no error anywhere. Requests set too low get your pods scheduled onto crowded nodes and evicted first; set too high, you pay for idle capacity.
+
+      **Three probes, three different jobs, and confusing them causes outages.** The **readiness** probe controls whether the pod receives traffic; failing it removes the pod from the service endpoints without killing it — exactly what you want during warm-up or when a dependency is briefly unavailable. The **liveness** probe restarts the container when it fails; it should test only whether *this process* is wedged. Pointing a liveness probe at a database is a classic self-inflicted outage: the database blips, every replica fails liveness, every replica restarts simultaneously, and now you have a cold cache and a restart storm on top of the original problem. The **startup** probe gives slow-booting applications time before the liveness probe applies.
+
+      **Graceful shutdown.** On termination, the pod is removed from endpoints and sent `SIGTERM` — but those two events are asynchronous, so a pod can receive requests for a moment after `SIGTERM` arrives. The standard remedy is a short `preStop` sleep so endpoint propagation completes, followed by a real drain: stop accepting new work, finish in-flight requests, close pools, exit within `terminationGracePeriodSeconds`.
+
+      **Autoscaling.** The horizontal pod autoscaler adds replicas on a metric. It reacts in tens of seconds at best, and new pods still need to start and warm up, so it handles a rising trend and does not handle an instant spike — that is what headroom and load shedding are for.
+
+      ### Do you need this?
+
+      Honestly: often not. A managed container platform, a scale-to-zero serverless runtime or a couple of VMs behind a load balancer runs a small service with a fraction of the operational surface. Kubernetes earns its complexity when you have many services, many teams, real multi-tenancy or genuine bin-packing pressure. Adopting it for three services means the platform becomes the on-call burden.
+
+      ### The mistakes people actually make
+
+      No resource requests at all, so the scheduler cannot make good decisions and one noisy pod starves a node. Liveness and readiness pointing at the same deep health endpoint. Storing state in a `Deployment` instead of a `StatefulSet` with real volumes. `latest` image tags, which make "what is actually running?" unanswerable. And using the cluster as a configuration store rather than keeping manifests in Git.
+    resources:
+      - kind: doc
+        title: "Kubernetes: Configure liveness, readiness and startup probes"
+        url: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+      - kind: doc
+        title: "Kubernetes: Managing resources for containers"
+        url: "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+      - kind: doc
+        title: "Kubernetes: Pod lifecycle (termination)"
+        url: "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
+      - kind: doc
+        title: "Kubernetes: Horizontal Pod Autoscaling"
+        url: "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
+      - kind: doc
+        title: "Kubernetes: Service"
+        url: "https://kubernetes.io/docs/concepts/services-networking/service/"
+      - kind: course
+        title: "Kubernetes tutorials (official)"
+        url: "https://kubernetes.io/docs/tutorials/"
+      - kind: doc
+        title: "HashiCorp Nomad documentation"
+        url: "https://developer.hashicorp.com/nomad/docs"
+
+  - slug: backend-advanced-backend
+    name: "Observability: Logs, Metrics, Traces and What to Alert On"
+    domain: backend
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - backend-container-orchestration
+    summary: |-
+      Instrumenting a service so that a question you did not anticipate can still be answered at 3 a.m. — and alerting on symptoms users feel rather than on causes you guessed.
+    content_md: |-
+      Monitoring answers questions you thought of in advance. Observability is the property of being able to answer ones you did not. The difference matters because production failures are, almost by definition, the ones nobody predicted.
+
+      ### Three signals, three jobs
+
+      **Logs** are discrete events with context. Make them **structured** — JSON with fields, not interpolated prose — so they can be filtered and aggregated rather than grepped. Every log line from a request should carry the same **correlation id**, propagated to downstream services, so one user's journey through five services is a single query. Log at the boundaries (request received, external call made, job completed) and at decisions, not at every line. And never log secrets, tokens, full request bodies or personal data; redact at the serialiser.
+
+      **Metrics** are cheap numeric aggregates over time. Cheap enough to record for every request, which is exactly what logs are not. Two useful frameworks: **RED** for request-driven services (Rate, Errors, Duration) and **USE** for resources (Utilisation, Saturation, Errors). Record durations as **histograms**, not averages: an average latency of 200 ms is compatible with 5% of users waiting four seconds, and it is the 5% who churn. Watch **cardinality** — a label containing a user id, a request id or a raw URL path multiplies your time series until the metrics system falls over, which is the single most common self-inflicted observability outage.
+
+      **Traces** connect the work of one request across services. Each operation is a span with a start, a duration, attributes and a parent; together they form a tree showing exactly where the time went and which call failed. Context propagates over the wire via the W3C `traceparent` header. Tracing is what converts "the checkout is slow" from a day of guessing into a five-minute answer. Sampling keeps the cost down — head-based sampling is simple; tail-based sampling, which decides after seeing the whole trace, lets you keep all the errors and slow requests, which are the ones you want.
+
+      **OpenTelemetry** is the vendor-neutral standard covering all three, and instrumenting against it rather than a vendor SDK means changing backends later is a configuration change rather than a rewrite.
+
+      ### Alerting
+
+      The rule that reduces pager fatigue more than any other: **alert on symptoms, not causes.** Users do not care that CPU is at 90%; they care that requests fail or are slow. Define **service level objectives** — "99.9% of checkout requests succeed in under 500 ms over 30 days" — and alert on the **error budget burn rate**, which naturally distinguishes a sudden severe outage (page now) from a slow drift (a ticket). Every page should be urgent, actionable and about something a human can fix; anything else belongs on a dashboard or in a ticket. Alerts that fire regularly and get ignored are worse than no alerts, because they train the ignoring.
+
+      ### Making it usable in an incident
+
+      Instrumentation is not enough if nobody can navigate it. A useful setup lets you go from an alert to the affected service's dashboard, from there to exemplar traces of failing requests, and from a trace to the logs of that specific request. Wire those links up before you need them. Version and deploy markers on dashboards answer "did this start with a deploy?" instantly, which is the correct first question in most incidents.
+
+      ### The mistakes people actually make
+
+      Logging everything at `INFO` and paying more for logs than for compute. Averages instead of percentiles. Unbounded label cardinality. Alerting on every resource threshold and then muting the channel. Adding tracing to one service only, which produces a tree with one node. And having no way to correlate a customer's report with any of it, because no request id ever reaches the user-facing error message.
+    resources:
+      - kind: doc
+        title: "OpenTelemetry documentation"
+        url: "https://opentelemetry.io/docs/"
+      - kind: doc
+        title: "OpenTelemetry: Traces"
+        url: "https://opentelemetry.io/docs/concepts/signals/traces/"
+      - kind: doc
+        title: "W3C Trace Context specification"
+        url: "https://www.w3.org/TR/trace-context/"
+      - kind: book
+        title: "Google SRE Book: Monitoring distributed systems"
+        url: "https://sre.google/sre-book/monitoring-distributed-systems/"
+      - kind: book
+        title: "Google SRE Workbook: Implementing SLOs"
+        url: "https://sre.google/workbook/implementing-slos/"
+      - kind: doc
+        title: "Prometheus: Metric types and histograms"
+        url: "https://prometheus.io/docs/concepts/metric_types/"
+      - kind: article
+        title: "Brendan Gregg: The USE Method"
+        url: "https://www.brendangregg.com/usemethod.html"
+
+  - slug: backend-building-for-scale
+    name: "Capacity, Tail Latency and Load Testing"
+    domain: backend
+    est_hours: 9
+    difficulty: advanced
+    prerequisites:
+      - backend-advanced-backend
+      - backend-caching
+    summary: |-
+      Why systems fall over a cliff rather than degrading gently, what queueing theory predicts about your p99, and how to find your real limit before your users do.
+    content_md: |-
+      Scaling is not "add servers". It is knowing where your capacity actually ends, what happens at that edge, and choosing the behaviour there deliberately.
+
+      ### Two laws worth internalising
+
+      **Little's Law**: the average number of requests in your system equals arrival rate times average time in system (`L = λW`). Rearranged, it tells you the concurrency you must support to serve a given throughput at a given latency — 1,000 requests per second at 100 ms means 100 concurrent requests in flight, minimum. It also tells you that if latency doubles under load and arrivals do not slow down, in-flight work doubles, which is why overload compounds.
+
+      **Queueing behaviour**: as utilisation approaches 100%, queue length and waiting time do not rise linearly — they rise asymptotically. This is the mathematical reason a system that is fine at 70% utilisation collapses at 90%, and why you cannot safely plan to run any component near full. It is also why the answer to "why is p99 so much worse than p50?" is usually queueing, not slow code.
+
+      ### Tail latency is the user experience
+
+      Averages hide everything. If a page makes ten backend calls, and each has a 1% chance of being slow, roughly 10% of page loads hit at least one slow call — tail latency at the component level becomes typical latency at the user level. Sources of tails: garbage collection pauses, cache misses, connection pool waits, lock contention, a noisy neighbour, a retry after a timeout. Two techniques help directly: **hedged requests** (issue a duplicate to another replica if the first is slow, take the first answer, at the cost of extra load) and simply removing the sequential dependencies that let one slow call gate everything else.
+
+      ### Find the limit on purpose
+
+      A **load test** applies expected traffic and confirms the system meets its objectives. A **stress test** keeps increasing until something breaks, which is the one that teaches you something: you learn the actual ceiling, which resource is the bottleneck, and — most importantly — the *failure mode*. Does the system shed load and stay responsive, or does it queue everything, exhaust memory and stop entirely?
+
+      Test realistically or do not bother. Uniform traffic against one endpoint with a hot cache and an empty database measures nothing. Use production-shaped traffic mixes, realistic data volumes, realistic key distributions (real traffic is Zipfian — a few items get most of the requests), and think-time between requests. Run long enough to expose leaks and cache turnover, not for ninety seconds.
+
+      ### Choosing what happens at the edge
+
+      Every system has a limit; the decision is what it does there. **Load shedding** rejects excess work quickly with a `429` or `503` and a `Retry-After`, which keeps the accepted work fast — far better than accepting everything and serving all of it slowly, since a timed-out request consumed resources and delivered nothing. **Concurrency limits** at the entry point, per endpoint and per dependency, are the mechanism. **Graceful degradation** turns off the recommendations panel and serves the core page. **Prioritisation** protects checkout traffic at the expense of analytics ingestion.
+
+      Be careful with autoscaling as the answer: it takes tens of seconds to minutes, so it handles trends, not spikes, and a scaling event during overload can make things worse as new instances start cold and hammer the database. Keep headroom.
+
+      ### Profile before you optimise
+
+      When something is slow, measure where. A profiler and a flame graph will tell you in minutes what a week of reading code will not, and the answer is regularly something unglamorous: JSON serialisation of an oversized payload, a regular expression compiled per request, logging at debug level in production, or a connection pool sized at five.
+
+      ### The mistakes people actually make
+
+      Optimising code when the bottleneck is a database round trip. Load testing against staging hardware a fraction of production's size and extrapolating linearly. Adding capacity to a system whose bottleneck is a single-writer database. Removing a limit to make an error go away, thereby converting a contained failure into a total one. And having no idea what the current headroom is, so every launch is a gamble.
+    resources:
+      - kind: article
+        title: "AWS Builders' Library: Using load shedding to avoid overload"
+        url: "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/"
+      - kind: article
+        title: "Dean & Barroso: The Tail at Scale (CACM)"
+        url: "https://cacm.acm.org/research/the-tail-at-scale/"
+      - kind: book
+        title: "Google SRE Book: Addressing cascading failures"
+        url: "https://sre.google/sre-book/addressing-cascading-failures/"
+      - kind: doc
+        title: "k6: Load testing documentation"
+        url: "https://grafana.com/docs/k6/latest/"
+      - kind: article
+        title: "Brendan Gregg: Flame graphs"
+        url: "https://www.brendangregg.com/flamegraphs.html"
+      - kind: article
+        title: "AWS Builders' Library: Avoiding fallback in distributed systems"
+        url: "https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/"
+      - kind: project
+        title: "The System Design Primer"
+        url: "https://github.com/donnemartin/system-design-primer"
+
+  - slug: backend-ai-providers
+    name: "Calling a Model From a Service"
+    domain: backend
+    est_hours: 7
+    difficulty: intermediate
+    prerequisites:
+      - backend-integration-patterns
+    summary: |-
+      Treating a model API as what it is — a slow, expensive, rate-limited, non-deterministic upstream — and engineering the call accordingly.
+    content_md: |-
+      The interesting part of adding a model to a backend is not the prompt. It is that you have introduced a dependency with a worse latency profile, a worse error profile and a real per-request cost, and every pattern from the integration step now applies with unusual force.
+
+      ### What is different about this upstream
+
+      **Latency is seconds, not milliseconds**, and it is proportional to output length, which you do not know in advance. That breaks any synchronous request/response design with a normal timeout. The two viable shapes are **streaming** the response to the user as tokens arrive — over SSE, which is why that transport appears earlier in this track — or making it a **background job** and notifying on completion. Blocking a request thread for thirty seconds is the third option and it is the one that takes services down.
+
+      **Cost is per token, in both directions.** Prompt tokens and output tokens are billed separately and usually at different rates. This makes prompt size an engineering constraint: stuffing an entire document into every request is a decision with a monthly invoice attached. Track cost per request as a first-class metric next to latency, and set per-user and per-tenant budgets before launch, not after the bill.
+
+      **Context windows are finite.** Inputs must be truncated or summarised to fit, and a request that exceeds the window fails outright — so the truncation strategy is part of the design, not a detail.
+
+      **Rate limits are aggressive** and usually expressed in both requests and tokens per minute. Respect `Retry-After`, back off exponentially with jitter, and consider a client-side queue that smooths bursts rather than discovering the limit at peak.
+
+      **Output is non-deterministic.** The same input can produce different output, which means your tests cannot assert on exact strings, and any downstream code that parses the output must handle it being malformed. Where the provider supports structured output or JSON-schema-constrained generation, use it — it converts a parsing problem into a validation problem. Validate regardless, and have a defined behaviour for "the model returned something unusable."
+
+      ### Engineering the call
+
+      Wrap the provider behind your own interface so the SDK is one adapter, not a dependency threaded through your domain. That gives you one place to add timeouts, retries, budget checks, logging and — importantly — a **fallback**: a second provider or a smaller model when the primary is down or rate-limiting you. Note that failover is not free, because prompts are not perfectly portable between models, so the fallback path needs its own testing.
+
+      **Cache aggressively.** Identical or near-identical requests are common in practice, and a cache keyed on the normalised prompt plus model plus parameters removes both latency and cost. Several providers also support prompt caching for a long shared prefix, which is worth structuring your prompts around: put the stable instructions first and the variable input last.
+
+      **Keys and tenancy.** The API key is a high-value credential attached to a spending account; keep it server-side, never in a client, and scope and rotate it like any other. If users can influence the prompt — and they nearly always can — you have a path by which a user can spend your money, which is an abuse-prevention problem as much as a security one.
+
+      ### The mistakes people actually make
+
+      No timeout, so a hung stream holds a worker forever. Retrying a non-idempotent generation and being billed twice. Logging full prompts and responses containing customer data. Hard-coding one provider's SDK across the codebase. Sending far more context than the task needs. And shipping with no per-user rate limit, so one script turns a feature into an expense.
+    resources:
+      - kind: doc
+        title: "Anthropic: Claude API — streaming messages"
+        url: "https://docs.anthropic.com/en/api/streaming"
+      - kind: doc
+        title: "OpenAI API reference"
+        url: "https://platform.openai.com/docs/api-reference"
+      - kind: doc
+        title: "MDN: Using server-sent events"
+        url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+      - kind: article
+        title: "AWS Builders' Library: Timeouts, retries and backoff with jitter"
+        url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+      - kind: doc
+        title: "Anthropic: Prompt caching"
+        url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching"
+      - kind: doc
+        title: "Ollama: running open models locally"
+        url: "https://github.com/ollama/ollama/blob/main/docs/api.md"
+
+  - slug: backend-building-ai-powered-features
+    name: "Retrieval, Tools and Evaluating a Non-Deterministic Feature"
+    domain: backend
+    est_hours: 9
+    difficulty: advanced
+    prerequisites:
+      - backend-ai-providers
+      - backend-search-engines
+    summary: |-
+      Grounding a model in your own data, letting it call your code safely, and building the evaluation harness without which you cannot tell whether a change made things better.
+    content_md: |-
+      Once the plumbing works, the engineering problem becomes: how do you make the feature reliably useful, and how do you know when you have made it worse?
+
+      ### Retrieval-augmented generation, mechanically
+
+      Models do not know your data and will confidently invent it. Retrieval fixes this by finding relevant text at request time and putting it in the prompt with an instruction to answer only from it. The pipeline has four stages, and each is a place where quality is won or lost.
+
+      **Chunking.** Documents are split into passages. Chunks that are too large dilute relevance and waste tokens; too small and they lose the context that makes them meaningful. Split on structure — headings, sections, paragraphs — rather than a fixed character count, and keep a little overlap so a sentence spanning a boundary is not orphaned. Carry metadata (source, title, section, permissions, updated date) on every chunk; you will need it for filtering and for citations.
+
+      **Embedding and indexing.** Each chunk becomes a vector; a vector index (pgvector, or a dedicated store) finds nearest neighbours by cosine similarity. Note that the whole index is tied to one embedding model — changing models means re-embedding everything, so treat the model version as part of the index's identity.
+
+      **Retrieval.** Pure vector search is good at paraphrase and bad at exact terms, identifiers, names and numbers, where classic BM25 wins. **Hybrid search** — run both, fuse the rankings — is meaningfully better than either, which is why the full-text search concept earlier in this track is a genuine prerequisite. Reranking the top candidates with a cross-encoder improves precision further. Apply the user's access permissions **as a filter during retrieval**, never afterwards: a chunk the user may not see must not enter the prompt at all.
+
+      **Generation.** Instruct the model to answer only from the supplied context, to say when it cannot, and to cite the chunks used — citations are the only affordance that lets a user verify an answer, and they change the product from "trust me" to "check me."
+
+      ### Tool calling, and the security boundary
+
+      Giving a model the ability to call your functions is what turns it from a text generator into an agent. The correct mental model is that **the model is an untrusted client**. Its tool calls come, transitively, from user input; therefore every call must pass the same validation and the same authorisation you would apply to a public API request, executed under the *user's* permissions and never the service's. This is what makes prompt injection a manageable risk rather than a catastrophic one: text retrieved from a document or a web page can and will contain instructions, and no amount of prompt wording reliably prevents the model from following them. The defence is architectural — least privilege, allowlisted actions, validated arguments, and a human confirmation step before anything destructive, irreversible or costly.
+
+      ### Evaluation
+
+      This is the discipline that separates a demo from a product. Build a dataset of representative inputs with expected properties, and run it on every change to prompts, models, retrieval parameters or chunking. Measure retrieval separately from generation — recall of the correct chunks in the top *k* is a clean, cheap, deterministic metric, and most quality problems turn out to live there rather than in the model. For generation, combine automatic checks (does it cite a real source, is the JSON valid, does it contain the required fact) with a model-graded rubric and a small amount of human review on a sample. Log real interactions with feedback so your evaluation set grows from actual failures.
+
+      Ship behind a flag, to a small percentage, with latency, cost and quality dashboards, and be prepared to turn it off.
+
+      ### The mistakes people actually make
+
+      Chunking on character counts. Retrieving five chunks when the answer needs twelve, or fifty when the model then ignores the middle. Evaluating by trying three prompts by hand. Treating tool calls as trusted. Ignoring the "no relevant content found" path, so the model answers anyway. And putting no guardrail on cost, so a retry loop over a long context becomes an incident.
+    resources:
+      - kind: article
+        title: "Lewis et al.: Retrieval-Augmented Generation (arXiv)"
+        url: "https://arxiv.org/abs/2005.11401"
+      - kind: project
+        title: "pgvector — vector similarity search for PostgreSQL"
+        url: "https://github.com/pgvector/pgvector"
+      - kind: doc
+        title: "Anthropic: Tool use with Claude"
+        url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview"
+      - kind: doc
+        title: "OWASP Top 10 for LLM Applications"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      - kind: doc
+        title: "Model Context Protocol specification"
+        url: "https://modelcontextprotocol.io/docs/getting-started/intro"
+      - kind: article
+        title: "Elastic: Practical BM25 and hybrid retrieval"
+        url: "https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables"
+      - kind: doc
+        title: "Anthropic: Define success criteria and build evals"
+        url: "https://docs.anthropic.com/en/docs/test-and-evaluate/define-success"
+
+  - slug: backend-ai-assisted-coding
+    name: "Working With a Coding Assistant Without Losing the Plot"
+    domain: backend
+    est_hours: 4
+    difficulty: beginner
+    prerequisites:
+      - backend-repo-hosting-services
+    summary: |-
+      Where generated code helps, where it reliably fails, and the review habits that stop it from silently lowering the quality of a codebase.
+    content_md: |-
+      Assistants are now part of most backend workflows, and the interesting question is not whether to use one but what changes about your responsibilities when you do.
+
+      ### Where it genuinely helps
+
+      Mechanical transformation — converting a data shape, writing the twentieth serialiser, adding the same instrumentation to forty handlers. Boilerplate against a well-documented library. First drafts of tests, especially the tedious edge cases you would have skipped. Explaining unfamiliar code, which is often the fastest way into a legacy system. Writing the regular expression, the SQL you half-remember, or the shell incantation. And rubber-ducking a design by having to articulate it.
+
+      ### Where it reliably fails
+
+      **Hallucinated APIs.** A confidently generated call to a method that does not exist, or that existed in version 2 and was removed in version 3. This is the single most common failure and the reason "does it compile and does a test pass" is the minimum bar.
+
+      **Plausible-but-wrong concurrency and security code.** Generated authentication, authorisation, cryptography and locking look right and are frequently subtly wrong — a comparison that is not constant-time, a check-then-act race, an authorisation check on the wrong object. These are exactly the areas where a reviewer's default should be scepticism, because the failure is silent.
+
+      **Context it cannot have.** It does not know your migration is mid-rollout, that this table is sharded, that this dependency is being removed next sprint, or why the obvious approach was rejected two years ago. It optimises for locally plausible code, which is how a codebase accumulates five slightly different ways to do the same thing.
+
+      **Outdated patterns.** Training data skews toward what was common a while ago, so suggestions may use a deprecated API, an older library idiom, or a security practice that is no longer recommended.
+
+      ### The habits that keep quality up
+
+      Read every line you accept, and hold it to exactly the standard you would hold a colleague's pull request to — because in review terms, that is what it is, and you are the author. Prefer to specify the *interface and the tests* yourself and let the assistant fill in the body: tests you wrote are a check the generated code cannot game. Work in small increments you can verify, rather than accepting three hundred lines at once. Be deliberate about what you paste into a tool — proprietary code, customer data and secrets in a prompt are an exfiltration path, and organisational policy on this is not optional. And be aware that generated code can reproduce licensed material; for anything substantial, that is a legal question, not a style one.
+
+      The productivity risk that is easy to miss: accepting a suggestion is faster than writing code, but *debugging code you did not write and do not understand* is much slower than debugging your own. Time saved at the keyboard can be repaid with interest at 3 a.m.
+
+      ### The mistakes people actually make
+
+      Merging code the author cannot explain. Letting the assistant write both the implementation and the test, so both share the same misunderstanding. Using it to skip learning the fundamentals it is standing on, which caps you at the level where you can no longer tell a good suggestion from a bad one. And pasting production data into a prompt.
+    resources:
+      - kind: article
+        title: "Google Engineering Practices: How to do a code review"
+        url: "https://google.github.io/eng-practices/review/reviewer/"
+      - kind: doc
+        title: "Claude Code documentation"
+        url: "https://docs.claude.com/en/docs/claude-code/overview"
+      - kind: doc
+        title: "GitHub Copilot documentation"
+        url: "https://docs.github.com/en/copilot"
+      - kind: doc
+        title: "OWASP Top 10 for LLM Applications"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      - kind: doc
+        title: "NIST AI Risk Management Framework"
+        url: "https://www.nist.gov/itl/ai-risk-management-framework"
+      - kind: article
+        title: "Martin Fowler: Exploring generative AI"
+        url: "https://martinfowler.com/articles/exploring-gen-ai.html"
+
+  - slug: backend-ai-in-development
+    name: "AI in the Delivery Pipeline"
+    domain: backend
+    est_hours: 4
+    difficulty: intermediate
+    prerequisites:
+      - backend-ai-assisted-coding
+      - backend-ci-cd
+    summary: |-
+      Automated review, test generation, incident triage and documentation — which of these survive contact with a real pipeline, and what breaks when a non-deterministic step becomes a gate.
+    content_md: |-
+      Assistance at the keyboard is one thing; putting a model inside your automated delivery process is another, because a pipeline stage is expected to be deterministic, fast and trustworthy, and a model is none of those by default.
+
+      ### What works well
+
+      **Review assistance, as a commenter and never as a gate.** A bot that leaves suggestions on a pull request catches a real class of issue — an unhandled error path, a missing null check, a log line containing a token, an inconsistency with a nearby pattern. Its correct role is to add signal for human reviewers. Making it a blocking approver is a mistake: it will block correct code and approve subtly broken code, and it cannot be held accountable for either.
+
+      **Triage and summarisation.** Grouping similar exceptions, drafting an incident timeline from logs and deploy markers, summarising a long thread, or proposing which team owns an alert. These are low-risk because a human immediately checks the output against reality.
+
+      **Documentation drafts.** Generating a first pass of API descriptions, changelog entries and runbooks from code and commits. The generated text still needs an owner, because documentation nobody verified is worse than none — people trust it.
+
+      **Test generation for the boring half.** Enumerating edge cases and filling in fixtures is genuinely useful. Generating the assertions themselves is where it goes wrong, because the assistant infers intent from the implementation and so encodes the bug as the expected behaviour.
+
+      ### What breaks
+
+      **Non-determinism in a pipeline.** The same commit producing different results on re-run destroys the property that makes CI useful. If a model-based step must exist, make it advisory, or pin the model version and temperature and accept that you are still not fully reproducible.
+
+      **Latency and cost per run.** A stage that adds three minutes and a per-run charge to every push is a stage people will find a way to skip.
+
+      **Confident wrongness at scale.** Automation multiplies whatever the model gets wrong. A bot that mass-files issues or mass-opens fix pull requests can bury a team in plausible-looking noise faster than it can be reviewed.
+
+      **Supply chain and prompt injection.** A pipeline agent that reads a pull request's contents and has permission to push, comment or deploy is executing instructions authored by whoever opened that pull request. Treat any automation with write access exactly as you would treat running an untrusted contributor's code: least privilege, no secrets in reach, and no self-approval.
+
+      ### Judging whether it is helping
+
+      Use the delivery metrics you already track rather than vibes. Did lead time fall? Did change failure rate rise? Are reviewers spending less time, or the same time plus a new queue of bot comments to dismiss? Adopt one integration at a time so the answer is attributable, and be willing to remove it.
+
+      ### The mistakes people actually make
+
+      Giving a pipeline bot broad repository write permissions. Auto-merging its changes. Letting generated documentation ship unreviewed. Adding four AI stages at once so nobody can tell which helped. And treating a summary of an incident as the postmortem, when the value of a postmortem is the humans reasoning about causes.
+    resources:
+      - kind: doc
+        title: "DORA: Capabilities and research"
+        url: "https://dora.dev/"
+      - kind: doc
+        title: "GitHub Actions: Security hardening for workflows"
+        url: "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions"
+      - kind: doc
+        title: "OWASP Top 10 for LLM Applications"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      - kind: book
+        title: "Google SRE Workbook: Postmortem culture"
+        url: "https://sre.google/workbook/postmortem-culture/"
+      - kind: article
+        title: "Martin Fowler: Exploring generative AI"
+        url: "https://martinfowler.com/articles/exploring-gen-ai.html"
+      - kind: doc
+        title: "SLSA: Supply chain levels for software artifacts"
+        url: "https://slsa.dev/spec/v1.0/levels"
+
+  - slug: backend-click-to-visit-the-roadmap
+    name: "Reading Other People's Systems"
+    domain: backend
+    est_hours: 4
+    difficulty: intermediate
+    prerequisites:
+      - backend-building-for-scale
+    summary: |-
+      The habit that keeps a backend engineer improving after the syllabus runs out: reading specifications, source code and public postmortems, and stealing the reasoning rather than the conclusion.
+    content_md: |-
+      Everything in this track will be partly obsolete in five years. The skill that will not be is the ability to answer a question from a primary source instead of from a summary of a summary.
+
+      ### Read the specification
+
+      RFCs are more readable than their reputation suggests, and they answer questions no blog post will. When you need to know whether a `PUT` may return a body, what a proxy is permitted to do with an unknown header, or what exactly `Cache-Control: no-cache` means (it does not mean "do not cache"), the answer is in RFC 9110 or 9111 and it is unambiguous. The same applies to your database's manual, which is written by the people who wrote the code, and to the release notes of every dependency you upgrade. The habit worth building is: when you find yourself guessing about behaviour, spend four minutes finding the normative statement instead of ten minutes testing it empirically and drawing the wrong general conclusion.
+
+      ### Read the source
+
+      Your dependencies are open, and reading them is the fastest way past a confusing behaviour. Start at the entry point you call, follow it down one level at a time, and skim rather than trying to understand everything. Two specific habits pay off immediately: reading a library's tests, which are a specification of what it promises and often clearer than its documentation; and reading the issue tracker before adopting anything, because the open issues tell you what it is actually like to live with.
+
+      ### Read postmortems
+
+      Public incident write-ups from companies operating at scale are the closest thing our field has to case law. They are valuable because they describe failures that only appear at a scale you have not reached, and because the interesting content is never the root cause but the chain: which safeguard was missing, which alert did not fire, why the obvious fix made things worse, how long detection took and why. Read enough of them and you develop an instinct for the failure modes in this track — the retry storm, the cache stampede, the health check that evicted everything, the migration that locked a table, the config change deployed everywhere at once.
+
+      ### Steal the reasoning, not the conclusion
+
+      Engineering blogs from large companies describe solutions to problems of a scale most systems never reach. The mistake is to copy the architecture; the value is in the constraints they state and the alternatives they rejected. "We sharded because a single writer could not absorb our write volume" is a lesson. "Shard your database" is not. When you read a design, extract three things: what forced the decision, what it cost them, and what they would need to have been true to make the simpler option work.
+
+      ### Build the smallest version yourself
+
+      The final comprehension technique is to reimplement a tiny version of something you use: a router, a connection pool, a job queue, a cache with TTL, a rate limiter. A weekend of that teaches more about the real thing than a month of reading, and it converts a black box into something whose failure modes you can predict.
+
+      ### The mistakes people actually make
+
+      Treating the top search result as authoritative and never checking a version. Learning frameworks instead of the protocols and databases underneath them, so the knowledge expires with the framework. Copying an architecture from a company two orders of magnitude larger. And never writing anything down — the fastest way to find out whether you understand something is to have to explain it.
+    resources:
+      - kind: doc
+        title: "RFC 9110 — HTTP Semantics"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+      - kind: doc
+        title: "RFC 9111 — HTTP Caching"
+        url: "https://www.rfc-editor.org/rfc/rfc9111.html"
+      - kind: project
+        title: "Awesome Postmortems — public incident write-ups"
+        url: "https://github.com/danluu/post-mortems"
+      - kind: article
+        title: "AWS Builders' Library"
+        url: "https://aws.amazon.com/builders-library/"
+      - kind: book
+        title: "Google SRE Workbook: Postmortem culture"
+        url: "https://sre.google/workbook/postmortem-culture/"
+      - kind: doc
+        title: "PostgreSQL documentation"
+        url: "https://www.postgresql.org/docs/current/"
+      - kind: article
+        title: "Julia Evans: How to be a wizard programmer"
+        url: "https://jvns.ca/blog/so-you-want-to-be-a-wizard/"

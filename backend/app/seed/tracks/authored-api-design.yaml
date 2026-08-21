@@ -1,0 +1,1386 @@
+# Hand-authored for SkillAtlas. Do NOT regenerate with scripts/import_roadmapsh.py.
+#
+# Written independently from our own knowledge of the subject and from primary
+# sources: the HTTP RFCs (9110, 9111, 9457), the OAuth and JWT RFCs, MDN, the
+# OpenAPI Specification, the OWASP API Security Top 10, and the published API
+# guidelines of Google, Microsoft and Zalando. Nothing here derives from
+# roadmap.sh's API design roadmap.
+#
+# The syllabus is outcome-shaped: every step is something the API can now
+# survive. HTTP semantics -> a written contract -> resources and requests that
+# scale -> idempotency, so a retrying client cannot corrupt state -> errors and
+# rate limits -> the full identity stack (authn, authz, OAuth, keys, attack
+# surface) -> documentation and testing -> performance, versioning, lifecycle,
+# operation -> streaming, and finally being a good consumer of someone else's
+# API.
+#
+# Two topics roadmap.sh omits get first-class nodes here because they are what
+# actually separates a demo API from one in production: idempotency/optimistic
+# concurrency, and versioning/backward compatibility. The three overlapping
+# auth nodes have been given genuinely distinct jobs rather than repeating
+# each other.
+
+track:
+  slug: api-design
+  title: "API Design: Contracts That Survive Their Clients"
+  domain: architecture
+  target_role: "API Designer / Platform Engineer"
+  difficulty: intermediate
+  description: "Twenty-one steps from HTTP's own rules to operating a public API, organised so that each one closes a specific failure: a client that retries, a client that pages through a shifting list, a client that sends garbage, a client that is not who it claims, a client that never upgrades. Idempotency and versioning get their own steps because they are where real APIs break, and the security half is taught as one continuous stack rather than as scattered tool names."
+
+concepts:
+  - slug: api-design-learn-the-basics
+    name: "HTTP Semantics: The Rules You Are Designing Within"
+    domain: architecture
+    est_hours: 8
+    difficulty: beginner
+    prerequisites: []
+    summary: |-
+      Methods, status codes, headers, content negotiation and conditional requests — the properties every proxy, browser and client library already assumes your API has.
+    content_md: |-
+      Before any design question, there is a body of behaviour that clients, caches, proxies, CDNs and crawlers already rely on. Designing against it is expensive; designing with it is free correctness.
+
+      ### Methods have properties, not just names
+
+      Two properties do most of the work. A method is **safe** if it does not change state: `GET`, `HEAD` and `OPTIONS`. Anything on the internet may call a safe method at any time without asking — browser prefetch, link-preview bots, corporate security scanners, crawlers. This is why `GET /users/42/delete` is not a stylistic mistake but an outage waiting for a well-behaved crawler.
+
+      A method is **idempotent** if making the same request twice has the same effect on server state as making it once: `PUT`, `DELETE`, and all safe methods. This is the property clients and proxies rely on to retry after a timeout. `POST` is neither safe nor idempotent, which is exactly why a step later in this track is dedicated to making it retryable anyway.
+
+      `PUT` replaces a resource at a known URL; `POST` submits to a resource that decides what to do; `PATCH` applies a partial modification (and its body format needs specifying — JSON Merge Patch, RFC 7396, or JSON Patch, RFC 6902, or a documented convention of your own, but *something*, because "send the fields you want to change" is ambiguous the moment a client wants to set a field to null).
+
+      ### Status codes are the client's control flow
+
+      Every client library, retry policy and monitoring system branches on the status code before it looks at the body. `2xx` succeeded — `200` with a representation, `201` with a `Location` header for something created, `202` for accepted-but-not-done, `204` for succeeded-with-nothing-to-say. `3xx` redirects. `4xx` means the client must change something and retrying identically will not help: `400` malformed, `401` not authenticated, `403` authenticated but not permitted, `404` no such thing, `409` conflicts with current state, `410` gone permanently, `422` well-formed but semantically invalid, `429` too many requests. `5xx` means the fault is ours and a retry may work.
+
+      Returning `200 OK` with `{"success": false}` throws away the entire mechanism: caches will store it, retry policies will not fire, and every dashboard shows a perfectly healthy service.
+
+      ### Headers that carry real semantics
+
+      **Content negotiation.** `Content-Type` states what you are sending, `Accept` what the client wants; getting this right is what makes `application/json`, `text/csv` and `application/problem+json` coexist at one URL. Include the charset and mean it.
+
+      **Conditional requests.** The server returns an `ETag` (an opaque version identifier for the representation) or `Last-Modified`. A client may then send `If-None-Match` on a read — and receive `304 Not Modified` with no body, saving bandwidth — or `If-Match` on a write, which is how you get optimistic concurrency and prevent lost updates. These two headers are the highest-value, least-used feature in ordinary API design.
+
+      **Caching.** `Cache-Control` directives (`max-age`, `no-store`, `private`, `public`, `must-revalidate`, `stale-while-revalidate`) tell every cache between you and the client what it may do. `no-cache` does not mean "do not cache"; it means "cache but revalidate before use". `private` versus `public` is the difference between a personalised response being safe and being served to the wrong user by a CDN.
+
+      ### The mistakes people actually make
+
+      Tunnelling everything through `POST` and inventing a private status vocabulary in the body. Using `PUT` for creation and then discovering it must be idempotent, which the implementation is not. Returning `404` where `403` is meant, or the reverse — hiding existence is a deliberate choice, so make it deliberately. Setting `Cache-Control: no-cache` when you meant `no-store`. And omitting `Vary` on a response that differs by `Accept`, `Accept-Language` or `Authorization`, so a shared cache serves one variant to everyone.
+    resources:
+      - kind: doc
+        title: "RFC 9110 — HTTP Semantics"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html"
+      - kind: doc
+        title: "RFC 9111 — HTTP Caching"
+        url: "https://www.rfc-editor.org/rfc/rfc9111.html"
+      - kind: doc
+        title: "MDN: HTTP request methods"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods"
+      - kind: doc
+        title: "MDN: HTTP response status codes"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status"
+      - kind: doc
+        title: "MDN: HTTP conditional requests"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests"
+      - kind: doc
+        title: "RFC 7396 — JSON Merge Patch"
+        url: "https://www.rfc-editor.org/rfc/rfc7396.html"
+      - kind: doc
+        title: "RFC 6902 — JavaScript Object Notation (JSON) Patch"
+        url: "https://www.rfc-editor.org/rfc/rfc6902.html"
+
+  - slug: api-design-design-first
+    name: "Design-First: The Contract Before the Code"
+    domain: architecture
+    est_hours: 7
+    difficulty: intermediate
+    prerequisites:
+      - api-design-learn-the-basics
+    summary: |-
+      Writing a machine-readable specification first, reviewing it before anything is built, and using it to generate clients, servers, mocks and tests so the contract cannot drift.
+    content_md: |-
+      The most expensive API mistakes are made in the first hour and discovered a year later, when changing them means breaking every consumer. Design-first exists because a specification is enormously cheaper to argue about than an implementation.
+
+      ### What a specification buys you
+
+      A machine-readable description — **OpenAPI** for HTTP APIs, a `.proto` for gRPC, an SDL for GraphQL, **AsyncAPI** for event-driven interfaces — turns the contract from prose into an artefact that tooling can act on. From one OpenAPI document you get reference documentation, client libraries in a dozen languages, server stubs, a mock server that returns valid example responses, request and response validation middleware, and — the underrated one — a **diff** between two versions that a pipeline can inspect and fail on when a change is breaking.
+
+      Underneath OpenAPI sits **JSON Schema**, which is where the actual precision lives: types, formats, required fields, enums, minimum and maximum, patterns, and composition. A schema that says `"type": "string"` describes almost nothing; one that says a string with `format: date-time`, or an integer between 1 and 100 with a default, is a contract a client can be generated against and a server can validate with.
+
+      ### The workflow
+
+      Write the specification. Review it with the people who will consume it — that review is the entire point, and it is where you discover that the mobile team needs two fields you were not planning to return, or that "status" means different things to two teams. Publish a mock server from the spec so client work starts in parallel with server work. Then implement, with the spec validated in tests so an endpoint cannot silently diverge from what it promises.
+
+      The alternative, **code-first**, generates the spec from annotations in the implementation. It is easier to keep in sync, because it is derived, and that is also its weakness: the document describes whatever the code does, including its accidents, so nobody ever reviews the design as a design. It works well for internal APIs with one consumer and poorly for anything public. A pragmatic middle path is to author the spec by hand for the public surface and generate it for internal endpoints.
+
+      ### Making the contract enforceable
+
+      A specification that lives beside the code but is not checked is a comment. Three mechanisms make it real: **validate responses against the schema in your test suite**, so a serialiser change that drops a field fails a test; **lint the spec in the pipeline** with a ruleset (Spectral and equivalents) so naming, error shapes and required documentation are consistent across dozens of endpoints written by dozens of people; and **diff the spec against the last released version** and fail the build on a breaking change unless a version bump accompanies it.
+
+      ### Design review questions worth asking
+
+      Is every operation's effect obvious from its method and path? What happens if this is called twice? What does a client do with each error? Which fields will realistically become optional, plural, or a different type later — and can we model that now? Is anything here an internal implementation detail we would be embarrassed to support for five years? And, most usefully: write the client code first, as pseudocode, and see whether the API is pleasant to call.
+
+      ### The mistakes people actually make
+
+      Treating the spec as a documentation chore written after shipping. Specifying only the happy path, so every error shape is improvised per endpoint. Generating clients from a spec nobody validates against the real responses. Modelling the database rows directly, which welds your schema to your storage. And skipping consumer review, which is the one step that catches design errors while they are still free.
+    resources:
+      - kind: doc
+        title: "OpenAPI Specification"
+        url: "https://spec.openapis.org/oas/latest.html"
+      - kind: doc
+        title: "OpenAPI Initiative: Learn OpenAPI"
+        url: "https://learn.openapis.org/"
+      - kind: doc
+        title: "JSON Schema: Getting started step by step"
+        url: "https://json-schema.org/learn/getting-started-step-by-step"
+      - kind: doc
+        title: "AsyncAPI Specification"
+        url: "https://www.asyncapi.com/docs/reference/specification/latest"
+      - kind: doc
+        title: "Spectral: OpenAPI and JSON Schema linting"
+        url: "https://docs.stoplight.io/docs/spectral/674b27b261c3c-overview"
+      - kind: doc
+        title: "Google Cloud API Design Guide"
+        url: "https://cloud.google.com/apis/design"
+      - kind: book
+        title: "The Design of Web APIs (Lauret)"
+        url: "https://www.manning.com/books/the-design-of-web-apis-second-edition"
+
+  - slug: api-design-different-api-styles
+    name: "Choosing a Style: REST, GraphQL, gRPC, Webhooks, Events"
+    domain: architecture
+    est_hours: 7
+    difficulty: intermediate
+    prerequisites:
+      - api-design-learn-the-basics
+    summary: |-
+      Matching the interface style to who calls it and how, instead of to what is currently fashionable — and recognising when the answer is more than one.
+    content_md: |-
+      Style is not a taste question. Each option makes a different set of things cheap and a different set expensive, and the right choice falls out of who your consumers are and what their traffic looks like.
+
+      ### REST over JSON
+
+      Resources at URLs, HTTP methods, JSON representations. Its dominance for public APIs is not inertia: every language has a client, every proxy and CDN understands it, HTTP caching works without any effort, it is debuggable with `curl` and readable in a network tab, and the learning cost for a new consumer is near zero. What it is bad at is bespoke data shapes — a client needing three related objects makes three calls, and a client needing two fields still receives forty.
+
+      ### GraphQL
+
+      A typed schema, one endpoint, and client-specified queries across related objects in a single round trip. The right fit when many heterogeneous clients — web, iOS, Android, partners — evolve faster than the backend can add endpoints for them, and when over-fetching on mobile is a real cost. Its costs are systematic rather than incidental. HTTP caching largely stops applying, so you replace it with persisted queries and application caching. Rate limiting by request count is meaningless when one request can be arbitrarily expensive, so you need query **cost analysis** and a **depth limit** — without them, a nested query is a denial-of-service primitive. Errors arrive as `200` with an `errors` array, so your monitoring must be taught to look inside the body. And resolvers produce N+1 database queries by construction unless batched.
+
+      ### gRPC
+
+      Protocol Buffers over HTTP/2 with generated code from a `.proto`. Compact, fast, strictly typed, with real bidirectional streaming. The default for internal, high-volume service-to-service traffic. Costs: not directly reachable from a browser without a proxy; binary payloads need tooling to inspect; and the schema evolution rules are strict — never reuse a field number, never change a field's type — which is a discipline, not a difficulty.
+
+      ### Webhooks
+
+      The style people forget to design and then bolt on badly. Instead of the consumer polling you, you `POST` to a URL they registered. This is the correct answer for events a partner needs promptly and cannot poll for efficiently — payment settled, job finished, document signed. It inverts the reliability problem: *you* are now a client of *their* possibly-unreliable endpoint, which means signed payloads, retries with backoff, a delivery log, and a replay mechanism are all part of the design.
+
+      ### Asynchronous and event streams
+
+      Publishing to a broker or an event stream that consumers subscribe to. Right when the producer should not know its consumers, when consumers need history and replay, or when volume is too high for per-event HTTP calls. Contracts still exist here — the message schema — and AsyncAPI is to events what OpenAPI is to HTTP.
+
+      ### Choosing, and combining
+
+      Public and third-party: REST, because ecosystem cost dominates. Rich first-party clients with a dedicated frontend team: GraphQL, often at a gateway in front of REST or gRPC services. Internal hot paths: gRPC. Partner notifications: webhooks. High-volume, many-consumer data flows: events. Mature platforms run several, and the mistake is not having several — it is having several with independently drifting definitions of the same concepts.
+
+      ### The mistakes people actually make
+
+      Adopting GraphQL for one first-party client, paying all its costs for none of its benefits. Calling `POST /doAction` REST and then wondering why caching and retries do not work. Exposing gRPC to browsers. Offering webhooks with no signature, no retry and no way to replay. And letting each style define "customer" differently, so integrating them becomes a translation project.
+    resources:
+      - kind: doc
+        title: "GraphQL: Learn"
+        url: "https://graphql.org/learn/"
+      - kind: doc
+        title: "GraphQL: Best practices"
+        url: "https://graphql.org/learn/best-practices/"
+      - kind: doc
+        title: "gRPC: Introduction"
+        url: "https://grpc.io/docs/what-is-grpc/introduction/"
+      - kind: doc
+        title: "Protocol Buffers: Proto3 language guide"
+        url: "https://protobuf.dev/programming-guides/proto3/"
+      - kind: doc
+        title: "AsyncAPI Specification"
+        url: "https://www.asyncapi.com/docs/reference/specification/latest"
+      - kind: doc
+        title: "Stripe: Webhooks"
+        url: "https://docs.stripe.com/webhooks"
+      - kind: article
+        title: "Roy Fielding: Architectural Styles (Chapter 5, REST)"
+        url: "https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm"
+
+  - slug: api-design-building-json-restful-apis
+    name: "Resource Modelling and URL Design"
+    domain: architecture
+    est_hours: 10
+    difficulty: intermediate
+    prerequisites:
+      - api-design-design-first
+    summary: |-
+      Turning a domain into resources, collections and relationships; designing URLs and JSON representations that stay coherent as the API grows to two hundred endpoints.
+    content_md: |-
+      This is where an API acquires the shape it will keep forever. The goal is a surface where a developer who has learned three endpoints can correctly guess the fourth.
+
+      ### Resources, not procedures
+
+      A resource is a *thing* your API is about — an order, a user, a subscription — identified by a URL, with representations you can read and write. Use plural nouns for collections and an identifier for a member: `/orders`, `/orders/{orderId}`. Nest only to express containment, and only one level: `/orders/{orderId}/items` is fine; `/customers/{c}/orders/{o}/items/{i}/discounts/{d}` is a URL nobody can construct and a coupling you will regret. If an item has its own identity, give it a top-level path too and let the nested path be a filtered view.
+
+      Use lowercase, hyphenated path segments, and keep identifiers opaque — an integer primary key in a public URL leaks your row count and invites enumeration; a UUID or a prefixed opaque id (`ord_9f3a...`) is better on both counts and lets a support engineer tell at a glance what an id refers to.
+
+      ### Actions that are not CRUD
+
+      Some operations genuinely are not create/read/update/delete: publish, cancel, refund, retry, send. Two honest options. Model the action as a **sub-resource you create** — `POST /orders/{id}/cancellations` — which gives the action its own identity, its own timestamp and its own audit trail, and is the better choice when the act is itself a business fact. Or use a **documented verb endpoint**, `POST /orders/{id}:cancel` or `/orders/{id}/cancel`, which is clearer for simple state transitions. What does not work is contorting everything into `PATCH {"status": "cancelled"}`, because then one endpoint implements six different operations with six different validation rules and permission checks.
+
+      ### The representation
+
+      Consistency beats cleverness. Pick one field-naming convention and never deviate. Pick one date format — RFC 3339 with an explicit offset, always, and store and return UTC unless a local time is semantically required. Represent money as a minor-unit integer plus a currency code, never a float. Use `null` to mean "known to be absent" and omit fields that are not applicable, but decide which and document it, because clients branch on the difference.
+
+      Return the full updated representation from `POST`, `PUT` and `PATCH` rather than `204`, so the client does not need a follow-up read. Wrap collections in a small envelope with room for pagination metadata rather than returning a bare array — a bare top-level array leaves you nowhere to add a cursor later, and historically was an XSS vector in browsers.
+
+      Expose relationships as identifiers plus, optionally, a way to expand them (`?expand=customer`) rather than embedding everything by default. Embedding by default is how a response grows to 400 KB and nobody can remove a field.
+
+      ### Hypermedia, realistically
+
+      Fielding's REST includes hypermedia: responses carry links telling the client what it can do next, so URLs are discoverable rather than hard-coded. In practice most successful APIs are level 2 on the Richardson maturity model — resources and proper methods, no hypermedia — because clients are generated from a spec and hardly ever follow links. Where links genuinely pay off is pagination (`next` and `prev` cursors), state transitions available on a resource, and long-running operations pointing at their status URL. Use them there and do not agonise about the rest.
+
+      ### The mistakes people actually make
+
+      Exposing the database schema as the API, so every internal refactor breaks clients. Designing around the first screen of the first client. Mixing naming conventions across teams. Deep nesting. Returning different shapes for the same entity from different endpoints. And putting sensitive values in the path, where they land in access logs, browser history and referrer headers.
+    resources:
+      - kind: doc
+        title: "Google Cloud API Design Guide: Resource-oriented design"
+        url: "https://cloud.google.com/apis/design/resources"
+      - kind: doc
+        title: "Zalando RESTful API and Event Guidelines"
+        url: "https://opensource.zalando.com/restful-api-guidelines/"
+      - kind: article
+        title: "Microsoft REST API Guidelines"
+        url: "https://github.com/microsoft/api-guidelines/blob/vNext/azure/Guidelines.md"
+      - kind: doc
+        title: "RFC 3339 — Date and Time on the Internet"
+        url: "https://www.rfc-editor.org/rfc/rfc3339.html"
+      - kind: doc
+        title: "JSON:API specification"
+        url: "https://jsonapi.org/format/"
+      - kind: doc
+        title: "Stripe API reference (a well-designed real API)"
+        url: "https://docs.stripe.com/api"
+      - kind: article
+        title: "Martin Fowler: Richardson Maturity Model"
+        url: "https://martinfowler.com/articles/richardsonMaturityModel.html"
+
+  - slug: api-design-handling-data-requests
+    name: "Requests That Scale: Filtering, Sorting, Pagination and Uploads"
+    domain: architecture
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - api-design-building-json-restful-apis
+    summary: |-
+      Getting data in and out at volume: why offset pagination breaks on page 500 and on a live list, how to design filters you can index, and how to accept a two-gigabyte file.
+    content_md: |-
+      An endpoint that returns ten records in development and a million in production is not the same endpoint. These are the design decisions that determine whether it survives.
+
+      ### Pagination: offset versus cursor
+
+      **Offset pagination** (`?page=3&per_page=50`, or `?limit&offset`) is the obvious design and has two failure modes that are not obvious. First, it is slow at depth: the database must produce and discard every row before the offset, so page 1,000 costs a thousand times page 1. Second, and worse, it is **unstable**: if a record is inserted or deleted while a client pages, records shift between pages, so the client silently skips or duplicates items. Anyone paging a live feed hits this immediately.
+
+      **Cursor (keyset) pagination** fixes both. Sort by a stable, unique, indexed ordering — typically `(created_at, id)`, with the id breaking ties — and instead of an offset, ask for rows after the last one seen: `WHERE (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT 50`. This uses the index directly, so page 1,000 costs the same as page 1, and inserts elsewhere in the list cannot shift the window. Expose the cursor as an **opaque string** — base64 of the encoded key — so you can change its internals later without breaking clients, and return it as a `next` link rather than expecting clients to construct one.
+
+      The trade is that you cannot jump to an arbitrary page number, which is exactly why user-facing search UIs sometimes keep offset paging with a hard cap on depth, while APIs meant for synchronising data use cursors. Also: do not return a total count by default. `COUNT(*)` over a large filtered set is often more expensive than the page itself; make it an opt-in parameter or an estimate.
+
+      ### Filtering and sorting you can actually serve
+
+      Every filter you accept is a query pattern you must be able to index. An unconstrained filter language — arbitrary fields, arbitrary operators, arbitrary combinations — is a promise to serve unbounded table scans on demand. Define the filterable fields explicitly, define the allowed operators, and validate against that list. The same applies to sorting: an allowlist of sortable fields, each backed by an index, and always with a unique tiebreaker so the order is deterministic (without one, two "identical" rows can swap between pages and reintroduce the instability you just fixed).
+
+      Design filters to be readable and unambiguous. `?status=active&created_after=2026-01-01` is easy to document and easy to index. Nested query-language-in-a-query-string schemes are easy to write and hard to secure, cache, log and support.
+
+      ### Partial responses and expansion
+
+      Two levers reduce payload size without new endpoints. **Sparse fieldsets** (`?fields=id,name,total`) let a client ask for less. **Expansion** (`?expand=customer,items`) lets it ask for more in one round trip instead of N+1 calls. Both need limits: cap the expansion depth and the number of expandable relations, or a single request becomes an arbitrary join.
+
+      ### Bulk operations
+
+      When clients need to create or update thousands of records, a per-record request is the wrong shape. Accept a batch, and then answer the hard question honestly: is the batch atomic, or per-item? Atomic is simpler to reason about and fails the whole batch for one bad row. Per-item needs a response that reports success and failure **per element**, with a stable index or client-supplied id so the caller knows which one failed — and the status code should reflect the mixed outcome (`207 Multi-Status`, or `200` with a documented per-item result structure). Cap the batch size explicitly.
+
+      ### Large payloads and uploads
+
+      Set an explicit maximum request size and return `413` rather than dying. For file uploads, streaming a multi-gigabyte body through your application is usually the wrong architecture: issue a **pre-signed URL** so the client uploads directly to object storage, then have the client tell you the resulting key. This removes the load, the timeout risk and the memory pressure from your service entirely. When you must accept multipart uploads, validate the declared content type against the actual bytes, cap the number of parts, and never trust the supplied filename as a path.
+
+      Conversely, for large responses, stream them (chunked, or newline-delimited JSON) rather than building a hundred-megabyte string in memory, or make the export an asynchronous job that returns a download link.
+
+      ### The mistakes people actually make
+
+      Offset paging a feed that changes. Returning an unbounded list with no default limit, so one client discovers it and takes the database down. Allowing sorting on an unindexed column. Returning a total count nobody uses. Forgetting a tiebreaker in the sort. And accepting a filter parameter that is interpolated into SQL, which is the oldest vulnerability in the profession.
+    resources:
+      - kind: doc
+        title: "Stripe API: Pagination"
+        url: "https://docs.stripe.com/api/pagination"
+      - kind: doc
+        title: "GitHub REST API: Using pagination"
+        url: "https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api"
+      - kind: article
+        title: "Use The Index, Luke! — Paging through results (keyset pagination)"
+        url: "https://use-the-index-luke.com/no-offset"
+      - kind: doc
+        title: "Google Cloud API Design Guide: Standard list methods"
+        url: "https://cloud.google.com/apis/design/standard_methods"
+      - kind: doc
+        title: "MDN: Range requests"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests"
+      - kind: doc
+        title: "Amazon S3: Presigned URLs"
+        url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html"
+      - kind: doc
+        title: "RFC 4918 — 207 Multi-Status"
+        url: "https://www.rfc-editor.org/rfc/rfc4918.html#section-11.1"
+
+  - slug: api-design-idempotency-and-consistency
+    name: "Idempotency, Retries and Optimistic Concurrency"
+    domain: architecture
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - api-design-handling-data-requests
+    summary: |-
+      The step that makes an API survive a bad client: idempotency keys for creates, conditional requests for updates, and a defined answer to "the client never found out whether it worked."
+    content_md: |-
+      Somewhere in the world, right now, a client of yours sent a request, the connection dropped before the response arrived, and it has no idea whether the charge went through. Everything in this concept exists for that moment. Roadmap-style syllabi rarely give it a chapter; in production it is the difference between an API that can be trusted with money and one that cannot.
+
+      ### The problem, precisely
+
+      A timeout is ambiguous. The request may never have arrived, may have arrived and failed, or may have succeeded with the response lost on the way back. The client cannot distinguish these, and the only two behaviours available to it are "retry" and "give up" — both of which are wrong some of the time unless *you* make retrying safe.
+
+      Assume your clients retry. They do, whether or not you told them to: HTTP libraries retry, service meshes retry, mobile networks re-send, and users press the button again.
+
+      ### Idempotency keys for creation
+
+      For non-idempotent operations — `POST /payments`, `POST /orders` — the standard mechanism is a client-generated key, sent in a header (`Idempotency-Key`, a UUID) and scoped to the API key or account.
+
+      The server-side algorithm matters, because the obvious implementation has a race. On receiving a request, atomically insert the key into a store with a "in progress" state; a unique constraint makes this the concurrency control. If the insert succeeds, you are the first: execute the operation and record the response status and body against the key, **in the same transaction as the operation itself** wherever possible, so you cannot end up having done the work without having recorded it. If the insert fails because the key exists, either the stored response is there — return it verbatim, with a header indicating it was a replay — or the first attempt is still in flight, in which case return `409` and let the client retry shortly. Concurrent duplicates must never both execute.
+
+      Two details people miss. **Fingerprint the request**: store a hash of the body alongside the key, and if the same key arrives with a *different* body, that is a client bug — return `422`, do not silently return the old result. And **expire keys** after a documented window, typically 24 hours, so the store does not grow forever; document the window, because after it a retry will genuinely execute again.
+
+      ### Optimistic concurrency for updates
+
+      The other lost-update scenario: two clients read a resource, both modify it, and the second write silently discards the first's change. HTTP already solves this. Return an `ETag` with the representation; require `If-Match` on updates; compare, and return **`412 Precondition Failed`** when the tag does not match, so the client knows to re-read and re-apply rather than believing it succeeded. A version number in the body works too, but the header is standard and works with intermediaries. `If-None-Match: *` on a `PUT` is the corresponding "create only if it does not exist".
+
+      This is far better than pessimistic locking over HTTP, which would require a stateful lock held across requests by a client that may never come back.
+
+      ### Making operations naturally idempotent
+
+      Best of all is designing so the question does not arise. `PUT` with a client-chosen id is idempotent by construction — let the client generate the UUID, and a retried create is simply the same write again. Setting an absolute value (`balance = 100`) is idempotent; applying a delta (`balance += 10`) is not. State transitions guarded by the current state ("cancel if status is pending, otherwise return the existing cancellation") are idempotent. Where an operation genuinely cannot be, say so in the documentation and provide the key mechanism.
+
+      ### Long-running operations
+
+      Related, and often muddled with this: when work takes longer than a request should, return `202 Accepted` with a `Location` pointing at an operation resource the client polls, and make *creating* that operation idempotent. Then a lost response costs a poll, not a duplicate job.
+
+      ### The mistakes people actually make
+
+      Deduplicating by hashing the request body, so two legitimately identical requests (a customer buying the same coffee twice) are collapsed into one. Storing the idempotency key after the operation instead of atomically with it. Returning a fresh `201` on the replay, so the client believes two resources exist. Scoping keys globally, so one tenant can collide with another. Documenting `ETag` support and then generating a new tag on every read because the payload includes a timestamp. And offering no mechanism at all, then telling integrators "just do not retry."
+    resources:
+      - kind: doc
+        title: "Stripe: Idempotent requests"
+        url: "https://docs.stripe.com/api/idempotent_requests"
+      - kind: article
+        title: "AWS Builders' Library: Making retries safe with idempotent APIs"
+        url: "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+      - kind: doc
+        title: "RFC 9110 §9.2.2 — Idempotent methods"
+        url: "https://www.rfc-editor.org/rfc/rfc9110.html#name-idempotent-methods"
+      - kind: doc
+        title: "MDN: ETag"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag"
+      - kind: doc
+        title: "MDN: If-Match"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match"
+      - kind: doc
+        title: "The Idempotency-Key HTTP Header Field (IETF draft)"
+        url: "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/"
+      - kind: doc
+        title: "Google Cloud API Design Guide: Long-running operations"
+        url: "https://google.aip.dev/151"
+
+  - slug: api-design-traffic-control-error-handling
+    name: "Errors, Rate Limits and Backpressure"
+    domain: architecture
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - api-design-idempotency-and-consistency
+    summary: |-
+      A single machine-readable error format, a rate-limiting scheme clients can cooperate with, and a defined behaviour when you are past capacity.
+    content_md: |-
+      Errors and limits are the parts of an API developers spend the most time with and designers spend the least time on. Getting them right is disproportionately visible.
+
+      ### One error format, everywhere
+
+      Every error response should have the same shape, so a client writes one handler instead of thirty. **RFC 9457, Problem Details for HTTP APIs** (which obsoletes RFC 7807) is the standard and worth adopting rather than inventing: `Content-Type: application/problem+json`, with `type` (a URI identifying the error class — the stable thing clients branch on), `title` (a short human summary), `status` (matching the HTTP status), `detail` (this occurrence), `instance`, and any extension members you need.
+
+      The important design point is that **the machine-readable discriminator must be stable and distinct from the human message.** Clients that parse `detail` will break the day you improve the wording. Give every error class a code, document them all in one place, and never reuse one for a different meaning.
+
+      For **validation errors**, one error object is not enough: return every failure at once, each naming the offending field with a pointer (a JSON Pointer, or a documented path form) and a machine code, so a form can highlight all six problems instead of revealing them one round trip at a time.
+
+      Two rules on content. Say what the client should *do*: "the `currency` field must be a three-letter ISO 4217 code" beats "invalid input". And never leak internals — stack traces, SQL fragments, hostnames, library versions — but do include a **request id** that also appears in your logs, so a support conversation takes one lookup instead of a search through everything.
+
+      ### Choosing the right status
+
+      The distinction that matters most to a client is **retryable versus not**. `4xx` means do not retry this request as-is (except `408`, `425` and `429`). `5xx` means it may be worth retrying. Getting this wrong is expensive in both directions: returning `500` for a validation failure invites clients to hammer you with a request that will never succeed, and returning `400` for a transient internal fault makes a recoverable blip look like a permanent client error.
+
+      ### Rate limiting
+
+      Three algorithms cover almost everything. A **fixed window** counts requests per calendar minute; simple, and it permits a double burst across the boundary. A **sliding window** smooths that at slightly more cost. A **token bucket** refills tokens at a steady rate up to a capacity, which is usually the best fit for an API because it allows a legitimate burst while bounding the sustained rate — and it is what most gateways implement.
+
+      What matters as much as the algorithm is **cooperating with the client**. Return `429 Too Many Requests` with `Retry-After`, and expose the client's budget continuously — the IETF `RateLimit` header fields (`RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, or the newer combined `RateLimit` field) let a well-behaved client pace itself rather than probing for the wall. Document the limits, the window, and what the key is: per API key, per user, per IP, or per tenant. Per-IP alone is wrong behind NAT and in corporate networks. Consider weighting expensive endpoints more heavily than cheap ones, and offering a separate, higher burst allowance.
+
+      Also decide the behaviour at your *own* limits, not just the client's: **quotas** (monthly volume) are a business construct and should fail differently from rate limits, usually with `403` and a clear billing-oriented error type.
+
+      ### Backpressure and overload
+
+      When the service itself is past capacity, the honest response is to shed load: `503 Service Unavailable` with `Retry-After`, returned quickly. This is counter-intuitive and correct — accepting everything and serving all of it slowly means every client times out and retries, which doubles the load you already could not handle. Fail fast, protect the requests you did accept, and prioritise: a payment confirmation matters more than an analytics ingest.
+
+      Publish, and enforce, **timeouts and deadlines**. Tell clients how long an endpoint may take so their own timeout is informed rather than guessed.
+
+      ### The mistakes people actually make
+
+      A different error shape per endpoint. `200` with an error inside. Human-readable messages as the only discriminator. Rate-limit headers on success but not on the `429`. No `Retry-After`, so every rate-limited client busy-loops. Rate limiting on IP for an API used by server-side integrations. And leaking whether a resource exists through the *error* while carefully hiding it in the success path.
+    resources:
+      - kind: doc
+        title: "RFC 9457 — Problem Details for HTTP APIs"
+        url: "https://www.rfc-editor.org/rfc/rfc9457.html"
+      - kind: doc
+        title: "RFC 6585 — Additional HTTP Status Codes (429)"
+        url: "https://www.rfc-editor.org/rfc/rfc6585.html"
+      - kind: doc
+        title: "RateLimit header fields for HTTP (IETF draft)"
+        url: "https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/"
+      - kind: doc
+        title: "GitHub REST API: Rate limits"
+        url: "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api"
+      - kind: article
+        title: "AWS Builders' Library: Using load shedding to avoid overload"
+        url: "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/"
+      - kind: doc
+        title: "MDN: Retry-After"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After"
+      - kind: doc
+        title: "Stripe: Rate limits"
+        url: "https://docs.stripe.com/rate-limits"
+
+  - slug: api-design-authentication-methods
+    name: "Proving Who the Caller Is"
+    domain: architecture
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - api-design-learn-the-basics
+    summary: |-
+      Sessions, bearer tokens, JWTs and mutual TLS — what each actually proves, where the token lives, and the revocation problem that decides between them.
+    content_md: |-
+      Authentication answers one question: which principal is making this request? Everything about the mechanism follows from two sub-questions — where does the credential live between requests, and how do you stop honouring it?
+
+      ### Sessions versus tokens
+
+      **Server-side sessions.** The server stores session state and gives the client an opaque identifier, usually in a cookie. Revocation is trivial (delete the row), the identifier carries no information, and updating a user's permissions takes effect on the next request. The cost is a lookup per request and shared session storage across instances. For browser-based first-party applications this remains an excellent default, and it is under-recommended relative to how well it works.
+
+      **Self-contained tokens.** The server issues a signed token containing claims; it validates the signature and trusts the contents without a lookup. This scales beautifully across services and has one fundamental drawback that no amount of engineering removes: **you cannot un-issue it**. A token valid for an hour is valid for an hour, even if the user was deleted five minutes ago, unless you add a revocation list — which reintroduces the lookup you were avoiding.
+
+      The resolution most systems land on: short-lived access tokens (minutes) plus a long-lived refresh token that is stored server-side and can be revoked. You get statelessness on the hot path and revocation within the access token's lifetime.
+
+      ### JWTs, carefully
+
+      A JWT is a header, a payload of claims, and a signature, base64url-encoded and dot-separated. Two facts about it cause most of the trouble. It is **signed, not encrypted** — anyone holding it can read the claims, so nothing secret goes inside. And its security depends entirely on **validating it correctly**, which means: verify the signature with a key you chose, never one the token names; pin the accepted algorithms explicitly, because accepting `none` or letting an attacker switch an RS256 verification to HS256 with the public key as the secret are both real, repeatedly-exploited bugs; check `exp` and `nbf`; and check `iss` and **`aud`** — the audience claim is what stops a token minted for service A from being replayed against service B.
+
+      Keep tokens small. They are sent on every request, and a JWT stuffed with fifty permission strings is a header size problem and a staleness problem at once.
+
+      ### Where the credential lives, in a browser
+
+      Two options, each with a distinct risk. A **cookie** with `HttpOnly`, `Secure` and `SameSite=Lax` or `Strict` is unreadable by injected script — which is a genuine protection against XSS token theft — but is sent automatically, so state-changing endpoints need CSRF protection. A token in **memory** and sent in an `Authorization` header is not automatically attached, so CSRF does not apply, but any successful XSS can read and exfiltrate it. Storing tokens in `localStorage` is the common choice and the weakest, because it survives page loads and is trivially readable by any script. There is no option with no downside; pick knowingly and mitigate the corresponding risk.
+
+      ### Machine callers
+
+      For service-to-service traffic, **mutual TLS** authenticates both ends with certificates at the transport layer, is very strong, and brings certificate lifecycle management with it — which is why service meshes exist to automate it. For simpler cases, API keys and OAuth client credentials cover most needs; both get their own steps in this track.
+
+      ### Practical rules
+
+      Always use `Authorization: Bearer <token>` rather than a custom header or a query parameter — a token in a URL ends up in access logs, browser history, referrer headers and error reports. Return `401` with a `WWW-Authenticate` header when authentication is missing or invalid, and `403` when it is valid but insufficient. Rate-limit and monitor authentication endpoints specifically; they are where credential stuffing happens. And never let an error message distinguish "no such user" from "wrong password".
+
+      ### The mistakes people actually make
+
+      Writing JWT validation by hand. Trusting the `alg` header. Skipping `aud`. Issuing access tokens valid for a year because refresh was inconvenient. Putting the token in a query string "just for the websocket". And building a bespoke authentication scheme when a well-reviewed library and a standard flow were available.
+    resources:
+      - kind: doc
+        title: "RFC 7519 — JSON Web Token (JWT)"
+        url: "https://www.rfc-editor.org/rfc/rfc7519.html"
+      - kind: doc
+        title: "RFC 8725 — JSON Web Token Best Current Practices"
+        url: "https://www.rfc-editor.org/rfc/rfc8725.html"
+      - kind: doc
+        title: "RFC 6750 — OAuth 2.0 Bearer Token Usage"
+        url: "https://www.rfc-editor.org/rfc/rfc6750.html"
+      - kind: article
+        title: "OWASP Cheat Sheet: Session Management"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+      - kind: article
+        title: "OWASP Cheat Sheet: Authentication"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+      - kind: doc
+        title: "MDN: The Authorization header"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization"
+      - kind: doc
+        title: "RFC 8705 — OAuth 2.0 Mutual-TLS Client Authentication"
+        url: "https://www.rfc-editor.org/rfc/rfc8705.html"
+
+  - slug: api-design-authorization-methods
+    name: "Deciding What the Caller May Do"
+    domain: architecture
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - api-design-authentication-methods
+    summary: |-
+      RBAC, ABAC and relationship-based models, why scopes are not permissions, and object-level authorization — the vulnerability class that tops the OWASP API list year after year.
+    content_md: |-
+      Authentication is largely a solved problem you can buy. Authorization is not, because it encodes your business rules, and it is where APIs are most often broken.
+
+      ### The models
+
+      **RBAC** assigns permissions to roles and roles to users. Simple, auditable, and it degrades in a predictable way: as requirements grow you get `admin`, `admin_readonly`, `regional_admin_emea`, and eventually a role per user, at which point roles have stopped meaning anything.
+
+      **ABAC** evaluates a policy over attributes of the subject, the resource, the action and the environment — "a manager may approve an expense under 5,000 in their own department during business hours." Far more expressive, and correspondingly harder to reason about, test and explain to a user asking why they were denied.
+
+      **ReBAC** decides based on relationships in a graph — "you may edit this document because you are an editor of a folder that contains it" — which is the natural model for collaborative products and for anything with inheritance and sharing. Google's Zanzibar paper is the reference design, and there are open implementations of it.
+
+      Most systems end up hybrid: roles for coarse capability, attributes or relationships for the fine-grained decisions. That is fine. What is not fine is having the rules scattered across two hundred handlers.
+
+      ### Scopes are not permissions
+
+      An OAuth **scope** describes what a *client application* was authorised to do on the user's behalf — `invoices:read`. It does not describe what the user themselves may do. A token with `invoices:read` must still not read another tenant's invoices. Checking the scope and stopping there is one of the most common and most severe API bugs, because it looks like an authorization check and is only half of one. Always evaluate both: does this client have permission for this operation, *and* does this principal have permission for this specific object?
+
+      ### Object-level authorization
+
+      **Broken Object Level Authorization (BOLA)** — changing `/orders/1001` to `/orders/1002` and getting someone else's data — has been the number one entry on the OWASP API Security Top 10 across editions, because it is trivial to exploit and invisible in testing that only ever uses one account. Its sibling, **Broken Function Level Authorization (BFLA)**, is calling an admin endpoint as a normal user because the check lived in the UI.
+
+      Two structural defences beat vigilance. First, **enforce at the data-access layer, not the handler**: make the query itself scoped — `WHERE tenant_id = :current_tenant` — so that forgetting the check yields no rows rather than someone else's rows. In multi-tenant systems this is the single highest-value pattern, and row-level security in the database is the strongest version of it. Second, make the safe thing the default: a framework where an endpoint without an explicit policy is denied catches the omission that a code reviewer will not.
+
+      Related, and equally common: **mass assignment**, where binding a request body straight onto a model lets a caller set `role` or `is_admin`. Bind to an explicit input schema, never to the entity.
+
+      ### Centralise the decision, distribute the enforcement
+
+      Write the rules in one place — a policy module, or a dedicated engine such as OPA or a Zanzibar-style service — and call it from everywhere. This makes the rules reviewable, testable in isolation, and changeable without touching handlers. Test them as a **matrix**: for each role and each endpoint, assert both the allowed and the denied case. The denied cases are the ones nobody writes and the ones that matter.
+
+      Decide deliberately whether a denial is `403` or `404`. `403` is honest; `404` hides existence, which matters when the identifier itself is sensitive. Either is defensible; being inconsistent is not, because the difference becomes an enumeration oracle.
+
+      ### The mistakes people actually make
+
+      Checking permission on the id in the path but not on the ids in the body. Trusting a tenant id supplied by the client instead of deriving it from the token. Filtering results in the client. Letting an internal service call skip authorization entirely because "it is on the private network". And auditing nothing, so after a breach nobody can say what was accessed.
+    resources:
+      - kind: doc
+        title: "OWASP API Security Top 10 — API1: Broken Object Level Authorization"
+        url: "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      - kind: article
+        title: "OWASP Cheat Sheet: Authorization"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+      - kind: article
+        title: "Google: Zanzibar — Consistent, Global Authorization System"
+        url: "https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/"
+      - kind: doc
+        title: "NIST: Attribute Based Access Control (SP 800-162)"
+        url: "https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-162.pdf"
+      - kind: doc
+        title: "Open Policy Agent documentation"
+        url: "https://www.openpolicyagent.org/docs/latest/"
+      - kind: doc
+        title: "PostgreSQL: Row Security Policies"
+        url: "https://www.postgresql.org/docs/current/ddl-rowsecurity.html"
+      - kind: doc
+        title: "OWASP API Security Top 10 — API5: Broken Function Level Authorization"
+        url: "https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/"
+
+  - slug: api-design-api-authentication-and-authorization
+    name: "OAuth 2.0 and OpenID Connect in Practice"
+    domain: architecture
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - api-design-authorization-methods
+    summary: |-
+      Delegated access done properly: the authorization code flow with PKCE, client credentials, refresh token rotation, and the flows the current best-practice guidance tells you to stop using.
+    content_md: |-
+      OAuth 2.0 is a **delegation** framework: it lets a user grant a third-party application limited access to their data on another service without handing over their password. OpenID Connect is a thin identity layer on top, which is what turns "this app may read your calendar" into "sign in with…". Confusing the two is the most common conceptual error in this area: OAuth authorises an application; OIDC tells you who the user is.
+
+      ### The cast
+
+      The **resource owner** is the user. The **client** is the application asking for access. The **authorization server** authenticates the user and issues tokens. The **resource server** is your API, which validates them. Clients are either **confidential** (a server that can keep a secret) or **public** (a browser app or a mobile app, which cannot — anything shipped to a device is not a secret).
+
+      ### The flows that are current
+
+      **Authorization code with PKCE.** The one flow you should reach for in almost every user-facing case. The client redirects the user to the authorization server with a `code_challenge` (the hash of a random `code_verifier` it just generated). The user authenticates and consents. The authorization server redirects back with a short-lived **code**. The client exchanges the code — presenting the original `code_verifier` — for tokens, over a back channel. PKCE (RFC 7636) exists because on a mobile or browser client an attacker who intercepts the redirect could otherwise redeem the code; without the verifier, the stolen code is useless. Originally a mobile mitigation, **PKCE is now recommended for all clients, confidential ones included**.
+
+      **Client credentials.** No user involved: a service authenticates as itself and receives a token. The right flow for machine-to-machine access, and the one people reach for when they should be using an API key or vice versa — the distinction is that client credentials give you a short-lived token, standard introspection and centralised revocation, at the cost of an extra round trip.
+
+      **Device authorization grant** (RFC 8628) for input-constrained devices: the TV shows a code, you type it on your phone.
+
+      ### The flows that are not
+
+      The **implicit** flow returned tokens directly in the URL fragment, where they landed in browser history and referrers; it is deprecated. The **resource owner password credentials** grant had the user type their password into the third-party app, defeating the entire purpose of OAuth; also deprecated. Both are removed in OAuth 2.1 and discouraged by RFC 9700, the OAuth 2.0 Security Best Current Practice. If a tutorial shows you either, it is out of date.
+
+      ### Tokens in practice
+
+      Access tokens should be short-lived. **Refresh tokens** trade longevity for revocability, and for public clients they must be **rotated**: each use issues a new refresh token and invalidates the old, so a stolen token is detectable — if the old one is presented again, the family is compromised and the authorization server revokes all of them.
+
+      As a resource server, validate what arrives. If tokens are JWTs, fetch the authorization server's signing keys from its JWKS endpoint, cache them, honour key rotation, and check `iss`, `aud`, `exp` and the scopes. If they are opaque, call the **introspection** endpoint (RFC 7662) and cache the result briefly. Either way, the `aud` check is not optional — it is what prevents a token issued for one API being replayed against another.
+
+      Redirect URI handling is where implementations get breached: register them exactly, match exactly (no wildcards, no prefix matching), and always use the `state` parameter — or the OIDC `nonce` — to bind the response to the request and defeat CSRF on the callback.
+
+      ### The mistakes people actually make
+
+      Implementing an authorization server yourself instead of using a reviewed one. Treating an OIDC **ID token** as an API access token — it is proof of authentication for the client, not a credential for your API. Long-lived access tokens with no revocation path. Loose redirect URI matching. Skipping `state`. And equating scopes with permissions, which the previous step covered and which OAuth's design makes tempting.
+    resources:
+      - kind: doc
+        title: "RFC 6749 — The OAuth 2.0 Authorization Framework"
+        url: "https://www.rfc-editor.org/rfc/rfc6749.html"
+      - kind: doc
+        title: "RFC 9700 — Best Current Practice for OAuth 2.0 Security"
+        url: "https://www.rfc-editor.org/rfc/rfc9700.html"
+      - kind: doc
+        title: "RFC 7636 — Proof Key for Code Exchange (PKCE)"
+        url: "https://www.rfc-editor.org/rfc/rfc7636.html"
+      - kind: doc
+        title: "OpenID Connect Core 1.0"
+        url: "https://openid.net/specs/openid-connect-core-1_0.html"
+      - kind: doc
+        title: "RFC 8628 — OAuth 2.0 Device Authorization Grant"
+        url: "https://www.rfc-editor.org/rfc/rfc8628.html"
+      - kind: doc
+        title: "RFC 7662 — OAuth 2.0 Token Introspection"
+        url: "https://www.rfc-editor.org/rfc/rfc7662.html"
+      - kind: article
+        title: "oauth.net — OAuth 2.0 overview and specifications"
+        url: "https://oauth.net/2/"
+
+  - slug: api-design-api-keys-management
+    name: "API Keys, Secrets and Machine Clients"
+    domain: architecture
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - api-design-api-authentication-and-authorization
+    summary: |-
+      Issuing credentials to programs: storing keys so a database leak is survivable, scoping and rotating them without downtime, and signing requests when a bearer credential is not enough.
+    content_md: |-
+      An API key is the simplest credential there is — a long random string that identifies a caller — and its simplicity is exactly why it is used badly. Designing the key lifecycle well is a small amount of work that removes a large category of incident.
+
+      ### Key or token?
+
+      An API key is long-lived, opaque, and presented directly; a token is short-lived and obtained through a flow. Keys win on developer experience for server-to-server integrations — one value in an environment variable and you are done — and lose on revocation latency, because a leaked key works until someone notices. Offer keys for straightforward integrations and OAuth client credentials where you need centralised, auditable, short-lived access. Never accept a key from a browser: anything in client-side code is public.
+
+      ### Generate and store them properly
+
+      Generate from a cryptographically secure random source with enough entropy — 128 bits and up, encoded as URL-safe base64 or hex — never from a UUIDv1, a timestamp, or a counter.
+
+      **Store only a hash.** A key is a credential, so your database should hold a digest, not the value. Unlike passwords, keys are high-entropy random values, so a slow memory-hard function is unnecessary — a fast SHA-256 of the key is appropriate, and it must be looked up in constant time relative to attacker-controlled input, which in practice means indexing on the hash rather than scanning and comparing. Show the plaintext exactly once, at creation.
+
+      **Prefix and label them.** A key that looks like `sk_live_9f3a…` carries three useful facts: what kind of credential it is, which environment, and enough of a distinctive prefix that secret-scanning tools — the ones that watch public repositories and alert vendors — can recognise it. Publishing your prefix pattern to those scanning services is a genuinely high-return half-day of work. Store a last-four suffix so a user can identify a key in a list without you retaining the secret.
+
+      ### Scope, rotate, observe
+
+      Scope every key to the least it needs: specific permissions, specific environment, optionally specific source IP ranges, and its own rate limit and quota. A single all-powerful key is the credential that turns a minor leak into a full compromise.
+
+      Rotation must be possible **without downtime**, which means supporting more than one active key per account: the customer creates a second key, deploys it, confirms traffic has moved — which requires you to record last-used timestamps — and then revokes the first. An API that allows only one key forces every rotation to be an outage, so nobody rotates. Support expiry dates, and warn before they arrive.
+
+      Record last-used-at and last-used-from for every key. It is what makes "this key has not been used in nine months" and "this key is suddenly being used from a new country" answerable.
+
+      ### When a bearer credential is not enough
+
+      A bearer key proves possession and nothing more, so anyone who captures it can replay the request. Where that matters, **sign the request**: an HMAC over the method, path, timestamp and body, sent alongside a key identifier. The server recomputes it, compares in constant time, and rejects timestamps outside a small window to prevent replay. This is what webhook signatures do in the other direction, and it is why a webhook receiver must verify over the **raw body** — re-serialising the parsed JSON changes the bytes and the signature will never match.
+
+      ### The mistakes people actually make
+
+      Storing keys in plaintext. Emailing them. Accepting them in a query parameter, so they land in every access log and proxy along the way. One key per account with no rotation path. No expiry, no last-used data, no revocation UI. Using the same key in test and production. And treating a webhook signing secret casually — it is the only thing standing between your endpoint and forged events.
+    resources:
+      - kind: article
+        title: "OWASP Cheat Sheet: Secrets Management"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+      - kind: doc
+        title: "RFC 2104 — HMAC: Keyed-Hashing for Message Authentication"
+        url: "https://www.rfc-editor.org/rfc/rfc2104.html"
+      - kind: doc
+        title: "GitHub: Secret scanning partner program"
+        url: "https://docs.github.com/en/code-security/secret-scanning/secret-scanning-partnership-program/secret-scanning-partner-program"
+      - kind: doc
+        title: "Stripe: API keys"
+        url: "https://docs.stripe.com/keys"
+      - kind: doc
+        title: "Stripe: Verifying webhook signatures"
+        url: "https://docs.stripe.com/webhooks#verify-official-libraries"
+      - kind: doc
+        title: "AWS Signature Version 4 signing process"
+        url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv.html"
+      - kind: doc
+        title: "OWASP API Security Top 10 — API2: Broken Authentication"
+        url: "https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/"
+
+  - slug: api-design-api-security
+    name: "The API Attack Surface"
+    domain: architecture
+    est_hours: 9
+    difficulty: advanced
+    prerequisites:
+      - api-design-authorization-methods
+      - api-design-traffic-control-error-handling
+    summary: |-
+      The vulnerability classes that are specific to APIs rather than to web pages, and the design-level defences — input allowlists, output schemas, egress control — that remove whole categories at once.
+    content_md: |-
+      APIs fail differently from web applications. There is no browser to enforce anything, the endpoints are enumerable, the data is structured and machine-consumable, and the attacker has as much time as they want. The OWASP API Security Top 10 exists precisely because the classic web top ten misses most of it.
+
+      ### The characteristic API vulnerabilities
+
+      **Broken object and function level authorization** lead the list and were covered in the authorization step; they remain the highest-frequency, highest-impact class.
+
+      **Excessive data exposure.** Returning the whole entity and expecting the client to display a subset. The client's UI is not a security boundary — the JSON is right there. Serialise through an explicit output schema listing the fields to return, so adding a `password_reset_token` column to a table cannot silently publish it.
+
+      **Mass assignment.** The write-side mirror: binding a request body onto an entity so a caller can set fields you never intended, such as `role`, `is_verified` or `account_balance`. Bind to an explicit input model.
+
+      **Unrestricted resource consumption.** No limits on page size, batch size, file size, expansion depth, query complexity or request rate, so a single caller can consume everything. This is why the rate-limiting step is a prerequisite here: limits are a security control, not merely an operational one.
+
+      **Unsafe consumption of third-party data and SSRF.** Any endpoint that takes a URL and fetches it — a webhook registration, an avatar import, a document converter — can be pointed at `169.254.169.254`, at `localhost`, or at an internal service. **Server-Side Request Forgery** is devastating in cloud environments because the metadata service hands out credentials. Defend with an allowlist of schemes and hosts, DNS resolution checks that reject private and link-local ranges (re-checked after redirects, to defeat DNS rebinding), disabled redirects, and egress firewall rules. Never with a denylist of strings.
+
+      **Injection**, still. Parameterised queries for SQL, and the same discipline for NoSQL operators, LDAP filters, XPath, shell commands and template engines. Never build a query by concatenation, including in "just an internal admin endpoint."
+
+      **Business logic abuse.** Not a technical flaw at all: a coupon endpoint that can be called ten thousand times, a signup flow that can be automated, a price that can be sent by the client. Automated scanners cannot find these; only thinking adversarially about your own domain will.
+
+      ### Design-level defences
+
+      **Validate input against a schema at the edge** — types, formats, ranges, enums, maximum lengths, `additionalProperties: false` — and reject anything unexpected. Rejecting unknown fields is a small decision with a large payoff, because it neutralises mass assignment generically. The same schema you wrote in the design-first step does this work.
+
+      **TLS everywhere**, including internally, with HSTS on public endpoints and modern protocol versions. Reject plaintext rather than redirecting an API request.
+
+      **CORS is not a security control for your data** — it protects browser users from cross-origin reads, and it is trivially irrelevant to a non-browser client. Configure it narrowly anyway: an explicit origin allowlist, never a reflected `Origin` and never `*` together with credentials.
+
+      **Do not leak through side channels.** Error messages that distinguish "no such user" from "wrong password", response timing that differs for existing and non-existing records, and sequential integer ids that reveal volume are all information disclosure.
+
+      **Log security-relevant events** — authentication outcomes, authorization denials, key creation and revocation, permission changes — with enough detail to reconstruct an incident, and without secrets or personal data in the log line.
+
+      ### Keep an inventory
+
+      A large share of real breaches involve an endpoint nobody remembered: an old version left running, a staging host reachable from the internet, a debug route, an undocumented internal API. Generate the inventory from the specification, scan for hosts that serve endpoints not in it, and shut down what you cannot account for.
+
+      ### The mistakes people actually make
+
+      Relying on the client to enforce anything. Assuming an internal network is trusted. Turning on a permissive CORS policy to fix a browser error. Leaving GraphQL introspection and unlimited query depth enabled in production. Trusting `X-Forwarded-For` unvalidated and defeating your own rate limiter. And treating a penetration test as the security programme rather than a check on it.
+    resources:
+      - kind: doc
+        title: "OWASP API Security Top 10 (2023)"
+        url: "https://owasp.org/API-Security/editions/2023/en/0x11-t10/"
+      - kind: article
+        title: "OWASP Cheat Sheet: REST Security"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
+      - kind: article
+        title: "OWASP Cheat Sheet: Server Side Request Forgery Prevention"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+      - kind: article
+        title: "OWASP Cheat Sheet: Input Validation"
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"
+      - kind: doc
+        title: "MDN: Cross-Origin Resource Sharing (CORS)"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
+      - kind: doc
+        title: "OWASP Application Security Verification Standard"
+        url: "https://owasp.org/www-project-application-security-verification-standard/"
+      - kind: doc
+        title: "RFC 6797 — HTTP Strict Transport Security"
+        url: "https://www.rfc-editor.org/rfc/rfc6797.html"
+
+  - slug: api-design-standards-and-compliance
+    name: "Standards, Conventions and Regulatory Constraints"
+    domain: architecture
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - api-design-api-security
+    summary: |-
+      Reusing the formats and specifications that already exist instead of inventing worse ones, and the legal constraints — data protection, retention, auditability — that shape an API's design rather than being bolted on.
+    content_md: |-
+      Two different kinds of "standard" matter to an API designer, and both save you from decisions you do not want to be making alone.
+
+      ### Reuse the specifications
+
+      Almost every recurring API problem has a published answer, and adopting it means clients already have libraries for it. Dates and times: **RFC 3339** with an explicit offset — never a locale-dependent format, never a bare "2026-03-07 14:00" of ambiguous zone. Durations and repeating intervals: ISO 8601. Currency: **ISO 4217** codes with amounts as minor-unit integers. Countries and languages: **ISO 3166** and **BCP 47**. Errors: **RFC 9457** problem details. Deprecation and retirement signalling: the `Deprecation` header (RFC 9745) and `Sunset` (RFC 8594). Well-known discovery paths: **RFC 8615**. Pagination and rate-limit headers: the IETF HTTP API drafts. Health checks have a draft too, and even where a specification is not final, following it costs nothing and gives future clients something familiar.
+
+      Above the wire format sit **house style guides**. Google's API Improvement Proposals, Microsoft's and Zalando's published guidelines are all worth reading not to copy wholesale but because each documents a decision you will otherwise make ad hoc two hundred times. Writing your own short guideline — naming, casing, error shape, pagination, versioning, date handling — and enforcing it with a spec linter is what keeps an API designed by thirty people from feeling like thirty APIs.
+
+      ### Compliance is a design input
+
+      Regulation shapes the contract, and retrofitting it is expensive.
+
+      **Data minimisation.** Under GDPR-style regimes, collecting and returning only what is necessary is a legal requirement as well as a security one. An endpoint that returns a whole user record because it was convenient is a compliance liability. This is the same discipline as avoiding excessive data exposure, arriving from a different direction.
+
+      **The data subject's rights** must be implementable. Access, portability (an export in a machine-readable format), rectification and **erasure** all need to be possible — which has architectural consequences, because "delete this user" must reach caches, search indexes, event streams with long retention, analytics warehouses and backups. Designing a deletion path late is one of the hardest retrofits there is; deciding early that identifiers are separable from personal data, and that events carry references rather than embedded personal data, makes it tractable.
+
+      **Consent and purpose limitation** may need to be visible in the API: which purposes this data may be used for, and a way to record and revoke agreement.
+
+      **Data residency.** Some data may not leave a jurisdiction, which affects routing, replication and where your logs go — logs contain personal data more often than teams assume.
+
+      **Sector rules.** PCI DSS if card data touches your systems, which is the strongest possible argument for never letting it: use a payment provider's tokenisation so your API handles a token and stays out of scope. HIPAA for health data, with its own audit and encryption requirements. SOC 2 and ISO 27001 are not laws but are contractual gates for selling to businesses, and they mostly ask for evidence of things you should be doing: access control, change management, logging, incident response.
+
+      **Audit trails.** For anything regulated, "who accessed what, when, and on whose authority" must be reconstructable, which means an append-only audit log designed in, not derived from application logs later.
+
+      ### Accessibility and internationalisation
+
+      An API is consumed by developers, and the developer experience has its own standards: documentation that is readable without JavaScript, examples that work by copy and paste, and error messages in a language you can localise. If your product serves multiple locales, decide early whether the API returns localised strings (and honours `Accept-Language`) or returns codes and lets the client localise. The second is almost always right, and almost always decided too late.
+
+      ### The mistakes people actually make
+
+      Inventing a date format. Returning localised error text as the only error identifier. Treating compliance as the legal team's problem until an enterprise deal requires an answer in a week. Building deletion as a soft-delete flag and discovering it does not satisfy erasure. And logging personal data everywhere, so the audit surface is the entire logging pipeline.
+    resources:
+      - kind: doc
+        title: "RFC 3339 — Date and Time on the Internet: Timestamps"
+        url: "https://www.rfc-editor.org/rfc/rfc3339.html"
+      - kind: doc
+        title: "RFC 8594 — The Sunset HTTP Header Field"
+        url: "https://www.rfc-editor.org/rfc/rfc8594.html"
+      - kind: doc
+        title: "RFC 8615 — Well-Known Uniform Resource Identifiers"
+        url: "https://www.rfc-editor.org/rfc/rfc8615.html"
+      - kind: doc
+        title: "Google AIP — API Improvement Proposals"
+        url: "https://google.aip.dev/"
+      - kind: doc
+        title: "Zalando RESTful API and Event Guidelines"
+        url: "https://opensource.zalando.com/restful-api-guidelines/"
+      - kind: doc
+        title: "GDPR: Full regulation text (EUR-Lex)"
+        url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+      - kind: doc
+        title: "PCI Security Standards Council: Document library"
+        url: "https://www.pcisecuritystandards.org/document_library/"
+
+  - slug: api-design-api-documentation-tools
+    name: "Documentation People Actually Use"
+    domain: architecture
+    est_hours: 6
+    difficulty: beginner
+    prerequisites:
+      - api-design-design-first
+    summary: |-
+      Reference, guides and examples as three different jobs; generating what should be generated and writing what cannot be; and keeping all of it from drifting away from the implementation.
+    content_md: |-
+      Documentation is the product surface of an API. A developer's entire experience of your engineering is mediated through it, and the difference between good and bad documentation is measured in support tickets and abandoned integrations.
+
+      ### Four kinds of content, doing four different jobs
+
+      **A getting-started path** that takes a new developer from nothing to a successful authenticated call in a few minutes. This single page determines whether an evaluation continues. It should be copy-pasteable, use a test key they can obtain immediately, and show a real response. Everything else can be imperfect if this is good.
+
+      **Reference** — every endpoint, parameter, field, type, constraint and error. This should be **generated** from your specification, because hand-maintained reference documentation is wrong within a month. Renderers like Redoc, Swagger UI, Scalar and the various docs platforms all take an OpenAPI document; the choice matters far less than the document's quality.
+
+      **Guides and how-tos** for tasks that span endpoints: how to run a checkout, how to handle a webhook, how to paginate a large export, how to migrate from v1. These cannot be generated, because they encode intent, and they are what most developers actually read.
+
+      **Explanations** of concepts and models — what an "account" is in your domain, how idempotency works here, what the rate-limit tiers mean. Skipping these forces every integrator to reverse-engineer your mental model from field names.
+
+      Keeping these separate is itself a technique; the common failure is a reference page carrying a paragraph of tutorial and neither working.
+
+      ### The things that make documentation trusted
+
+      **Real examples, for every endpoint, including errors.** A request and a response with realistic values. Most developers read examples first and prose only when the example fails. Generate the examples from your test fixtures where you can, so they cannot be wrong.
+
+      **A complete error catalogue.** Every error code, what causes it, and what the client should do. This is the most-requested and least-written page in API documentation.
+
+      **A changelog**, with dates, and a stated policy for what counts as a breaking change. It is what lets an integrator decide whether to read a release note or ignore it.
+
+      **Something interactive.** A "try it" console backed by a sandbox, or at minimum a `curl` command per endpoint. Removing the gap between reading and running dramatically improves conversion.
+
+      ### Keeping it honest
+
+      Treat docs as code: in version control, reviewed with the change that motivates them, and built in CI. Two automated checks are worth more than any amount of discipline. **Validate the examples** — parse them against the schema, and ideally execute them against a test environment, so an example that has drifted fails a build. And **fail the pipeline when the spec changes without a corresponding changelog entry**.
+
+      Finally, measure. Search queries that return nothing, the pages people leave from, and the questions in your support channel are all direct evidence of missing documentation. Every repeated support question is a page you have not written.
+
+      ### The mistakes people actually make
+
+      Publishing a bare Swagger UI and calling it documentation — it lists endpoints without ever explaining what the API is for. Examples with placeholder values that do not work. No error documentation. Documentation for the current version only, with no history for the people still on the old one. Documentation in a wiki nobody can review. And a getting-started guide that requires an approved account, a signed agreement and a sales call before the first request.
+    resources:
+      - kind: doc
+        title: "OpenAPI Initiative: Learn OpenAPI"
+        url: "https://learn.openapis.org/"
+      - kind: article
+        title: "Diátaxis — a systematic framework for technical documentation"
+        url: "https://diataxis.fr/"
+      - kind: doc
+        title: "Redoc — OpenAPI reference renderer"
+        url: "https://github.com/Redocly/redoc"
+      - kind: doc
+        title: "Swagger UI documentation"
+        url: "https://swagger.io/tools/swagger-ui/"
+      - kind: doc
+        title: "Google developer documentation style guide"
+        url: "https://developers.google.com/style"
+      - kind: doc
+        title: "Stripe API reference (a documentation benchmark)"
+        url: "https://docs.stripe.com/api"
+      - kind: doc
+        title: "Write the Docs: Documentation guide"
+        url: "https://www.writethedocs.org/guide/"
+
+  - slug: api-design-api-testing
+    name: "Testing an API: Contract, Behaviour and Abuse"
+    domain: architecture
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - api-design-traffic-control-error-handling
+      - api-design-api-documentation-tools
+    summary: |-
+      Proving the implementation matches the contract, that the error and auth paths behave, and that a hostile or merely careless client cannot break it — plus contract tests so a change does not break consumers you cannot see.
+    content_md: |-
+      Testing an API has one requirement ordinary unit testing does not: the thing under test is a **promise to other people**, so the suite must verify the promise, not merely the code.
+
+      ### Validate responses against the schema
+
+      The highest-value, lowest-effort test in this whole concept: in your integration tests, assert every response validates against the OpenAPI schema for that operation. This catches a serialiser dropping a field, a type changing from integer to string, a null appearing where the schema says it cannot, and a new endpoint that was never specified. It costs one assertion helper and it makes the specification true rather than aspirational.
+
+      Run it in both directions: also validate that your server **rejects** requests the schema forbids. An endpoint that quietly accepts an unknown field is an endpoint whose contract is wider than documented, and someone will come to depend on it.
+
+      ### Test the paths nobody writes tests for
+
+      Happy-path tests are the ones that get written; the failures live elsewhere. Cover, deliberately: **validation** (missing required field, wrong type, out-of-range, empty string, oversized string, unexpected field, malformed JSON, wrong content type); **authentication** (no token, expired token, malformed token, token for a different audience); **authorization** as a **matrix** — for each role and each endpoint, assert the allowed *and* the denied case, and specifically assert that user A cannot read user B's object, which is the automated test for the top OWASP API vulnerability; **idempotency** (send the same request twice with the same key, assert one effect and identical responses); **concurrency** (two conflicting updates, assert the second gets `412`); **pagination** (walk a full cursor sequence, insert a record mid-walk, assert nothing is skipped or repeated); and **rate limiting** (assert the `429`, the `Retry-After`, and the headers).
+
+      ### Contract testing
+
+      Your tests prove your API does what your spec says. They cannot prove your **consumers** still work — you do not run their code. Consumer-driven contract testing closes this: each consumer publishes the subset of your API it actually relies on, and your pipeline verifies every published contract before release. The valuable property is that it tells you which specific consumer a change breaks, so a "breaking" change to a field nobody uses can proceed and a subtle one to a field three teams depend on is caught. The same technique works in reverse when you are the consumer of a third party, with recorded interactions verified against their sandbox on a schedule.
+
+      Cheaper alternatives that capture much of the value: **spec diffing** in CI, failing the build on a breaking schema change without a version bump; and snapshot-testing representative responses so unintended shape changes are visible in a diff during review.
+
+      ### Fuzzing and abuse
+
+      Schema-aware fuzzers generate requests from your OpenAPI document, including deliberately invalid ones, and report responses that violate the spec or return `500`. This finds a surprising number of unhandled-input crashes for very little setup. Complement it with the deliberately hostile cases: enormous payloads, deep nesting, unicode and null bytes in strings, negative and overflowing numbers, duplicate JSON keys, and a URL parameter pointing at `localhost`.
+
+      ### Performance and CI
+
+      Load tests belong in the pipeline as a scheduled job with thresholds, not as a manual event before launch. Assert on p95 and p99 for key endpoints against a realistic data volume — a suite passing against an empty database proves nothing about behaviour at a million rows.
+
+      ### The mistakes people actually make
+
+      Testing only `200`s. Testing authorization with one account. Asserting on the whole response body, so every additive change breaks fifty tests — assert on the fields the test is about. Mocking your own API in your own tests. Letting the test suite share mutable state so tests pass only in one order. And treating the spec as documentation rather than as an oracle the tests check against.
+    resources:
+      - kind: doc
+        title: "Pact: Consumer-driven contract testing"
+        url: "https://docs.pact.io/"
+      - kind: doc
+        title: "Schemathesis: property-based testing from OpenAPI"
+        url: "https://schemathesis.readthedocs.io/en/stable/"
+      - kind: doc
+        title: "OpenAPI Specification"
+        url: "https://spec.openapis.org/oas/latest.html"
+      - kind: doc
+        title: "k6: Load testing documentation"
+        url: "https://grafana.com/docs/k6/latest/"
+      - kind: article
+        title: "Martin Fowler: Contract Test"
+        url: "https://martinfowler.com/bliki/ContractTest.html"
+      - kind: doc
+        title: "OWASP Web Security Testing Guide: API testing"
+        url: "https://owasp.org/www-project-web-security-testing-guide/"
+      - kind: doc
+        title: "Testcontainers documentation"
+        url: "https://testcontainers.com/"
+
+  - slug: api-design-api-performance
+    name: "Latency, Payload Cost and Caching at the Edge"
+    domain: architecture
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - api-design-handling-data-requests
+    summary: |-
+      Making an API fast through design rather than tuning: fewer round trips, smaller payloads, and HTTP caching that a client and a CDN can both participate in.
+    content_md: |-
+      An API's performance is determined mostly by decisions made at design time — how many calls a task requires, how big each response is, and whether anything can be cached — and only secondarily by how fast the handler runs.
+
+      ### Round trips first
+
+      A client on a mobile network pays 50–200 ms per round trip before your server does anything. An operation requiring six sequential calls is therefore slow no matter how fast each one is. Design so common tasks need one call: return the created object rather than requiring a follow-up read; support expansion of related resources; provide a batch endpoint or, if you have many client-specific shapes, consider GraphQL or a purpose-built aggregate endpoint for that client. The anti-pattern to hunt for is **N+1 across the API boundary** — a list endpoint whose items each require a detail call. It is the same bug as the database N+1, one layer up, and it is far more expensive.
+
+      ### Payload size
+
+      Measure your responses; the number is usually larger than anyone guessed. The levers, in order of return. **Do not return what nobody uses** — support sparse fieldsets, and periodically check which fields are actually read. **Compress**: `gzip` is universal and `br` (Brotli) is better for text; both routinely cut JSON by 70–80% and are typically enabled at the edge with a couple of lines. **Do not embed binaries** — a base64 image in JSON is a third larger than the file and defeats caching; return a URL. **Paginate by default** with a sane maximum, so no response is unbounded.
+
+      ### HTTP caching, used properly
+
+      This is the highest-leverage performance feature in HTTP and the most neglected. Two mechanisms, and they compose.
+
+      **Freshness.** `Cache-Control: max-age=N` lets caches serve without asking. For shared caches, `public` versus `private` decides whether a CDN may store it — and getting this wrong on a personalised response is a data leak, not a performance bug. `stale-while-revalidate` lets a cache serve a slightly stale response instantly while refreshing in the background, which is often the single best latency change available for read-heavy endpoints.
+
+      **Validation.** Return an `ETag`; when the client sends `If-None-Match`, reply `304 Not Modified` with no body. The request still costs a round trip but the payload cost disappears, which matters most on large responses and metered connections. Generate the tag from something meaningful — a version column or a hash of the canonical representation — not from a timestamp that changes on every read, which silently makes every validation a miss.
+
+      Always set `Vary` correctly: a response that differs by `Accept`, `Accept-Encoding`, `Accept-Language` or `Authorization` must say so, or a shared cache will serve one variant to everyone.
+
+      ### Connection-level wins
+
+      HTTP/2 multiplexes many requests over one connection, removing the per-request handshake and the browser's connection limit; HTTP/3 additionally removes head-of-line blocking at the transport layer on lossy networks. Both are usually an edge configuration rather than an application change. **Encourage connection reuse** by clients — a client creating a new TLS connection per request pays a handshake every time, and this is a very common defect in server-side integrations. Terminating TLS geographically close to users, via a CDN or anycast edge, cuts handshake latency substantially even for uncacheable responses.
+
+      ### Know your numbers
+
+      Report **percentiles**, per endpoint, measured at the edge rather than inside the handler — the difference between the two is queueing and network time that your application metrics cannot see. Set explicit latency objectives per endpoint and treat a regression as a defect. And be honest about which endpoints matter: the login and the primary list view dominate the perceived speed of most products.
+
+      ### The mistakes people actually make
+
+      Optimising the handler while the client makes ten calls. Compression disabled because the CDN configuration was never checked. `Cache-Control: no-store` applied blanket-fashion out of caution, discarding the entire caching layer. An `ETag` derived from a `updated_at` that ticks on every read. Missing `Vary`, so compressed responses are served to clients that cannot decompress them. And measuring averages, which hide exactly the requests users complain about.
+    resources:
+      - kind: doc
+        title: "RFC 9111 — HTTP Caching"
+        url: "https://www.rfc-editor.org/rfc/rfc9111.html"
+      - kind: doc
+        title: "MDN: HTTP caching"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching"
+      - kind: doc
+        title: "RFC 5861 — stale-while-revalidate and stale-if-error"
+        url: "https://www.rfc-editor.org/rfc/rfc5861.html"
+      - kind: doc
+        title: "RFC 9114 — HTTP/3"
+        url: "https://www.rfc-editor.org/rfc/rfc9114.html"
+      - kind: book
+        title: "High Performance Browser Networking (Grigorik)"
+        url: "https://hpbn.co/"
+      - kind: doc
+        title: "MDN: Vary"
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary"
+      - kind: article
+        title: "Google Web Fundamentals: HTTP caching"
+        url: "https://web.dev/articles/http-cache"
+
+  - slug: api-design-versioning-and-evolution
+    name: "Versioning and Backward Compatibility"
+    domain: architecture
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - api-design-building-json-restful-apis
+    summary: |-
+      Changing an API that people depend on: what actually breaks a client, the versioning schemes and their real costs, and why the goal is to need a new version as rarely as possible.
+    content_md: |-
+      Versioning is usually taught as a choice between URL and header placement. That is the least important part. The real skill is knowing precisely which changes break clients, so that most of your evolution never needs a version at all.
+
+      ### What breaks a client
+
+      **Safe (additive):** a new endpoint; a new optional request field with a sensible default; a new field in a response; a new optional query parameter; a new value in an enum a client is documented to ignore when unrecognised; relaxing a validation rule; adding a new error *sub*type under an existing status.
+
+      **Breaking:** removing or renaming any field; changing a field's type, including the seemingly harmless integer-to-string; making an optional request field required; tightening validation; changing a status code; changing a default; changing the meaning of an existing field while keeping its name — the most insidious of all, because nothing in any diff or schema check catches it; changing sort order or pagination behaviour that clients depend on; and removing an enum value clients may send.
+
+      Two live at the boundary and depend on what you promised. **Adding a response field** breaks clients that validate strictly against a closed schema — which generated clients often do — so state your policy explicitly: "clients must tolerate unknown fields." **Adding an enum value** breaks exhaustive switches, so state that too. A documented forward-compatibility contract converts these from breaking changes into safe ones, and writing it down on day one is worth more than any versioning scheme.
+
+      ### The schemes
+
+      **URL path** (`/v1/resources`) is the most common because it is unmissable — visible in logs, in a browser, in a support ticket. Purists dislike it because the same entity now has two URLs. In practice its operational clarity wins, and it makes routing and gradual migration trivial.
+
+      **Header or media type** (`Accept: application/vnd.example.v2+json`) keeps URLs stable and is theoretically cleaner. It is also invisible: harder to test with a browser, easier to get wrong, and it makes caching depend on `Vary` being correct. Choose it if your organisation has the discipline for it.
+
+      **Date-based versioning**, where the client pins a release date and the server applies a chain of transformations to translate between the version it implements and the version the client pinned, is how several large APIs manage this well. It is more work up front and scales far better than maintaining parallel implementations, because there is only ever one implementation plus a stack of small, individually-tested compatibility shims.
+
+      Whichever you choose: version the **API**, not each endpoint. Per-endpoint versions produce a combinatorial matrix nobody can document or test.
+
+      ### Evolving without versioning
+
+      The best version bump is the one you avoid. Add the new field alongside the old and populate both. Introduce a new endpoint rather than changing an existing one's semantics. Use feature flags or opt-in request parameters to expose new behaviour to consenting clients. Accept both the old and the new input shape. Every one of these is cheaper than a version, because a version is not a technical artefact — it is a commitment to run and support two things.
+
+      ### When you must break
+
+      Signal it. Return the `Deprecation` header and a `Sunset` header with the retirement date, and add a `Link` to the migration guide, so a client's own tooling can surface the warning. Then use your telemetry: you know which API keys called which deprecated endpoint and when, so contact those specific customers rather than sending a broadcast email nobody reads. Give a period proportional to your consumers' ability to move — for a public API with mobile clients on app stores, that is measured in many months, because old app versions live on devices you cannot update.
+
+      ### The mistakes people actually make
+
+      Shipping `/v2` for a change that could have been additive, then maintaining both forever. Never sunsetting anything, so v1, v2 and v3 all run and every fix must be made three times. Sunsetting with two weeks' notice. Bumping the version for internal refactors nobody sees. And having no idea who is still calling the old version, which makes retirement a leap of faith rather than a decision.
+    resources:
+      - kind: doc
+        title: "RFC 8594 — The Sunset HTTP Header Field"
+        url: "https://www.rfc-editor.org/rfc/rfc8594.html"
+      - kind: doc
+        title: "RFC 9745 — The Deprecation HTTP Response Header Field"
+        url: "https://www.rfc-editor.org/rfc/rfc9745.html"
+      - kind: doc
+        title: "Google AIP-180: Backwards compatibility"
+        url: "https://google.aip.dev/180"
+      - kind: doc
+        title: "Google AIP-185: API versioning"
+        url: "https://google.aip.dev/185"
+      - kind: doc
+        title: "Stripe: API versioning"
+        url: "https://docs.stripe.com/api/versioning"
+      - kind: doc
+        title: "Protocol Buffers: Updating a message type without breaking clients"
+        url: "https://protobuf.dev/programming-guides/proto3/#updating"
+      - kind: article
+        title: "Zalando Guidelines: Compatibility"
+        url: "https://opensource.zalando.com/restful-api-guidelines/#compatibility"
+
+  - slug: api-design-api-lifecycle-management
+    name: "Lifecycle: From Draft to Sunset"
+    domain: architecture
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - api-design-versioning-and-evolution
+      - api-design-api-documentation-tools
+    summary: |-
+      Running an API as a product with stability tiers, a design review that happens before code, a deprecation policy with dates, and a gateway that enforces the cross-cutting rules once.
+    content_md: |-
+      An API is a product with customers, a support cost and an end of life. Managing that explicitly is the difference between a platform and a growing pile of endpoints.
+
+      ### Stages, and what each promises
+
+      Name the stages and attach a promise to each, because the promise is the whole point. **Draft or design** — specification only, no implementation, freely changeable. **Alpha or experimental** — implemented, usable by named partners, may break with little notice, and clients must opt in knowing that. **Beta** — feature-complete, breaking changes announced with a stated notice period, suitable for non-critical production use. **Generally available (stable)** — the full compatibility guarantee and support commitment. **Deprecated** — still working, formally discouraged, with a published retirement date. **Sunset** — off.
+
+      Publish which stage every endpoint is in, in the reference documentation and in the specification itself, so a developer can see the commitment level at the moment they decide to depend on something. The most common failure here is having no experimental tier at all, so everything shipped is implicitly permanent and teams become afraid to ship anything.
+
+      ### Design review, before implementation
+
+      Every new API surface should pass a review with someone who is not on the implementing team. Not a bureaucratic gate — a checklist review of the specification takes half an hour and prevents years of support burden. What to check: does this fit the existing conventions (naming, errors, pagination, dates)? Is it consistent with how similar things are already modelled? What happens when it is called twice? Is anything here an internal detail we would be embarrassed to support for five years? How would we deprecate it? And is a new endpoint actually needed, or is this an extension of an existing one?
+
+      Maintaining a short organisational style guide makes this review mechanical rather than a matter of taste, and a spec linter automates most of it.
+
+      ### Ownership and support
+
+      Every API needs a named owning team, a documented support channel, and a stated response expectation. An API with no owner accretes inconsistencies, and its consumers find out during an incident. Alongside ownership, keep a **consumer inventory**: who calls this, with which keys, at what volume, on which version. Without it, every deprecation is a guess and every incident starts by asking who is affected.
+
+      ### Deprecation with dates
+
+      A deprecation policy has to be written before the first deprecation, because negotiating it under pressure produces something nobody honours. It should state: the minimum notice period per stability tier; how deprecation is signalled (headers, changelog, documentation banner, direct contact); and what happens at sunset — hard failure, or a gradual brownout. **Brownouts** — returning errors for a few minutes on scheduled days, increasing over time — are a genuinely effective technique for waking up integrators who ignore email, and they are far kinder than a single hard cutoff.
+
+      Track usage of deprecated endpoints continuously and treat the count as the metric that must reach zero before retirement.
+
+      ### The gateway, and what belongs in it
+
+      An API gateway is where cross-cutting concerns are implemented once instead of in every service: authentication and token validation, rate limiting and quotas, request and response validation against the spec, routing and version dispatch, logging, and usage metering for billing. A **developer portal** sits alongside it for self-service key issuance, documentation and usage dashboards.
+
+      Two cautions. Do not put business logic in the gateway — it becomes an undeployable, untestable centre of gravity. And do not let the gateway be a single point of failure with no local fallback: it is on the path of every request you serve.
+
+      ### The mistakes people actually make
+
+      No experimental tier, so every prototype becomes a permanent commitment. Deprecating in a changelog nobody subscribes to. No consumer inventory, so retirement never happens. Design review as a rubber stamp after the code is written. And a gateway that accumulates transformation rules until nobody can say what the API actually returns.
+    resources:
+      - kind: doc
+        title: "Google AIP-181: Stability levels"
+        url: "https://google.aip.dev/181"
+      - kind: doc
+        title: "RFC 9745 — The Deprecation HTTP Response Header Field"
+        url: "https://www.rfc-editor.org/rfc/rfc9745.html"
+      - kind: doc
+        title: "Kubernetes: API deprecation policy (a well-documented real policy)"
+        url: "https://kubernetes.io/docs/reference/using-api/deprecation-policy/"
+      - kind: doc
+        title: "Spectral: API style guide linting"
+        url: "https://docs.stoplight.io/docs/spectral/674b27b261c3c-overview"
+      - kind: book
+        title: "API Design Patterns (Geewax)"
+        url: "https://www.manning.com/books/api-design-patterns"
+      - kind: doc
+        title: "Kong Gateway documentation"
+        url: "https://developer.konghq.com/gateway/"
+      - kind: doc
+        title: "Envoy Proxy documentation"
+        url: "https://www.envoyproxy.io/docs/envoy/latest/"
+
+  - slug: api-design-observability
+    name: "Operating an API: Metrics, Traces, Logs and SLOs"
+    domain: architecture
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - api-design-api-performance
+    summary: |-
+      Instrumenting an API so that "is it working?" and "who is it broken for?" are both answerable in seconds, and alerting on the objectives your consumers actually care about.
+    content_md: |-
+      An API's consumers experience it as a black box. When something is wrong they will tell you very little — "it started failing" — so your instrumentation has to answer questions they cannot.
+
+      ### Metrics, per route and per consumer
+
+      The base layer is **RED** per endpoint: request rate, error rate, and duration as a **histogram** so you can compute percentiles. Label by route *template* (`/orders/{id}`, never the concrete path — that is unbounded cardinality and it will take your metrics system down), method, and status class.
+
+      The dimension specific to APIs is **per-consumer**. Aggregate health hides the case that matters most: everything is fine except for one integration, which is failing every request. Label a small number of key metrics by API key, client id or tenant — with care, since that is a cardinality risk — or maintain a separate per-consumer rollup. It converts "we are at 99.95% overall" into "customer X has been at 0% for two hours", which is what your support team actually needs.
+
+      Beyond RED, track the API-specific signals: rate-limit rejections by consumer (a spike means either an abusive client or a legitimate one that just launched something), authentication failures by consumer (a spike means a rotation went wrong or a credential-stuffing attempt), payload sizes, deprecated-endpoint usage by consumer, and cache hit ratio at the edge.
+
+      ### Tracing across the boundary
+
+      A single API call typically fans out to several internal services and databases. Distributed tracing turns "the endpoint is slow" into a waterfall showing exactly which span is responsible. Propagate context using the **W3C `traceparent`** header, and — the piece specific to APIs — accept and propagate a **correlation or request id** from the client, returning it in every response and in every error body. That single field lets a customer quote one identifier in a support ticket and lets you retrieve the complete story of their request. It is the highest return-on-effort item in this concept.
+
+      Sampling keeps the volume affordable. Tail-based sampling is preferable where you can run it, because it keeps every error and every slow trace — precisely the ones you want — rather than a random percentage.
+
+      ### Logs
+
+      Structured, one event per request at the boundary, containing: timestamp, request id, trace id, consumer id, route template, method, status, duration, bytes, and the error code if any. Not the body — request and response bodies contain personal data, credentials and payment details, and logging them is both a privacy incident waiting to happen and a storage bill. Redact at the serialiser with an allowlist. Separate an **audit log** for security-relevant events (authentication outcomes, authorization denials, key lifecycle, permission changes) with different retention and stricter access, because its purpose is forensic rather than operational.
+
+      ### SLOs, and what to page on
+
+      Define objectives in the terms your contract is written in: availability ("99.9% of requests to the payments API return a non-`5xx` status") and latency ("99% complete within 300 ms"), measured over a rolling window, per endpoint group. Then alert on the **error budget burn rate** rather than on instantaneous thresholds: a fast burn pages immediately, a slow burn opens a ticket. This single change removes most alert noise, because it distinguishes a real outage from a brief blip that consumed a negligible slice of the budget.
+
+      Alert on symptoms your consumers feel — error rate, latency, and per-consumer availability — not on CPU. And add two API-specific alerts that catch things nothing else will: a sudden change in traffic *shape* (a consumer's volume dropping to zero is as informative as a spike), and a rise in `4xx` after a deploy, which usually means you tightened validation and broke somebody.
+
+      ### Tell consumers the truth
+
+      A public **status page** and a documented incident communication process are part of the product. Consumers who can see an incident do not open tickets, and consumers who cannot lose trust far faster than the outage itself costs.
+
+      ### The mistakes people actually make
+
+      Labelling metrics with raw paths or user ids and collapsing the metrics backend. Only aggregate health, so a single broken integration is invisible. No request id in error responses, making support archaeology. Logging full bodies. Alerting on every `5xx`, so nobody reads the channel. And measuring inside the handler only, missing the queueing and network time the consumer actually experiences.
+    resources:
+      - kind: doc
+        title: "OpenTelemetry documentation"
+        url: "https://opentelemetry.io/docs/"
+      - kind: doc
+        title: "W3C Trace Context specification"
+        url: "https://www.w3.org/TR/trace-context/"
+      - kind: book
+        title: "Google SRE Workbook: Implementing SLOs"
+        url: "https://sre.google/workbook/implementing-slos/"
+      - kind: book
+        title: "Google SRE Workbook: Alerting on SLOs"
+        url: "https://sre.google/workbook/alerting-on-slos/"
+      - kind: doc
+        title: "Prometheus: Metric types"
+        url: "https://prometheus.io/docs/concepts/metric_types/"
+      - kind: doc
+        title: "OpenTelemetry: Semantic conventions for HTTP spans"
+        url: "https://opentelemetry.io/docs/specs/semconv/http/http-spans/"
+      - kind: article
+        title: "Grafana: The RED method"
+        url: "https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/"
+
+  - slug: api-design-real-time-apis
+    name: "Real-Time and Streaming APIs"
+    domain: architecture
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - api-design-different-api-styles
+      - api-design-traffic-control-error-handling
+    summary: |-
+      Designing push interfaces — SSE, WebSockets, webhooks and streams — including the parts people skip: message schemas, resume after disconnect, auth on a long-lived connection, and backpressure.
+    content_md: |-
+      Real-time interfaces are usually designed as a transport choice and then discovered to be a contract problem. The transport is the easy half.
+
+      ### Pick the weakest transport that works
+
+      **Polling** with `ETag`/`If-None-Match` is stateless, cacheable, works everywhere, and is the right answer whenever a few seconds of latency is acceptable. It is unfashionable and frequently correct.
+
+      **Server-Sent Events** is a one-way stream over an ordinary HTTP response. It reuses your existing authentication, proxies and infrastructure; browsers reconnect automatically and resend `Last-Event-ID` so you can resume; and it is the natural fit for notifications, progress updates, live feeds and streaming generated text. Over HTTP/1.1 it consumes one of the browser's six connections per host, which HTTP/2 fixes.
+
+      **WebSockets** give a persistent bidirectional channel and are necessary when the client also sends at a high rate — chat, collaborative editing, multiplayer, live cursors. The cost is that you leave HTTP behind and inherit your own framing, reconnection, auth and observability story.
+
+      **Webhooks** push to a URL the consumer registered. The right shape for partner integrations where the consumer has a server; the wrong shape for browsers.
+
+      ### The contract, which is the part people skip
+
+      A stream needs a specification exactly as much as a request/response API does, and **AsyncAPI** is the standard for writing one. Every message needs a `type` discriminator, a schema per type, and a version — because evolving a message shape has the same compatibility rules as evolving a response body, with the added difficulty that consumers may be offline during your rollout.
+
+      Give every message a **monotonic sequence number or id** and an **idempotency-relevant identifier**. This is what makes the two hard problems solvable: a consumer that reconnects sends the last id it processed and you replay the gap from a buffer; and a consumer that receives a duplicate (which it will, because delivery is at-least-once) can discard it. Without ids, "real-time" quietly means "real-time except across disconnections", which is exactly when it matters.
+
+      Decide and document the **delivery guarantee**, the **ordering guarantee** (per stream? per entity? none?), and the **retention window** for replay. Consumers will assume the strongest interpretation of each unless told otherwise.
+
+      Prefer **thin events** — an identifier, a type and a timestamp — with the consumer fetching current state over your ordinary API, when consistency matters. Prefer **fat events** carrying the payload when consumers need history or must work without calling back. Both are defensible; mixing them per message type without saying so is not.
+
+      ### Operating a long-lived connection
+
+      **Authentication and revocation.** Browsers cannot set headers on a `WebSocket` or `EventSource` handshake, so the token arrives as a cookie or a query parameter — the latter lands in access logs, so if you must, use a short-lived single-use ticket rather than the real token. A connection that lives for hours outlives token expiry, so define what happens: periodic re-authentication over the channel, or a forced reconnect.
+
+      **Backpressure.** A slow consumer whose messages you keep buffering grows your memory until something dies. Bound the per-connection buffer and choose a policy: drop, coalesce to the latest state, or disconnect. Say which in the documentation.
+
+      **Reconnect storms.** A deploy disconnects every client at once; if they all reconnect immediately you have a self-inflicted load spike. Require, and implement in your own SDK, exponential backoff with jitter.
+
+      **Liveness.** TCP will happily keep a dead connection open for a long time. Application-level heartbeats in both directions are the only reliable detection.
+
+      ### Webhooks specifically
+
+      As the sender you owe consumers: a signature over the raw body with a timestamp window, retries with exponential backoff over a documented schedule, at-least-once delivery stated plainly with a stable event id for deduplication, a delivery log they can inspect, a manual replay, and automatic disabling of an endpoint that has failed for a long time — with notification. Tell them to respond `2xx` immediately and process asynchronously, because your timeout is short.
+
+      ### The mistakes people actually make
+
+      Reaching for WebSockets when SSE would do. No sequence numbers, so a reconnect silently loses events. Broadcasting everything and filtering client-side, which leaks data. No documented ordering guarantee, so consumers invent one. Webhooks without signatures. And no way for a consumer to reconcile — every stream needs a plain HTTP endpoint that returns current state, because eventually a consumer will have missed something and needs to resynchronise.
+    resources:
+      - kind: doc
+        title: "MDN: Using server-sent events"
+        url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+      - kind: doc
+        title: "RFC 6455 — The WebSocket Protocol"
+        url: "https://www.rfc-editor.org/rfc/rfc6455.html"
+      - kind: doc
+        title: "AsyncAPI Specification"
+        url: "https://www.asyncapi.com/docs/reference/specification/latest"
+      - kind: doc
+        title: "WHATWG HTML: Server-sent events"
+        url: "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+      - kind: doc
+        title: "Stripe: Webhooks — best practices"
+        url: "https://docs.stripe.com/webhooks#best-practices"
+      - kind: doc
+        title: "GitHub: Best practices for using webhooks"
+        url: "https://docs.github.com/en/webhooks/using-webhooks/best-practices-for-using-webhooks"
+      - kind: doc
+        title: "CloudEvents specification"
+        url: "https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
+
+  - slug: api-design-api-integration-patterns
+    name: "Integrating With Someone Else's API"
+    domain: architecture
+    est_hours: 7
+    difficulty: advanced
+    prerequisites:
+      - api-design-real-time-apis
+      - api-design-api-keys-management
+    summary: |-
+      The other side of the contract: writing a client that survives the provider's bad day, receiving webhooks safely, and keeping a third party's model from leaking through your codebase.
+    content_md: |-
+      Everything in this track so far has been about the API you publish. Most engineers spend more time consuming APIs than designing them, and consuming one badly is how a partner's minor incident becomes your outage.
+
+      ### Wrap it, do not spread it
+
+      The first decision is structural: put every call to a third party behind **one adapter** in your codebase. Nothing outside it should import the vendor's SDK or know their field names. This **anti-corruption layer** does four things at once — it gives you a single place for timeouts, retries, logging and metrics; it lets you translate their model into yours, so their odd enum values and their notion of "customer" do not colonise your domain; it makes testing possible without a network; and it means replacing the provider, or adding a second, is a bounded change.
+
+      Translate at the boundary. If their `status` has seven values and you care about three, map to your three at the edge. If you pass their raw response deeper into your code "for now", you have permanently coupled your domain to their release schedule.
+
+      ### Assume they will be down
+
+      Every pattern from the failure-handling literature applies to you as a consumer. **Explicit timeouts** on every call, derived from their published or observed latency, never left at the library default. **Retries with exponential backoff and jitter**, only for idempotent operations or ones protected by an idempotency key, with a bounded total. **Circuit breakers**, so when they are failing you stop waiting and fail fast — which protects your own latency as much as their recovery. **Bulkheads**: a separate connection pool and concurrency limit per provider, so a slow one cannot consume all your workers.
+
+      Then decide, explicitly, what you do when the call fails: serve stale cached data, degrade the feature, queue the work for later, or fail the user's request. Each is right sometimes; the failure is not having decided, so the answer becomes whatever the exception handler happened to do.
+
+      **Respect their limits.** Read their rate-limit documentation, honour `Retry-After`, and use the `RateLimit` headers if they publish them. Cache their responses aggressively where the data allows, both to be a good citizen and because their latency is now inside yours.
+
+      ### Receiving webhooks
+
+      Four rules, all learned the hard way. **Verify the signature over the raw body** before parsing, in constant time, with a timestamp freshness window — re-serialising the parsed JSON changes the bytes and the check will silently never match. **Return `2xx` immediately** and process asynchronously: senders time out in seconds, and a slow handler triggers retries that multiply your load. **Expect duplicates and out-of-order delivery**, so key on the provider's event id and make handling idempotent; do not assume event B arriving means event A already did. And **reconcile periodically** — poll their API for the state of recent objects and compare — because webhooks get lost, endpoints get disabled, and a silent gap is worse than a noisy failure.
+
+      Log every delivery with its id and outcome, and build a replay path from the start.
+
+      ### Testing an integration you do not control
+
+      Record real interactions and replay them in tests, and run a scheduled job that verifies the recordings still match the provider's sandbox — otherwise your tests pass forever against a contract that changed months ago. Test the failure paths explicitly: timeout, `500`, `429`, malformed body, and a response with a field you did not expect. Use their sandbox for end-to-end coverage, and know its limits: sandboxes are usually more reliable and less rate-limited than production, so they will not surface the behaviours you most need to handle.
+
+      ### Operating the dependency
+
+      Track, per provider: success rate, latency percentiles, and cost. Subscribe to their status page and changelog, and put a human on it — deprecation notices arrive by email and get filtered. Keep credentials rotatable without a deploy. And know, for each provider, what your business does if they are unavailable for a day, because that answer determines how much resilience is worth building.
+
+      ### The mistakes people actually make
+
+      No timeout. Retrying a payment without an idempotency key. Parsing the webhook body before verifying its signature. Processing webhooks synchronously. Passing the vendor's objects through the whole codebase. Storing their identifiers as the only key for something you own. And discovering a deprecation the day it takes effect, because nobody read the email.
+    resources:
+      - kind: article
+        title: "AWS Builders' Library: Timeouts, retries and backoff with jitter"
+        url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+      - kind: article
+        title: "Martin Fowler: CircuitBreaker"
+        url: "https://martinfowler.com/bliki/CircuitBreaker.html"
+      - kind: book
+        title: "Release It! (Nygard) — stability patterns"
+        url: "https://pragprog.com/titles/mnee2/release-it-second-edition/"
+      - kind: doc
+        title: "Stripe: Verifying webhook signatures"
+        url: "https://docs.stripe.com/webhooks#verify-official-libraries"
+      - kind: article
+        title: "Martin Fowler: Anti-corruption layer / Bounded Context"
+        url: "https://martinfowler.com/bliki/BoundedContext.html"
+      - kind: doc
+        title: "GitHub: Best practices for using webhooks"
+        url: "https://docs.github.com/en/webhooks/using-webhooks/best-practices-for-using-webhooks"
+      - kind: doc
+        title: "Pact: Verifying a provider you consume"
+        url: "https://docs.pact.io/"

@@ -2,7 +2,13 @@
 
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  AnimatePresence,
+  type Variants,
+} from 'framer-motion';
 import {
   ArrowRight,
   BookOpen,
@@ -26,8 +32,12 @@ import { SterlingGateKineticNavigation } from '@/components/ui/sterling-gate-kin
 
 import { ThemeToggle } from '@/components/theme-toggle';
 
-// Framer Motion Variants
-const containerVariants = {
+// Framer Motion Variants.
+//
+// The `Variants` annotation is load-bearing: without it TypeScript widens
+// `type: "spring"` to `string`, which does not satisfy `AnimationGeneratorType`
+// and fails the build. Annotating gives the literal a contextual type.
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -38,16 +48,16 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: { type: "spring", stiffness: 70, damping: 20 }
   },
 };
 
-const stepContainerVariants = {
+const stepContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -55,7 +65,7 @@ const stepContainerVariants = {
   },
 };
 
-const stepVariants = {
+const stepVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 60 } },
 };
@@ -117,15 +127,15 @@ export function LandingPageInteractive({
                 </motion.p>
 
                 <motion.div variants={itemVariants} className="mt-10 flex flex-col gap-6 sm:flex-row">
-                  <ButtonLink size="lg" href="/onboarding" className="h-11 px-6 relative overflow-hidden group">
+                  <ButtonLink size="lg" href="/explore" className="h-11 px-6 relative overflow-hidden group">
                     <span className="relative z-10 flex items-center gap-2">
-                      Choose your domain
+                      Browse the atlas
                       <ArrowRight className="transition-transform group-hover:translate-x-1" />
                     </span>
                     <div className="absolute inset-0 bg-primary/10 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                   </ButtonLink>
-                  <ButtonLink size="lg" variant="outline" href="/explore" className="h-11 px-6 hover:bg-muted/50 transition-colors">
-                    Browse the atlas
+                  <ButtonLink size="lg" variant="outline" href="/companies" className="h-11 px-6 hover:bg-muted/50 transition-colors">
+                    Companies
                   </ButtonLink>
                 </motion.div>
 
@@ -195,19 +205,49 @@ export function LandingPageInteractive({
           </div>
         </section>
 
-        {/* --- tracks carousel ------------------------------------------------------ */}
-        <div className="border-b bg-card/20 border-t">
-          <GalleryHoverCarousel 
-            heading="Pick a destination"
-            items={tracks.map((track) => {
-              return {
-                id: track.slug,
-                title: track.title,
-                summary: `${track.concept_count} concepts · ~${track.total_hours}h. ${track.description}`,
-                url: `/onboarding?track=${track.slug}`,
-              }
-            })}
-          />
+        {/* --- tracks marquees ------------------------------------------------------ */}
+        <div className="border-b bg-card/5 border-t py-20 overflow-hidden flex flex-col gap-6 relative">
+          <div className="px-8 md:px-16 lg:px-24 mb-4">
+            <h2 className="font-display text-3xl font-semibold">Available destinations</h2>
+          </div>
+          
+          {/* Row 1: Left to Right */}
+          <div className="relative flex w-full py-4">
+            <div className="flex animate-marquee-reverse whitespace-nowrap min-w-full">
+              {[...tracks, ...tracks].map((track, i) => (
+                <div key={`r1-${track.slug}-${i}`} className="inline-flex flex-col justify-center rounded-2xl border border-white/5 bg-background/40 backdrop-blur-xl p-6 mx-3 w-[350px] whitespace-normal flex-shrink-0 shadow-lg relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <h3 className="font-display text-lg font-semibold relative z-10">{track.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2 relative z-10">{track.description}</p>
+                  <div className="mt-4 flex items-center gap-2 text-xs font-medium text-muted-foreground relative z-10">
+                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">{track.concept_count} concepts</span>
+                    <span>~{track.total_hours}h</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Row 2: Right to Left */}
+          <div className="relative flex w-full py-4">
+            <div className="flex animate-marquee whitespace-nowrap min-w-full">
+              {[...tracks, ...tracks].reverse().map((track, i) => (
+                <div key={`r2-${track.slug}-${i}`} className="inline-flex flex-col justify-center rounded-2xl border border-white/5 bg-background/40 backdrop-blur-xl p-6 mx-3 w-[350px] whitespace-normal flex-shrink-0 shadow-lg relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <h3 className="font-display text-lg font-semibold relative z-10">{track.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2 relative z-10">{track.description}</p>
+                  <div className="mt-4 flex items-center gap-2 text-xs font-medium text-muted-foreground relative z-10">
+                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">{track.concept_count} concepts</span>
+                    <span>~{track.total_hours}h</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Gradient masks for smooth edges */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
         </div>
 
         {/* --- features bento --------------------------------------------- */}
@@ -331,7 +371,7 @@ export function LandingPageInteractive({
               Pick a domain, set the pace you can actually keep, and get a route where
               every step ends in something you built. It takes about two minutes.
             </p>
-            <ButtonLink size="lg" href="/onboarding" className="mt-10 h-12 px-8 text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <ButtonLink size="lg" href="/explore" className="mt-10 h-12 px-8 text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               Choose your domain
               <ArrowRight className="ml-2 h-5 w-5" />
             </ButtonLink>
@@ -401,7 +441,11 @@ function BentoFeature({ title, description, icon, className = "" }: { title: str
   return (
     <div className={`group relative overflow-hidden rounded-2xl border bg-card p-8 transition-all hover:bg-accent ${className}`}>
       <div className="absolute -right-4 -top-4 opacity-5 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-10">
-        {React.cloneElement(icon as React.ReactElement, { className: "w-48 h-48" })}
+        {/* React 19 types default ReactElement's props to `unknown`, so the
+            prop being overridden has to be named for cloneElement to accept it. */}
+        {React.cloneElement(icon as React.ReactElement<{ className?: string }>, {
+          className: "w-48 h-48",
+        })}
       </div>
       <div className="relative z-10 flex h-full flex-col justify-between">
         <div className="mb-8 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">

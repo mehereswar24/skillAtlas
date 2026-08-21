@@ -131,10 +131,13 @@ def complete_concept(
     graph = ConceptGraph.load(db)
     completed = _completed_ids(db, user.id)
 
-    missing = graph.missing_prerequisites(concept.id, completed)
-    if missing:
+    # Prerequisites advise an order; they do not gate completion. See
+    # `HARD_PREREQUISITES` in services/graph.py for why.
+    if not graph.is_unlocked(concept.id, completed):
         names = db.scalars(
-            select(Concept.name).where(Concept.id.in_(missing))
+            select(Concept.name).where(
+                Concept.id.in_(graph.missing_prerequisites(concept.id, completed))
+            )
         ).all()
         raise HTTPException(
             status.HTTP_409_CONFLICT,

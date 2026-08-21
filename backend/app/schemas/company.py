@@ -4,6 +4,8 @@ from datetime import date
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.review import RatingSummary
+
 
 class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -45,6 +47,10 @@ class CompanyDetail(CompanySummary):
     hiring_process_md: str | None
     roles: list[CompanyRoleSummary]
     resources: list[CompanyResourceOut]
+    # Member-submitted, and kept in its own object rather than flattened into
+    # the profile: everything else on this model is researched and dated, and a
+    # bare `average_rating` field alongside them would read as ours.
+    reviews: RatingSummary = Field(default_factory=RatingSummary)
 
 
 class FocusAreaOut(ORMModel):

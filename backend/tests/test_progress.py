@@ -90,25 +90,92 @@ def test_displayed_streak_is_zero_once_a_day_has_been_missed():
 # --- completion flow ------------------------------------------------------
 
 
-def test_a_locked_concept_cannot_be_completed(client, learner):
+def test_prerequisites_advise_but_do_not_block_completion(client, learner):
+    """Order is a recommendation, not a gate.
+
+    The 85 imported tracks ship no dependency data, so the importer chains each
+    concept to the one before it — a strict line. Enforcing that meant a learner
+    could not open "Caching" without first finishing seven unrelated concepts,
+    so `HARD_PREREQUISITES` is off and the chain only advises. Flip that flag
+    and this test is the one that should fail.
+
+    Note what is *not* being waived: the concept still has a quiz to pass, and
+    `complete_concept` answers it. Completing with an unfinished prerequisite is
+    allowed; completing without doing the work is not.
+    """
     headers, _, _ = learner
-    response = client.post(
-        "/api/v1/progress/rest-api-design/complete", json={"answers": []}, headers=headers
+    detail = client.get(
+        "/api/v1/concepts/backend-learn-about-apis", headers=headers
+    ).json()
+    assert detail["missing_prerequisites"], "need an unmet prerequisite to prove this"
+
+    # Answered inline rather than through `complete_concept`, which walks the
+    # prerequisite chain first — that is exactly the thing this test needs left
+    # unfinished. Submit once to obtain the review, then resubmit its answers.
+    first = client.post(
+        "/api/v1/progress/backend-learn-about-apis/complete",
+        json={
+            "answers": [
+                {"question_id": q["id"], "option_id": q["options"][0]["id"]}
+                for q in detail["quiz"]
+            ],
+            "time_spent_minutes": 10,
+        },
+        headers=headers,
     )
-    assert response.status_code == 409
-    assert "prerequisites" in response.json()["detail"].lower()
+    assert first.status_code == 200, first.text
+    response = client.post(
+        "/api/v1/progress/backend-learn-about-apis/complete",
+        json={
+            "answers": [
+                {"question_id": r["question_id"], "option_id": r["correct_option_id"]}
+                for r in first.json()["review"]
+            ],
+            "time_spent_minutes": 10,
+        },
+        headers=headers,
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["passed"] is True
+
+    detail = client.get(
+        "/api/v1/concepts/backend-learn-about-apis", headers=headers
+    ).json()
+    assert detail["is_locked"] is False
+    # The recommendation survives even though it no longer blocks.
+    assert detail["prerequisites"]
 
 
 def test_a_failed_quiz_records_nothing(client, learner):
     headers, _, _ = learner
-    detail = client.get("/api/v1/concepts/internet-and-http", headers=headers).json()
+    detail = client.get("/api/v1/concepts/backend-introduction", headers=headers).json()
+    assert detail["quiz"], (
+        "backend-introduction has no quiz, so nothing here could fail — "
+        "seed app/seed/quizzes/ before trusting a pass"
+    )
+    # Answer every question with the option that is *not* the right one. The
+    # correct option is never last for more than one question, so this always
+    # lands below PASS_THRESHOLD.
+    correct_ids = {
+        r["question_id"]: r["correct_option_id"]
+        for r in client.post(
+            "/api/v1/progress/backend-introduction/complete",
+            json={"answers": [], "time_spent_minutes": 0},
+            headers=headers,
+        ).json()["review"]
+    }
     wrong = [
-        {"question_id": q["id"], "option_id": q["options"][-1]["id"]}
+        {
+            "question_id": q["id"],
+            "option_id": next(
+                o["id"] for o in q["options"] if o["id"] != correct_ids[q["id"]]
+            ),
+        }
         for q in detail["quiz"]
     ]
 
     result = client.post(
-        "/api/v1/progress/internet-and-http/complete",
+        "/api/v1/progress/backend-introduction/complete",
         json={"answers": wrong, "time_spent_minutes": 30},
         headers=headers,
     ).json()
@@ -119,14 +186,14 @@ def test_a_failed_quiz_records_nothing(client, learner):
     assert len(result["review"]) == len(detail["quiz"])
     assert all(r["explanation"] for r in result["review"])
 
-    after = client.get("/api/v1/concepts/internet-and-http", headers=headers).json()
+    after = client.get("/api/v1/concepts/backend-introduction", headers=headers).json()
     assert after["status"] is None
     assert client.get("/api/v1/auth/me", headers=headers).json()["profile"]["xp"] == 0
 
 
 def test_completing_a_concept_awards_xp_streak_and_a_badge(client, learner):
     headers, _, _ = learner
-    result = complete_concept(client, headers, "internet-and-http")
+    result = complete_concept(client, headers, "backend-introduction")
 
     assert result["xp_earned"] > 0
     assert result["streak_days"] == 1
@@ -139,11 +206,11 @@ def test_completing_a_concept_awards_xp_streak_and_a_badge(client, learner):
 
 def test_resubmitting_a_completed_concept_awards_no_further_xp(client, learner):
     headers, _, _ = learner
-    first = complete_concept(client, headers, "internet-and-http")
+    first = complete_concept(client, headers, "backend-introduction")
 
-    detail = client.get("/api/v1/concepts/internet-and-http", headers=headers).json()
+    detail = client.get("/api/v1/concepts/backend-introduction", headers=headers).json()
     again = client.post(
-        "/api/v1/progress/internet-and-http/complete",
+        "/api/v1/progress/backend-introduction/complete",
         json={
             "answers": [
                 {"question_id": r["question_id"], "option_id": r["correct_option_id"]}
@@ -159,23 +226,23 @@ def test_resubmitting_a_completed_concept_awards_no_further_xp(client, learner):
     assert detail["status"] == "completed"
 
 
-def test_completion_unlocks_dependent_concepts(client, learner):
+def test_completion_reports_what_it_opens_up(client, learner):
+    """Finishing a concept still tells the learner what it leads on to.
+
+    Nothing is gated any more, so this is a signpost rather than a key — but
+    the dependents must still be reported, since that is what drives "what
+    next" in the UI.
+    """
     headers, _, _ = learner
 
-    assert client.get("/api/v1/concepts/rest-api-design", headers=headers).json()["is_locked"]
+    result = complete_concept(client, headers, "backend-relational-databases")
 
-    complete_concept(client, headers, "internet-and-http")
-    result = complete_concept(client, headers, "programming-language-python")
-
-    assert "rest-api-design" in {c["slug"] for c in result["unlocked_concepts"]}
-    assert not client.get(
-        "/api/v1/concepts/rest-api-design", headers=headers
-    ).json()["is_locked"]
+    assert "backend-caching" in {c["slug"] for c in result["unlocked_concepts"]}
 
 
 def test_completion_is_mirrored_onto_the_roadmap(client, learner):
     headers, _, _ = learner
-    complete_concept(client, headers, "internet-and-http")
+    complete_concept(client, headers, "backend-introduction")
 
     roadmap = client.get("/api/v1/roadmaps/current", headers=headers).json()
     statuses = {
@@ -183,13 +250,13 @@ def test_completion_is_mirrored_onto_the_roadmap(client, learner):
         for week in roadmap["weeks"]
         for item in week["items"]
     }
-    assert statuses["internet-and-http"] == "completed"
+    assert statuses["backend-introduction"] == "completed"
     assert roadmap["completed_concepts"] == 1
 
 
 def test_activity_is_logged_and_zero_filled(client, learner):
     headers, _, _ = learner
-    complete_concept(client, headers, "internet-and-http", minutes=45)
+    complete_concept(client, headers, "backend-introduction", minutes=45)
 
     points = client.get("/api/v1/progress/activity?days=7", headers=headers).json()
     assert len(points) == 7

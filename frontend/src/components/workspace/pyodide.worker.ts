@@ -22,9 +22,34 @@ type Pyodide = {
   globals: { set: (name: string, value: unknown) => void };
 };
 
-declare const self: DedicatedWorkerGlobalScope & {
+declare const self: DedicatedWorkerGlobalScope;
+
+type PyodideModule = {
   loadPyodide: (options: { indexURL: string }) => Promise<Pyodide>;
 };
+
+/**
+ * Run `body` with `self.importScripts` hidden, restoring it whichever way the
+ * call ends. See the note in `boot`.
+ *
+ * It has to be shadowed with an own property rather than deleted: the real
+ * `importScripts` lives on `WorkerGlobalScope.prototype`, so `delete
+ * self.importScripts` removes nothing and leaves the function perfectly
+ * visible. Deleting the own property afterwards uncovers the inherited one
+ * again.
+ */
+async function withoutImportScripts<T>(body: () => Promise<T>): Promise<T> {
+  Object.defineProperty(self, 'importScripts', {
+    value: undefined,
+    configurable: true,
+    writable: true,
+  });
+  try {
+    return await body();
+  } finally {
+    delete (self as Partial<DedicatedWorkerGlobalScope>).importScripts;
+  }
+}
 
 let pyodide: Pyodide | null = null;
 let captured: string[] = [];
@@ -32,14 +57,26 @@ let captured: string[] = [];
 async function boot(): Promise<Pyodide> {
   if (pyodide) return pyodide;
 
-  // Loaded from `public/` with importScripts rather than bundled: the wasm and
-  // stdlib are ~13MB and have no business in the app bundle, and a bare
-  // `import('/pyodide/…')` is a runtime URL neither bundler can resolve at
-  // build time. importScripts is also what Pyodide documents for workers —
-  // which is why this is a classic worker, not a module one.
-  self.importScripts('/pyodide/pyodide.js');
+  // Loaded from `public/` rather than bundled: the wasm and stdlib are ~13MB
+  // and have no business in the app bundle. The magic comments stop the
+  // bundler trying to resolve `/pyodide/…` — that is a URL served by `public/`
+  // at runtime, not a module specifier it could ever find on disk.
+  //
+  // `importScripts` has to be out of sight while Pyodide's ESM entry is
+  // evaluated. Pyodide 0.28+ (the `pyodide` 314.x line) probes for it at
+  // module-evaluation time and throws "Classic web workers are not supported"
+  // the moment it finds one — and Turbopack bootstraps *every* worker with a
+  // classic stub that calls importScripts, whatever `type` the Worker was
+  // constructed with. Nothing here needs importScripts, and it goes straight
+  // back afterwards so the bundler's own lazy chunk loading still works.
+  const module_ = await withoutImportScripts(
+    () =>
+      import(
+        /* webpackIgnore: true */ /* turbopackIgnore: true */ '/pyodide/pyodide.mjs'
+      ) as Promise<PyodideModule>,
+  );
 
-  pyodide = await self.loadPyodide({ indexURL: '/pyodide/' });
+  pyodide = await module_.loadPyodide({ indexURL: '/pyodide/' });
   pyodide.setStdout({ batched: (text) => captured.push(text) });
   pyodide.setStderr({ batched: (text) => captured.push(text) });
   return pyodide;

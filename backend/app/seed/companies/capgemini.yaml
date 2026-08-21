@@ -1,0 +1,425 @@
+company:
+  slug: capgemini
+  name: Capgemini
+  industry: IT Services & Consulting
+  hq: Paris, France
+  website: https://www.capgemini.com/in-en/careers/join-capgemini/recruitment-process/
+  icon: Blocks
+  fetched_on: 2026-08-21
+  sort_order: 19
+  description: >-
+    A French-origin IT consultancy with a large India delivery base. Its
+    fresher aptitude round has quietly moved from a classic MCQ paper to a
+    set of short gamified cognitive tasks — and which package band you land
+    in is decided by how much of the coding round you clear.
+  hiring_process_md: |
+    Capgemini's fresher funnel runs four stages, and the one candidates
+    consistently get wrong-footed by is the second: the traditional
+    "20 quant + 20 logical reasoning" MCQ paper has been **replaced by a
+    game-based cognitive assessment** — four short games (roughly six
+    minutes each) drawn from a larger pool, with names like Geo-Sudo, Grid
+    Challenge, Motion Challenge and Switch Challenge.
+
+    **The shape of it**
+
+    1. **Online Assessment ("Assessment 1")** — a technical MCQ/pseudocode
+       section (25–40 questions on data structures, OOP, DBMS/SQL, OS,
+       networking and cloud, mostly "predict the output" style), an English
+       communication section (30 questions on grammar and comprehension),
+       the game-based cognitive round described above, and an untimed
+       behavioural/PowerSkills psychometric section with no right or wrong
+       answers.
+    2. **Coding Assessment ("Assessment 2")** — required only for candidates
+       scoring above a threshold on Assessment 1: 2 problems, 45 minutes,
+       language of choice.
+    3. **Spoken English assessment** — read-and-repeat, listen-and-answer,
+       and a 30-second-prep / 45-second-speak impromptu topic, with no
+       repeats allowed.
+    4. **Technical + HR interview**, sometimes combined into one 25–35
+       minute session — resume and project deep-dive first, then rapid CS
+       fundamentals and often a short live-coding task (reverse a string,
+       check a palindrome, print binary).
+
+    **The band you land in is gated by the coding assessment, not applied
+    for separately.** Clear Assessment 1 alone and you're tracked as
+    **Analyst**; clear it at a higher cutoff and solve one of the two coding
+    problems and you move to **Star Analyst**; solve both, at higher
+    cutoffs throughout, and you reach **Senior Analyst**. Capgemini's own
+    careers pages don't name a separate "Digital" or "ADP" fresher track —
+    third-party sources consistently describe this three-tier, coding-gated
+    structure instead, so that's what this profile uses.
+
+    **Eligibility** runs 60% (or equivalent CGPA) across Class 10, 12,
+    diploma (if any) and degree, with sources disagreeing on backlog policy
+    — some describe zero active backlogs required, others describe one
+    active backlog being tolerated, so confirm against the live posting
+    rather than assuming either. Academic gap up to roughly two years is
+    accepted, and there's a six-month cooldown before reapplying after a
+    rejection.
+
+    **No source, including Capgemini's own pages, publishes an official
+    service-bond figure.** Informal candidate and employee reports describe
+    something in the range of a three-month training period and a bond
+    around ₹1.5–2 lakh tied to a roughly two-year minimum stay, reimbursed
+    pro-rata on early exit — treat that as widely reported rather than
+    confirmed.
+
+  resources:
+    - kind: careers
+      title: "Capgemini India — recruitment process"
+      url: https://www.capgemini.com/in-en/careers/join-capgemini/recruitment-process/
+    - kind: careers
+      title: "Capgemini — Technical Graduates (Exceller Program)"
+      url: https://www.capgemini.com/in-en/careers/career-paths/students-and-graduates/technical-graduates/
+    - kind: prep
+      title: "Capgemini recruitment process 2025/26 — PrepInsta"
+      url: https://prepinsta.com/capgemini-recruitment-process/
+    - kind: prep
+      title: "Capgemini exam pattern and syllabus — PrepInsta"
+      url: https://prepinsta.com/capgemini-syllabus/
+    - kind: prep
+      title: "Capgemini 2025 on-campus interview experience — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/capgemini-interview-experience-2025-on-campus/
+
+roles:
+  - slug: analyst
+    title: Analyst (A-Grade)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://prepinsta.com/capgemini-syllabus/
+    description: >-
+      The standard-package fresher role, roughly ₹4–4.25 LPA. Clears
+      Assessment 1 and the interviews without needing to pass the coding
+      assessment that gates the two higher bands.
+    focus_md: |
+      **Prepare for the game-based cognitive round as a format, not as
+      content.** These are timed puzzle games — grid deduction, spatial
+      pattern completion — not a quant syllabus, so drilling more aptitude
+      formulas won't help as much as practising the games themselves under
+      a clock; the skill being measured is speed and adaptability to an
+      unfamiliar interface.
+
+      The pseudocode/technical MCQ section is genuinely output-tracing —
+      15 of 25 questions in one reported drive were "what does this print,"
+      often built around bitwise operators and pre/post-increment traps.
+      Step through variable state by hand rather than pattern-matching.
+
+      The written-English task is a real, graded 200–220 word paragraph on
+      a general prompt — structure it in three short paragraphs and proof
+      your grammar, because it's scored on both.
+    focus_areas:
+      - { label: "Game-based cognitive assessment", weight: 5,
+          notes: "Four ~6-minute games from a larger pool — Geo-Sudo, Grid Challenge and similar. Practise the format, not formulas." }
+      - { concept: python-learn-the-basics, label: "Pseudocode output-tracing", weight: 4,
+          notes: "Bitwise operators and pre/post-increment traps are a specific, recurring pattern." }
+      - { label: "Written English", weight: 3,
+          notes: "A real 200-220 word graded paragraph — structure and grammar both count." }
+      - { concept: backend-relational-databases, label: "DBMS & SQL", weight: 4,
+          notes: "Keys, UNION vs UNION ALL, joins — asked directly in the technical interview." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP fundamentals", weight: 3,
+          notes: "Class/object/inheritance, explained with an example, not just definitions." }
+      - { label: "Spoken English assessment", weight: 2,
+          notes: "Read-and-repeat and impromptu-topic tasks, no retakes allowed — time management matters as much as fluency." }
+      - { label: "Project honesty", weight: 3,
+          notes: "Interviewers drill into resume specifics — only claim what you can defend under questioning." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Game-based cognitive round
+        difficulty: medium
+        year: 2025
+        question: >-
+          Capgemini's aptitude round no longer runs as a classic MCQ paper.
+          What replaced it, and how should that change your prep?
+        answer_md: |
+          It's now four short games (about six minutes each), drawn from a
+          larger pool of roughly two dozen — reported examples include
+          "Geo-Sudo" (a Sudoku-style grid-deduction puzzle) and a "Grid
+          Challenge" testing spatial pattern completion under a time cap.
+
+          Because it's a format change, not a difficulty change, the highest
+          -leverage prep is playing timed logic-puzzle games directly rather
+          than working through a quant textbook — the questions being
+          measured are speed and adaptability under an unfamiliar interface,
+          not recall of a formula.
+        source_name: PrepInsta — Capgemini exam pattern and syllabus
+        source_url: https://prepinsta.com/capgemini-syllabus/
+
+      - kind: online-assessment
+        round: technical
+        topic: Pseudocode
+        difficulty: hard
+        year: 2025
+        question: >-
+          A reported drive had 15 of 25 technical-MCQ questions built around
+          bitwise operators and pre/post-increment expressions, asking you
+          to predict output. What's the general approach?
+        answer_md: |
+          Step through the pseudocode exactly as a debugger would, one line
+          at a time, writing down each variable's value as it changes —
+          don't try to recognise "the type" of the question and recall a
+          shortcut, because these are specifically designed to punish
+          pattern-matching (an expression like `x = i++ + ++i` depends
+          entirely on exact evaluation order, which varies by how the
+          question is worded).
+
+          If a bitwise operator is involved, convert to binary on paper
+          before applying it — trying to do bitwise AND/OR/XOR in your head
+          on decimal numbers is where most of the errors happen under time
+          pressure.
+        source_name: GeeksforGeeks — Capgemini 2025 on-campus interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/capgemini-interview-experience-2025-on-campus/
+
+      - kind: interview
+        round: coding
+        topic: Strings
+        difficulty: easy
+        question: >-
+          Given a string, print the count of each character it contains.
+        answer_md: |
+          Single pass with a hashmap (or a fixed-size array if you know the
+          character set): for each character, increment its count in the
+          map. `"Hello"` → `H:1 e:1 l:2 o:1`. O(n) time, O(k) space where k
+          is the number of distinct characters.
+
+          A common follow-up: make it case-insensitive, or preserve
+          first-seen order in the output — both are one small change to the
+          same loop, and being asked to adapt on the spot is part of what's
+          being tested.
+        source_name: GeeksforGeeks — Capgemini interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/interview-experience-of-capgemini/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What's the difference between UNION and UNION ALL?
+        answer_md: |
+          `UNION` merges the result sets of two queries and removes
+          duplicate rows — which means it does an implicit sort/dedup pass,
+          so it costs more. `UNION ALL` keeps every row from both queries,
+          including duplicates, and is faster because it skips that pass.
+
+          Use `UNION ALL` whenever you know the two result sets can't
+          overlap (or duplicates are fine/expected) — reaching for `UNION`
+          out of habit is a common unnecessary performance cost.
+        source_name: GeeksforGeeks — Capgemini 2025 on-campus interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/capgemini-interview-experience-2025-on-campus/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: easy
+        question: >-
+          Explain inheritance, classes and objects, with an example.
+        answer_md: |
+          A class is a blueprint — say, `Employee`, with fields like `name`
+          and `salary` and a method `giveRaise()`. An object is a concrete
+          instance of it (`emp1 = Employee("Asha", 50000)`). Inheritance
+          lets a new class, `Manager`, reuse `Employee`'s fields and methods
+          while adding its own (`teamSize`) or overriding one (`giveRaise()`
+          with a different rule).
+
+          Capgemini interviewers ask for the example alongside the
+          definitions — walk through it as code-like pseudocode rather than
+          stopping at the textbook wording.
+        source_name: GeeksforGeeks — Capgemini interview experience on Superset platform
+        source_url: https://www.geeksforgeeks.org/interview-experiences/capgemini-interview-experience-on-superset-platform/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          What do you know about Capgemini, and where do you see yourself in
+          five years?
+        answer_md: |
+          For the company-knowledge question, know the basics — a
+          French-origin IT and consulting firm with a large India delivery
+          presence — and connect it to something specific about why that
+          matters to you, rather than reciting the fact alone.
+
+          For the five-year question, describe growth *within* the company
+          (skill depth, certifications, larger project ownership) rather
+          than an answer that implies you're using this as a stepping stone
+          elsewhere — interviewers read the latter as a retention risk.
+        source_name: PrepInsta — Capgemini interview questions and answers
+        source_url: https://prepinsta.com/capgemini/interview-question-and-answers/
+
+  - slug: senior-analyst
+    title: Senior Analyst
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 2
+    source_url: https://prepinsta.com/capgemini-syllabus/
+    description: >-
+      The highest fresher package band, roughly ₹6.5–7.5 LPA. Gated entirely
+      by the coding assessment — both problems solved, at higher cutoffs
+      throughout Assessment 1 — rather than a separately named application.
+    focus_md: |
+      **You reach this band by clearing the coding assessment fully, not by
+      applying for it.** Two problems, 45 minutes: reported examples include
+      moving all `#` characters in a string to the front while preserving
+      the order of the rest, run-length-compressing a string of repeated
+      characters, and printing a matrix in clockwise spiral order. These sit
+      solidly in medium-difficulty array/string territory — get comfortable
+      with two-pointer and boundary-pointer techniques specifically, since
+      both problem types lean on them.
+
+      The technical interview goes wider than the Analyst track's — OOPs,
+      DBMS, OS, computer networks and coding questions are reported back to
+      back in a single ~25-minute session, so breadth under time pressure
+      matters more than depth on any one subject. Banker's Algorithm for
+      deadlock avoidance is a specific, reported ask.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Coding assessment (2 problems)", weight: 5,
+          notes: "Array/string problems built on two-pointer and boundary-pointer techniques. Both problems must be solved to reach this band." }
+      - { concept: backend-relational-databases, label: "SQL joins, live", weight: 4,
+          notes: "Two queries with real joins, written and explained while typing." }
+      - { concept: devops-operating-system, label: "Deadlock avoidance", weight: 4,
+          notes: "Banker's Algorithm is a specific, reported interview question." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP + C++ specifics", weight: 3,
+          notes: "Friend functions and pointer questions come up alongside the standard OOP pillars." }
+      - { label: "Breadth under time pressure", weight: 4,
+          notes: "OOPs, DBMS, OS, networking and coding are reported back-to-back in one ~25-minute technical interview." }
+      - { label: "Learning-agility scenario", weight: 3,
+          notes: "A realistic 'client needs a tech you don't know yet' question tests self-assessed ramp-up time, not textbook recall." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Strings
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a string, move every `#` character to the front while
+          keeping the relative order of all other characters unchanged.
+          `Move#Hash#to#Front` should become `###MoveHashtoFront`.
+        answer_md: |
+          Two-pointer partition, similar in spirit to the "move zeroes"
+          family of problems: walk the string once, write every `#` you see
+          into the front of a result buffer (or count them first), then
+          append the non-`#` characters in their original order afterward.
+          A single pass with two output pointers does it in O(n) time,
+          O(n) space.
+
+          The trap to avoid: swapping in place naively can scramble the
+          relative order of the non-`#` characters — the "preserve order"
+          requirement means you want a stable partition, not just any
+          rearrangement that groups the `#`s together.
+        source_name: PrepInsta — Capgemini coding questions
+        source_url: https://prepinsta.com/capgemini/coding-questions/
+
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: hard
+        year: 2025
+        question: >-
+          Print the elements of an N×N matrix in clockwise spiral order,
+          starting from the outside and working inward.
+        answer_md: |
+          Maintain four shrinking boundary pointers — `top`, `bottom`,
+          `left`, `right`. Traverse the top row left-to-right, then the
+          right column top-to-bottom, then the bottom row right-to-left,
+          then the left column bottom-to-top — after each side, shrink the
+          corresponding boundary inward. Repeat until the boundaries cross.
+          O(n²) time (every cell visited once), O(1) extra space beyond the
+          output.
+
+          The bug most people hit: forgetting to re-check `top <= bottom`
+          and `left <= right` between each of the four sides, which causes
+          the bottom row or left column to be printed a second time for
+          non-square or odd-sized matrices.
+        source_name: PrepInsta — Capgemini coding questions
+        source_url: https://prepinsta.com/capgemini/coding-questions/
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: hard
+        question: >-
+          Explain Banker's Algorithm.
+        answer_md: |
+          It's a deadlock-*avoidance* algorithm, not a deadlock-detection
+          one: before granting a resource request, the OS simulates
+          granting it and checks whether the system would still be in a
+          "safe state" — meaning there exists at least one order in which
+          every process could still finish with the resources available. If
+          no such order exists, the request is denied (or delayed) rather
+          than granted.
+
+          The analogy worth using out loud: a bank that only ever lends
+          money if it can still guarantee repaying every depositor in some
+          order — it never lends itself into a corner, even though it's
+          being cautious rather than reactive.
+        source_name: PrepInsta — Capgemini interview questions and answers
+        source_url: https://prepinsta.com/capgemini/interview-question-and-answers/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          Write a query joining two tables on a common key, and explain
+          what changes if you use a LEFT JOIN instead of an INNER JOIN.
+        answer_md: |
+          `SELECT o.id, c.name FROM orders o INNER JOIN customers c ON
+          o.customer_id = c.id` returns only orders that have a matching
+          customer — any order with a dangling or null `customer_id` is
+          silently dropped.
+
+          Switch to `LEFT JOIN` and every row from `orders` is kept
+          regardless of whether a match exists in `customers`; unmatched
+          rows get `NULL` for the customer columns. The choice is a real
+          design decision, not a style preference — INNER JOIN is right
+          when an unmatched row would be invalid data, LEFT JOIN is right
+          when you need to know about the unmatched rows too (e.g. "which
+          orders have no customer record").
+        source_name: GeeksforGeeks — Capgemini interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/interview-experience-of-capgemini/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: medium
+        question: >-
+          What's a friend function in C++, and why use one sparingly?
+        answer_md: |
+          A friend function is a non-member function explicitly granted
+          access to a class's private and protected members, declared
+          inside the class with the `friend` keyword. It's useful when two
+          classes (or a standalone function like an operator overload) need
+          tight access to each other's internals that a normal public
+          interface would make awkward.
+
+          Use it sparingly because it's a deliberate hole in encapsulation —
+          every friend declaration is another piece of code that can reach
+          into your class's internals, which makes future refactors riskier
+          the more of them you have.
+        source_name: GeeksforGeeks — Capgemini 2025 on-campus interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/capgemini-interview-experience-2025-on-campus/
+
+      - kind: interview
+        round: hr
+        topic: Learning agility
+        difficulty: medium
+        question: >-
+          A client project is ready to start, but it needs a technology you
+          don't know yet. How do you handle it, and how long would it take
+          you to get up to speed?
+        answer_md: |
+          This is a realistic scenario, not a trick question — Capgemini
+          staffs client projects against whatever technology the client
+          uses, so the honest answer is expected to include a genuine
+          estimate, not just "I'd pick it up fast."
+
+          A strong structure: name how you'd scope the gap (docs, a small
+          throwaway project, pairing with someone who knows it), give a
+          concrete, realistic timeframe for reaching basic competence versus
+          full confidence, and reference a real past example where you
+          actually did this — picked up a new language or framework under a
+          deadline — rather than a hypothetical claim.
+        source_name: GeeksforGeeks — Capgemini interview experience on Superset platform
+        source_url: https://www.geeksforgeeks.org/interview-experiences/capgemini-interview-experience-on-superset-platform/

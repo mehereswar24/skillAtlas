@@ -1,0 +1,756 @@
+# Apple.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag, GeeksforGeeks' sheet),
+#     we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI
+#     shows it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: apple
+  name: Apple
+  industry: Big Tech
+  hq: Cupertino, California
+  website: https://www.apple.com/careers/us/
+  icon: Apple
+  fetched_on: 2026-08-21
+  sort_order: 2
+  description: >-
+    iPhone, Mac, the silicon under both, and the services layered on top.
+    Apple hires into a specific team rather than a generalist pool, writes
+    its own interview questions per team, and grades a resume project deep
+    dive as hard as it grades your code.
+
+  hiring_process_md: |
+    Apple's process is the opposite of Google's in one structural way: **you
+    interview for a team, not for the company.** There is no central hiring
+    committee reading anonymised feedback and no shared question bank — your
+    recruiter, your interviewers, and the exact shape of your loop all sit
+    inside the org you applied to. That has two practical consequences.
+
+    First, the job description you applied to is the syllabus. A Wallet team
+    loop and a WebKit team loop share almost nothing beyond "coding round"
+    and "system design round" as labels; the actual content is written by
+    that team's engineers about that team's problems. Ask your recruiter what
+    the loop looks like — Apple candidates are explicitly told this is a fair
+    question, because there is no public standard to fall back on.
+
+    Second, Apple leans harder than most Big Tech companies on one round type:
+    the **project deep dive**. An interviewer picks something off your resume
+    and spends 30–45 minutes pushing on it — not "what did you build" but "why
+    that data store, what would you change now, what broke in production and
+    what did you add so it wouldn't happen again." This round exists because
+    it is very hard to fake, and it is where candidates who inflated their
+    resume role usually get caught.
+
+    **The shape of it, for most software/hardware engineering roles**
+
+    1. **Recruiter screen** — background, motivation, "why Apple, why this
+       team," level and timing.
+    2. **Hiring manager screen** — role fit, a light technical conversation,
+       and this is usually the person who schedules the rest of your loop.
+    3. **Technical phone screens (one to two, 45–60 min)** — a coding problem
+       in a shared editor, sometimes with 10–15 minutes of CS fundamentals
+       first.
+    4. **Onsite loop (five to eight rounds in a day)** — two to three coding
+       rounds, one system/architecture design round (constrained by
+       on-device compute, battery, and Apple's privacy rules rather than
+       Google-style horizontal scaling), the project deep dive, and a
+       behavioural round.
+    5. **Hiring manager decision** — Apple does not run a separate hiring
+       committee the way Google does; the hiring manager and loop panel
+       decide directly, which is faster but means one bad round carries more
+       weight than at a company with a review board.
+
+    **What they say they are grading.** Apple's own careers material talks
+    about "craftsmanship," attention to detail, and cross-functional
+    collaboration rather than a numbered rubric. In practice: correctness and
+    code quality over algorithmic showmanship in coding rounds, genuine
+    ownership (not "my team did X") in the deep dive, and — because of the
+    NDA culture everyone works under before a product ships — a comfort with
+    being told "I can't tell you which team this is for" and reasoning about
+    the problem anyway.
+
+  resources:
+    - kind: careers
+      title: "Careers at Apple"
+      url: https://www.apple.com/careers/us/
+    - kind: prep
+      title: "Software Engineer job listings — Apple Careers"
+      url: https://jobs.apple.com/en-us/search?team=software-and-services-SFTWR
+    - kind: blog
+      title: "Apple Machine Learning Research"
+      url: https://machinelearning.apple.com/
+    - kind: prep
+      title: "Apple SDE interview questions and answers — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/dsa/apple-sde-interview-questions-and-answers/
+    - kind: prep
+      title: "Apple Software Engineer interview guide — Exponent"
+      url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+    description: >-
+      The general software engineering track across Apple's services and
+      platform teams. Graded on clean, correct code, comfort with CS
+      fundamentals, and — more than most companies — how well you know the
+      systems you claim to have built.
+    focus_md: |
+      **Read the job description like it's the syllabus, because it is.**
+      Apple has no central "SWE bar" the way Google does; the team you
+      applied to writes its own questions about its own stack. If the
+      posting mentions Core Data or a specific service, expect a coding or
+      design round to lean on it.
+
+      **Treat the project deep dive as a fifth coding round, not a warm-up
+      chat.** Pick the project on your resume you can defend hardest, not the
+      most impressive-sounding one. Be ready for: why this data store and not
+      another, what you'd change with what you know now, what broke and how
+      you found it, and what you added so it didn't happen twice. Vague
+      answers here read as "you inflated your role."
+
+      **Coding rounds reward correctness and clean code over cleverness.**
+      Apple interviewers consistently mention wanting to see edge cases
+      handled without prompting and variable names that make sense on a
+      second read — the same code review bar you'd want to see if this
+      person joined your team.
+
+      **System design leans on Apple's actual constraints.** Battery,
+      on-device vs. server-side compute, intermittent connectivity, and
+      Apple's privacy rules (what data can leave the device, and how it's
+      anonymised if it does) show up in design answers even when the prompt
+      doesn't ask for them directly — bring them up unprompted.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "Two to three coding rounds. Correctness and clean edge-case handling are graded as hard as the algorithm." }
+      - { concept: computer-science-system-design, label: "System design under device constraints", weight: 4,
+          notes: "Battery, offline-first, and on-device vs. server compute — not just horizontal scaling." }
+      - { concept: computer-science-security, label: "Privacy-by-design", weight: 3,
+          notes: "What data can leave the device, and how it's minimised or anonymised, is a live design constraint at Apple." }
+      - { concept: backend-relational-databases, label: "Databases and data modelling", weight: 3 }
+      - { concept: backend-caching, label: "Caching and offline sync", weight: 3,
+          notes: "iCloud-style sync across flaky connections comes up in both coding and design rounds." }
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 4,
+          notes: "Swift, C++, Python or Java — pick the one you don't need to think about the syntax of." }
+      - { label: "Project deep dive & ownership", weight: 5,
+          notes: "A dedicated 30-45 min round on a resume project. The single hardest round to pass by memorising answers." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an N-ary tree (each node can have any number of children),
+          find the tree level that has the most nodes and return that count.
+        answer_md: |
+          Breadth-first traversal is the natural fit because "level" is
+          literally the unit BFS processes one queue-drain at a time.
+
+          Push the root, then loop: record the current queue size as the
+          count for this level, dequeue exactly that many nodes (pushing
+          their children as you go), and track the max count seen. The trap
+          is dequeuing until the queue is empty instead of dequeuing exactly
+          `level_size` nodes — that collapses levels into each other. Runs in
+          O(n) time and O(width) space, and saying so before you're asked
+          reads as fluency rather than recall.
+        source_name: Exponent — Apple Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+      - kind: interview
+        round: coding
+        topic: Design & concurrency
+        difficulty: hard
+        year: 2024
+        question: >-
+          Design a thread-safe LRU cache with O(1) get and put.
+        answer_md: |
+          The single-threaded version is a doubly linked list plus a hash
+          map: the map gives O(1) lookup, the list gives O(1) reordering to
+          the front on access and O(1) eviction from the back when you're
+          over capacity. Get moves a node to the front; put either updates in
+          place and moves it, or inserts at the front and evicts from the
+          back if you're now over capacity.
+
+          Thread safety is the actual question. A single coarse lock around
+          every operation is correct and the answer most interviewers want
+          you to state first — then talk about why you might reach for a
+          read-write lock (gets vastly outnumber puts in most caches) or
+          shard the cache into N independently-locked buckets keyed by hash
+          to cut contention. Say what you'd measure before reaching for the
+          sharded version — premature sharding is a real anti-pattern.
+        source_name: Exponent — Apple Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+      - kind: online-assessment
+        round: coding
+        topic: Dynamic programming
+        difficulty: medium
+        year: 2024
+        question: >-
+          You're given a set of stepping stones at various distances and a
+          maximum jump length. Find the minimum number of jumps to reach the
+          last stone, or determine it's impossible.
+        answer_md: |
+          This is coin-change-shaped: define `min_jumps[i]` as the fewest
+          jumps to reach stone `i`, seed `min_jumps[0] = 0`, and for each
+          stone look back at every stone within jump range and take
+          `min(min_jumps[j]) + 1`. That's O(n × max_jump) and correct, and
+          it's fine to state that as your first working answer.
+
+          The greedy O(n) version — track the farthest reachable index within
+          the current jump's range, and increment your jump counter each time
+          you must extend past it — is the optimisation to reach for if asked
+          to do better, but leading with a working DP solution and then
+          improving it is a stronger signal than reaching for greedy first
+          and getting the invariant wrong under pressure.
+        source_name: GeeksforGeeks — Apple SDE interview experience (on-campus 2024)
+        source_url: https://www.geeksforgeeks.org/interview-experiences/apple-interview-experience-sde-on-campus-2024/
+
+      - kind: interview
+        round: system-design
+        topic: Sync & offline-first
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design iCloud-style photo sync: a user edits a photo on their phone
+          with no connection, then opens their Mac an hour later. How does
+          the edit get there, and what happens if they edited the same photo
+          on both devices while offline?
+        answer_md: |
+          Frame it as an offline-first system, not a client-server one: every
+          device keeps a local, fully-functional copy and a queue of pending
+          changes, and sync is a background reconciliation process rather
+          than something the user waits on.
+
+          Each edit needs a version or vector clock, not just a timestamp —
+          device clocks drift and skew, and "last write wins by wall clock"
+          silently drops edits. When both devices have diverging edits to the
+          same photo, you either merge (trivial for metadata like favourites,
+          hard for pixel edits) or fork into two versions and ask the user,
+          which is what Apple actually does for real conflicts. State the
+          trade-off explicitly: silent merge is friendlier but can lose work;
+          asking the user is safer but interrupts them. Bring up on-device
+          storage limits and thumbnail-vs-full-res sync tiers unprompted —
+          that's the Apple-specific half of this question.
+        source_name: Exponent — Apple Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+      - kind: interview
+        round: technical
+        topic: Project deep dive
+        difficulty: medium
+        year: 2025
+        question: >-
+          Walk me through a system you built end to end. Why that
+          architecture, what would you change now, and what broke in
+          production?
+        answer_md: |
+          This round is designed to catch the difference between "my team
+          shipped this" and "I made these decisions." Pick the project you
+          can defend under fifteen minutes of follow-up questions, not the
+          most impressive-sounding line on your resume.
+
+          Structure the answer around decisions, not features: what were the
+          two or three real options at each major choice point, what did you
+          pick and why, and — this is the part interviewers actually listen
+          for — what you'd do differently with what you know now. "It broke
+          in production" is not a weakness to hide; naming the failure, how
+          you found it (metrics? a user report? a page at 2am?), and the
+          concrete change you made afterward is stronger evidence of
+          ownership than a project that (implausibly) never had an incident.
+        source_name: interviewing.io — Apple onsite interview loop breakdown
+        source_url: https://spacecomplexity.ai/blog/apple-onsite-interview
+
+      - kind: interview
+        round: managerial
+        topic: Behavioural
+        difficulty: easy
+        year: 2024
+        question: >-
+          Tell me about a time you disagreed with a technical decision your
+          team made, but the team went a different direction anyway. What
+          did you do?
+        answer_md: |
+          Apple's behavioural round is explicitly listening for what happens
+          *after* you lose an argument, because shipping software means the
+          decision doesn't always go your way and sulking or quietly
+          re-litigating it in code review is a real failure mode they've seen.
+
+          Give the disagreement honestly — vague "we had different opinions"
+          answers are unconvincing — then spend most of the answer on what
+          you did once the decision was made: did you commit fully, keep a
+          concern on record, or ask for a checkpoint to revisit it later if a
+          risk materialised? A story where you disagreed, lost, and then
+          executed well is a stronger answer than one where you were
+          eventually proven right, because it demonstrates you're safe to
+          disagree with rather than merely correct.
+        source_name: Exponent — Apple Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+  - slug: ios-engineer
+    title: iOS / Mobile Engineer
+    level: entry to mid
+    maps_to_role: mobile-developer
+    sort_order: 2
+    source_url: https://www.interviewbit.com/ios-interview-questions/
+    description: >-
+      Builds the apps and frameworks that ship on iPhone and iPad. The
+      algorithmic bar is comparable to a general SWE loop, but Swift memory
+      model, concurrency and the app lifecycle are graded in depth that a
+      generalist interview never reaches.
+    focus_md: |
+      **Swift's memory model is not optional trivia here — it's load-bearing.**
+      Expect a round to probe strong/weak/unowned references, retain cycles
+      in closures, and why `[weak self]` shows up in a capture list.
+      "Because Apple told me to write it that way" is not an answer; be able
+      to explain what leaks if you don't.
+
+      **Concurrency has two eras and you should know both.** GCD (dispatch
+      queues, `DispatchQueue.main.async`, the difference between serial and
+      concurrent queues) is still in most production codebases; Swift's
+      structured concurrency (`async`/`await`, actors for thread-safe state)
+      is what new code is written in and what interviewers increasingly ask
+      about directly. Know when you'd reach for each.
+
+      **The coding rounds skew slightly easier than a generalist Big Tech
+      loop** — reports describe them as approachable LeetCode-medium rather
+      than contest-hard — but system design questions get very
+      platform-specific: expect iCloud sync, push notification delivery
+      (APNs), or offline-first app state rather than a generic "design
+      Twitter."
+
+      **Know the app lifecycle cold.** Background/foreground transitions,
+      what happens to your process when memory pressure hits, and how you'd
+      persist state across a system-initiated kill are recurring themes,
+      because they're the class of bug that only shows up in production on a
+      real device.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4,
+          notes: "Two coding rounds, generally approachable LeetCode-medium rather than contest-hard." }
+      - { concept: computer-science-system-design, label: "Mobile system design", weight: 4,
+          notes: "iCloud sync, push notifications, offline-first — not generic web-scale design." }
+      - { label: "Swift memory management (ARC)", weight: 5,
+          notes: "Strong/weak/unowned, retain cycles in closures, capture lists. Asked almost every loop." }
+      - { label: "Swift concurrency", weight: 4,
+          notes: "GCD in legacy code, async/await + actors in new code. Know when each is the right tool." }
+      - { label: "App lifecycle & state", weight: 3,
+          notes: "Background/foreground transitions, state restoration after a system kill. No iOS-specific concept exists yet in the graph." }
+      - { concept: backend-caching, label: "Offline-first data & sync", weight: 3 }
+      - { label: "Project deep dive & ownership", weight: 4,
+          notes: "Same format as the general SWE loop — a resume app gets pushed on for 30-45 minutes." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Memory management
+        difficulty: medium
+        year: 2024
+        question: >-
+          Explain the difference between strong, weak, and unowned references
+          in Swift, and describe a retain cycle you'd expect in a closure.
+        answer_md: |
+          ARC deallocates an object once its strong reference count hits
+          zero. A strong reference keeps the object alive; a weak reference
+          doesn't, and it's automatically set to `nil` when the object is
+          freed, which is why weak references are always `Optional`. Unowned
+          is weak's non-optional cousin: it doesn't keep the object alive
+          either, but it assumes the object will always outlive the
+          reference — access it after deallocation and you get a crash, not
+          a graceful `nil`.
+
+          The classic retain cycle: a view controller holds a closure as a
+          property (say, a completion handler), and that closure captures
+          `self` to call back into the view controller. The view controller
+          strongly retains the closure, and the closure strongly retains
+          `self` — neither can ever reach zero references. `[weak self]` in
+          the capture list breaks the cycle; inside the closure you then
+          have `self` as an optional and need `self?.doSomething()` or a
+          guard-let to safely unwrap it.
+        source_name: InterviewBit — iOS interview questions
+        source_url: https://www.interviewbit.com/ios-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Concurrency
+        difficulty: medium
+        year: 2025
+        question: >-
+          When would you reach for Grand Central Dispatch versus Swift's
+          async/await, and what problem do actors solve that a dispatch
+          queue doesn't?
+        answer_md: |
+          GCD is still the right tool for fire-and-forget work and for
+          codebases that predate structured concurrency — dispatching a
+          background task and hopping back to `DispatchQueue.main` to update
+          UI is a pattern every iOS engineer needs to read fluently even if
+          they don't write much new GCD code.
+
+          async/await is preferred for new code because it makes asynchronous
+          control flow read like synchronous code — no more deeply nested
+          completion handlers, and errors propagate with normal `try`/`catch`
+          instead of an `(Error?, T?)` tuple you have to remember to check.
+
+          Actors solve a different problem: GCD queues make execution
+          asynchronous but say nothing about the safety of shared mutable
+          state — you can still race on a variable if you're not careful
+          about which queue touches it. An actor is a reference type where
+          the compiler enforces that only one task touches its mutable state
+          at a time, turning a class of data races into a compile-time error
+          instead of a rare crash report from the field.
+        source_name: InterviewBit — iOS interview questions
+        source_url: https://www.interviewbit.com/ios-interview-questions/
+
+      - kind: online-assessment
+        round: coding
+        topic: Strings
+        difficulty: easy
+        year: 2024
+        question: >-
+          Given a string, determine if it's a valid palindrome after removing
+          all non-alphanumeric characters and ignoring case.
+        answer_md: |
+          Two pointers from both ends, skipping any character that isn't
+          alphanumeric before comparing, and lower-casing both sides before
+          the comparison. O(n) time, O(1) extra space — no need to build a
+          cleaned copy of the string first, which is the version most
+          candidates write by default and then have to justify why it costs
+          O(n) space they didn't need to spend.
+
+          The follow-up worth pre-empting: what if the string can have at
+          most one character removed and still be a palindrome? That needs a
+          helper that checks palindrome-ness over a range, and on the first
+          mismatch you try skipping either the left or the right character
+          and recurse once — you only get one "skip" budget, so you don't
+          need to explore both branches beyond that first mismatch.
+        source_name: GeeksforGeeks — Apple SDE interview questions and answers
+        source_url: https://www.geeksforgeeks.org/dsa/apple-sde-interview-questions-and-answers/
+
+      - kind: interview
+        round: system-design
+        topic: Push notifications
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the delivery path for a chat app's push notifications on
+          iOS, from message sent to a banner appearing on the recipient's
+          lock screen. What happens if the recipient's phone is offline?
+        answer_md: |
+          The path runs: sender's app hits your backend, your backend holds
+          the device's APNs token and pushes a notification payload to
+          Apple's push service, and APNs delivers it to the device — your
+          server never opens a direct connection to the phone. Say this
+          explicitly, because a common mistake in this design is drawing a
+          direct server-to-device line, which doesn't exist on iOS.
+
+          If the device is offline, APNs queues the most recent notification
+          per app (not an unbounded queue — it typically holds one) and
+          delivers it once the device reconnects. That has a real design
+          consequence: if your payload is "you have 3 unread messages" and
+          two more pushes arrive before the phone reconnects, the device only
+          ever sees the latest one — so the notification content needs to be
+          re-fetchable or self-consistent (e.g., always carry the current
+          unread count) rather than assuming every push you send is
+          delivered. For anything that must be reliably delivered, the app
+          itself needs to reconcile true state with your backend on
+          foreground, treating push as a hint to refresh rather than the
+          source of truth.
+        source_name: Exponent — Apple Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+      - kind: interview
+        round: managerial
+        topic: Shipping under pressure
+        difficulty: medium
+        year: 2024
+        question: >-
+          Tell me about a time you had to ship an app feature under a hard
+          deadline and had to cut scope. What did you cut, and how did you
+          decide?
+        answer_md: |
+          Interviewers are listening for a real decision process, not "we
+          just worked harder." A strong answer names the actual constraint
+          (an OS version deadline, a marketing date, App Store review
+          timing), lists the two or three things that were realistically
+          cuttable, and explains the criteria you used — what a user would
+          actually notice missing versus what only you would notice.
+
+          Apple in particular listens for whether "quality" was one of the
+          things you protected rather than cut, because craftsmanship shows
+          up explicitly in how the company talks about engineering culture.
+          A good story cuts a feature, not the testing or the edge-case
+          handling on the features that shipped — and says so.
+        source_name: Exponent — Apple Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-software-engineer-interview
+
+      - kind: interview
+        round: technical
+        topic: App lifecycle
+        difficulty: medium
+        year: 2024
+        question: >-
+          Your app gets backgrounded and, ten minutes later, the system kills
+          it to reclaim memory. The user reopens it from the home screen.
+          What does the user see, and what do you need to have done to make
+          that experience good?
+        answer_md: |
+          A system-initiated kill while backgrounded is silent from the
+          user's perspective — tapping the icon looks like a fresh launch,
+          not a resume, unless you've done work to hide that. The app
+          launches cold: your `applicationDidFinishLaunching` path runs
+          again, not a "wake from background" callback.
+
+          The fix is state restoration: persist whatever represents "where
+          the user was" (scroll position, the screen they were on, an
+          in-progress form) before you're killed — which means doing it on
+          `applicationDidEnterBackground`, since you get very little
+          guaranteed time after a kill signal, not lazily on some later
+          event. On relaunch, check for that saved state and restore into it
+          before the first frame renders, so the transition from "backgrounded"
+          to "killed and relaunched" is invisible to the user. This is also
+          exactly the class of bug that only reproduces on a real device under
+          memory pressure — the simulator rarely kills apps the way a
+          real iPhone does, which is a strong thing to mention if asked how
+          you'd catch this in testing.
+        source_name: InterviewBit — iOS interview questions
+        source_url: https://www.interviewbit.com/ios-interview-questions/
+
+  - slug: machine-learning-engineer
+    title: Machine Learning Engineer
+    level: mid to senior
+    maps_to_role: machine-learning-engineer
+    sort_order: 3
+    source_url: https://www.tryexponent.com/guides/apple-machine-learning-engineer-interview
+    description: >-
+      Feature pipelines, on-device inference and model serving behind
+      Siri, the camera, and Apple's on-device Apple Intelligence models.
+      Reports describe Apple's MLE loop as the least standardised in Big
+      Tech — the hiring team writes its own questions toward its own domain.
+    focus_md: |
+      **There is no generic "Apple ML interview."** A computer-vision team
+      inside Camera, an on-device inference team inside Core ML, and a Siri
+      NLP team will ask almost entirely different questions, because each
+      team designs its own loop toward its own domain. Ask your recruiter
+      which team and what the round breakdown looks like — you're expected
+      to ask.
+
+      **Applied reasoning about production ML beats textbook ML theory.**
+      Across the loop, the recurring thread is "how do you architect an ML
+      system end to end, under real constraints" — not "recite the bias-
+      variance tradeoff." The constraint Apple leans on hardest is on-device:
+      model size, latency and battery budget on an iPhone are not
+      afterthoughts, they're often the primary design pressure, because a lot
+      of Apple's ML runs on the device rather than a server for privacy
+      reasons.
+
+      **Coding rounds are still real coding rounds.** Expect standard data
+      structures and algorithms questions (graph search, linked lists) rather
+      than ML-flavoured coding puzzles for at least one or two of the five to
+      seven onsite rounds — the algorithmic bar is not lowered because the
+      job title says "ML."
+
+      **Privacy is a design constraint you should bring up unprompted.**
+      Apple's public ML research emphasises on-device processing and
+      differential privacy; in a system design round, naming what data stays
+      on-device versus what's aggregated with privacy noise before it ever
+      reaches a server reads as domain fluency, not boilerplate.
+    focus_areas:
+      - { concept: machine-learning-deep-learning-architectures, label: "Deep learning architectures", weight: 4,
+          notes: "Which architecture and why is asked relative to the team's actual domain — CV, speech, or NLP." }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4,
+          notes: "One to two rounds are standard DSA, not ML-flavoured. The bar isn't lowered." }
+      - { concept: computer-science-system-design, label: "ML system design (data → training → serving)", weight: 5,
+          notes: "The signature round: architect the pipeline end to end under production constraints." }
+      - { label: "On-device inference & efficiency", weight: 5,
+          notes: "Model size, latency, and battery budget on-device are often the primary constraint, not an afterthought." }
+      - { concept: machine-learning-what-is-model-evaluation, label: "Model evaluation & metrics", weight: 3 }
+      - { concept: computer-science-security, label: "Privacy-preserving ML", weight: 3,
+          notes: "On-device processing and differential privacy are part of Apple's public ML philosophy — name them unprompted." }
+      - { label: "Project deep dive & ownership", weight: 4,
+          notes: "Same interviewing.io-documented format as the general SWE loop, applied to an ML project." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a graph representing similarity between items (or users),
+          find the shortest path — in terms of number of hops — between two
+          given nodes.
+        answer_md: |
+          Unweighted shortest path is a BFS problem, not Dijkstra — BFS
+          guarantees the first time you reach a node is via the fewest edges,
+          because it explores layer by layer. Track a visited set and a
+          distance map seeded at the source with distance 0; for each
+          neighbour of a dequeued node that hasn't been visited, set its
+          distance to `current + 1` and enqueue it.
+
+          The reason this shows up in an ML round rather than a pure coding
+          round is usually the follow-up: if the graph is a similarity graph
+          built from embeddings (edges added when cosine similarity exceeds a
+          threshold), how does the threshold choice affect the graph's
+          density and therefore this algorithm's practical runtime? A tight
+          threshold gives a sparse graph and cheap BFS; a loose one can make
+          the graph near-complete, and at that point you should be asking
+          whether a graph traversal is even the right tool versus a direct
+          nearest-neighbour index.
+        source_name: Exponent — Apple Machine Learning Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-machine-learning-engineer-interview
+
+      - kind: interview
+        round: system-design
+        topic: On-device ML pipeline
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design an on-device feature that suggests captions for photos as
+          the user takes them, using a model that runs entirely on the
+          iPhone. Walk through the pipeline from training to what actually
+          executes on the device.
+        answer_md: |
+          Split the answer into two pipelines that share almost nothing:
+          training happens on Apple's infrastructure against a large,
+          diverse dataset, but the artefact that ships is a compressed,
+          quantised model small enough to sit in the app bundle or be
+          delivered as an on-device asset — think tens of megabytes, not the
+          gigabytes a server-side model might be.
+
+          On the device, the constraint set flips from "how accurate" to "how
+          fast, how much battery, how much memory while other apps are also
+          running." Discuss quantisation (int8 instead of float32 weights),
+          pruning, or a distilled smaller model trained to mimic a larger
+          server-side teacher — this is where naming Core ML explicitly as
+          Apple's on-device inference runtime is worth doing.
+
+          The privacy angle is the part interviewers are listening for
+          unprompted: because inference runs on-device, the photo and its
+          caption never need to leave the phone, which is both a genuine
+          Apple design principle and a real technical constraint — you can't
+          fall back to "just call a bigger model in the cloud if the on-device
+          one is unsure," because that reintroduces the privacy leak the
+          whole design was meant to avoid. If you need to improve the model
+          over time, the answer is usually aggregated, differentially-private
+          telemetry about failure cases, not raw user photos.
+        source_name: Apple Machine Learning Research
+        source_url: https://machinelearning.apple.com/
+
+      - kind: online-assessment
+        round: coding
+        topic: Linked lists
+        difficulty: easy
+        year: 2024
+        question: >-
+          Given a linked list, detect whether it contains a cycle, and if so,
+          find the node where the cycle begins.
+        answer_md: |
+          Floyd's cycle detection (tortoise and hare): a slow pointer moves
+          one node at a time, a fast pointer moves two; if there's a cycle,
+          they're guaranteed to meet inside it, because the fast pointer
+          gains one node of distance on the slow one every step and can't
+          "jump over" it once both are inside the loop.
+
+          Finding the start of the cycle is the part worth memorising the
+          proof for, not just the trick: once slow and fast meet, reset one
+          pointer to the head and advance both one step at a time — they meet
+          exactly at the cycle's start. This falls out of the distance
+          algebra (distance from head to cycle start equals distance from the
+          meeting point to the cycle start, going forward around the loop),
+          and being able to sketch that proof on request is a stronger signal
+          than reciting the two-pointer trick alone.
+        source_name: GeeksforGeeks — Apple SDE interview questions and answers
+        source_url: https://www.geeksforgeeks.org/dsa/apple-sde-interview-questions-and-answers/
+
+      - kind: interview
+        round: technical
+        topic: Model evaluation
+        difficulty: medium
+        year: 2024
+        question: >-
+          You ship a new on-device classifier and offline metrics look
+          better than the model it replaced, but a week after rollout,
+          user complaints go up. What do you check?
+        answer_md: |
+          The gap between "offline metrics improved" and "real-world
+          experience got worse" almost always means the offline evaluation
+          set doesn't represent production traffic. Check first whether the
+          eval set is stale or skewed relative to current usage — new device
+          types, new locales, or a seasonal shift in what users are actually
+          doing with the feature.
+
+          Second, look at the error distribution, not just the aggregate
+          metric: a model can raise average accuracy while getting
+          catastrophically worse on a specific slice (a particular accent, a
+          low-light photo condition, an underrepresented device) that the
+          aggregate number hides completely. On-device adds a third
+          candidate that's easy to miss: the model that shipped to devices
+          might not be the exact model you evaluated offline if quantisation
+          or a conversion step (e.g., to Core ML format) changed its
+          behaviour — always re-validate the actual on-device artefact, not
+          just the training-time checkpoint.
+        source_name: Exponent — Apple Machine Learning Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/apple-machine-learning-engineer-interview
+
+      - kind: interview
+        round: technical
+        topic: Project deep dive
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about an ML model you took from prototype to production.
+          What was the biggest gap between how it performed in your notebook
+          and how it performed once real users hit it?
+        answer_md: |
+          The interviewer wants a concrete story with a specific failure, not
+          a description of the whole project. A strong structure: what the
+          offline metric said, what you observed once it was live, what you
+          did to diagnose the gap, and what changed as a result — in the
+          model, the data pipeline, or the serving infrastructure.
+
+          Common real gaps worth having a genuine answer for: training-serving
+          skew (a feature computed differently at train time than at
+          inference time), distribution shift between your training data and
+          live traffic, or latency/resource constraints that forced a smaller
+          or quantised model than the one you validated offline. If your
+          honest answer is "we never shipped anything, so I don't have a real
+          gap to describe," that's a signal to prepare a different project for
+          this round — Apple interviewers are reported to probe hard enough
+          that a purely academic project doesn't hold up well here.
+        source_name: interviewing.io — Apple onsite interview loop breakdown
+        source_url: https://spacecomplexity.ai/blog/apple-onsite-interview
+
+      - kind: interview
+        round: managerial
+        topic: Cross-functional collaboration
+        difficulty: easy
+        year: 2024
+        question: >-
+          Tell me about a time an ML model you built worked well
+          technically, but a product or design partner didn't want to ship
+          it. What happened?
+        answer_md: |
+          This question is checking whether you can operate on a
+          cross-functional team where "the model is more accurate" isn't
+          automatically the deciding argument — a very live scenario in
+          consumer ML, where a technically superior model can still be
+          rejected for latency, battery, explainability, or user-trust
+          reasons.
+
+          A good answer names the actual objection (not a strawman), shows
+          you engaged with it rather than just re-arguing your metric, and
+          describes the resolution honestly — including if the answer is
+          "they were right and I hadn't considered X." Apple's own ML
+          research repeatedly frames its models around user-facing
+          constraints like privacy and on-device latency rather than raw
+          benchmark performance, so an answer that shows you understand why
+          "more accurate" isn't always "better to ship" lands well here.
+        source_name: interviewing.io — Apple onsite interview loop breakdown
+        source_url: https://spacecomplexity.ai/blog/apple-onsite-interview

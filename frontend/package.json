@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node scripts/copy-wasm-assets.mjs",
-    "copy-wasm": "node scripts/copy-wasm-assets.mjs"
+    "copy-wasm": "node scripts/copy-wasm-assets.mjs",
+    "check:explore": "node scripts/check-explore.mjs",
+    "check:routes": "node scripts/check-routes.mjs",
+    "check:companies": "node scripts/check-companies.mjs",
+    "check:build": "node scripts/check-build.mjs",
+    "check:runtimes": "node scripts/check-runtimes.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -45,6 +50,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "jsdom": "^30.0.1",
+    "playwright": "^1.62.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "yaml": "^2.9.0"

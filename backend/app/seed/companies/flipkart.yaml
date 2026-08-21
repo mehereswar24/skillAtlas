@@ -1,0 +1,635 @@
+# Flipkart.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: flipkart
+  name: Flipkart
+  industry: E-commerce
+  hq: Bengaluru, Karnataka
+  website: https://www.flipkartcareers.com/
+  icon: ShoppingCart
+  fetched_on: 2026-08-21
+  sort_order: 20
+  description: >-
+    India's largest homegrown e-commerce marketplace. Runs its own logistics
+    (Ekart) and payments (Flipkart Pay Later) stack, which is why its loop
+    leans harder on object-oriented design than a typical big-tech interview.
+  hiring_process_md: |
+    Flipkart's loop looks like big tech for the first two rounds and then
+    turns into something services-background candidates rarely expect: a
+    **machine coding round** where you build a small, actually-running program
+    rather than talk about one.
+
+    **The shape of it**
+
+    1. **Online assessment** — usually 2–3 DSA problems in 90 minutes, plus an
+       MCQ section on CS fundamentals for campus hires.
+    2. **DSA technical round(s)** — one or two live rounds, arrays/graphs/DP,
+       explain complexity as you go.
+    3. **Machine coding round** — the signature round. You get a prompt like
+       "build a parking lot" or "build an expense splitter" and 90–120 minutes
+       to produce running, compiling code with proper classes — not
+       pseudocode, not a design doc. Graded on OOP design, extensibility (can
+       you add a new vehicle type or split strategy in five minutes?), and
+       whether it actually runs.
+    4. **System design (SDE-2 and above)** — high-level design: data
+       modelling, API shape, where the system falls over under load.
+    5. **Hiring manager / bar-raiser** — projects, ownership, conflict stories.
+    6. **HR** — compensation, notice period, offer.
+
+    **What trips people up.** Candidates who prepared only LeetCode clear the
+    OA and the DSA rounds and then stall in machine coding, because it grades
+    a completely different skill: turning a vague prompt into a class
+    hierarchy under a clock, with no time to redesign halfway through. Decide
+    your entities and their relationships in the first ten minutes and resist
+    the urge to perfect them later — a working v1 beats an elegant half-built
+    v2.
+  resources:
+    - kind: careers
+      title: "How We Hire — Flipkart Careers"
+      url: https://www.flipkartcareers.com/howwehire
+    - kind: blog
+      title: "Flipkart Tech Blog"
+      url: https://blog.flipkart.tech/
+    - kind: prep
+      title: "Flipkart Interview Experience for SDE-2 — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+    - kind: prep
+      title: "Flipkart SDE-2 interview experience, July 2025 — LeetCode Discuss"
+      url: https://leetcode.com/discuss/post/7560534/
+    - kind: prep
+      title: "Flipkart Interview Process 2026 guide — Clave Prep"
+      url: https://claveprep.com/blog/flipkart-interview-process-2026-guide
+
+roles:
+  - slug: sde-1
+    title: SDE-1 (Software Development Engineer)
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.flipkartcareers.com/howwehire
+    description: >-
+      The entry engineering role. Cleared on DSA fluency and, increasingly,
+      on whether you can hold your own in the machine coding round rather
+      than freeze on an open-ended prompt.
+    focus_md: |
+      Treat the machine coding round as its own subject, not an extension of
+      DSA. The skill it tests — extracting entities and relationships from a
+      one-paragraph prompt and turning them into classes before you've written
+      a line of logic — does not improve from solving more LeetCode. Practice
+      it directly: pick a real-world system (parking lot, elevator, splitwise,
+      library), give yourself 90 minutes, and build it from a blank file.
+
+      For the DSA rounds, the recurring shapes are arrays/hashing, graphs, and
+      DP — the same syllabus as any product-company loop, so standard practice
+      transfers. The differentiator at Flipkart specifically is the design
+      round: at SDE-1 it is usually LLD-flavoured (a class diagram, not full
+      system design), and interviewers probe whether your abstractions survive
+      a follow-up requirement they invent on the spot.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "Arrays, graphs, DP, two-pointer. The OA and the DSA rounds both draw from here." }
+      - { concept: computer-science-design-patterns, label: "OOP design & machine coding", weight: 5,
+          notes: "The signature round. Practice building small systems from scratch under a clock, not just DSA." }
+      - { concept: computer-science-common-uml-diagrams, label: "Class modelling under pressure", weight: 4,
+          notes: "Ten minutes to decide entities and relationships before you write any logic." }
+      - { concept: java-learn-the-basics, label: "One language, fluently", weight: 4,
+          notes: "Java is the most common choice for the machine coding round — its interfaces map cleanly to the prompts." }
+      - { concept: backend-relational-databases, label: "Databases", weight: 3 }
+      - { concept: system-design-caching, label: "Caching basics", weight: 2,
+          notes: "Comes up as a follow-up inside machine coding: 'now make lookups O(1)'." }
+      - { label: "Hiring manager & HR", weight: 2,
+          notes: "Projects, ownership, why Flipkart. Have a concrete story with a measurable result." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Arrays & strings
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a string, find the length of the smallest window that
+          contains every distinct character of the string at least once.
+        answer_md: |
+          This is a sliding-window problem once you reframe it: you need a
+          window that covers all `k` distinct characters of the whole string,
+          then shrink it as tight as possible.
+
+          Count distinct characters in the full string first (`k`). Expand a
+          right pointer, tracking counts of characters currently in the
+          window; once the window contains all `k` distinct characters, shrink
+          from the left while the window still satisfies the condition,
+          recording the minimum length each time it does. O(n) time, O(k)
+          space — the same skeleton as "minimum window substring", which is
+          worth knowing cold because Flipkart's OA reuses this shape often.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        year: 2025
+        question: >-
+          You're given a road network as a weighted graph and a fuel range per
+          tank. Find the minimum number of refuelling stops to reach the
+          destination.
+        answer_md: |
+          This is the "minimum number of refuelling stops" family — greedy
+          plus a max-heap does it in O(n log n). Walk the stations in order of
+          distance; whenever your current fuel can't reach the next station,
+          pull the largest fuel amount you've already passed off a max-heap
+          and "use" it (as if you'd stopped there), incrementing your stop
+          counter. If the heap empties and you still can't reach the next
+          station, it's unreachable.
+
+          The trick interviewers watch for: recognising this as greedy-with-
+          hindsight rather than reaching for Dijkstra, which technically works
+          but is the wrong tool and telegraphs that you didn't notice the
+          simpler structure.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: interview
+        round: technical
+        topic: Machine coding
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design and implement a parking lot system: multiple levels, multiple
+          vehicle types (bike, car, truck), and a pricing strategy that can
+          change without touching the allocation logic.
+        answer_md: |
+          Start from nouns, not methods. `ParkingLot` owns a list of `Level`s;
+          each `Level` owns `ParkingSpot`s typed by `SpotSize`; a `Vehicle`
+          has a `VehicleType` that maps to the smallest spot size it fits.
+          `ParkingLot.parkVehicle()` finds the first available spot of
+          sufficient size across levels — the "first sufficient, not first
+          empty" rule is the detail interviewers check for.
+
+          The pricing requirement is the actual test: make `PricingStrategy`
+          an interface (`calculateFee(ticket)`) and inject an implementation
+          into the lot rather than branching on vehicle type inside
+          `unparkVehicle()`. That's the strategy pattern, and it's what lets
+          you say "now add hourly vs. flat-rate pricing" in the follow-up
+          without rewriting anything — which is exactly the follow-up they ask.
+        source_name: Flipkart Interview Process guide — Clave Prep
+        source_url: https://claveprep.com/blog/flipkart-interview-process-2026-guide
+
+      - kind: interview
+        round: hr
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          Tell me about the most challenging project you've worked on, and how
+          you'd handle a disagreement with your manager over its direction.
+        answer_md: |
+          Two separate questions disguised as one. For the project half, pick
+          something with a concrete constraint (deadline, unfamiliar stack,
+          ambiguous spec) and describe the decision you made under it — not
+          just that it was "challenging".
+
+          For the disagreement half, the answer they're listening for isn't
+          "I was right" — it's whether you escalate with evidence rather than
+          insistence, and whether you commit once a decision is made even if
+          it wasn't yours. A story where you raised a concrete risk, got
+          overruled, and then executed the decision fully (while flagging the
+          risk in writing) reads stronger than a story where you eventually
+          "won".
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: interview
+        round: technical
+        topic: Concurrency
+        difficulty: hard
+        year: 2025
+        question: >-
+          A flash-sale page has 10,000 seats and needs to handle 1,000
+          simultaneous booking requests without overselling. How do you design
+          the booking path?
+        answer_md: |
+          The naive "read available count, check, decrement" path races: two
+          requests can both read "1 seat left" before either writes back.
+
+          The fix is to make the check-and-decrement atomic at the data layer,
+          not the application layer — a single `UPDATE seats SET available =
+          available - 1 WHERE available > 0` conditional update, or a
+          database-level row lock, guarantees only one of the two racing
+          requests succeeds. Layer a cache in front for the *read* path (how
+          many seats are left, for display) but never let the cache be the
+          source of truth for the write.
+
+          At higher throughput this becomes a queue-and-reservation pattern:
+          accept the request into a queue, reserve a seat with a short TTL,
+          and confirm on payment — which is what real ticketing systems do,
+          and naming it is what separates a strong answer from a correct one.
+        source_name: GeeksforGeeks — Flipkart interview experiences (SDE-2)
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: online-assessment
+        round: aptitude
+        topic: CS fundamentals
+        difficulty: easy
+        question: >-
+          What's the difference between an ArrayList and a LinkedList in
+          terms of the operations Flipkart's OA MCQ section actually tests —
+          insertion, lookup, and memory layout?
+        answer_md: |
+          An `ArrayList` (or a dynamic array in general) gives O(1) indexed
+          lookup because elements sit contiguously in memory, but insertion in
+          the middle is O(n) — everything after the insertion point shifts.
+
+          A `LinkedList` gives O(1) insertion/removal once you already hold a
+          reference to the node, but lookup by index is O(n) because there's
+          no random access — you walk the list.
+
+          The MCQ trap is assuming "insertion is O(1) for LinkedList" without
+          the qualifier: insertion *at a known node* is O(1); insertion *at an
+          index* still costs O(n) to walk there first. That distinction is
+          usually the actual question.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-1
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-experience-set-18-for-sde-i/
+
+  - slug: sde-2
+    title: SDE-2
+    level: mid
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://www.flipkartcareers.com/howwehire
+    description: >-
+      The role where machine coding gets harder and a full system-design
+      round is added. Graded on whether your design survives the follow-up
+      questions, not the first draft.
+    focus_md: |
+      Everything from SDE-1 still applies, but two rounds change shape.
+      Machine coding prompts get closer to a real subsystem (a booking
+      engine, an inventory service) rather than a textbook OOP exercise, and
+      you're expected to reason about persistence and concurrency inside the
+      same 90–120 minutes, not just class structure.
+
+      The new round is system design proper: data modelling, API shape, and
+      — because this is an e-commerce marketplace at Flipkart's scale — the
+      recurring theme is *consistency under contention*: inventory counts,
+      flash sales, and payment status are all places where "eventually
+      consistent" is the wrong default answer, and knowing when it's the
+      wrong answer is the actual skill being graded.
+    focus_areas:
+      - { concept: computer-science-system-design, label: "System design", weight: 5,
+          notes: "One full round. E-commerce-flavoured: inventory, catalog, checkout." }
+      - { concept: computer-science-design-patterns, label: "OOP design & machine coding", weight: 5,
+          notes: "Harder prompts than SDE-1 — closer to a real subsystem." }
+      - { concept: backend-relational-databases, label: "Databases, transactions & consistency", weight: 4,
+          notes: "Where inventory-count races get discussed in depth." }
+      - { concept: system-design-caching, label: "Caching strategy", weight: 4 }
+      - { concept: backend-message-brokers, label: "Queues & async processing", weight: 3,
+          notes: "Order processing, notifications — decoupling write paths from user-facing latency." }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3,
+          notes: "The bar doesn't drop from SDE-1; it's assumed table stakes." }
+      - { label: "Bar-raiser / hiring manager", weight: 3,
+          notes: "Ownership stories, and how you've handled a production incident." }
+    questions:
+      - kind: interview
+        round: system-design
+        topic: Inventory & consistency
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the inventory service for a flash sale: 10,000 units, expect
+          traffic spikes of 1,000x baseline for the first two minutes.
+        answer_md: |
+          The core tension is that strong consistency (a single source of
+          truth for the count) is easy to reason about but doesn't scale
+          horizontally, while sharding the count scales but makes "exactly
+          10,000 sold" hard to guarantee.
+
+          A workable design: shard the inventory count across N partitions
+          (each holding count/N units) to spread write load, accept that this
+          slightly under-sells in the worst case (some partitions exhaust
+          while others still show availability), and reconcile with a small
+          overflow buffer released from a central pool once partition-level
+          counts hit zero. Put a queue in front of the write path so the
+          traffic spike is absorbed rather than hitting the database directly,
+          and make the "add to cart" step a short-TTL reservation, not a
+          decrement, so abandoned carts release inventory automatically.
+
+          Naming the trade-off explicitly — perfect consistency vs. horizontal
+          write scale — is the actual answer; the sharding scheme is one valid
+          implementation of it.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: interview
+        round: technical
+        topic: Machine coding
+        difficulty: hard
+        year: 2025
+        question: >-
+          Build a Splitwise-style expense splitter: users, groups, "who owes
+          whom", and support for both equal and exact-amount splits.
+        answer_md: |
+          Model `Expense` as paid-by-one-user, owed-by-many with an amount
+          per owing user — this generalises both split types instead of
+          special-casing them. An `EqualSplitStrategy` and an
+          `ExactSplitStrategy` both implement a `Split` interface that returns
+          the per-user owed amounts; `Expense` just calls whichever strategy
+          it was constructed with.
+
+          The part candidates miss: "who owes whom" needs simplification, not
+          a running list of every pairwise debt. Net each user's balance
+          (positive = owed money, negative = owes money) and settle greedily —
+          match the largest creditor against the largest debtor repeatedly.
+          That turns O(n²) pairwise debts into at most n-1 settlement
+          transactions, and it's the follow-up question almost every
+          interviewer asks once the basic add-expense flow works.
+        source_name: Flipkart Interview Process guide — Clave Prep
+        source_url: https://claveprep.com/blog/flipkart-interview-process-2026-guide
+
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        question: >-
+          Given a binary tree, return the vertical order traversal — nodes
+          grouped by horizontal distance from the root, top to bottom within
+          each column.
+        answer_md: |
+          Assign each node a horizontal distance (root = 0, left child = -1,
+          right child = +1 relative to parent) during a BFS or DFS traversal,
+          and bucket nodes by that distance in a map. BFS is the safer choice
+          here because it naturally preserves top-to-bottom order within each
+          bucket without an extra sort.
+
+          After the traversal, read the map's keys in ascending order to
+          produce the column order. The edge case interviewers probe: two
+          nodes at the same horizontal distance *and* the same depth (e.g.
+          one node's right child and another node's left child landing on the
+          same column) — the tie-break is usually "left-to-right as
+          encountered", so BFS with a stable insertion order handles it for
+          free.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: interview
+        round: managerial
+        topic: Ownership
+        difficulty: medium
+        question: >-
+          Describe a production incident you were involved in. What did you
+          do in the moment, and what changed afterward?
+        answer_md: |
+          Structure it in three parts: detection (how did you find out — an
+          alert, a customer report, a dashboard?), mitigation (what did you do
+          to stop the bleeding, which is not the same as fixing the root
+          cause), and prevention (what changed in the system or process
+          afterward so the same class of incident doesn't recur).
+
+          The mitigation-vs-root-cause distinction is what interviewers are
+          checking: rolling back a bad deploy is mitigation; understanding why
+          the deploy passed CI despite the bug is root cause, and only the
+          second one should drive your "what changed afterward" answer. A
+          story that jumps straight to "we fixed the bug" without a mitigation
+          step reads as inexperience with production systems at scale.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+      - kind: online-assessment
+        round: coding
+        topic: Dynamic programming
+        difficulty: hard
+        year: 2025
+        question: >-
+          Given denominations of coins and a target amount, find the minimum
+          number of coins needed — and explain why greedy fails on some
+          denomination sets.
+        answer_md: |
+          Bottom-up DP: `dp[0] = 0`, and `dp[i] = min(dp[i - coin] + 1)` over
+          every coin ≤ i. O(amount × coins) time, O(amount) space.
+
+          Greedy (always take the largest coin that fits) fails whenever the
+          denomination set isn't "canonical" — e.g. coins {1, 3, 4} for target
+          6: greedy picks 4 + 1 + 1 (three coins), but the optimal is 3 + 3
+          (two coins). Being able to produce this counterexample unprompted is
+          what separates "knows the DP recurrence" from "understands why DP is
+          necessary here" — interviewers routinely ask for it as a follow-up.
+        source_name: GeeksforGeeks — Flipkart interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-experience-for-sde-2-1/
+
+      - kind: interview
+        round: system-design
+        topic: Search & catalog
+        difficulty: medium
+        question: >-
+          Product search needs to support filters (price, brand, rating) and
+          free-text query together, with sub-second latency over tens of
+          millions of listings. How do you architect it?
+        answer_md: |
+          A relational database is the wrong tool for this once you combine
+          free-text relevance with faceted filters at that scale — you want
+          an inverted-index search engine (Elasticsearch/Solr-class) as the
+          read path, fed by an async pipeline from the source-of-truth
+          catalog database rather than queried directly.
+
+          Sketch: writes land in the catalog DB, a change-data-capture stream
+          (or an outbox pattern) propagates updates into the search index,
+          and the search service answers queries against the index with
+          filters expressed as index-level term queries, not post-filtering
+          in application code. The trade-off to name explicitly: the search
+          index is eventually consistent with the catalog — a just-updated
+          price can lag by seconds — which is acceptable for search but would
+          not be for checkout, and saying so is the point of the question.
+        source_name: GeeksforGeeks — Flipkart Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-for-sde-ii/
+
+  - slug: data-scientist
+    title: Data Scientist / Applied Scientist
+    level: mid
+    maps_to_role: data-scientist
+    sort_order: 3
+    source_url: https://www.flipkartcareers.com/howwehire
+    description: >-
+      Flipkart's scale (catalog, pricing, recommendations, logistics) gives
+      its data science org one of the largest applied-ML surface areas in
+      Indian product companies. Loop blends SQL/stats screening with case-
+      style product-metrics rounds.
+    focus_md: |
+      The loop front-loads SQL and statistics — a screening round that filters
+      hard before you reach a case interview. Flipkart's case rounds are
+      product-metrics flavoured: "conversion dropped 5% in category X, what do
+      you check", not abstract ML theory. Know how to decompose a metric
+      change into segments (region, device, category) before reaching for a
+      model.
+
+      The applied-ML rounds lean toward recommendations and demand
+      forecasting — the two problems Flipkart's scale makes genuinely hard —
+      so know the standard approaches (collaborative filtering, learning-to-
+      rank, time-series forecasting) well enough to discuss trade-offs, not
+      just name them.
+    focus_areas:
+      - { concept: sql-advanced-sql, label: "Advanced SQL", weight: 5,
+          notes: "Window functions, self-joins on transaction data. The screening filter." }
+      - { concept: data-analyst-statistical-analysis, label: "Statistics & experiment design", weight: 5,
+          notes: "A/B test validity, sample size, confounders — recurring in case rounds." }
+      - { concept: machine-learning-what-is-supervised-learning, label: "Applied ML fundamentals", weight: 4 }
+      - { concept: data-analyst-popular-ml-algorithms, label: "Recommendation & ranking models", weight: 4,
+          notes: "Collaborative filtering, learning-to-rank — Flipkart's core ML surface." }
+      - { concept: data-analyst-data-visualisation, label: "Metric decomposition & storytelling", weight: 4,
+          notes: "Case rounds are 'a number moved, why' — segment before you model." }
+      - { concept: python-learn-the-basics, label: "Python for analysis", weight: 3 }
+      - { label: "Product sense", weight: 3,
+          notes: "Case interviews reward a clear decomposition over a fast wrong answer." }
+    questions:
+      - kind: online-assessment
+        round: technical
+        topic: SQL
+        difficulty: medium
+        question: >-
+          Write a query to find, per category, the product with the second-
+          highest number of orders in the last 30 days.
+        answer_md: |
+          `DENSE_RANK()` over `PARTITION BY category ORDER BY order_count
+          DESC`, filtered to `rank = 2`, is the clean approach — it survives
+          the tie case (two products both in first place) correctly, whereas
+          `ROW_NUMBER()` would arbitrarily pick one and silently give the
+          wrong "second place" if you don't think about ties.
+
+          The follow-up worth pre-empting: state explicitly whether you want
+          "second-highest distinct value" (`DENSE_RANK`) or "second row"
+          (`ROW_NUMBER`) — interviewers ask which, and answering before being
+          asked reads as fluency with window functions rather than pattern-
+          matched syntax.
+        source_name: GeeksforGeeks — data analyst / SQL interview questions
+        source_url: https://www.geeksforgeeks.org/sql/sql-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Experiment design
+        difficulty: hard
+        question: >-
+          A new recommendation algorithm shows a 3% lift in click-through rate
+          in an A/B test with p < 0.05. Would you ship it? What would make you
+          hesitate?
+        answer_md: |
+          Statistical significance answers "is this lift real", not "should we
+          ship this" — those are different questions. Before shipping, check:
+          whether CTR is the right metric or a proxy that can be gamed
+          (clickbait-y recommendations lift CTR while hurting downstream
+          conversion or return rate); whether the test ran long enough to
+          cover a full weekly cycle (weekday/weekend behaviour differs);
+          whether the effect is consistent across user segments or driven by
+          one segment; and whether there's a novelty effect that will decay.
+
+          The strongest answers propose a guardrail metric (conversion, return
+          rate, session length) alongside the primary metric, and argue for a
+          holdout period after ship to check the lift persists — treating "p <
+          0.05" as necessary but not sufficient.
+        source_name: GeeksforGeeks — Flipkart interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/flipkart-interview-experience-for-sde-2-1/
+
+      - kind: interview
+        round: technical
+        topic: Applied ML
+        difficulty: hard
+        question: >-
+          Design a "customers who bought this also bought" recommendation
+          feature for a product page. What are the failure modes?
+        answer_md: |
+          Item-based collaborative filtering is the standard starting point:
+          precompute item-item similarity from co-purchase patterns (cosine
+          similarity over purchase vectors, or a simpler co-occurrence count
+          normalised by item popularity), then serve the top-k similar items
+          at request time from a precomputed table — this keeps the request
+          path a cache lookup rather than a live computation.
+
+          Failure modes worth naming: popularity bias (popular items dominate
+          every recommendation slot regardless of relevance, unless you
+          normalise by item frequency); cold start for new products with no
+          purchase history (fall back to category-level or content-based
+          similarity); and staleness (a product that just went out of stock
+          shouldn't keep being recommended — the serving layer needs a
+          real-time availability filter on top of the precomputed similarity).
+        source_name: GeeksforGeeks — machine learning interview questions
+        source_url: https://www.geeksforgeeks.org/machine-learning/machine-learning-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Metric decomposition
+        difficulty: medium
+        question: >-
+          Category-level conversion rate dropped 5% week-over-week. Walk
+          through how you'd investigate.
+        answer_md: |
+          Resist modelling immediately — decompose first. Segment the drop by
+          device (app vs. mobile web vs. desktop), by funnel stage (did
+          traffic drop, or did traffic hold but add-to-cart or checkout
+          conversion drop specifically), by region, and by whether it's
+          uniform across sub-categories or concentrated in one.
+
+          A concentrated drop in one sub-category or device usually points to
+          something operational (a pricing bug, a broken checkout path on one
+          platform, a stockout) rather than something requiring a model. A
+          uniform drop across every segment is more likely external (a
+          competitor promotion, a seasonal effect, a tracking regression that
+          isn't a real conversion drop at all). Naming "check if this is even
+          a real signal versus a tracking artefact" before proposing a fix is
+          what separates a strong answer.
+        source_name: GeeksforGeeks — data analyst interview questions
+        source_url: https://www.geeksforgeeks.org/data-analytics/data-analyst-interview-questions/
+
+      - kind: online-assessment
+        round: aptitude
+        topic: Statistics
+        difficulty: easy
+        question: >-
+          Explain the difference between Type I and Type II error in the
+          context of deciding whether to roll out a new feature.
+        answer_md: |
+          Type I error (false positive) is shipping a feature that actually
+          has no effect, or a negative one, because the test falsely showed a
+          lift — the cost is shipping something harmful or wasteful. Type II
+          error (false negative) is *not* shipping a feature that actually
+          would have helped, because the test failed to detect a real effect
+          — the cost is a missed opportunity, usually from an underpowered
+          test (too few users, too short a duration).
+
+          In a rollout context, the practical translation: a strict
+          significance threshold protects against Type I but increases Type
+          II risk (real but small effects get missed), which is why sample
+          size and test duration — not just the p-value threshold — are part
+          of the decision.
+        source_name: GeeksforGeeks — statistics interview questions
+        source_url: https://www.geeksforgeeks.org/data-science/statistics-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Forecasting
+        difficulty: medium
+        question: >-
+          You need to forecast daily demand for a product category ahead of a
+          sale event, where past sale events show sharp spikes. What approach
+          do you take and what breaks a naive time-series model here?
+        answer_md: |
+          A naive model trained on regular-day demand (e.g. plain ARIMA or
+          exponential smoothing on daily order counts) breaks because sale
+          events aren't a continuation of the regular trend — they're a
+          different regime entirely, and the model will under-forecast the
+          spike badly.
+
+          The fix is to treat "is this a sale day" as an explicit feature
+          rather than expecting the model to infer it from the trend: either
+          a regression model with sale-event indicators and lag features
+          from *previous* sale events (not previous regular days), or
+          forecast the sale-day multiplier separately (historical spike ratio
+          per category) and apply it on top of a baseline forecast. The
+          question is really testing whether you reach for "more data" or
+          "the right features" first — recognising a regime change is the
+          skill being checked, not the specific model.
+        source_name: GeeksforGeeks — machine learning interview questions
+        source_url: https://www.geeksforgeeks.org/machine-learning/machine-learning-interview-questions/

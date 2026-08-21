@@ -154,7 +154,15 @@ class Resource(Base):
 
 
 class QuizQuestion(Base):
-    """Comprehension check gating 'mark complete'."""
+    """Comprehension check gating 'mark complete'.
+
+    ``generated_by`` and ``verified_at`` are provenance, not decoration. Most
+    of this bank was written by a local model against the concept's own
+    ``content_md`` and then re-checked, question by question, against that same
+    body (``scripts/generate_quizzes.py``). Anything the body could not support
+    was thrown away. The UI is expected to say which of the two a learner is
+    looking at rather than letting machine output pass as hand-written.
+    """
 
     __tablename__ = "quiz_questions"
 
@@ -165,6 +173,12 @@ class QuizQuestion(Base):
     prompt: Mapped[str] = mapped_column(Text)
     explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    # NULL means a human wrote it.
+    generated_by: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    # NULL means it never passed a grounding check.
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     concept: Mapped["Concept"] = relationship(back_populates="quiz_questions")
     options: Mapped[list["QuizOption"]] = relationship(
@@ -199,6 +213,11 @@ class InterviewQuestion(Base):
     answer_md: Mapped[str | None] = mapped_column(Text, nullable=True)
     difficulty: Mapped[str] = mapped_column(String(20), default="medium")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    # Same provenance contract as QuizQuestion.
+    generated_by: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     concept: Mapped["Concept"] = relationship(back_populates="interview_questions")
 

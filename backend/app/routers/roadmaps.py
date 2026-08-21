@@ -26,6 +26,7 @@ from app.schemas.roadmap import (
     RoadmapItemOut,
     RoadmapItemUpdate,
     RoadmapOut,
+    RoadmapSummaryOut,
     RoadmapWeekOut,
 )
 from app.services.graph import ConceptGraph
@@ -34,6 +35,7 @@ from app.services.roadmap import (
     build_roadmap,
     concept_ids_by_slug,
     get_active_roadmap,
+    get_active_roadmaps,
     resolve_track,
     sync_item_statuses,
 )
@@ -66,7 +68,7 @@ def serialize_roadmap(db: DbSession, roadmap: UserRoadmap, user_id: int) -> Road
                 concept=concept_summary(item.concept),
                 week_no=item.week_no,
                 status=item.status,
-                is_locked=bool(missing),
+                is_locked=not graph.is_unlocked(item.concept_id, completed),
                 missing_prerequisites=[
                     slugs[i] for i in sorted(missing) if i in slugs
                 ],
@@ -191,6 +193,121 @@ def _record_prior_knowledge(db: DbSession, user_id: int, concept_ids: set[int]) 
     db.flush()
 
 
+def summarize_roadmap(
+    db: DbSession, roadmap: UserRoadmap, user_id: int, *, is_focused: bool
+) -> RoadmapSummaryOut:
+    """The list view of a route. Cheaper than `serialize_roadmap` by a graph load."""
+    total = len(roadmap.items)
+    done = sum(1 for item in roadmap.items if item.status == STATUS_COMPLETED)
+
+    weeks: dict[int, list[UserRoadmapItem]] = {}
+    for item in roadmap.items:
+        weeks.setdefault(item.week_no, []).append(item)
+    outstanding = [
+        week_no
+        for week_no, items in weeks.items()
+        if any(i.status != STATUS_COMPLETED for i in items)
+    ]
+
+    track_concept_count = len(roadmap.track.track_concepts)
+    track_hours = sum(tc.concept.est_hours for tc in roadmap.track.track_concepts)
+
+    return RoadmapSummaryOut(
+        id=roadmap.id,
+        track=track_summary(roadmap.track, track_concept_count, track_hours),
+        daily_hours=roadmap.daily_hours,
+        pace=pace_for_hours(roadmap.daily_hours),
+        created_at=roadmap.created_at or datetime.now(timezone.utc),
+        total_concepts=total,
+        completed_concepts=done,
+        percent_complete=round(done / total * 100) if total else 0,
+        target_date=(
+            date.today() + timedelta(weeks=len(outstanding)) if outstanding else None
+        ),
+        is_focused=is_focused,
+    )
+
+
+@router.get("", response_model=list[RoadmapSummaryOut])
+def list_roadmaps(user: CurrentUser, db: DbSession):
+    """Every route the learner is running, focused one first."""
+    roadmaps = get_active_roadmaps(db, user.id)
+    if not roadmaps:
+        return []
+
+    focused = get_active_roadmap(db, user.id)
+    focused_id = focused.id if focused else None
+
+    summaries = []
+    for roadmap in roadmaps:
+        sync_item_statuses(db, roadmap, user.id)
+        summaries.append(
+            summarize_roadmap(db, roadmap, user.id, is_focused=roadmap.id == focused_id)
+        )
+    db.commit()
+    summaries.sort(key=lambda r: (not r.is_focused, r.track.title))
+    return summaries
+
+
+@router.post("/{roadmap_id}/focus", response_model=RoadmapOut)
+def focus_roadmap(roadmap_id: int, user: CurrentUser, db: DbSession):
+    """Make this the route the dashboard and tutor act on."""
+    roadmap = _owned_roadmap(db, roadmap_id, user.id)
+
+    profile = get_profile(db, user)
+    profile.current_track_id = roadmap.track_id
+    profile.target_goal = roadmap.track.title
+    profile.daily_hours = roadmap.daily_hours
+    profile.pace = pace_for_hours(roadmap.daily_hours)
+
+    sync_item_statuses(db, roadmap, user.id)
+    db.commit()
+    db.refresh(roadmap)
+
+    serialized = serialize_roadmap(db, roadmap, user.id)
+    profile.target_date = serialized.target_date
+    db.commit()
+    return serialized
+
+
+@router.delete("/{roadmap_id}", status_code=status.HTTP_204_NO_CONTENT)
+def drop_roadmap(roadmap_id: int, user: CurrentUser, db: DbSession):
+    """Stop running a route.
+
+    Completed concepts live in `user_progress`, not here, so dropping a route
+    loses the plan but never the progress — picking it up again rebuilds around
+    what is already done.
+    """
+    roadmap = _owned_roadmap(db, roadmap_id, user.id)
+    was_focused = roadmap.track_id
+
+    roadmap.is_active = False
+    db.flush()
+
+    profile = get_profile(db, user)
+    if profile.current_track_id == was_focused:
+        remaining = get_active_roadmaps(db, user.id)
+        nxt = remaining[0] if remaining else None
+        profile.current_track_id = nxt.track_id if nxt else None
+        profile.target_goal = nxt.track.title if nxt else None
+        profile.target_date = None
+    db.commit()
+
+
+def _owned_roadmap(db: DbSession, roadmap_id: int, user_id: int) -> UserRoadmap:
+    """404 rather than 403 — a roadmap you do not own should not be discoverable."""
+    roadmap = db.scalar(
+        select(UserRoadmap).where(
+            UserRoadmap.id == roadmap_id,
+            UserRoadmap.user_id == user_id,
+            UserRoadmap.is_active.is_(True),
+        )
+    )
+    if roadmap is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such roadmap")
+    return roadmap
+
+
 @router.get("/current", response_model=RoadmapOut)
 def current_roadmap(user: CurrentUser, db: DbSession):
     roadmap = get_active_roadmap(db, user.id)
@@ -232,7 +349,7 @@ def update_item(
         concept=concept_summary(item.concept),
         week_no=item.week_no,
         status=item.status,
-        is_locked=bool(missing),
+        is_locked=not graph.is_unlocked(item.concept_id, completed),
         missing_prerequisites=[slugs[i] for i in sorted(missing) if i in slugs],
     )
 

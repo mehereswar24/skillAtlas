@@ -81,16 +81,16 @@ roles:
       internalising: they want to see you arrive at an *optimal* solution, then
       discuss complexity and trade-offs. Not "a working solution".
     focus_areas:
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms, at speed", weight: 5,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms, at speed", weight: 5,
           notes: "Two mediums in 45 minutes. Graphs, trees, intervals, binary search and heaps recur." }
-      - { concept: system-design-basics, label: "System design", weight: 4,
+      - { concept: computer-science-system-design, label: "System design", weight: 4,
           notes: "Product-shaped: news feed, messaging, notifications. Start from the read/write ratio." }
       - { label: "The behavioural (Jedi) round", weight: 4,
           notes: "45 graded minutes on impact, conflict and what drives you. Prepare it like a technical round." }
-      - { concept: programming-language-python, label: "One language, fluently", weight: 4 }
-      - { concept: caching-strategies, label: "Caching and fan-out", weight: 3,
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 4 }
+      - { concept: backend-caching, label: "Caching and fan-out", weight: 3,
           notes: "Meta's classic design problems are fan-out problems in disguise." }
-      - { concept: relational-databases-sql, label: "Data stores and sharding", weight: 3 }
+      - { concept: backend-relational-databases, label: "Data stores and sharding", weight: 3 }
     questions:
       - kind: interview
         round: coding

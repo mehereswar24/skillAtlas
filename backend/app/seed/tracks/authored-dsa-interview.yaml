@@ -1,0 +1,938 @@
+# Hand-authored. Do NOT regenerate with scripts/import_roadmapsh.py.
+#
+# DSA interview-prep track, structured on the topic progression of Striver's
+# (Raj Vikramaditya / takeuforward) A2Z DSA Course/Sheet and SDE Sheet:
+# basics & complexity -> sorting -> arrays -> binary search -> strings ->
+# linked lists -> recursion & backtracking -> bit manipulation -> stacks &
+# queues -> sliding window & two pointers -> heaps -> greedy -> binary trees
+# -> BST -> graphs -> dynamic programming -> tries -> advanced strings.
+#
+# All content_md is written from scratch in our own words. It links out to
+# Striver/takeuforward, GeeksforGeeks, LeetCode and CP-Algorithms rather than
+# reproducing their problem statements or editorials.
+
+track:
+  slug: dsa-interview-prep
+  title: "DSA Interview Prep (Striver's A2Z Progression)"
+  domain: computer-science
+  target_role: "Software Engineer — Coding Interview Prep"
+  difficulty: intermediate
+  description: "A 16-topic path through data structures and algorithms for coding interviews, sequenced the way Striver's A2Z DSA Course and SDE Sheet order them: fundamentals first, then arrays and searching, then the linear structures, then the pattern-recognition topics (recursion, bit tricks, stacks, sliding window), then heaps and greedy, then trees, BSTs, graphs, dynamic programming, and finally tries and advanced string matching."
+
+concepts:
+  - slug: dsa-complexity-analysis
+    name: "Complexity Analysis & Interview Problem-Solving Basics"
+    domain: computer-science
+    est_hours: 6
+    difficulty: beginner
+    prerequisites: []
+    summary: |-
+      How to reason about time and space complexity well enough to talk through a solution's efficiency out loud, and why interviewers grade on the worst case rather than "it works."
+    content_md: |-
+      Every topic in this track ultimately gets evaluated the same way in an interview: does the candidate's solution work, and can they say precisely how it scales. Before touching any specific data structure, it pays to get fluent in the vocabulary that makes that second question answerable.
+
+      ### What actually gets measured
+
+      Time complexity counts how the number of basic operations grows as input size `n` grows; space complexity counts how much extra memory the algorithm needs beyond the input itself. Big-O describes an upper bound on that growth, ignoring constant factors and lower-order terms — which is why an O(n) algorithm with a huge constant can still be slower in practice than an O(n log n) one on realistic input sizes, even though asymptotically it "wins." Interviewers care about the asymptotic answer first, but a strong candidate can also reason about the practical crossover.
+
+      ### Reading nested loops and recursion
+
+      Two nested loops over the same input, each running the full length, gives O(n^2). A loop whose body itself does O(log n) work (like a binary search) gives O(n log n) overall. For recursive code, the fastest sanity check is to count the number of recursive calls and multiply by the work per call — a recursion that halves the problem each call and does O(1) work per call is O(log n); one that branches into two calls per level with O(1) work per call is O(2^n) unless memoized. This is exactly the mental model you'll reuse constantly once recursion and backtracking are introduced later in this track.
+
+      ### Amortized cost
+
+      Some operations are cheap almost every time and expensive rarely — appending to a dynamic array is O(1) amortized even though a resize is O(n), because resizes become exponentially rarer as the array grows. Being able to say "amortized O(1)" instead of just "O(1)" signals you understand what's actually happening under the hood, and it matters once hash tables and dynamic arrays show up as building blocks for later topics.
+
+      ### The mistake that costs people the most
+
+      The single most common error is stating a complexity without stating what it's a function of. "O(n)" is meaningless without saying what `n` is — the array length, the number of distinct values, the graph's vertex count, or something else entirely. A second common mistake is optimizing prematurely: jumping to a clever O(log n) approach before having a correct O(n) or O(n^2) brute force to fall back on and verify against. Always state the brute force first, then improve it — interviewers explicitly listen for this progression.
+
+      **Where this shows up:** almost every online-assessment (OA) problem statement includes explicit time/space constraints, and platforms auto-grade against them — silently failing a hidden test because your solution timed out is one of the most common ways candidates lose OA points without realizing why. In onsite rounds, "can you do better than that?" is the standard follow-up after any first working solution, and it's really a complexity question in disguise.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: course
+        title: "Striver's SDE Sheet — Top Coding Interview Problems"
+        url: "https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems"
+      - kind: doc
+        title: "Big-O Cheat Sheet"
+        url: "https://www.bigocheatsheet.com/"
+      - kind: article
+        title: "GeeksforGeeks: Analysis of Algorithms — Big-O Analysis"
+        url: "https://www.geeksforgeeks.org/dsa/analysis-algorithms-big-o-analysis/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+      - kind: doc
+        title: "VisuAlgo — algorithm visualizations"
+        url: "https://visualgo.net/en"
+
+  - slug: dsa-sorting-algorithms
+    name: "Sorting Algorithms"
+    domain: computer-science
+    est_hours: 8
+    difficulty: beginner
+    prerequisites:
+      - dsa-complexity-analysis
+    summary: |-
+      The comparison-based sorts (bubble/insertion/selection through merge/quick/heap) plus the linear-time counting/radix/bucket sorts, and why sorting is usually a first step rather than the whole answer.
+    content_md: |-
+      Sorting rarely is the interview question by itself, but it is the single most common first move inside a larger problem — you sort, and then a two-pointer sweep, a greedy scan, or a binary search becomes possible. Knowing the sorting landscape well enough to pick the right one, and to know its cost, is foundational rather than optional.
+
+      ### The two families
+
+      Comparison-based sorts (bubble, insertion, selection, merge, quick, heap) can't beat O(n log n) in the worst case — that's a proven lower bound for any algorithm that only compares elements. Merge sort guarantees O(n log n) in all cases at the cost of O(n) extra space; quicksort is O(n log n) average but O(n^2) worst case unless the pivot is chosen well (randomized or median-of-three pivots make the bad case vanishingly rare in practice); heap sort is O(n log n) worst case and in-place, at the cost of poor cache locality compared to the other two.
+
+      Non-comparison sorts (counting sort, radix sort, bucket sort) can beat O(n log n) — down to O(n + k) — but only when you know something extra about the values, like a bounded integer range. This is the trade candidates often miss: if a problem says "values are between 0 and 100," that's a hint counting sort applies.
+
+      ### Stability matters more than it looks
+
+      A stable sort preserves the relative order of equal elements. This matters whenever you sort by one key but need ties broken by original order or by a second key applied afterward — merge and insertion sort are stable, quicksort and heap sort typically are not. Interviewers occasionally probe this directly ("is your sort stable, and does it matter here").
+
+      ### Quickselect as a sorting-adjacent trick
+
+      When a problem only asks for the kth smallest/largest element rather than a full order, quickselect (the partition step of quicksort, recursing into only one side) answers it in O(n) average time — much better than sorting everything in O(n log n) just to throw most of the answer away. This is a frequent "can you do better" follow-up once a candidate proposes "sort then index."
+
+      ### Common mistakes
+
+      Forgetting that a supposedly in-place sort still uses recursion stack space (quicksort's O(log n) call stack, or O(n) in the unbalanced worst case) when asked about space complexity; picking quicksort with a fixed first-element pivot on data that's already sorted or reverse-sorted, silently degrading to O(n^2); and reaching for a full sort when quickselect or a counting approach would be asymptotically better.
+
+      **Where this shows up:** sorting-adjacent OA questions ("merge intervals," "sort colors," "kth largest element") are extremely common early-round filters, and being able to justify *why* a particular sort (or avoiding a sort entirely) is optimal is a recurring onsite talking point.
+    resources:
+      - kind: article
+        title: "GeeksforGeeks: Sorting Algorithms"
+        url: "https://www.geeksforgeeks.org/dsa/sorting-algorithms/"
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "LeetCode: Sorting tag problems"
+        url: "https://leetcode.com/tag/sorting/"
+      - kind: doc
+        title: "VisuAlgo — sorting visualizations"
+        url: "https://visualgo.net/en/sorting"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-arrays
+    name: "Arrays"
+    domain: computer-science
+    est_hours: 12
+    difficulty: beginner
+    prerequisites:
+      - dsa-sorting-algorithms
+    summary: |-
+      Prefix sums, Kadane's algorithm, in-place rearrangement, and 2D array traversal — the highest-frequency pattern family in the whole interview process.
+    content_md: |-
+      Arrays are contiguous, indexable, cache-friendly, and the substrate almost every other data structure in this track is eventually implemented on top of. They're also, by a wide margin, the most heavily tested topic in early-round OAs, because array problems can encode almost any pattern (search, greedy, DP, two-pointer) in a small, easy-to-state problem.
+
+      ### Prefix sums
+
+      A prefix-sum array turns "sum of a subrange" from an O(n) scan into an O(1) lookup after O(n) preprocessing. This single idea underlies a large family of subarray problems (subarray sum equals K, range sum queries, equilibrium index) and is usually the first thing to reach for whenever a problem repeatedly asks about sums or counts over ranges.
+
+      ### Kadane's algorithm
+
+      Kadane's algorithm finds the maximum-sum contiguous subarray in O(n) by tracking, at each position, the best sum ending exactly there, resetting to the current element whenever the running sum goes negative. The subtlety candidates trip on: if all numbers are negative, the "reset to zero" instinct is wrong — the algorithm needs to track the best sum seen so far (which will be the least-negative single element), not clamp at zero.
+
+      ### In-place rearrangement
+
+      A recurring "medium" pattern is rearranging an array without extra space: the Dutch National Flag algorithm (three-way partition around a pivot, used for "sort colors"), rotating an array via three reversals, or using the array's own indices as a hash set (marking visited values by negating or offsetting values in place) to find duplicates or missing numbers in O(1) extra space. These tricks recur across many "can you do it without extra space" follow-ups.
+
+      ### 2D arrays
+
+      Matrix problems (rotate image, spiral traversal, search a sorted 2D matrix) test whether a candidate can translate row/column indices correctly and handle boundaries without off-by-one errors — a good matrix-rotation solution done in-place via transpose-then-reverse is a common "elegant vs brute force" discriminator.
+
+      ### Common mistakes
+
+      Off-by-one errors in prefix-sum bounds (forgetting whether the prefix array is 0-indexed or padded with a leading zero); applying Kadane's reset-to-zero logic to an all-negative array; using O(n) extra space for a rearrangement problem that explicitly asks for O(1); and not double-checking matrix bounds when traversing diagonals or spirals.
+
+      **Where this shows up:** array manipulation is the dominant topic in SDE-1/new-grad OAs — "maximum subarray," "product of array except self," "two sum," and "merge intervals" style questions recur across nearly every major tech company's screening stage, often as the first of two or three OA problems.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Array Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/array-data-structure-guide/"
+      - kind: article
+        title: "LeetCode: Array tag problems"
+        url: "https://leetcode.com/tag/array/"
+      - kind: article
+        title: "LeetCode: Maximum Subarray"
+        url: "https://leetcode.com/problems/maximum-subarray/"
+      - kind: article
+        title: "LeetCode: Product of Array Except Self"
+        url: "https://leetcode.com/problems/product-of-array-except-self/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-binary-search
+    name: "Binary Search"
+    domain: computer-science
+    est_hours: 10
+    difficulty: intermediate
+    prerequisites:
+      - dsa-arrays
+    summary: |-
+      Not just "search a sorted array" — binary search on the answer over any monotonic predicate, first/last occurrence, rotated arrays, and 2D search spaces.
+    content_md: |-
+      Classic binary search halves a sorted search space each step, giving O(log n). The pattern generalizes far beyond sorted arrays: any time you can define a monotonic yes/no predicate over a range of candidate answers (true up to some point, then false, or vice versa), you can binary search that answer space directly, even if no array is sorted at all. Recognizing this generalization — "binary search on the answer" — is what separates candidates who only know the textbook version from those who can apply it.
+
+      ### The core template and its bugs
+
+      The most common implementation bug is an off-by-one in how the search space shrinks: using `while lo <= hi` with `mid = lo + (hi - lo) / 2` and updating `lo = mid + 1` / `hi = mid - 1` is one consistent, provably-terminating template; mixing it with `lo = mid` or `hi = mid` (used for first/last occurrence variants) without adjusting the loop condition is the single most common source of infinite loops in interviews. Always mid-point via `lo + (hi - lo) / 2` rather than `(lo + hi) / 2` to sidestep integer overflow in languages with fixed-width integers.
+
+      ### First/last occurrence and lower/upper bound
+
+      Many real problems need "the first index where X is true" or "the last index where X is still true" rather than an exact match — this is the lower_bound/upper_bound pattern, and it underlies things like counting occurrences of a value in a sorted array, or finding insertion position for a value.
+
+      ### Binary search on the answer
+
+      Problems like allocating books to minimize the maximum pages assigned, painters partitioning a board, or "minimum capacity to ship packages within D days" are not obviously search problems at first glance — but the *answer* (max load, number of days) is monotonic: if capacity C works, every capacity greater than C also works. Binary searching over the range of possible answers and checking feasibility at each midpoint turns an apparently combinatorial problem into O(n log(range)).
+
+      ### Rotated and 2D variants
+
+      A rotated sorted array (like `[4,5,6,7,0,1,2]`) can still be binary searched in O(log n) by determining, at each step, which half is properly sorted and whether the target lies in that half. A row-and-column-sorted 2D matrix can be searched in O(m+n) by starting at a corner and eliminating a row or column each step, or in O(log(mn)) by treating it as a flattened 1D sorted array.
+
+      ### Common mistakes
+
+      Inconsistent loop-boundary conventions causing infinite loops; forgetting to verify the monotonicity assumption before binary-searching an answer space (if the predicate isn't actually monotonic, binary search silently gives a wrong answer, not an error); and using linear search out of habit on a problem that explicitly gives a sorted input as a hint.
+
+      **Where this shows up:** "binary search on the answer" problems (allocate books, aggressive cows, Koko eating bananas, minimum days to make bouquets) are a favorite in OA rounds specifically because they're easy to grade and hard to solve without recognizing the pattern; classic binary search on sorted/rotated arrays is a common phone-screen warm-up.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Binary Search"
+        url: "https://www.geeksforgeeks.org/dsa/binary-search/"
+      - kind: article
+        title: "LeetCode: Binary Search tag problems"
+        url: "https://leetcode.com/tag/binary-search/"
+      - kind: article
+        title: "LeetCode: Search in Rotated Sorted Array"
+        url: "https://leetcode.com/problems/search-in-rotated-sorted-array/"
+      - kind: article
+        title: "LeetCode: Koko Eating Bananas"
+        url: "https://leetcode.com/problems/koko-eating-bananas/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-strings-basics
+    name: "Strings"
+    domain: computer-science
+    est_hours: 8
+    difficulty: beginner
+    prerequisites:
+      - dsa-arrays
+    summary: |-
+      Treating strings as char arrays, frequency-counting patterns, and the cost pitfalls of concatenation and immutability across languages.
+    content_md: |-
+      A string is, mechanically, an array of characters — nearly every array technique (two pointers, sliding window, prefix structures) applies directly. What makes strings their own topic is the language-level quirks around immutability and the handful of counting/matching patterns that recur across a huge share of string questions.
+
+      ### Frequency counting
+
+      A large fraction of string problems reduce to "count occurrences of each character" — anagram detection, checking if one string is a permutation of another, finding the first non-repeating character. A fixed-size array indexed by character code (for ASCII) or a hashmap (for full Unicode) both give O(n) counting; the choice matters for how you talk about space complexity (O(1) for a bounded alphabet vs O(k) for k distinct characters).
+
+      ### Immutability and the concatenation trap
+
+      In Java, Python, and JavaScript, strings are immutable — every concatenation `s = s + c` allocates a new string. Doing this inside a loop turns an intended O(n) algorithm into O(n^2) because each concatenation copies everything built so far. The fix is a mutable buffer (`StringBuilder` in Java, a list joined at the end in Python, an array in JavaScript joined once). This is one of the most common silent performance bugs in string-heavy interview code, and interviewers who know the language will notice it immediately.
+
+      ### Recurring patterns
+
+      Palindrome checks (two pointers from both ends), anagram grouping (sort each string or use its character-count signature as a hashmap key), longest common prefix (vertical scanning across all strings, or binary search on prefix length), and basic parsing/tokenization. These patterns feed directly into two-pointer and sliding-window techniques covered later in this track.
+
+      ### Common mistakes
+
+      Building strings with repeated concatenation in a loop; assuming case-insensitivity or trimming isn't needed when the problem statement doesn't say so explicitly (always ask); and forgetting that "reverse a string in place" isn't literally possible in languages where strings are immutable — you reverse into a new mutable structure instead.
+
+      **Where this shows up:** string manipulation is a staple OA warm-up ("valid anagram," "group anagrams," "longest common prefix") precisely because it's easy to state and easy to auto-grade, and phone screens frequently open with a string-parsing question to see how a candidate handles edge cases (empty string, single character, all-same-character) before moving to harder topics.
+    resources:
+      - kind: article
+        title: "GeeksforGeeks: String Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/string-data-structure/"
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "LeetCode: String tag problems"
+        url: "https://leetcode.com/tag/string/"
+      - kind: article
+        title: "LeetCode: Group Anagrams"
+        url: "https://leetcode.com/problems/group-anagrams/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-linked-lists
+    name: "Linked Lists"
+    domain: computer-science
+    est_hours: 10
+    difficulty: intermediate
+    prerequisites:
+      - dsa-arrays
+    summary: |-
+      Singly/doubly/circular lists, the dummy-head trick, fast-slow pointers for cycle detection, and reversal — the topic that tests pointer discipline directly.
+    content_md: |-
+      A linked list trades an array's O(1) random access for O(1) insertion/deletion at a known position and no need for contiguous memory. Interviewers like linked-list problems because they isolate pointer manipulation from everything else — there's no clever algorithm to hide behind, just careful, correct rewiring.
+
+      ### The dummy-head trick
+
+      Many linked-list problems (remove nth from end, merge two sorted lists, remove duplicates) get meaningfully simpler if you prepend a dummy node before the real head. This eliminates the need to special-case "what if we need to delete the head itself" — every deletion becomes "the node before this one points past it," uniformly, including for the original head. Skipping this trick is what causes most of the extra `if` branches candidates add (and often get wrong) for head-edge-cases.
+
+      ### Fast-slow pointers
+
+      Floyd's cycle-detection algorithm (a slow pointer advancing one step, a fast pointer advancing two) detects a cycle in O(1) space: if there's a cycle, the fast pointer eventually laps the slow one. The same technique finds the middle of a list in one pass (when fast reaches the end, slow is at the middle), and a variant finds the exact node where a cycle begins. This one idea covers a surprising fraction of "clever" linked-list interview questions.
+
+      ### Reversal
+
+      Reversing a singly linked list — fully, or in groups of k — is one of the most-asked whiteboard questions specifically because it's small enough to fully code in a few minutes but easy to get subtly wrong. The iterative version requires holding three pointers (previous, current, next) and rewiring one link at a time without losing the reference to the rest of the list.
+
+      ### Common mistakes
+
+      Overwriting a `next` pointer before saving a reference to the node it pointed to, which orphans the remainder of the list; forgetting to handle a 0-node or 1-node list as a base case; and not using a dummy head, which leads to duplicated logic for the head case versus every other case.
+
+      **Where this shows up:** linked-list reversal and cycle detection are extremely common in phone screens and OAs precisely because they test pointer discipline in isolation — "reverse a linked list," "detect a cycle," and "merge two sorted lists" appear across nearly every entry-level interview loop.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Linked List Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/linked-list-data-structure/"
+      - kind: article
+        title: "LeetCode: Linked List tag problems"
+        url: "https://leetcode.com/tag/linked-list/"
+      - kind: article
+        title: "LeetCode: Reverse Linked List"
+        url: "https://leetcode.com/problems/reverse-linked-list/"
+      - kind: article
+        title: "LeetCode: Linked List Cycle"
+        url: "https://leetcode.com/problems/linked-list-cycle/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-recursion-backtracking
+    name: "Recursion & Backtracking"
+    domain: computer-science
+    est_hours: 12
+    difficulty: intermediate
+    prerequisites:
+      - dsa-arrays
+      - dsa-strings-basics
+    summary: |-
+      Base-case discipline, the choose-explore-unchoose backtracking template, and the subsets/permutations/combinations family that shows up everywhere from N-Queens to Sudoku.
+    content_md: |-
+      Recursion expresses a solution in terms of smaller instances of itself; backtracking is recursion with a specific shape — try a choice, recurse into the consequences, and undo the choice before trying the next one. Nearly every "generate all X" or "is there a way to arrange Y" interview question is backtracking underneath.
+
+      ### The template
+
+      The reusable mental model is choose → explore → unchoose: pick a candidate, recurse with it included, then remove it from the running state before trying the next candidate. This "unchoose" step is what makes backtracking backtracking rather than plain recursion, and it's exactly the step candidates forget under pressure — leaving mutated shared state (a partially built list, a visited set) polluted for sibling branches.
+
+      ### The core family
+
+      Subsets, permutations, and combinations are the three canonical backtracking skeletons, and most harder backtracking problems (N-Queens, Sudoku solver, word search, combination sum) are one of these three with an added constraint-check before recursing. Learning to recognize "this is permutations with a validity filter" turns an intimidating problem into a template fill-in.
+
+      ### Pruning
+
+      Backtracking without pruning degenerates into brute-force enumeration — checking a full N-Queens board only after placing all N queens, instead of rejecting an invalid placement the moment it happens, is the difference between a solution that finishes in milliseconds and one that times out. Pruning early, as soon as a partial choice is provably invalid, is what makes backtracking practical rather than just correct.
+
+      ### Recursion as the bridge to DP
+
+      Once a recursive solution correctly enumerates all possibilities, checking whether subproblems repeat (the same `(index, remaining)` state recurring across branches) is the natural next step — and that's exactly memoization, and exactly how the dynamic-programming topic later in this track is introduced. Getting comfortable defining recursive state here pays off directly later.
+
+      ### Common mistakes
+
+      Forgetting to undo a mutation (backtrack) before trying the next branch, so state leaks between sibling calls; missing or incorrect base cases causing infinite recursion or stack overflow; and skipping pruning, leading to correct-but-exponentially-slow solutions that time out on OA hidden tests even though they pass the visible small examples.
+
+      **Where this shows up:** backtracking problems (subsets, permutations, N-Queens, word search) are a heavy topic in onsite rounds at product companies specifically because they reveal whether a candidate can manage recursive state cleanly under a constraint, rather than just recalling a memorized pattern.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Recursion"
+        url: "https://www.geeksforgeeks.org/dsa/recursion/"
+      - kind: article
+        title: "GeeksforGeeks: Backtracking Algorithms"
+        url: "https://www.geeksforgeeks.org/dsa/backtracking-algorithms/"
+      - kind: article
+        title: "LeetCode: Backtracking tag problems"
+        url: "https://leetcode.com/tag/backtracking/"
+      - kind: article
+        title: "LeetCode: Subsets"
+        url: "https://leetcode.com/problems/subsets/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-bit-manipulation
+    name: "Bit Manipulation"
+    domain: computer-science
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - dsa-complexity-analysis
+    summary: |-
+      AND/OR/XOR tricks for checking, setting, and clearing bits, plus the XOR-identity family that turns some O(n) problems into elegant O(1)-space solutions.
+    content_md: |-
+      Bit manipulation problems are a small, self-contained topic, but the tricks recur across an outsized number of "clever" interview questions because bitwise operations are constant-time and reveal whether a candidate understands binary representation, not just high-level algorithms.
+
+      ### The core operations
+
+      Checking bit `i`: `(x >> i) & 1`. Setting bit `i`: `x | (1 << i)`. Clearing bit `i`: `x & ~(1 << i)`. Toggling bit `i`: `x ^ (1 << i)`. Clearing the lowest set bit: `x & (x - 1)` — this single trick is the basis of Brian Kernighan's algorithm for counting set bits in O(popcount) instead of O(word size), and shows up again whenever a problem needs to iterate only over set bits.
+
+      ### XOR identities
+
+      XOR is its own inverse (`x ^ x = 0`) and identity-preserving (`x ^ 0 = x`), which is why XOR-ing every element of an array where exactly one value appears an odd number of times and the rest appear an even number of times isolates that one value in O(n) time and O(1) space — the classic "single number" family of problems. The same identity underlies constant-space swapping and certain missing-number problems (XOR the full expected range against the actual array).
+
+      ### Bitmask as compact state
+
+      A bitmask (an integer used as a small fixed-size set) is a common way to represent "which items have been used so far" in problems with a small number of elements (typically ≤ 20-ish), and becomes the state representation for bitmask dynamic programming — a forward pointer to the DP topic later in this track, where the state space is `2^n` subsets instead of `n` positions.
+
+      ### Common mistakes
+
+      Assuming bitwise tricks are language-agnostic without checking integer width and signedness — right-shifting a negative number behaves differently across languages (arithmetic vs logical shift), and this silently breaks bit-counting code ported between languages; and reaching for bit tricks when a straightforward boolean array would be just as fast and much more readable — bit manipulation should simplify, not obscure.
+
+      **Where this shows up:** bit-trick questions ("single number," "counting bits," "power of two") are common quick OA warm-ups precisely because they're easy to auto-grade and reward knowing a specific identity rather than a long derivation; they occasionally appear as a lightweight onsite question to change pace between heavier topics.
+    resources:
+      - kind: article
+        title: "GeeksforGeeks: Bitwise Algorithms"
+        url: "https://www.geeksforgeeks.org/dsa/bitwise-algorithms/"
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "LeetCode: Bit Manipulation tag problems"
+        url: "https://leetcode.com/tag/bit-manipulation/"
+      - kind: article
+        title: "LeetCode: Single Number"
+        url: "https://leetcode.com/problems/single-number/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-stacks-queues
+    name: "Stacks & Queues"
+    domain: computer-science
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - dsa-linked-lists
+      - dsa-arrays
+    summary: |-
+      Stacks for matching/parsing and monotonic-stack problems, queues for BFS-style processing, and the deque trick for sliding-window maximums.
+    content_md: |-
+      Stacks (LIFO) and queues (FIFO) are simple to implement but underlie a disproportionate number of interview patterns because so many problems are really about "what's the most recent unmatched thing" (stack) or "what's next in arrival order" (queue).
+
+      ### Stacks for matching and evaluation
+
+      Balanced-parentheses checking, expression evaluation (infix-to-postfix, postfix evaluation), and undo/redo style problems all reduce to a stack: push on an opening/operator, pop and check on a closing/operand. This is usually the first stack pattern candidates learn and the most direct.
+
+      ### The monotonic stack pattern
+
+      A monotonic stack keeps its elements in increasing or decreasing order by popping off anything that violates the order before pushing the new element. This is the key to solving "next greater element," "daily temperatures," "largest rectangle in histogram," and "stock span" in O(n) instead of the naive O(n^2) — because each element is pushed and popped at most once, even though it looks like a nested loop. Not recognizing a problem as monotonic-stack-shaped is the single biggest reason candidates brute-force these into a timeout.
+
+      ### Queues and the sliding-window-maximum deque
+
+      Queues drive breadth-first processing (a forward pointer to graphs and trees later in this track). A specific and very testable pattern is using a deque (double-ended queue) to track the maximum in a sliding window in O(n) total: push new indices from the back after popping off any smaller elements (they can never be the max while the new, larger element is in the window), and pop stale indices from the front once they fall outside the window.
+
+      ### Common mistakes
+
+      Brute-forcing "next greater element" style problems in O(n^2) instead of recognizing the monotonic-stack shape; forgetting to evict stale indices from the front of a sliding-window deque, which silently returns wrong maximums; and implementing "queue using two stacks" (a classic design question) by amortizing the transfer incorrectly, causing O(n) per operation instead of amortized O(1).
+
+      **Where this shows up:** monotonic-stack problems (next greater element, largest rectangle in histogram) are a recurring OA "medium" bucket, and "design a stack/queue with an extra operation" (min-stack, queue via stacks) is a common phone-screen warm-up used to test whether a candidate can reason about amortized cost.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Stack Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/stack-data-structure/"
+      - kind: article
+        title: "GeeksforGeeks: Queue Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/queue-data-structure/"
+      - kind: article
+        title: "LeetCode: Stack tag problems"
+        url: "https://leetcode.com/tag/stack/"
+      - kind: article
+        title: "LeetCode: Daily Temperatures"
+        url: "https://leetcode.com/problems/daily-temperatures/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-sliding-window-two-pointers
+    name: "Sliding Window & Two Pointers"
+    domain: computer-science
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - dsa-arrays
+      - dsa-strings-basics
+    summary: |-
+      Fixed and variable window techniques, and two-pointer sweeps on sorted data — the pattern that turns O(n^2) brute-force scans into O(n).
+    content_md: |-
+      Sliding window and two pointers are close cousins: both maintain a moving range or a pair of positions across a single pass instead of re-scanning from scratch, turning an apparent O(n^2) into O(n). Recognizing when a problem is shaped this way — usually anything asking for a max/min/count over a *contiguous* subarray or substring under some constraint — is one of the highest-leverage pattern-recognition skills in interview prep.
+
+      ### Fixed vs variable window
+
+      A fixed-size window (e.g., "max sum of any k consecutive elements") just slides one position at a time, adding the new element and removing the one that fell out — O(n) total instead of recomputing every window's sum from scratch. A variable-size window (e.g., "smallest subarray with sum ≥ target," "longest substring without repeating characters") grows the right edge until a condition is satisfied or violated, then shrinks the left edge to restore the invariant, tracking the best answer as it goes. The core discipline is maintaining a clear invariant about what's true inside the window at every step.
+
+      ### Two pointers on sorted data
+
+      When data is sorted (or can be cheaply sorted), two pointers starting from opposite ends — moving inward based on a comparison — solve pair-sum and three-sum-style problems in O(n) or O(n^2) instead of the O(n^2) or O(n^3) a brute-force nested loop would need. "Container with most water" and "3Sum" are the canonical examples: sort first, fix one element, then two-pointer-sweep the rest.
+
+      ### Telling the two apart, and when to sort first
+
+      Sliding window is about *contiguous* ranges over the original order (order matters, so you never sort first); two pointers is often used *after* sorting, when order doesn't matter and you're exploiting monotonicity. Using two pointers on unsorted data without realizing sorting is a prerequisite step is a common early mistake.
+
+      ### Common mistakes
+
+      Losing track of the window invariant while shrinking (off-by-one on whether the left boundary is inclusive or exclusive); forgetting to update a running count/sum/frequency map symmetrically when both growing and shrinking the window; and not sorting first when the two-pointer technique specifically depends on monotonic order.
+
+      **Where this shows up:** sliding window and two pointers are among the highest-yield patterns for OAs — "longest substring without repeating characters," "minimum window substring," and "3Sum" are extremely commonly asked, and recognizing the pattern in the first minute is usually what separates a 15-minute solve from a 45-minute one.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Sliding Window Technique"
+        url: "https://www.geeksforgeeks.org/dsa/window-sliding-technique/"
+      - kind: article
+        title: "LeetCode: Sliding Window tag problems"
+        url: "https://leetcode.com/tag/sliding-window/"
+      - kind: article
+        title: "LeetCode: Two Pointers tag problems"
+        url: "https://leetcode.com/tag/two-pointers/"
+      - kind: article
+        title: "LeetCode: Minimum Window Substring"
+        url: "https://leetcode.com/problems/minimum-window-substring/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-heaps
+    name: "Heaps & Priority Queues"
+    domain: computer-science
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - dsa-arrays
+      - dsa-sorting-algorithms
+    summary: |-
+      Binary heap mechanics, and the priority-queue applications (top-k, merge-k-sorted, running median) that beat a full sort.
+    content_md: |-
+      A binary heap is a complete binary tree stored in a flat array, maintaining the invariant that every parent is smaller (min-heap) or larger (max-heap) than its children. It supports insert and extract-min/max in O(log n), and finding the min/max in O(1) — which makes it the right tool whenever a problem repeatedly needs "the current smallest/largest" rather than a full sorted order.
+
+      ### Why not just sort
+
+      Sorting the whole input costs O(n log n) and gives you everything, but a lot of problems only need the top k elements, or need the current extreme value while the rest of the data keeps arriving. A heap gets top-k in O(n log k) by keeping a heap of size k and only paying log-k per insertion rather than log-n — a real asymptotic win when k is much smaller than n, and something interviewers explicitly probe for after a candidate proposes "sort everything."
+
+      ### Recurring applications
+
+      Kth largest/smallest element (a size-k heap), top-k frequent elements (bucket-count then heap, or heap over frequency), merging k sorted lists (a heap of size k holding the current head of each list), and the running-median problem via two heaps — a max-heap for the lower half and a min-heap for the upper half, rebalanced so their sizes differ by at most one, giving O(log n) insert and O(1) median lookup.
+
+      ### Implementation details that trip people up
+
+      Most standard libraries provide a min-heap by default (Python's `heapq`, Java's `PriorityQueue`); getting max-heap behavior means negating values on the way in and out (Python) or supplying a reverse comparator (Java). Forgetting this and getting min instead of max silently produces a wrong-but-plausible-looking answer rather than a crash.
+
+      ### Common mistakes
+
+      Sorting the entire input for a top-k problem when a size-k heap is asymptotically better; forgetting the max-heap-via-negation trick in languages whose built-in heap is min-only; and letting the two-heap median structure drift out of balance by not rebalancing after every insertion.
+
+      **Where this shows up:** "kth largest element," "top k frequent elements," and "merge k sorted lists" are staple OA mediums, and the two-heap running-median design is a recognizable onsite favorite for testing whether a candidate can combine two data structures to maintain an invariant incrementally.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Heap Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/heap-data-structure/"
+      - kind: article
+        title: "LeetCode: Heap (Priority Queue) tag problems"
+        url: "https://leetcode.com/tag/heap-priority-queue/"
+      - kind: article
+        title: "LeetCode: Kth Largest Element in an Array"
+        url: "https://leetcode.com/problems/kth-largest-element-in-an-array/"
+      - kind: article
+        title: "LeetCode: Find Median from Data Stream"
+        url: "https://leetcode.com/problems/find-median-from-data-stream/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-greedy-algorithms
+    name: "Greedy Algorithms"
+    domain: computer-science
+    est_hours: 6
+    difficulty: intermediate
+    prerequisites:
+      - dsa-sorting-algorithms
+      - dsa-arrays
+    summary: |-
+      Interval scheduling, activity selection, and the exchange-argument mindset needed to tell a genuinely greedy problem from one that only looks greedy.
+    content_md: |-
+      A greedy algorithm makes the locally best choice at each step and never revisits it, hoping (and, when correct, *proving*) that a sequence of locally optimal choices produces a globally optimal result. The hard part isn't writing greedy code — it's almost always trivial — it's knowing whether greedy is actually correct for this problem, which many candidates skip and get bitten by.
+
+      ### The exchange argument
+
+      The standard way to justify a greedy approach is an exchange argument: assume some optimal solution doesn't make the greedy choice at the first point of difference, then show you can swap in the greedy choice without making the solution worse. Interval scheduling (choosing the maximum number of non-overlapping intervals) is the textbook example: sorting by end time and always picking the next interval that starts after the last chosen one's end is provably optimal, and the exchange argument is short enough to reproduce in an interview if asked to justify it.
+
+      ### Sorting key matters
+
+      Interval and scheduling problems are extremely sensitive to which key you sort by. Sorting activity-selection by end time (not start time, not duration) is what makes the greedy proof go through; sorting by the wrong key produces a plausible-looking but wrong algorithm that fails on specific counter-examples rather than obviously breaking.
+
+      ### When greedy quietly fails
+
+      0/1 knapsack (each item taken whole or not at all) is the canonical example where a greedy-by-value-density approach fails and the fractional relaxation (which greedy *does* solve correctly) doesn't transfer — 0/1 knapsack needs dynamic programming instead. This is the trap: a problem that superficially resembles a greedy success story can require full DP because an integrality constraint breaks the exchange argument. Always sanity-check a proposed greedy rule against a small adversarial example before committing to it.
+
+      ### Common mistakes
+
+      Assuming greedy works without either proving it or testing it against a counter-example; sorting by the wrong attribute in interval problems (start vs end vs duration); and applying a fractional-knapsack-style greedy rule to a 0/1-constrained version of the same problem.
+
+      **Where this shows up:** interval-merging and scheduling problems ("merge intervals," "non-overlapping intervals," "meeting rooms") are common OA questions precisely because they look simple but have a subtle correctness argument; interviewers use greedy questions to test whether a candidate can articulate *why* an approach is correct, not just produce code that happens to pass the visible examples.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Greedy Algorithms"
+        url: "https://www.geeksforgeeks.org/dsa/greedy-algorithms/"
+      - kind: article
+        title: "LeetCode: Greedy tag problems"
+        url: "https://leetcode.com/tag/greedy/"
+      - kind: article
+        title: "LeetCode: Merge Intervals"
+        url: "https://leetcode.com/problems/merge-intervals/"
+      - kind: article
+        title: "LeetCode: Jump Game"
+        url: "https://leetcode.com/problems/jump-game/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-binary-trees
+    name: "Binary Trees"
+    domain: computer-science
+    est_hours: 14
+    difficulty: intermediate
+    prerequisites:
+      - dsa-recursion-backtracking
+      - dsa-stacks-queues
+    summary: |-
+      Traversals (recursive and iterative), height/diameter/balance checks, LCA, and path-sum problems — the topic that tests recursive thinking on a visual structure.
+    content_md: |-
+      A binary tree is a recursive data structure by definition — each node's left and right children are themselves the roots of smaller binary trees — which is why nearly every binary-tree algorithm is naturally expressed as recursion first, and only converted to an explicit stack or queue when iteration is specifically required.
+
+      ### The four traversal orders
+
+      Preorder (node, left, right), inorder (left, node, right), and postorder (left, right, node) are all depth-first and differ only in when the current node is visited relative to its children; each has a natural recursive implementation and a less-natural iterative one using an explicit stack. Level-order traversal is breadth-first, using a queue to visit nodes level by level — it answers a fundamentally different question ("what does level k look like") than the depth-first orders, and conflating the two when a problem specifically wants level-by-level output is a common mistake.
+
+      ### Computing properties bottom-up
+
+      Height, diameter, and "is this tree balanced" all have a naive top-down solution that recomputes subtree heights repeatedly — turning what should be O(n) into O(n^2) in the worst case (a skewed tree). The fix is to compute and return the needed subtree information (height, and whether the subtree is balanced) in a single bottom-up postorder pass, so each subtree's properties are computed exactly once. This "return more than the obvious answer, and let the caller use it" trick generalizes across nearly every recursive tree problem.
+
+      ### LCA and path problems
+
+      Lowest common ancestor and path-sum-style problems (does any root-to-leaf path sum to a target, what's the maximum path sum through any node) both rely on the same idea: recurse into both children, then combine their results at the current node, deciding what to return upward versus what to record as a final answer. Separating "what do I return to my parent" from "what do I record as the answer" is the key insight that unlocks the harder variants of this family.
+
+      ### Common mistakes
+
+      Recomputing subtree height/depth from scratch at every node instead of threading it through the recursion, silently turning O(n) into O(n^2); confusing BFS level-order with DFS traversals when the problem specifically wants one or the other; and forgetting that a "path" in path-sum problems sometimes means root-to-leaf and sometimes means any node-to-node path — always confirm which the problem means.
+
+      **Where this shows up:** binary tree traversal and recursion-on-trees problems (path sum, lowest common ancestor, diameter, level-order traversal) are a mainstay of onsite technical rounds because the visual structure makes it easy for an interviewer to watch a candidate's recursive reasoning in real time.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Binary Tree Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/binary-tree-data-structure/"
+      - kind: article
+        title: "LeetCode: Binary Tree tag problems"
+        url: "https://leetcode.com/tag/binary-tree/"
+      - kind: article
+        title: "LeetCode: Diameter of Binary Tree"
+        url: "https://leetcode.com/problems/diameter-of-binary-tree/"
+      - kind: article
+        title: "LeetCode: Lowest Common Ancestor of a Binary Tree"
+        url: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-binary-search-trees
+    name: "Binary Search Trees"
+    domain: computer-science
+    est_hours: 8
+    difficulty: intermediate
+    prerequisites:
+      - dsa-binary-trees
+      - dsa-binary-search
+    summary: |-
+      The BST invariant, why inorder traversal gives sorted order, search/insert/delete in O(h), and how an unbalanced BST degenerates to a linked list.
+    content_md: |-
+      A binary search tree layers the binary-search idea onto a tree: every node's left subtree contains only smaller values and its right subtree only larger ones, recursively. That single invariant is what makes search, insert, and delete all O(h), where h is the tree's height — and it's also exactly what makes a *degenerate* BST (built by inserting already-sorted data) collapse to a linked list with O(n) operations, which is the topic's central cautionary tale.
+
+      ### Why inorder gives sorted order
+
+      Because every left subtree is smaller and every right subtree is larger, an inorder traversal (left, node, right) visits every value in ascending order automatically — no sorting step needed. This is the basis for "kth smallest element in a BST" (inorder traversal, stop at the kth visit) and for validating whether a tree is a valid BST by checking that an inorder traversal is strictly increasing.
+
+      ### Validating a BST correctly
+
+      The subtle bug in BST validation is checking only that each node is greater than its immediate left child and less than its immediate right child — that's necessary but not sufficient, because a node deep in the left subtree could still violate the *ancestor's* bound even while satisfying its immediate parent. The correct approach threads a valid `(min, max)` range down the recursion, tightening it at each step, so every node is checked against every relevant ancestor, not just its parent.
+
+      ### Search, insert, delete
+
+      Search and insert are straightforward recursive descents guided by the BST invariant. Delete is the operation candidates most often get wrong because it has three cases: deleting a leaf (just remove it), deleting a node with one child (splice the child up), and deleting a node with two children (find the inorder successor — the smallest value in the right subtree — copy its value into the node being deleted, then recursively delete that successor, which is guaranteed to have at most one child).
+
+      ### Balance is not automatic
+
+      A plain BST gives no guarantee that h stays O(log n) — inserting already-sorted data produces a tree that's really a linked list in disguise, with O(n) search/insert/delete. Self-balancing variants (AVL trees, red-black trees) add rotation logic on insert/delete specifically to keep h at O(log n) regardless of insertion order; knowing that a plain BST doesn't get this for free is exactly the kind of follow-up interviewers ask after a candidate proposes a BST-based solution.
+
+      ### Common mistakes
+
+      Validating a BST against only immediate children instead of a running min/max bound; mishandling the two-child deletion case (forgetting the successor-swap-then-delete pattern); and assuming BST operations are O(log n) without acknowledging that this depends on the tree being reasonably balanced.
+
+      **Where this shows up:** "validate BST" and "kth smallest element in a BST" are recurring OA/onsite mediums, and "what happens to your BST if I insert already-sorted data" is a favorite onsite follow-up specifically to test whether a candidate knows about the degenerate case and when a self-balancing tree would be needed instead.
+    resources:
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "GeeksforGeeks: Binary Search Tree Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/binary-search-tree-data-structure/"
+      - kind: article
+        title: "LeetCode: Binary Search Tree tag problems"
+        url: "https://leetcode.com/tag/binary-search-tree/"
+      - kind: article
+        title: "LeetCode: Validate Binary Search Tree"
+        url: "https://leetcode.com/problems/validate-binary-search-tree/"
+      - kind: article
+        title: "LeetCode: Kth Smallest Element in a BST"
+        url: "https://leetcode.com/problems/kth-smallest-element-in-a-bst/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-graphs
+    name: "Graphs"
+    domain: computer-science
+    est_hours: 20
+    difficulty: advanced
+    prerequisites:
+      - dsa-binary-trees
+      - dsa-stacks-queues
+      - dsa-recursion-backtracking
+    summary: |-
+      Representations, BFS/DFS on structures with cycles, topological sort, shortest paths (Dijkstra, Bellman-Ford), and MST — consistently the highest-weighted topic in mid-to-senior onsite loops.
+    content_md: |-
+      A graph generalizes a tree by dropping the restrictions that make trees easy: no single root, nodes can have any number of connections, and — critically — cycles are allowed. Every algorithm from the tree topic gets revisited here with that one added complication, and most graph bugs trace back to forgetting it.
+
+      ### Representation
+
+      An adjacency list (a map or array of lists, one per node, listing its neighbors) is the default choice for sparse graphs, giving O(V+E) space and fast neighbor iteration. An adjacency matrix (a V×V grid of connections) gives O(1) edge-existence checks at O(V^2) space, which only pays off on dense graphs or when edge lookups dominate. Knowing which representation a given problem's constraints favor is itself a signal interviewers look for.
+
+      ### BFS and DFS need a visited set
+
+      Traversing a tree never revisits a node because there are no cycles; traversing a general graph without tracking visited nodes can loop forever. This is the single most common graph bug: porting tree-traversal code to a graph problem and forgetting to add (and check) a visited set. BFS explores level by level via a queue and is the right tool for shortest path in an *unweighted* graph; DFS explores as deep as possible via recursion or an explicit stack and is the right tool for connectivity, cycle detection, and topological ordering.
+
+      ### Topological sort
+
+      For a directed acyclic graph, a topological order lists nodes so every edge points from earlier to later in the list — this models "task scheduling with dependencies" directly. It can be computed via DFS (post-order, then reverse) or via Kahn's algorithm (repeatedly remove nodes with in-degree zero). Topological sort only exists if the graph is acyclic, so cycle detection and topological sort are closely linked: Kahn's algorithm naturally detects a cycle if it finishes without processing every node.
+
+      ### Shortest paths and MST
+
+      Dijkstra's algorithm finds shortest paths from a source in O((V+E) log V) using a priority queue, but only works correctly with non-negative edge weights — using it on a graph with negative edges silently produces a wrong answer rather than an error, which is a well-known interview trap. Bellman-Ford handles negative weights (and detects negative cycles) at the cost of O(VE). For unweighted graphs, plain BFS already gives shortest paths, and 0-1 BFS (a deque-based trick) handles the special case of only 0 or 1 edge weights in O(V+E). Minimum spanning tree algorithms (Prim's, growing a tree greedily; Kruskal's, adding cheapest edges via union-find) connect back to the greedy topic — both are provably-correct greedy algorithms, a rare case where greedy is the *right* answer rather than a trap.
+
+      ### Common mistakes
+
+      Forgetting a visited set on a general (possibly cyclic) graph, causing infinite loops; using Dijkstra on a graph with negative edge weights; and implementing union-find without path compression and union-by-rank/size, which still gives a correct answer but degrades toward O(n) per operation instead of the intended near-constant amortized time — invisible on small test cases, fatal on the large hidden ones.
+
+      **Where this shows up:** graphs are consistently cited as the single highest-weighted topic in SDE-2/SDE-3 onsite loops at larger tech companies — "course schedule" (topological sort), "network delay time" (Dijkstra), and "number of islands" (BFS/DFS on an implicit grid graph) are recurring, and graph questions are frequently used as the deciding round in a multi-round onsite loop.
+    resources:
+      - kind: course
+        title: "Striver's Graph Series (A2Z Course)"
+        url: "https://takeuforward.org/graph/graph-series-a2z-course"
+      - kind: article
+        title: "GeeksforGeeks: Graph Data Structures and Algorithms"
+        url: "https://www.geeksforgeeks.org/dsa/graph-data-structure-and-algorithms/"
+      - kind: article
+        title: "LeetCode: Graph tag problems"
+        url: "https://leetcode.com/tag/graph/"
+      - kind: article
+        title: "LeetCode: Course Schedule"
+        url: "https://leetcode.com/problems/course-schedule/"
+      - kind: article
+        title: "LeetCode: Network Delay Time"
+        url: "https://leetcode.com/problems/network-delay-time/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-dynamic-programming
+    name: "Dynamic Programming"
+    domain: computer-science
+    est_hours: 22
+    difficulty: advanced
+    prerequisites:
+      - dsa-recursion-backtracking
+      - dsa-arrays
+    summary: |-
+      The recursion-to-memoization-to-tabulation pipeline, the classic problem families (knapsack, LCS, edit distance, partition), and how to define state correctly — the topic that tests structured decomposition more than any other.
+    content_md: |-
+      Dynamic programming solves problems that have overlapping subproblems (the same smaller problem recurs many times) and optimal substructure (an optimal solution is built from optimal solutions to subproblems) by computing each distinct subproblem exactly once and reusing the result. The topic has a reputation for being the hardest in interview prep, and that reputation is mostly earned by skipping the pipeline that makes it tractable.
+
+      ### The pipeline
+
+      Every DP solution should be built in this order, not jumped to directly: first, write a correct brute-force recursion, even if exponential — this establishes the state and the transition unambiguously. Second, add memoization (cache results keyed by the recursive parameters) to eliminate repeated work — this is usually a small, mechanical change on top of a correct recursion. Third, convert to bottom-up tabulation if an iterative version is wanted (often faster in practice, avoids recursion-depth limits). Fourth, optimize space if the transition only depends on a small, fixed number of previous states (rolling a 2D table down to two 1D arrays, or a handful of variables). Skipping straight to tabulation without first getting the recursion right is the most common reason candidates produce a DP solution that's subtly wrong and hard to debug, because there's no working brute force to compare against.
+
+      ### Defining state correctly
+
+      The hardest and most interview-relevant skill in DP is choosing what the state needs to capture. A state that's missing information silently produces wrong answers on some inputs while looking correct on others — for example, a "can I reach index i" state that forgets to also track "how much capacity/budget remains" will happily overcount or undercount depending on the problem. When a DP approach seems almost-right but fails specific cases, the fix is almost always adding a dimension to the state, not fixing the transition.
+
+      ### The recurring families
+
+      1D sequence DP (climbing stairs, house robber, longest increasing subsequence) where state is "best answer up to index i." 2D grid/string DP (longest common subsequence, edit distance, unique paths) where state is a pair of indices into two sequences or a grid position. Knapsack-style DP (0/1 knapsack, subset sum, partition equal subset sum) where state is "index and remaining capacity/target." Interval DP (matrix chain multiplication, burst balloons) where state is a range `[i, j]` and transitions try every split point. Recognizing which family a new problem belongs to is most of the battle — the actual code within a family is a small variation on a template.
+
+      ### Common mistakes
+
+      Attempting tabulation before verifying a correct recursive brute force, losing the ability to debug transitions against known-correct small cases; defining state that doesn't capture enough information to distinguish genuinely different subproblems; forgetting base cases for empty inputs or zero-capacity/zero-length edge cases, which are exactly what hidden OA tests probe; and applying a greedy shortcut (see the greedy topic) to a problem that actually needs the full DP because of an integrality or ordering constraint.
+
+      **Where this shows up:** DP is the topic candidates fear most, and companies weight it heavily in final onsite rounds specifically because it filters for structured problem decomposition rather than recall of a memorized pattern — longest-common-subsequence, edit-distance, and knapsack variants recur across nearly every senior-track onsite loop, and "define your state before you code" is the standard opening question interviewers ask.
+    resources:
+      - kind: course
+        title: "Striver's Dynamic Programming Series"
+        url: "https://takeuforward.org/dynamic-programming/striver-dp-series-dynamic-programming-problems"
+      - kind: article
+        title: "GeeksforGeeks: Dynamic Programming"
+        url: "https://www.geeksforgeeks.org/dsa/dynamic-programming/"
+      - kind: article
+        title: "LeetCode: Dynamic Programming tag problems"
+        url: "https://leetcode.com/tag/dynamic-programming/"
+      - kind: article
+        title: "LeetCode: Longest Common Subsequence"
+        url: "https://leetcode.com/problems/longest-common-subsequence/"
+      - kind: article
+        title: "LeetCode: Edit Distance"
+        url: "https://leetcode.com/problems/edit-distance/"
+      - kind: article
+        title: "LeetCode: 0/1 Knapsack style — Partition Equal Subset Sum"
+        url: "https://leetcode.com/problems/partition-equal-subset-sum/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-tries
+    name: "Tries"
+    domain: computer-science
+    est_hours: 6
+    difficulty: advanced
+    prerequisites:
+      - dsa-strings-basics
+      - dsa-recursion-backtracking
+    summary: |-
+      Prefix-tree structure and insert/search/startsWith, and the prefix-based problems (autocomplete, word search II) that combine a trie with backtracking.
+    content_md: |-
+      A trie (prefix tree) stores strings by sharing common prefixes along root-to-node paths: each node holds a map (or fixed-size array, for a bounded alphabet) of children keyed by the next character, plus a flag marking whether a complete word ends at that node. This structure makes prefix queries — "does any stored word start with this prefix" — O(m) in the length of the prefix, regardless of how many words are stored, which a hashset of whole words cannot do at all.
+
+      ### Insert, search, and the end-of-word flag
+
+      Insert walks the trie character by character, creating child nodes as needed, and marks the final node as end-of-word. Search for an exact word does the same walk and additionally checks the end-of-word flag at the final node. Search for a prefix (startsWith) does the same walk but skips the end-of-word check entirely. The bug candidates hit most often is conflating these two: returning true for `search("app")` just because the path exists, without checking that a word actually *ends* there — which wrongly reports "app" as present when only "apple" was ever inserted.
+
+      ### Combining tries with backtracking
+
+      A significant class of harder problems layers a trie on top of a grid or a set of candidate words to prune backtracking search early: "word search II" builds a trie of the target words and walks it alongside a DFS/backtracking search over the grid, abandoning a branch the instant no trie path matches, instead of independently searching for every target word from scratch. This combination — data structure for fast lookup, backtracking for exploration — is a recurring shape in harder interview problems generally, not just this one.
+
+      ### Space-time tradeoff
+
+      A trie's per-node overhead (an array or map of children) can be significant for large alphabets or sparse data; if a problem never needs prefix queries, a plain hashset of whole words is simpler and often faster in practice. Reaching for a trie when a hashset would do is a mild but noticeable over-engineering signal in an interview.
+
+      ### Common mistakes
+
+      Not distinguishing "a path exists" from "a word ends here," breaking exact-match search; using a trie for a problem that only needs whole-word membership rather than prefix queries; and forgetting to prune trie-guided backtracking early, which loses most of the performance benefit the trie was meant to provide.
+
+      **Where this shows up:** tries appear in "design an autocomplete/spell-checker" style OA and onsite questions, and combined with backtracking in "word search II"-style problems that companies use specifically to test whether a candidate can combine two data structures rather than apply either in isolation.
+    resources:
+      - kind: article
+        title: "GeeksforGeeks: Trie Data Structure"
+        url: "https://www.geeksforgeeks.org/dsa/trie-insert-and-search/"
+      - kind: course
+        title: "Striver's A2Z DSA Course/Sheet"
+        url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/"
+      - kind: article
+        title: "LeetCode: Trie tag problems"
+        url: "https://leetcode.com/tag/trie/"
+      - kind: article
+        title: "LeetCode: Implement Trie (Prefix Tree)"
+        url: "https://leetcode.com/problems/implement-trie-prefix-tree/"
+      - kind: article
+        title: "LeetCode: Word Search II"
+        url: "https://leetcode.com/problems/word-search-ii/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"
+
+  - slug: dsa-advanced-string-algorithms
+    name: "Advanced String Algorithms"
+    domain: computer-science
+    est_hours: 8
+    difficulty: advanced
+    prerequisites:
+      - dsa-strings-basics
+      - dsa-tries
+    summary: |-
+      Linear-time pattern matching (KMP, Z-function, Rabin-Karp) and palindrome-specific tricks — the topic that shows up at companies with a strong competitive-programming-influenced bar.
+    content_md: |-
+      Naive substring search compares the pattern against every starting position in the text, giving O(n·m) in the worst case (text length n, pattern length m). The algorithms in this topic all exploit information the naive approach throws away — specifically, what's already been matched — to guarantee linear O(n+m) time instead.
+
+      ### KMP (Knuth-Morris-Pratt)
+
+      KMP precomputes a "failure function" (also called the prefix function) over the pattern itself: for every prefix of the pattern, the length of the longest proper prefix that is also a suffix. When a mismatch occurs during matching, instead of restarting the comparison from scratch, KMP uses this precomputed table to skip directly to the next position that could still match, without ever re-examining a text character it has already looked at — that's what gives the O(n+m) bound.
+
+      ### The Z-function
+
+      The Z-function computes, for every position in a string, the length of the longest substring starting there that matches a prefix of the whole string. Concatenating pattern + separator + text and computing the Z-function over that combined string finds every occurrence of the pattern in the text in O(n+m), and the same building block solves a range of other prefix-related string problems beyond plain matching.
+
+      ### Rabin-Karp and its collision pitfall
+
+      Rabin-Karp uses a rolling hash — a hash of each window of the text that can be updated in O(1) as the window slides, rather than recomputed from scratch — to quickly filter out positions that can't match, then verifies real matches character-by-character. Its known weakness is hash collisions: two different substrings hashing to the same value produce a false positive that must be verified explicitly, and using a weak hash or a single modulus makes deliberate collisions (or, in a poorly designed system, accidental ones on adversarial input) far more likely. Production-quality rolling hash implementations use a large prime modulus and, ideally, more than one hash function to make collisions negligible.
+
+      ### Palindrome-specific techniques
+
+      Expand-around-center checks every possible center (there are 2n-1 of them, accounting for even-length palindromes) and expands outward while characters match, giving O(n^2) — good enough for most interview-scale inputs. Manacher's algorithm improves this to O(n) by reusing information from previously computed palindromes, similar in spirit to how KMP reuses partial-match information, though it's asked less often than the O(n^2) approach because the O(n^2) one is usually sufficient.
+
+      ### When to reach for these vs a built-in
+
+      Most languages' built-in substring search is already well-optimized (often a variant of these same algorithms internally), so reimplementing KMP from scratch is rarely the goal in itself — the goal is recognizing when a problem's stated constraints (e.g., text length in the millions with many repeated queries) explicitly require guaranteed linear-time matching rather than relying on average-case performance.
+
+      ### Common mistakes
+
+      Reimplementing brute-force substring search under time pressure when the stated constraints explicitly require linear time; using a rolling hash without a verification step, letting a collision silently produce a wrong match; and confusing the KMP failure function's off-by-one conventions (whether a table entry represents the prefix length *including* the current character or *before* it), which is the most common source of implementation bugs in this topic.
+
+      **Where this shows up:** these algorithms are asked less frequently than earlier topics in this track, but they appear at companies with a strong algorithmic bar — often ones with roots in competitive programming or in latency-sensitive domains like search infrastructure or trading systems — and show up among LeetCode's hard-difficulty string problems as the differentiator in advanced onsite loops.
+    resources:
+      - kind: doc
+        title: "CP-Algorithms: Prefix function — Knuth-Morris-Pratt"
+        url: "https://cp-algorithms.com/string/prefix-function.html"
+      - kind: doc
+        title: "CP-Algorithms: Z-function and its calculation"
+        url: "https://cp-algorithms.com/string/z-function.html"
+      - kind: doc
+        title: "CP-Algorithms: Rabin-Karp for string matching"
+        url: "https://cp-algorithms.com/string/rabin-karp.html"
+      - kind: article
+        title: "GeeksforGeeks: Pattern Searching algorithms"
+        url: "https://www.geeksforgeeks.org/dsa/pattern-searching/"
+      - kind: article
+        title: "LeetCode: Shortest Palindrome (KMP application)"
+        url: "https://leetcode.com/problems/shortest-palindrome/"
+      - kind: video
+        title: "takeUforward YouTube channel"
+        url: "https://www.youtube.com/@takeUforward"

@@ -1,0 +1,685 @@
+# Razorpay.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: razorpay
+  name: Razorpay
+  industry: Fintech / Payments infrastructure
+  hq: Bengaluru, Karnataka
+  website: https://razorpay.com/jobs/
+  icon: CreditCard
+  fetched_on: 2026-08-21
+  sort_order: 23
+  description: >-
+    Payments and business-banking infrastructure processing transactions at
+    national scale. The domain shapes the loop: correctness under failure
+    (idempotency, reconciliation, exactly-once-ish semantics) matters as much
+    as raw algorithmic speed.
+  hiring_process_md: |
+    Razorpay's loop is shorter than most peers — often 3–5 rounds — and
+    noticeably weighted toward **past work as evidence of judgment** rather
+    than pure whiteboard performance. Expect interviewers to keep steering
+    conversation back to your resume: specific architecture decisions you
+    made, why, and what you'd do differently.
+
+    **The shape of it**
+
+    1. **Online assessment** — around 90 minutes: MCQs across OS, DBMS, OOP
+       and DSA, plus 2–3 coding problems, for campus and early-career hires.
+    2. **Technical round(s) (1–2)** — DSA plus, at increasing seniority, a
+       machine-coding or low-level design problem ("design an in-memory
+       relational database", "build a load balancer") — Razorpay treats this
+       as its own signature round the way Flipkart and Swiggy do, just
+       phrased around payments primitives (transactions, ledgers, idempotent
+       retries) rather than generic ones.
+    3. **System design / hiring manager round** — payments-flavoured design
+       (a UPI transaction system, a notification service with delivery
+       guarantees) blended with a conversation about your past architecture
+       decisions.
+    4. **HR round** — compensation, notice period.
+
+    **Why "past work" carries real weight here.** A fintech processing
+    payments cares more than most about whether an engineer's default
+    instinct is "what happens if this fails halfway through" — and the
+    fastest way to check that isn't a fresh whiteboard problem, it's asking
+    you to defend a real decision you already made. Come prepared to discuss
+    *trade-offs*, not just outcomes, on 2–3 projects from your resume.
+  resources:
+    - kind: blog
+      title: "Razorpay Engineering — Medium"
+      url: https://medium.com/@razorpayengineeringblog
+    - kind: blog
+      title: "Razorpay Blog"
+      url: https://razorpay.com/blog/
+    - kind: careers
+      title: "Razorpay Careers"
+      url: https://razorpay.com/jobs/
+    - kind: prep
+      title: "Razorpay Interview Experience for SDE-2 (2–3 years experienced) — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+    - kind: prep
+      title: "Razorpay Software Engineer Interview Guide — Interview Query"
+      url: https://www.interviewquery.com/guides/razorpay-software-engineer
+
+roles:
+  - slug: sde-1
+    title: SDE-1 (Software Development Engineer)
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://razorpay.com/jobs/
+    description: >-
+      Entry engineering role. OA and DSA rounds are standard product-company
+      fare; the differentiator is whether you reason correctly about failure
+      modes — Razorpay's domain makes "what if this call fails halfway" a
+      constant undercurrent.
+    focus_md: |
+      Payments engineering has one non-negotiable habit worth internalising
+      before any interview here: every write that can be retried needs to be
+      **idempotent**, because in a distributed system you cannot always tell
+      the difference between "the request failed" and "the request succeeded
+      but the response was lost". If a question involves money moving
+      between accounts, volunteer the idempotency-key pattern even if not
+      asked — it's the single most on-brand thing you can say in this loop.
+
+      Otherwise, prep is standard: DSA fundamentals, core OS/DBMS/OOP
+      concepts for the MCQ section, and be ready for at least one machine-
+      coding-shaped question even at SDE-1 — Razorpay applies the "build an
+      in-memory system" prompt earlier in seniority than some peers.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "OA MCQs plus 2-3 coding problems." }
+      - { concept: computer-science-processes-and-threads, label: "OS & DBMS fundamentals", weight: 4,
+          notes: "Multithreading vs multiprocessing, transaction isolation — direct MCQ and interview territory." }
+      - { concept: computer-science-design-patterns, label: "Machine coding / LLD", weight: 4,
+          notes: "Applied earlier in seniority than at some peers — even SDE-1 can get an in-memory-system prompt." }
+      - { concept: backend-relational-databases, label: "Transactions & databases", weight: 4,
+          notes: "Isolation levels and idempotent writes are the domain's core vocabulary." }
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 3 }
+      - { concept: api-design-api-authentication-and-authorization, label: "API design & auth", weight: 3 }
+      - { label: "Behavioural", weight: 2,
+          notes: "Why Razorpay, and how you'd handle a payment dispute — judgment questions, not trivia." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Operating systems
+        difficulty: easy
+        question: >-
+          Explain the difference between multithreading and multiprocessing,
+          and which better suits a payment-processing worker handling
+          thousands of concurrent transaction requests.
+        answer_md: |
+          Multithreading shares memory within a process — cheap to spin up,
+          but shared mutable state (like an in-memory transaction counter)
+          needs explicit locking to avoid races. Multiprocessing gives
+          isolated memory per process — safer by default against shared-state
+          bugs, but heavier and needs explicit IPC to share anything.
+
+          For payment processing, the work is dominated by I/O waits (calls
+          to banks, card networks, the database) rather than CPU computation,
+          which favours a threading or async/event-loop model for
+          throughput. But isolation still matters for correctness-critical
+          state — which is why real payment systems typically push shared
+          mutable state (the actual transaction record) into the database
+          with proper locking/isolation rather than relying on in-process
+          memory sharing at all, sidestepping the multithreading-safety
+          question by not sharing memory for anything that matters.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: interview
+        round: coding
+        topic: Arrays
+        difficulty: medium
+        question: >-
+          Merge two sorted arrays in place, without using extra space, in
+          O(n) time.
+        answer_md: |
+          If "in place" means writing the result into the first array
+          (assumed to have enough trailing empty space, the classic LeetCode
+          framing) — fill from the back: compare the largest remaining
+          elements of both arrays and place the bigger one at the current end
+          position, working backward. This avoids the overwrite problem you'd
+          hit filling from the front, where you'd clobber unmerged elements
+          of the first array before reading them.
+
+          If instead both arrays are truly fixed-size and neither has spare
+          room (the harder variant this question sometimes means), true O(n)
+          time with O(1) extra space is not achievable with a straightforward
+          approach — the standard trick is the "gap method" (Shell-sort-style
+          gap sequence) which runs in O((n+m) log(n+m)). Clarifying which
+          variant is being asked before coding is the right first move, and
+          interviewers usually reward that clarification.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: interview
+        round: coding
+        topic: Arrays
+        difficulty: medium
+        question: >-
+          Given a stream of distinct numbers from 1 to n with two numbers
+          missing, find both missing numbers.
+        answer_md: |
+          Sum-based approach: the expected sum of 1..n is `n(n+1)/2`; the
+          difference between that and the actual sum gives `sum` of the two
+          missing numbers. To separate them, also track the expected vs.
+          actual sum of squares — the difference gives `sumOfSquares` of the
+          two missing numbers, and two equations (`sum` and `sumOfSquares`)
+          let you solve for both values algebraically. O(n) time, O(1) space.
+
+          The XOR variant is the more elegant answer if asked for it: XOR all
+          numbers 1..n with all numbers in the stream, which cancels every
+          present number and leaves `x XOR y` (the two missing numbers
+          XORed). Find any set bit in that result, use it to partition both
+          the range and the stream into two groups, and XOR within each group
+          to isolate each missing number separately. Interviewers sometimes
+          ask for both to see whether you know when sum-based math breaks
+          down (large n causing overflow) versus when XOR is more robust.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: interview
+        round: technical
+        topic: Idempotency
+        difficulty: medium
+        question: >-
+          A client calls your "charge card" API, the request succeeds
+          server-side, but the network drops before the response reaches the
+          client. The client retries. How do you prevent a double charge?
+        answer_md: |
+          This is the canonical idempotency problem in payments. The fix is
+          an **idempotency key**: the client generates a unique key per
+          logical operation (not per HTTP request) and sends it with every
+          attempt, including retries. The server checks whether it has
+          already processed that key before executing the charge — if it
+          has, it returns the *original* result without charging again; if
+          not, it processes the charge and records the key-to-result mapping
+          atomically with the charge itself.
+
+          The subtlety worth naming: "atomically with the charge itself" is
+          the hard part — if you record the idempotency key in a separate
+          step from the charge, a crash between the two steps recreates the
+          same race. In practice this means the idempotency-key check and
+          the charge write happen inside the same database transaction, with
+          a unique constraint on the key column so a concurrent duplicate
+          request fails fast at the database level rather than racing in
+          application code.
+        source_name: RazorPay Interview Experience for SDE-2 — GeeksforGeeks
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: online-assessment
+        round: technical
+        topic: SQL vs NoSQL
+        difficulty: easy
+        question: >-
+          Why would a payments company default to a relational database for
+          the core ledger, even though NoSQL stores scale writes more easily?
+        answer_md: |
+          A ledger's core requirement is that a transfer between two accounts
+          either fully happens or doesn't happen at all — debit one account
+          and credit another as a single atomic unit — which is exactly what
+          ACID transactions and multi-row atomicity guarantee, and what most
+          NoSQL stores either don't offer or offer with more caveats.
+
+          The trade-off is real: relational databases don't horizontally
+          scale writes as easily, which is why payment systems that need
+          both properties typically shard the relational database by a
+          natural boundary (account or merchant) rather than switching data
+          models entirely — keeping ACID guarantees *within* a shard while
+          accepting that cross-shard operations (a transfer between two
+          accounts on different shards) need an explicit distributed-
+          transaction pattern (like a saga) instead of a native database
+          transaction.
+        source_name: GeeksforGeeks — RazorPay SDE Interview Experience
+        source_url: https://www.geeksforgeeks.org/razorpay-sde-interview-experience/
+
+      - kind: interview
+        round: hr
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          Why do you want to join Razorpay, and how would you handle a
+          situation where a customer disputes a charge they claim they never
+          authorized?
+        answer_md: |
+          For "why Razorpay", answers that engage with the actual product
+          surface — payment gateway, business banking (RazorpayX), or a
+          specific engineering blog post — read stronger than generic fintech
+          enthusiasm.
+
+          For the dispute question, the strong answer isn't a technical
+          fix — it's a process one: acknowledge you can't unilaterally
+          determine fraud from an engineering seat, but describe what you'd
+          want the system to support: an audit trail (who authorized what,
+          when, from where) detailed enough that a dispute can be
+          investigated with evidence rather than "he said, she said", and a
+          clear escalation path to whoever owns fraud/dispute resolution.
+          Interviewers use this to check whether you understand that trust
+          and auditability are product requirements in this domain, not
+          afterthoughts.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+  - slug: sde-2
+    title: SDE-2
+    level: mid
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://razorpay.com/jobs/
+    description: >-
+      Full machine-coding and system-design rounds, both payments-flavoured.
+      The hiring-manager conversation weighs heavily here — expect it to
+      dominate as much interview time as the technical rounds.
+    focus_md: |
+      Razorpay's "signature round" is machine coding phrased around payments
+      primitives rather than generic ones: "design an in-memory relational
+      database" and "build a load balancer" are both reported prompts. Both
+      are really testing the same skill as Flipkart's parking-lot prompt —
+      clean class boundaries under a clock — dressed in different domain
+      language, so the same preparation transfers.
+
+      System design questions go further into the domain than most peers:
+      UPI transaction flows and notification systems with delivery
+      guarantees are recurring prompts. Know the shape of a UPI transaction
+      (initiation, bank-to-bank settlement, status callback) well enough to
+      reason about where it can fail and how you'd reconcile a stuck
+      transaction — that's the actual differentiator in this round.
+    focus_areas:
+      - { concept: computer-science-system-design, label: "System design", weight: 5,
+          notes: "UPI-flavoured: transaction status, ledgers, reconciliation." }
+      - { concept: computer-science-design-patterns, label: "Machine coding", weight: 5,
+          notes: "In-memory RDBMS, load balancer — payments-flavoured LLD prompts." }
+      - { concept: backend-relational-databases, label: "Transactions & reconciliation", weight: 4 }
+      - { concept: system-design-messaging, label: "Notification delivery guarantees", weight: 4,
+          notes: "At-least-once vs exactly-once delivery is a recurring design question." }
+      - { concept: system-design-reliability-patterns, label: "Failure handling & retries", weight: 4 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3 }
+      - { label: "Hiring manager round", weight: 4,
+          notes: "Weighs as heavily as the technical rounds — be ready to defend real architecture decisions." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Machine coding
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design and implement an in-memory relational database supporting
+          tables, rows, columns, a primary key, an index, and basic
+          insert/update/delete with a uniqueness constraint enforced.
+        answer_md: |
+          Model `Table` as owning a `List<Row>` (or a `Map<PrimaryKey, Row>`
+          for O(1) lookup by primary key) plus a schema describing columns
+          and constraints. Enforce the primary-key uniqueness constraint at
+          the `insert` boundary — checking the map for an existing key before
+          inserting — rather than scanning all rows, which is the difference
+          between O(1) and O(n) inserts and is exactly the kind of detail
+          this round grades.
+
+          For a secondary index (e.g. on a non-primary-key column), maintain
+          a separate `Map<IndexedValue, List<PrimaryKey>>` updated on every
+          insert/update/delete — this is the same trade-off as a real
+          database's index: faster reads on the indexed column, at the cost
+          of extra write-path bookkeeping to keep the index consistent. The
+          strongest answers explicitly name that trade-off and ask the
+          interviewer which query patterns need to be fast before deciding
+          what to index, rather than indexing everything by default.
+        source_name: GeeksforGeeks — RazorPay SDE Interview Experience
+        source_url: https://www.geeksforgeeks.org/razorpay-sde-interview-experience/
+
+      - kind: interview
+        round: system-design
+        topic: Payments
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a UPI-style transaction system: a payment must move money
+          between two banks and reliably report success/failure, even if the
+          network between banks is temporarily unavailable.
+        answer_md: |
+          The core design decision is separating **transaction initiation**
+          from **transaction settlement**: the payment gateway records a
+          transaction in a `PENDING` state immediately, then asynchronously
+          drives it through the bank-to-bank settlement flow, updating status
+          to `SUCCESS`/`FAILED` as callbacks arrive — the client polls or
+          gets webhooked for status rather than the initiating request
+          blocking on the full round-trip to both banks.
+
+          The genuinely hard part is the **stuck transaction**: what happens
+          when a status callback never arrives (the network partition in the
+          prompt)? The answer is a reconciliation job — a periodic sweep that
+          queries the bank's status API directly for any transaction that's
+          been `PENDING` past a threshold, since the async callback is
+          best-effort, not guaranteed. Naming reconciliation as a first-class
+          part of the design, not an afterthought, is what this question is
+          actually testing — a design with no answer for "the callback never
+          came" is an incomplete one in payments.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: interview
+        round: system-design
+        topic: Notifications
+        difficulty: medium
+        question: >-
+          Design a notification system that sends payment-status updates
+          through multiple channels (SMS, email, push) and must handle
+          per-channel failures without losing the notification entirely.
+        answer_md: |
+          Decouple "a notification needs to go out" from "sending it via
+          channel X succeeded or failed": publish one event per notification
+          to a queue, and have per-channel consumers each independently
+          attempt delivery, retry with backoff on failure, and record
+          delivery status — a failure in the SMS channel shouldn't affect
+          whether the push notification goes out, so each channel needs its
+          own retry/failure handling rather than one shared all-or-nothing
+          attempt.
+
+          For "must not lose the notification entirely", the answer is a
+          durable queue (message persisted until acknowledged) plus a
+          dead-letter queue for notifications that exhaust their retries —
+          which at minimum surfaces the failure for manual/automated
+          follow-up instead of silently dropping it. The trade-off worth
+          naming: this design gives at-least-once delivery per channel (a
+          user might get a duplicate SMS after a retry that actually
+          succeeded but wasn't acknowledged in time), which is usually the
+          right choice for notifications since a duplicate is far less costly
+          than a silently lost payment-status update.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: interview
+        round: managerial
+        topic: Architecture decisions
+        difficulty: medium
+        question: >-
+          Walk me through an architecture decision from a past project. What
+          alternatives did you consider, and what would you do differently
+          now?
+        answer_md: |
+          This round is deliberately resume-driven, so the preparation is
+          different from a generic behavioural round: pick a real decision
+          with a genuine trade-off (not a decision with one obviously correct
+          answer), and be ready to name at least two alternatives you
+          actually considered and why you didn't pick them — not just why you
+          picked what you did.
+
+          The "what would you do differently now" half is the part
+          interviewers weight most heavily, because it reveals whether you've
+          actually reflected on the decision's consequences after the fact,
+          versus treating it as a closed chapter. A specific, slightly
+          uncomfortable answer ("I'd add the idempotency key from day one
+          instead of retrofitting it after an incident") reads as far more
+          credible than a vague "it worked out well" non-answer.
+        source_name: Razorpay Software Engineer Interview Guide — Interview Query
+        source_url: https://www.interviewquery.com/guides/razorpay-software-engineer
+
+      - kind: online-assessment
+        round: coding
+        topic: Strings
+        difficulty: medium
+        question: >-
+          Given a paragraph of text, return a summary containing only the
+          first sentence of each paragraph-separated block.
+        answer_md: |
+          Split the text into blocks on the paragraph delimiter (typically a
+          double newline), then for each block, find the first sentence-
+          ending punctuation (`.`, `!`, `?`) not immediately followed by a
+          lowercase letter or digit (to avoid falsely splitting on
+          abbreviations like "Dr." or decimal numbers like "3.14") and slice
+          up to and including that point.
+
+          The realistic scope-check worth stating: true sentence-boundary
+          detection is a genuinely hard NLP problem (abbreviations, quoted
+          speech, ellipses) — a regex-based heuristic handles the common
+          cases and is what's expected here, but naming its limitations
+          ("this will mis-split on 'Mr. Smith arrived.'") shows awareness
+          that the simple solution is a reasonable approximation, not a
+          claim of full correctness.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+      - kind: interview
+        round: technical
+        topic: Concurrency
+        difficulty: hard
+        question: >-
+          Two concurrent requests try to debit the same account, and the
+          account only has enough balance for one of them. How do you
+          guarantee only one succeeds?
+        answer_md: |
+          A read-then-write check ("read balance, verify sufficient, then
+          write the debit") races exactly like the inventory-oversell problem
+          — both requests can read a sufficient balance before either writes.
+
+          The fix is the same shape as before: make the check-and-debit
+          atomic at the database layer, e.g. `UPDATE accounts SET balance =
+          balance - amount WHERE account_id = ? AND balance >= amount`, and
+          check the affected-row count — zero rows affected means the balance
+          was insufficient by the time this write executed, and the
+          application should treat that as "declined", not retry blindly. An
+          alternative is row-level locking (`SELECT ... FOR UPDATE`) around
+          the check-then-write, which is more explicit but holds a lock for
+          longer under load. The single-atomic-update version is generally
+          preferred at payment scale because it minimizes lock duration.
+        source_name: GeeksforGeeks — RazorPay Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/razorpay-interview-experience-for-sde2-2-3-years-experienced/
+
+  - slug: frontend-engineer
+    title: Frontend Engineer
+    level: mid
+    maps_to_role: frontend-developer
+    sort_order: 3
+    source_url: https://razorpay.com/jobs/
+    description: >-
+      Razorpay's dashboard and checkout surfaces are high-traffic,
+      trust-sensitive UI — the checkout widget in particular runs on
+      thousands of third-party merchant sites, which shapes the loop toward
+      correctness and compatibility as much as feature-building.
+    focus_md: |
+      Because the checkout widget is embedded on merchant sites you don't
+      control, cross-browser compatibility and defensive coding (never
+      assume the host page's CSS or JS environment is clean) come up more
+      here than at a typical consumer-app frontend interview. Be ready to
+      discuss how you'd build a component that has to work correctly even
+      when embedded in an unknown, potentially hostile page environment.
+
+      Otherwise, expect standard React fundamentals plus a system-design-
+      adjacent round: how would you architect a form with complex,
+      interdependent validation (card number → auto-detect network → show
+      relevant fields) — a direct reflection of what the checkout product
+      actually does.
+    focus_areas:
+      - { concept: react-forms, label: "Complex form state & validation", weight: 5,
+          notes: "The checkout form's card-detection and conditional-field logic is the canonical prompt." }
+      - { concept: frontend-web-security, label: "Frontend security", weight: 4,
+          notes: "Embedded-widget context: XSS surface, iframe isolation, trusting the host page." }
+      - { concept: react-hooks, label: "React hooks & state management", weight: 4 }
+      - { concept: javascript-asynchronous-javascript, label: "Async JavaScript", weight: 3 }
+      - { concept: frontend-performance, label: "Performance in constrained environments", weight: 3,
+          notes: "A widget embedded in someone else's page can't assume it owns the performance budget." }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3 }
+      - { label: "Hiring manager round", weight: 3 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Forms
+        difficulty: medium
+        question: >-
+          Design the state management for a payment form where entering a
+          card number should auto-detect the card network (Visa, Mastercard,
+          Amex) and conditionally show/validate fields differently (Amex has
+          a 4-digit CVV in a different position, for instance).
+        answer_md: |
+          The key design decision is treating card-network detection as
+          **derived state**, not stored state — compute it from the card
+          number on every change (via a lookup against known BIN/IIN prefix
+          ranges) rather than storing "detected network" as separate state
+          that could drift out of sync if the card number changes and the
+          derived value isn't recomputed.
+
+          Field-level validation rules (CVV length, card number length)
+          should then be a function of the derived network, not hardcoded
+          per field — a `getValidationRules(network)` that returns the
+          right shape for the currently detected network, so adding a new
+          card network later means adding one entry to a rules table, not
+          touching every field's validation logic individually. This is the
+          same "make variation data-driven, not branch-driven" instinct as
+          the machine-coding strategy-pattern answers, applied to frontend
+          state.
+        source_name: RazorPay Frontend Interview Experience (SDE-2) — Medium
+        source_url: https://medium.com/frontend-army/razorpay-frontend-interview-experience-sde-2-c8281db61ed5
+
+      - kind: interview
+        round: technical
+        topic: Security
+        difficulty: medium
+        question: >-
+          The checkout widget is embedded via an iframe on thousands of
+          merchant websites you don't control. What security considerations
+          does that create?
+        answer_md: |
+          The core principle is that the host page is untrusted — you cannot
+          assume it isn't compromised or malicious, so the iframe boundary
+          needs to be a real security boundary, not just a visual one.
+          Card data entered inside the iframe should never be directly
+          accessible to the parent page's JavaScript (which the iframe's
+          same-origin policy already helps with, as long as the widget is
+          served from Razorpay's own origin, not the merchant's).
+
+          Cross-frame communication (the widget needs to tell the parent page
+          "payment succeeded") should go through `postMessage` with explicit
+          origin checks on both ends — never trust a message without
+          verifying `event.origin` matches an expected value, since any page
+          can send a `postMessage` to your iframe pretending to be
+          legitimate. And because you don't control the host page's CSP or
+          script environment, defensive practices like not relying on global
+          variables that a hostile host script could tamper with become
+          load-bearing rather than optional.
+        source_name: RazorPay Frontend Interview Experience (SDE-2) — Medium
+        source_url: https://medium.com/frontend-army/razorpay-frontend-interview-experience-sde-2-c8281db61ed5
+
+      - kind: online-assessment
+        round: coding
+        topic: JavaScript
+        difficulty: medium
+        question: >-
+          Implement a `throttle` function that ensures a scroll handler runs
+          at most once every 200ms, regardless of how often scroll events
+          fire.
+        answer_md: |
+          Unlike debounce (which waits for a quiet period), throttle
+          guarantees regular execution during continuous activity:
+
+          ```js
+          function throttle(fn, interval) {
+            let lastCall = 0;
+            return function (...args) {
+              const now = Date.now();
+              if (now - lastCall >= interval) {
+                lastCall = now;
+                fn.apply(this, args);
+              }
+            };
+          }
+          ```
+
+          This is the "leading edge" version — it fires immediately on the
+          first call, then ignores calls until the interval passes. A common
+          follow-up: what if you also want the *last* call in a burst to
+          fire, even if it lands inside the throttle window (a "trailing
+          edge" call)? That needs a `setTimeout` fallback scheduled for the
+          remaining interval time, which is worth mentioning even if not
+          asked to implement it — it shows awareness that leading-edge-only
+          throttle can silently drop the final, most up-to-date event.
+        source_name: GeeksforGeeks — JavaScript interview questions
+        source_url: https://www.geeksforgeeks.org/javascript/javascript-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: React performance
+        difficulty: medium
+        question: >-
+          The checkout widget needs to stay lightweight because it's loaded
+          on third-party merchant pages where you don't control the rest of
+          the page's performance budget. How does that change how you'd
+          build it compared to a typical internal dashboard feature?
+        answer_md: |
+          An internal dashboard can reasonably assume it owns most of the
+          page's JS budget; an embedded widget cannot — it's sharing the
+          page with the merchant's own scripts, ad tags, and analytics, so
+          bundle size and load time matter more here than in most frontend
+          contexts, since a slow-loading checkout widget directly costs
+          merchants conversions.
+
+          Concretely, that pushes toward: a minimal dependency footprint
+          (avoid pulling in a large UI framework's full feature set for a
+          focused form), code-splitting so the widget's core loads fast and
+          heavier bits — like a full card-scanning camera flow — load lazily
+          only if the user reaches that step, and defensive coding against
+          the host page's CSS leaking in (scoped styles or Shadow DOM) so the
+          widget renders correctly regardless of what the merchant's global
+          stylesheet does. Framing the answer around "this is a shared,
+          adversarial environment, not a controlled one" is the point.
+        source_name: RazorPay Frontend Interview Experience (SDE-2) — Medium
+        source_url: https://medium.com/frontend-army/razorpay-frontend-interview-experience-sde-2-c8281db61ed5
+
+      - kind: interview
+        round: hr
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          Describe a time you had to push back on a product requirement for
+          technical reasons. How did the conversation go?
+        answer_md: |
+          The strong version of this answer centres on translating the
+          technical concern into product/business terms the other side could
+          act on — "this adds 400ms to checkout load time, which our data
+          suggests costs X% conversion" lands better than "this is
+          technically hard to build well".
+
+          Close with the resolution and, ideally, a compromise that got most
+          of what the product side wanted without the full cost — showing
+          you can collaborate under a constraint rather than simply refusing.
+          Interviewers are checking for the ability to disagree productively
+          in a domain (payments) where "just ship it and iterate" carries
+          more risk than in most consumer software.
+        source_name: RazorPay Frontend Interview Experience (SDE-2) — Medium
+        source_url: https://medium.com/frontend-army/razorpay-frontend-interview-experience-sde-2-c8281db61ed5
+
+      - kind: online-assessment
+        round: aptitude
+        topic: CS fundamentals
+        difficulty: easy
+        question: >-
+          What's the difference between `localStorage`, `sessionStorage`, and
+          cookies, and which (if any) would you use to persist a partially
+          filled checkout form if the user accidentally closes the tab?
+        answer_md: |
+          `localStorage` persists with no expiry until explicitly cleared and
+          is scoped per-origin; `sessionStorage` persists only for the tab's
+          lifetime and is cleared when the tab closes; cookies persist per an
+          explicit expiry, are sent with every HTTP request to the server
+          (adding overhead), and can be scoped more granularly (path, domain,
+          `httpOnly`, `secure`).
+
+          For a partially filled checkout form, `sessionStorage` is the
+          wrong choice (it survives an accidental refresh but not the "closed
+          the tab" case in the question), and cookies are the wrong choice
+          for anything beyond small amounts of data given they're sent on
+          every request. `localStorage` is the closer fit for recovering form
+          state after the tab closes — but the answer worth adding
+          unprompted: card numbers or CVVs should never be persisted to any
+          client-side storage, even briefly, regardless of mechanism — that's
+          a PCI-DSS-relevant boundary a payments frontend has to respect that
+          a typical consumer form doesn't.
+        source_name: GeeksforGeeks — JavaScript interview questions
+        source_url: https://www.geeksforgeeks.org/javascript/javascript-interview-questions/

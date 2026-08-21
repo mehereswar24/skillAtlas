@@ -1,0 +1,748 @@
+# Uber.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: uber
+  name: Uber
+  industry: Transportation & Logistics
+  hq: San Francisco, California
+  website: https://jobs.uber.com/en/teams/engineering/
+  icon: Navigation
+  fetched_on: 2026-08-21
+  sort_order: 2
+  description: >-
+    Ride-hailing, food delivery and freight, coordinated in real time across
+    thousands of cities. Its interviews test the same instinct the product
+    needs: can you reason about a live, two-sided marketplace under geography
+    and latency constraints, not just clear a DSA bar.
+  hiring_process_md: |
+    Uber's loop is a fairly standard big-tech shape — recruiter, screen,
+    onsite, committee — with one real difference: **the questions inside it
+    are pulled from Uber's own domain far more often than at a generalist
+    shop.** Expect the interviewer to hand you a version of a problem Uber
+    actually has, not an abstract "design Twitter" — matching a driver to a
+    rider, pricing a trip in real time, keeping a location fresh across a
+    fleet.
+
+    **The shape of it**
+
+    1. **Recruiter call** — background, level, timing.
+    2. **Online assessment (sometimes skipped)** — 3 problems in about an
+       hour, run on CodeSignal or HackerRank depending on which pipeline you
+       land in. Medium-to-hard DS&A.
+    3. **Technical phone screen** — one more live-coded problem with an
+       engineer, 45–60 minutes.
+    4. **Onsite (4–6 rounds, on one day or spread over two)** — typically a
+       general coding round, a second "machine coding" round where you write
+       a working class model rather than talk about one (a parking lot, an
+       elevator, a small booking engine), a system design round, and a
+       collaboration/leadership round. Senior loops add a dedicated
+       bar-raiser.
+    5. **Hiring committee**, then an offer.
+
+    **What actually gets graded differently here.** The machine-coding round
+    catches people who over-prepared for whiteboard-only interviews — it
+    wants code that runs against a couple of cases the interviewer hands you,
+    not a class diagram. The system design round rewards candidates who can
+    talk about geospatial data structures and real-time staleness, because
+    that is the substrate under almost everything Uber builds. And the
+    behavioural round is graded against Uber's own stated values, so a story
+    that is all technical execution and no judgment call under ambiguity
+    tends to underperform it, regardless of how strong the rest of the loop
+    was.
+  resources:
+    - kind: careers
+      title: "Uber Engineering careers"
+      url: https://jobs.uber.com/en/teams/engineering/
+    - kind: prep
+      title: "Uber Career Prep — candidate prep resources"
+      url: https://jobs.uber.com/en/teams/emerging-talent/careerprep/
+    - kind: blog
+      title: "Uber Engineering blog"
+      url: https://www.uber.com/blog/engineering/
+    - kind: prep
+      title: "Uber Software Engineer interview guide — Exponent"
+      url: https://www.tryexponent.com/guides/uber-software-engineer-interview
+    - kind: prep
+      title: "Uber interview experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/uber-interview-experience-for-sde-1-2022/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.tryexponent.com/guides/uber-software-engineer-interview
+    description: >-
+      Generalist backend engineering. Graded on data structures and
+      algorithms, a hands-on "machine coding" round, and system design framed
+      around Uber's own marketplace rather than a generic web app.
+    focus_md: |
+      **Two things separate this loop from a generic FAANG one.** First, one
+      of the coding rounds is "machine coding" — you write a working class
+      model against a small spec (a parking lot, an elevator, a booking
+      engine) and the interviewer runs it against cases they hand you live.
+      Candidates who only practiced whiteboard DSA are frequently caught out
+      here, because a correct-looking design that does not actually compile
+      or handle the second test case reads as a fail, not a near-miss.
+
+      Second, the system design round is rarely an abstract "design X" — it
+      is usually a version of a problem Uber actually has: match a rider to a
+      nearby driver in a couple of seconds, or reprice a city every minute as
+      supply and demand shift. Both of those are, underneath, the same
+      question: how do you index and query millions of moving points on a
+      map fast enough that "real time" is true. Uber's own answer is H3, a
+      hexagonal grid — knowing *why* it's hexagons rather than squares
+      (uniform neighbour distance, no diagonal bias) is a five-second answer
+      that signals you've actually thought about geospatial data before.
+
+      Practically: state complexity before you're asked, narrate the brute
+      force before the clever version, and in the machine-coding round, get
+      something running end to end before you polish any one part of it.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "OA plus two onsite coding rounds. Graphs and interval/knapsack-shaped DP recur the most." }
+      - { concept: computer-science-graphs, label: "Graphs & shortest-path variants", weight: 4,
+          notes: "Uber's coding rounds lean on graphs dressed up as real scenarios — network reachability, code-transition ladders." }
+      - { concept: computer-science-design-patterns, label: "Low-level / object-oriented design", weight: 4,
+          notes: "The \"machine coding\" round: a working class model in under an hour, graded on running code, not a diagram." }
+      - { concept: computer-science-system-design, label: "System design — marketplace at scale", weight: 5,
+          notes: "Uber's own systems: driver-rider matching, surge pricing, ETA. Real-time geospatial trade-offs, not a generic CRUD app." }
+      - { concept: backend-caching, label: "Caching & real-time data", weight: 3,
+          notes: "Every marketplace design question has a staleness angle: how old is a driver's location allowed to be." }
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 3,
+          notes: "Uber's backend runs mostly on Go and Java, but the round tests fluency in whatever language you bring." }
+      - { label: "Bar raiser & culture values", weight: 3,
+          notes: "A dedicated, veto-carrying round graded against Uber's stated values. Bring 2-3 ownership/ambiguity stories with a measurable outcome." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Number bases & simulation
+        difficulty: easy
+        year: 2022
+        question: >-
+          Uber's screening OA is typically three problems in about an hour.
+          One recurring shape: convert an integer from one base to another
+          (say base 2 to base 6), then simulate a small repeated
+          transformation on its digits — e.g. repeatedly flip a run of digits
+          until every digit matches. How do you approach a two-part
+          conversion-then-simulation problem when each problem only gets you
+          about twenty minutes?
+        answer_md: |
+          Split it visibly into two sub-problems rather than trying to solve
+          it as one. Base conversion is repeated division-and-remainder,
+          building the result from least significant digit up — say out loud
+          that you'll reverse the digit list at the end, since forgetting
+          that is the single most common silent bug here.
+
+          For the simulation half, resist the urge to find a closed-form
+          shortcut under time pressure. A correct O(n) linear scan that
+          tracks the current run and flips it beats a clever but half-debugged
+          O(n log n) idea — on an OA, a wrong answer that runs fast scores
+          zero, and a right answer that's merely simple scores full marks.
+        source_name: GeeksforGeeks — Uber SDE-1 interview experience (2022)
+        source_url: https://www.geeksforgeeks.org/interview-experiences/uber-interview-experience-for-sde-1-2022/
+
+      - kind: online-assessment
+        round: coding
+        topic: Dynamic programming
+        difficulty: hard
+        year: 2022
+        question: >-
+          You have a row of items; removing one earns a value that depends on
+          its *current* left and right neighbours at the moment you remove it
+          (a "burst balloons" shape). Find the maximum total value obtainable
+          by removing every item, in whatever order you choose.
+        answer_md: |
+          The trap is thinking about which item to remove *first* — the
+          neighbours keep shifting as you go, so the state space explodes.
+          The reframe that makes it tractable: think about which item is
+          removed *last* within a sub-range `(i, j)`. Everything strictly
+          between `i` and `j` gets removed before it, so at the moment it
+          goes, its neighbours are exactly `i` and `j` — fixed, not
+          shifting.
+
+          That gives `dp[i][j] = max over k in (i, j) of value(i, k, j) +
+          dp[i][k] + dp[k][j]`, filled by increasing interval width, O(n³)
+          time. Saying "I'll think about the last removal, not the first"
+          out loud is the moment that separates a candidate who's seen the
+          trick from one still stuck simulating orderings.
+        source_name: GeeksforGeeks — Uber SDE-1 interview experience (2022)
+        source_url: https://www.geeksforgeeks.org/interview-experiences/uber-interview-experience-for-sde-1-2022/
+
+      - kind: interview
+        round: coding
+        topic: Graphs & shortest paths
+        difficulty: medium
+        year: 2023
+        question: >-
+          You have a set of valid 4-digit access codes, plus a start and
+          target code. You may move from one code to another only if they
+          differ in exactly one digit and the resulting code is also in the
+          valid set. Find the minimum number of moves from start to target.
+        answer_md: |
+          This is Word Ladder with digits instead of letters, and saying that
+          out loud is worth doing — it tells the interviewer you recognise
+          the shape rather than re-deriving BFS from scratch.
+
+          Model each code as a graph node and run BFS from the start,
+          because BFS on an unweighted graph gives the shortest path by
+          construction. The only real design decision is how you generate
+          neighbours: for each of the 4 digit positions, try the other 9
+          digit values and check set membership, rather than comparing every
+          pair of codes up front. That's O(codes × 4 × 9) to build the
+          frontier as you go, versus O(codes²) to precompute every edge —
+          the difference matters once the valid-code set gets large.
+        source_name: GeeksforGeeks — Uber SDE-1 interview experience (off-campus)
+        source_url: https://www.geeksforgeeks.org/interview-experiences/uber-interview-experience-for-sde-1-off-campus/
+
+      - kind: interview
+        round: technical
+        topic: Low-level design
+        difficulty: medium
+        year: 2024
+        question: >-
+          In about 45 minutes, design and *implement* — not just diagram — a
+          parking lot system: multiple levels, multiple spot sizes, and a way
+          to find and assign the nearest available spot to an incoming
+          vehicle.
+        answer_md: |
+          Model it as `ParkingLot` owning a list of `Level`s, each owning
+          `Spot`s tagged with a size enum (`MOTORCYCLE`, `COMPACT`, `LARGE`).
+          Put the "find a spot for this vehicle" logic behind a small
+          strategy interface rather than hard-coding "nearest" into the
+          `ParkingLot` class — it's a two-line change to swap in
+          "cheapest available" or "closest to the exit" later, and naming
+          that trade-off unprompted is a design-maturity signal.
+
+          The part that actually decides the round: this is graded as a
+          *coding* round wearing a design costume. Get `park(vehicle)` and
+          `leave(ticket)` compiling and passing the two or three cases the
+          interviewer hands you before you spend time polishing the class
+          hierarchy — a beautiful UML sketch that doesn't run loses to plain
+          code that does.
+        source_name: GeeksforGeeks — Uber SDE-1 interview experience (off-campus)
+        source_url: https://www.geeksforgeeks.org/interview-experiences/uber-interview-experience-for-sde-1-off-campus/
+
+      - kind: interview
+        round: system-design
+        topic: Dispatch & geospatial matching
+        difficulty: hard
+        year: 2024
+        question: >-
+          Design the core of Uber's rider-driver matching for a single city:
+          given a rider's pickup point, find and assign a nearby available
+          driver within a couple of seconds, with tens of thousands of trips
+          happening concurrently.
+        answer_md: |
+          The question inside the question is "how do you index millions of
+          moving points so a radius query is fast." Brute-force distance to
+          every driver is out at this scale. Uber's own answer, H3, buckets
+          the map into hexagonal cells at several resolutions — hexagons
+          specifically because every neighbouring cell is the same distance
+          from the centre, so a "search outward ring by ring" query doesn't
+          have the diagonal-bias problem a square grid has (corner
+          neighbours read closer than they are).
+
+          Sketch: driver location pings update a table keyed by current H3
+          cell; a match request looks up the rider's cell, then expands to
+          neighbouring rings until enough idle drivers are found; candidates
+          are ranked by ETA rather than straight-line distance, because a
+          closer driver blocked by a one-way street can be slower. The
+          trade-off worth naming explicitly: a driver's cell is only as
+          fresh as their last ping, so you have to decide how much staleness
+          the match can tolerate before it starts assigning drivers who've
+          already moved on.
+        source_name: "Uber Engineering blog — H3: Uber's Hexagonal Hierarchical Spatial Index"
+        source_url: https://www.uber.com/en-US/blog/h3/
+
+      - kind: interview
+        round: system-design
+        topic: Surge pricing
+        difficulty: hard
+        year: 2023
+        question: >-
+          Design a system that recomputes Uber's real-time price multiplier
+          for every neighbourhood in a city, updating every minute or two as
+          supply and demand shift.
+        answer_md: |
+          Reuse the same H3 hexagonal partitioning as the matching problem —
+          it's the right unit here for a different reason: hexagons are
+          comparable in shape and size everywhere, so a price boundary
+          doesn't fall on an arbitrary street the way a hand-drawn
+          neighbourhood boundary would, which matters because riders notice
+          and complain about cliff effects at a boundary.
+
+          Per cell, maintain a short rolling window of open ride requests
+          versus idle/available drivers, turn that ratio into a multiplier,
+          and smooth it — an un-smoothed ratio flaps as individual drivers
+          go online and offline, and a price that visibly jitters erodes
+          rider trust faster than a price that's simply high. The real
+          trade-off to name: recomputing more often makes the price track
+          reality better, but recomputing too often makes the price feel
+          arbitrary and unpredictable to both sides of the marketplace.
+        source_name: Uber — How surge pricing works
+        source_url: https://www.uber.com/us/en/marketplace/pricing/surge-pricing/
+
+      - kind: interview
+        round: managerial
+        topic: Bar raiser & culture values
+        difficulty: medium
+        year: 2024
+        question: >-
+          Tell me about a time you had to make a call with incomplete
+          information, under time pressure, that affected people beyond your
+          own team. What did you do, and what would you change if you had to
+          do it again?
+        answer_md: |
+          The bar-raiser round exists specifically to catch candidates whose
+          stories are all technical execution and no judgment call — "I
+          wrote the fix" answers a different question than "I decided which
+          fix, with what evidence, knowing I could be wrong."
+
+          Structure the story around the decision itself: what information
+          you actually had (not what you wish you'd had), who else the call
+          affected, what you did when you found out you were wrong or right,
+          and a concrete, ideally measurable, outcome. Ending on "and here's
+          what I'd change" is not modesty filler — it's the line the
+          interviewer is listening for, because it shows the reflection
+          didn't stop at "it worked out."
+        source_name: TechPrep — Uber's Interview Process
+        source_url: https://www.techprep.app/blog/uber-interview-process
+
+  - slug: data-scientist
+    title: Data Scientist
+    level: mid
+    maps_to_role: data-scientist
+    sort_order: 2
+    source_url: https://prepfully.com/interview-guides/uber-data-scientist-
+    description: >-
+      Applied analytics inside Uber's marketplace teams — pricing, matching,
+      driver incentives. Graded on SQL fluency, statistical reasoning, and
+      whether you know when a standard A/B test is lying to you.
+    focus_md: |
+      The phone screen is unusually formulaic for Uber: roughly two SQL
+      questions and one Python problem in the first thirty minutes, then a
+      shorter, more conversational stretch on statistics. The onsite adds
+      rounds a generalist SWE loop doesn't have — a Product Manager round
+      testing whether you can reason about trade-offs without engineering
+      jargon, and a DS-lead round on metric and model choice.
+
+      **The one idea worth over-preparing:** Uber's marketplace has network
+      effects, and that breaks naive experimentation. If you randomly assign
+      *riders* to a new dispatch algorithm, the drivers that algorithm
+      reassigns are no longer available for the control riders — the two
+      arms contaminate each other, and your measured effect is biased before
+      you've collected a single data point. Uber's own fix is a switchback
+      design: flip an entire geography between old and new on a timer, and
+      analyze at the geography-time-block level. Knowing this cold, and why
+      user-level randomization fails here specifically, is the single
+      highest-leverage thing to walk in with.
+    focus_areas:
+      - { concept: sql-advanced-sql, label: "SQL — window functions & data quality", weight: 5,
+          notes: "Two SQL questions is typical. RANK/ROW_NUMBER/LEAD/LAG, plus a duplicate-detection question — event duplication is a real production hazard here." }
+      - { concept: python-learn-the-basics, label: "Python for analysis", weight: 3,
+          notes: "One Python problem, usually data manipulation over a records/DataFrame shape rather than a pure algorithm." }
+      - { concept: machine-learning-probability, label: "Probability fundamentals", weight: 3,
+          notes: "A quick mental-math check inside the stats conversation, not a dedicated round." }
+      - { concept: machine-learning-statistics, label: "Experiment design on a marketplace", weight: 5,
+          notes: "The signature Uber topic: why naive A/B testing is biased under network effects, and what a switchback test trades away to fix it." }
+      - { concept: data-analyst-machine-learning, label: "Applied ML for pricing & forecasting", weight: 3,
+          notes: "Demand forecasting and pricing come up as applied-ML trade-off discussions in the DS-lead round, not derivations." }
+      - { label: "Product sense", weight: 4,
+          notes: "A full round with a Product Manager, not an engineer — graded on reasoning about trade-offs without jargon." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: "SQL — window functions"
+        difficulty: medium
+        year: 2024
+        question: >-
+          Given a `rides` table and a `users` table, rank each user by their
+          total distance traveled, highest first.
+        answer_md: |
+          Aggregate first — `SUM(distance) AS total_distance` grouped by
+          user — then rank the aggregate with `RANK() OVER (ORDER BY
+          total_distance DESC)` rather than trying to do both in one pass.
+          `RANK` (not `ROW_NUMBER`) is the right call if you want tied
+          totals to share a rank instead of being arbitrarily split.
+
+          Before writing a line, ask about the two things that change the
+          query: do cancelled or unrated trips count toward "distance
+          traveled," and is this all-time or a rolling window? Stating that
+          ambiguity out loud and picking a reasonable default is worth more
+          than a syntactically perfect query answering the wrong question.
+        source_name: Prepfully — Uber Data Scientist interview guide
+        source_url: https://prepfully.com/interview-guides/uber-data-scientist-
+
+      - kind: online-assessment
+        round: coding
+        topic: "SQL — data quality"
+        difficulty: medium
+        year: 2025
+        question: >-
+          A trip-events table sometimes contains duplicate rows for the same
+          trip. Write a query that returns one row per trip, and explain how
+          you'd decide what counts as a "duplicate" in the first place.
+        answer_md: |
+          Define "duplicate" before writing SQL — same `trip_id` and exact
+          same timestamp is a re-delivered event from an at-least-once
+          queue; same `trip_id` with a *different* timestamp might be a
+          legitimate status update, not a duplicate at all. Getting that
+          definition wrong silently drops real data.
+
+          Once defined, `ROW_NUMBER() OVER (PARTITION BY trip_id, event_type
+          ORDER BY event_time) AS rn`, then filter to `rn = 1`, is the
+          standard pattern — it's explicit about which row you keep, unlike
+          a blind `SELECT DISTINCT`, which can hide the fact that a
+          duplicate exists in the first place. The stronger answer flags the
+          duplication to whoever owns the ingestion pipeline instead of only
+          working around it downstream, since every other query against this
+          table has the same silent bug.
+        source_name: Educative — Uber's interview process & questions
+        source_url: https://www.educative.io/blog/uber-interview-process-and-questions
+
+      - kind: interview
+        round: coding
+        topic: Python for data manipulation
+        difficulty: easy
+        year: 2024
+        question: >-
+          Given a stream of trip records (driver_id, fare, timestamp),
+          compute each driver's average fare over their most recent N trips.
+        answer_md: |
+          Keep a `dict[driver_id, deque(maxlen=N)]` plus a running sum per
+          driver. On each new record, if the deque is full, subtract the
+          value about to be evicted before appending; then push and add.
+          That's O(1) amortized per update.
+
+          The reason this beats the instinctive `pandas` one-liner
+          (`groupby(...).apply(lambda g: g.tail(N).mean())`) is scale:
+          re-slicing and re-averaging the last N rows on every new trip is
+          effectively quadratic as the stream grows, and at Uber's trip
+          volume that's the difference between a dashboard that updates and
+          one that falls behind. Reaching for the deque-per-key pattern
+          without being prompted is the signal the interviewer wants.
+        source_name: Prepfully — Uber Data Scientist interview guide
+        source_url: https://prepfully.com/interview-guides/uber-data-scientist-
+
+      - kind: interview
+        round: technical
+        topic: Experiment design
+        difficulty: hard
+        year: 2024
+        question: >-
+          Uber wants to test a change to the dispatch-matching algorithm that
+          should reduce rider wait time. Why can't you just randomly assign
+          half of riders to the new algorithm and compare wait times?
+        answer_md: |
+          Because riders and drivers share the same pool — a driver the new
+          algorithm assigns to a "treatment" rider is no longer available for
+          a "control" rider nearby. The two arms interfere with each other
+          through the shared supply, so the measured difference reflects
+          contamination, not a clean causal effect. This is the marketplace
+          version of SUTVA violation.
+
+          The standard fix is a switchback design: pick a unit of geography
+          — a city, or a cluster of H3 cells — and flip the *entire*
+          geography between old and new algorithm on a timer, analyzing at
+          the geography-time-block level rather than the rider level. The
+          real design decision is block length: short blocks give you more
+          independent samples and more statistical power, but too short and
+          the marketplace hasn't reached a new equilibrium before you flip
+          again, biasing the estimate in the other direction.
+        source_name: Statsig — Switchback experiments overview and considerations
+        source_url: https://www.statsig.com/blog/switchback-experiments
+
+      - kind: interview
+        round: technical
+        topic: Probability
+        difficulty: medium
+        year: 2023
+        question: >-
+          A rider's ETA estimate is off by more than 2 minutes on 10% of
+          trips. Over 20 trips this month, what's the probability at least
+          one estimate is off by more than 2 minutes, assuming independence?
+        answer_md: |
+          `1 - (0.9)^20 ≈ 0.878`. That's the mechanical half of the answer.
+
+          The half the interviewer is actually listening for: trips taken by
+          the same rider in the same city are not independent. Traffic
+          conditions, local driver density, and time-of-day effects are
+          correlated across a single rider's trips, so the true probability
+          of at least one bad estimate is lower than the naive binomial
+          number suggests — the independent-trials assumption inflates
+          apparent risk. Flagging that assumption unprompted, the way you'd
+          flag a hash table's O(1) as "average case, not worst case," is
+          what separates a candidate who computed a number from one who
+          understands what the number means.
+        source_name: Prepfully — Uber Data Scientist interview guide
+        source_url: https://prepfully.com/interview-guides/uber-data-scientist-
+
+      - kind: interview
+        round: managerial
+        topic: Product sense
+        difficulty: medium
+        year: 2023
+        question: >-
+          Uber is deciding whether to show riders a fixed upfront price or a
+          live metered fare that can change with traffic. How would you
+          decide?
+        answer_md: |
+          Start by defining what "better" means for the business before
+          picking a side — likely candidates are trip-completion rate,
+          rider trust/dispute rate, and driver earnings, and these can
+          trade off against each other.
+
+          Name the actual trade-off: an upfront price gives riders
+          certainty, but Uber absorbs the routing risk if traffic runs long;
+          a metered fare passes real cost through accurately but creates
+          rider anxiety and more support disputes when the number climbs
+          mid-trip. Propose a metric to decide between them (completion
+          rate and dispute rate by price type is a reasonable pair) and a
+          rough experiment design, then say explicitly what you'd keep
+          watching after launch — driver-side incentive effects are the
+          kind of second-order consequence that a metric focused only on
+          the rider side would miss entirely.
+        source_name: Educative — Uber's interview process & questions
+        source_url: https://www.educative.io/blog/uber-interview-process-and-questions
+
+      - kind: interview
+        round: technical
+        topic: Metrics design
+        difficulty: medium
+        year: 2025
+        question: >-
+          What single metric would you propose as the health indicator for
+          Uber's rider-driver marketplace in a city, and what would you
+          deliberately leave out of it?
+        answer_md: |
+          Resist the premise a little: a single scalar like "average ETA"
+          hides distribution problems that matter more than the mean — a
+          P95 wait time during a Friday-night supply crunch is the number
+          that actually predicts churn, not the average across a quiet
+          Tuesday afternoon.
+
+          A stronger answer proposes a primary metric with named guardrails
+          rather than one number: something like completion-rate-within-
+          promised-ETA as the primary, with driver earnings-per-hour and
+          cancellation rate as guardrails that must not regress. Then
+          explicitly name what's left out — long-run driver retention is
+          the obvious omission, since it moves too slowly to show up in a
+          weekly metric — because naming the blind spot is what stops
+          leadership from over-indexing on a proxy that looks good short
+          term.
+        source_name: Prepfully — Uber Data Scientist interview guide
+        source_url: https://prepfully.com/interview-guides/uber-data-scientist-
+
+  - slug: site-reliability-engineer
+    title: Site Reliability Engineer
+    level: mid
+    maps_to_role: devops-engineer
+    sort_order: 3
+    source_url: https://www.jointaro.com/interviews/companies/uber/experiences/site-reliability-engineer-san-francisco-ca-may-1-2017-no-offer-neutral-9d1c86c7/
+    description: >-
+      Keeps Uber's real-time marketplace up. Graded on Linux/systems
+      troubleshooting, large-scale system design, and the ability to reason
+      about incidents quantitatively, using the same tooling Uber built and
+      open-sourced for the job.
+    focus_md: |
+      The coding bar is not lowered for SRE at Uber — you still whiteboard
+      standard data structures — but the loop adds what a generalist SWE
+      loop doesn't: a live Linux-troubleshooting round, and a system-design
+      round that's explicitly about ingestion and reliability at global
+      scale rather than a single service's API.
+
+      **Learn Uber's own observability stack before the loop, not during
+      it.** Uber runs thousands of microservices and built two tools that
+      are now widely used industry-wide: Jaeger, an open-source distributed
+      tracer that follows one request across every service it touches, and
+      M3, an open-source metrics store built specifically because a single
+      high-cardinality event (a trip, tagged by city, route and status) can
+      explode into millions of unique time series. When a troubleshooting
+      question asks "where do you look," the strong answer names *how* you'd
+      look — slice a Jaeger trace by hop, slice an M3 dashboard by host and
+      dependency — rather than a generic "check the logs."
+    focus_areas:
+      - { concept: devops-observability, label: "Observability: tracing & metrics at scale", weight: 5,
+          notes: "Uber built and open-sourced Jaeger (tracing) and M3 (metrics). Know why histograms sliced by dependency beat a single error-rate graph." }
+      - { concept: devops-operating-system, label: "Linux internals & troubleshooting", weight: 5,
+          notes: "A live round: investigating a box you can't SSH into, load average, what's actually starving the process." }
+      - { concept: computer-science-system-design, label: "Large-scale system design", weight: 4,
+          notes: "Prompts run at global-ingestion scale — think \"100TB/day, every city\" rather than a single service." }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3,
+          notes: "The bar isn't lowered for SRE — expect a straightforward whiteboard structure like an LRU cache." }
+      - { concept: devops-containers, label: "Containers & deployment", weight: 3 }
+      - { concept: devops-container-orchestration, label: "Orchestration & service reliability at scale", weight: 3 }
+      - { label: "Ownership & ambiguity — behavioral round", weight: 4,
+          notes: "Graded on STAR-structured stories with a concrete, ideally measurable, scaled outcome — not just \"we fixed it.\"" }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: medium
+        year: 2023
+        question: >-
+          Given an array of prices seen over time, find the greatest
+          difference between two elements where the larger one appears after
+          the smaller one.
+        answer_md: |
+          This is "best time to buy and sell a stock" under a different
+          name — a single pass tracking the minimum value seen so far and
+          the best difference found so far, updating both as you scan left
+          to right. O(n) time, O(1) space; no nested loop is needed because
+          you never need to re-examine an earlier minimum once a smaller one
+          has appeared.
+
+          Recognising the shape instantly and saying so is worth more than
+          the algorithm itself here — this is exactly the kind of "don't
+          burn ten minutes re-deriving something standard" moment a phone
+          screen is timed around.
+        source_name: JoinTaro — Uber Site Reliability Engineer interview experience
+        source_url: https://www.jointaro.com/interviews/companies/uber/experiences/site-reliability-engineer-san-francisco-ca-may-1-2017-no-offer-neutral-9d1c86c7/
+
+      - kind: interview
+        round: coding
+        topic: Caching & data structures
+        difficulty: medium
+        year: 2023
+        question: >-
+          Whiteboard an LRU cache with O(1) get and put. Then: where would
+          you actually use one in a service that looks up a driver's last
+          known location?
+        answer_md: |
+          A hashmap from key to node, plus a doubly linked list ordered by
+          recency, gives O(1) for both operations: the map finds the node
+          instantly, the list lets you unlink and re-splice it to the front
+          without shifting anything. On eviction, drop the tail.
+
+          The follow-up is the real test. A driver-location cache *is* an
+          LRU-friendly access pattern — a small number of drivers get looked
+          up repeatedly while they're active. But LRU alone is wrong for
+          this use case, because eviction by recency doesn't guarantee
+          freshness: a driver who's been quiet for thirty seconds but was
+          heavily queried a minute ago would stay cached with a stale
+          position. You'd pair the cache with a short TTL on top of LRU
+          eviction, not rely on LRU by itself.
+        source_name: JoinTaro — Uber Site Reliability Engineer interview experience
+        source_url: https://www.jointaro.com/interviews/companies/uber/experiences/site-reliability-engineer-san-francisco-ca-may-1-2017-no-offer-neutral-9d1c86c7/
+
+      - kind: interview
+        round: technical
+        topic: Linux troubleshooting
+        difficulty: hard
+        year: 2023
+        question: >-
+          A production VM is misbehaving and you cannot get an SSH session
+          onto it. Walk through everything you'd try, starting from the
+          network layer down.
+        answer_md: |
+          Work outward-in rather than guessing at a cause. First: is the
+          instance actually running, per the cloud provider's console, not
+          just "is it pingable" — a hung box and a network partition look
+          identical from outside. If it's running, use the provider's
+          out-of-band console/serial access rather than the network path,
+          since that's exactly what SSH failing rules out.
+
+          From there, the usual culprits in order of how fast they rule
+          things in or out: load average so high the box can't fork a new
+          shell (a fork bomb or thrashing process); the disk full, so no new
+          PTY can be allocated at all; or a security-group/firewall change
+          that blocked port 22 specifically while everything else still
+          works. The grading signal is the order you check things in, not
+          just the list — climbing from "is the box alive" to "is the
+          daemon alive" to "is the daemon starved" rules things out in the
+          fewest steps.
+        source_name: JoinTaro — Uber Site Reliability Engineer interview experience
+        source_url: https://www.jointaro.com/interviews/companies/uber/experiences/site-reliability-engineer-san-francisco-ca-may-1-2017-no-offer-neutral-9d1c86c7/
+
+      - kind: interview
+        round: technical
+        topic: Production troubleshooting
+        difficulty: hard
+        year: 2024
+        question: >-
+          One in twenty requests to a service starts failing with a 500
+          about ten minutes ago. There's been no deploy of that service.
+          Walk through how you'd find the cause.
+        answer_md: |
+          "No recent deploy of mine" doesn't mean "no recent change" —
+          that's the trap in the prompt. A fixed fraction like 1-in-20 is a
+          strong hint it's structural rather than random: one of N replicas
+          behind a load balancer, one bad AZ, or a dependency that only
+          some request paths touch.
+
+          This is exactly what Uber's own observability stack is built for:
+          pull Jaeger traces on a sample of the failing requests to see
+          which downstream hop is actually erroring, rather than guessing,
+          then slice an M3/Grafana dashboard by host, region, and dependency
+          instead of staring at one global error-rate line — a global graph
+          can look almost flat while one shard is on fire. Other non-deploy
+          causes worth naming: a config or feature-flag rollout, a
+          certificate expiring on a single host, or a dependency's *own*
+          deploy that you wouldn't see in your service's history at all.
+        source_name: "Uber Engineering blog — Optimizing Observability with Jaeger, M3, and XYS"
+        source_url: https://www.uber.com/en-GB/blog/optimizing-observability/
+
+      - kind: interview
+        round: system-design
+        topic: Global-scale ingestion
+        difficulty: hard
+        year: 2023
+        question: >-
+          Design a pipeline that ingests roughly 100TB per day of trip and
+          location events from every city Uber operates in, queryable within
+          minutes for real-time dashboards and downstream ML training.
+        answer_md: |
+          Don't backhaul everything to one region before processing it —
+          ingest close to where it's generated, and only aggregate what
+          actually needs to be global. Put a durable log (a Kafka-shaped
+          queue) as the front door so a slow downstream consumer applies
+          back-pressure to itself, not to every producer upstream.
+
+          Split the read side into two paths rather than one system trying
+          to serve both: a stream processor for the "queryable within
+          minutes" dashboard path, and a batch/lake path for ML training
+          data that doesn't need minute-fresh guarantees. Partition
+          everything by city or H3 cell so one unusually busy city can't
+          skew shard load for the rest. The bottleneck worth naming
+          explicitly: fan-out to many independent consumers — dashboards,
+          ML pipelines, billing — is usually the actual scaling problem
+          here, not raw ingest throughput.
+        source_name: JoinTaro — Uber Site Reliability Engineer interview experience
+        source_url: https://www.jointaro.com/interviews/companies/uber/experiences/site-reliability-engineer-san-francisco-ca-may-1-2017-no-offer-neutral-9d1c86c7/
+
+      - kind: interview
+        round: managerial
+        topic: Ownership & ambiguity
+        difficulty: medium
+        year: 2024
+        question: >-
+          Tell me about an incident where the fix that actually worked
+          wasn't the first thing you tried. What did you learn, and did
+          anything change beyond that one incident?
+        answer_md: |
+          The story should include a wrong hypothesis you pursued and
+          abandoned — "I nailed it on the first try" answers a different,
+          less interesting question than the one being asked. Interviewers
+          are listening for how you updated when your first theory didn't
+          pan out, not for a flawless diagnosis.
+
+          The ending matters more than the middle: a story that stops at
+          "and then we fixed it" is weaker than one that ends at "and that's
+          why this class of incident stopped recurring" — a new alert
+          threshold, a runbook that didn't exist before, a monitor that
+          would have caught it sooner. That's the blameless-postmortem
+          instinct the round is actually checking for, and it's the
+          difference between a story about a fix and a story about ownership.
+        source_name: TechPrep — Uber's Interview Process
+        source_url: https://www.techprep.app/blog/uber-interview-process

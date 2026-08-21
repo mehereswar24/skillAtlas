@@ -12,7 +12,38 @@ import { ACCESS_COOKIE, REFRESH_COOKIE } from '@/lib/session';
  * this and straight into a 401.
  */
 
+/** Routes that only make sense for a signed-in learner.
+ *
+ * Keep this in step with the pages that call `requireUser`. Those redirect on
+ * their own; catching it here just saves a doomed `/auth/me` round trip. */
+const PROTECTED = [
+  '/dashboard',
+  '/roadmap',
+  '/projects',
+  '/community',
+  '/companies',
+  '/concepts',
+];
+
+/** Auth pages a signed-in learner has no reason to see again. */
+const AUTH_PAGES = ['/login', '/signup'];
+
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const signedIn =
+    request.cookies.has(ACCESS_COOKIE) || request.cookies.has(REFRESH_COOKIE);
+
+  if (!signedIn && PROTECTED.some((route) => pathname.startsWith(route))) {
+    const login = new URL('/login', request.url);
+    // So the learner lands back where they were aiming after signing in.
+    login.searchParams.set('next', pathname);
+    return NextResponse.redirect(login);
+  }
+
+  if (signedIn && AUTH_PAGES.some((route) => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
   return NextResponse.next();
 }
 

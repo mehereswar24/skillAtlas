@@ -69,7 +69,7 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
 
       // A brand-new account has no roadmap yet, so send them to set one up.
       const destination =
-        next ?? (mode === 'signup' ? '/onboarding' : '/dashboard');
+        next ?? (mode === 'signup' ? '/explore' : '/dashboard');
       router.push(destination);
       router.refresh();
     } catch {

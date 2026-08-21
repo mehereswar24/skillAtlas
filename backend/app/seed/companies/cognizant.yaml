@@ -1,0 +1,422 @@
+company:
+  slug: cognizant
+  name: Cognizant
+  industry: IT Services (India)
+  hq: Teaneck, New Jersey, USA
+  website: https://careers.cognizant.com/india-en/pathways-to-cognizant/genc-program/
+  icon: Network
+  fetched_on: 2026-08-21
+  sort_order: 15
+  description: >-
+    Runs one umbrella campus drive that bands candidates into three fresher
+    tracks — GenC, GenC Pro and GenC Next — by assessment and interview
+    performance, the same score-decides-your-band model TCS uses with the
+    NQT. Cognizant is also unusual among its peers for publicly stating
+    freshers sign no service bond.
+  hiring_process_md: |
+    You apply to one Cognizant campus drive, not to a named track — GenC,
+    GenC Pro (also called GenC Elevate in some cycles) and GenC Next are
+    assigned afterward, at Cognizant's discretion, based on how you score.
+
+    **The shape of it, GenC (baseline track)**
+
+    1. **Communication Assessment** (~60 min) — reading, listening, speaking
+       and grammar, AI-scored.
+    2. **Aptitude Assessment** (~80 min) — 30 quantitative-aptitude
+       questions, plus a gamified logical-reasoning block: 4 tasks drawn
+       from a pool of roughly 24 (named examples include Deductive Challenge,
+       Switch Challenge and Grid Challenge).
+    3. **Technical Assessment** (120 min, at a test centre) — pick one skill
+       cluster before you start (Java+Web, Python+Cloud, or C#+Web), then
+       answer 2 coding questions, 2 SQL queries, one web-layout task and 10
+       cloud MCQs. **No negative marking** is explicitly stated for this
+       round.
+    4. **Combined technical + HR interview** (30–45 min).
+
+    **The banding mechanic that decides your track lives inside the
+    technical assessment.** At the GenC bar, you only need to solve **3 of
+    the 4** core SQL/coding questions to pass. Score high enough overall —
+    roughly the 90th percentile — and you're routed to **GenC Next**
+    interviews instead, where the same round requires **all 4** questions
+    solved; land between the two cutoffs and you're routed to **GenC
+    Pro/Elevate**, which also requires all 4. GenC Next additionally opens
+    with a Code Debugging round (20 MCQs on programming constructs, DSA and
+    SQL) rather than a plain aptitude test, and maps you into a
+    specialisation — AI/ML, Full Stack, Cloud/AWS, Cybersecurity or Data
+    Science — based on your declared skills.
+
+    **Eligibility.** GenC and GenC Pro: 60% (or 6.0 CGPA) consistently
+    across Class 10, 12, and your degree. **GenC Next asks for 70%** across
+    the same set — a genuinely higher bar, not just a harder interview. All
+    three require zero active backlogs, a full-time degree with no more
+    than a two-year total academic gap, and Indian citizenship (or
+    OCI/PIO status) with willingness to work any location or shift.
+
+    **Cognizant's own careers page states GenC runs "no bonds": employment
+    based on trust rather than contractual obligation.** That's a genuine
+    point of difference from Wipro, TCS and Infosys, all of which describe
+    a service agreement of some kind. No source found documents a specific
+    notice period for accepting or declining an offer — treat that as
+    simply undisclosed rather than assume a figure.
+
+  resources:
+    - kind: careers
+      title: "Cognizant Careers — GenC program"
+      url: https://careers.cognizant.com/india-en/pathways-to-cognizant/genc-program/
+    - kind: prep
+      title: "Cognizant GenC recruitment process — PrepInsta"
+      url: https://prepinsta.com/cognizant/recruitment-process/
+    - kind: prep
+      title: "Cognizant GenC Next recruitment process — PrepInsta"
+      url: https://prepinsta.com/cognizant-genc-next/recruitment-process/
+    - kind: prep
+      title: "Cognizant GenC hiring process — Unstop"
+      url: https://unstop.com/blog/cognizant-genc-hiring-process
+    - kind: prep
+      title: "GenC vs GenC Elevate vs GenC Pro vs GenC Next, compared"
+      url: https://commonjobs.in/lesson/cognizant-genc-genc-elevate-genc-pro-genc-next/
+
+roles:
+  - slug: genc
+    title: Programmer Analyst Trainee (GenC)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://prepinsta.com/cognizant/recruitment-process/
+    description: >-
+      The baseline track, ₹4 LPA. Widest eligibility (60%), and the
+      technical assessment only requires solving 3 of its 4 core SQL/coding
+      questions to pass — a real, documented sectional bar lower than the
+      two tracks above it.
+    focus_md: |
+      **Know exactly which 3-of-4 you can reliably clear, because that
+      choice is legitimate strategy here.** The technical assessment gives
+      you 2 SQL queries and 2 coding problems; GenC only requires 3 solved
+      correctly, so if SQL is your stronger area, prioritise both SQL
+      questions plus one coding problem rather than splitting effort evenly
+      across all four.
+
+      DBMS questions in the interview go beyond definitions into things
+      candidates actually get wrong under pressure — the DELETE vs TRUNCATE
+      distinction and what a self join even is are both reported as
+      questions candidates couldn't answer. Know these cold rather than
+      assuming "DBMS basics" covers it.
+
+      For Python-track candidates specifically, `*args`/`**kwargs` is a
+      recurring stumble — practise it explicitly rather than assuming
+      general Python fluency covers it.
+    focus_areas:
+      - { label: "Communication assessment", weight: 3,
+          notes: "AI-scored reading, listening, speaking and grammar — the very first gate." }
+      - { label: "Quantitative & gamified reasoning", weight: 4,
+          notes: "30 quant questions plus 4 gamified logic tasks drawn from a larger pool." }
+      - { concept: backend-relational-databases, label: "SQL & DBMS", weight: 5,
+          notes: "DDL vs DML, ACID, joins, self join, DELETE vs TRUNCATE, COMMIT — asked as direct questions." }
+      - { concept: python-learn-the-basics, label: "Coding (skill-cluster choice)", weight: 4,
+          notes: "Java+Web, Python+Cloud, or C#+Web — pick one cluster before the test starts." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP concepts", weight: 3 }
+      - { concept: devops-operating-system, label: "OS basics", weight: 3,
+          notes: "Process vs thread, and why multithreading helps." }
+      - { label: "3-of-4 test strategy", weight: 3,
+          notes: "GenC's technical assessment only requires solving 3 of the 4 core SQL/coding questions — know your stronger pair." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Averages
+        difficulty: medium
+        year: 2025
+        question: >-
+          Five packages have chained weight relationships: P1 is a fixed
+          500 kg; P3 is 45% heavier than P1; P2 is 50% heavier than P3; P4 is
+          360 kg, which is 60% lighter than P5. Find the average weight of
+          all five packages.
+        answer_md: |
+          Solve in dependency order. P1 = 500. P3 = 500 × 1.45 = 725. P2 =
+          725 × 1.50 = 1087.5. P4 = 360 (given). P5: since P4 is 60% lighter
+          than P5, P4 = 0.40 × P5, so P5 = 360 ÷ 0.40 = 900.
+
+          Sum = 500 + 725 + 1087.5 + 360 + 900 = 3572.5. Average = 3572.5 ÷ 5
+          = **714.5 kg**.
+
+          The only real skill here is working through the chain in the
+          right order — each package's weight depends on one already
+          solved, so solve them in the sequence the problem gives you, not
+          in whatever order feels natural.
+        source_name: PrepInsta — Cognizant quantitative aptitude paper
+        source_url: https://prepinsta.com/cognizant/quantitative-aptitude-paper/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          What's the difference between DELETE and TRUNCATE, and what does
+          COMMIT actually do?
+        answer_md: |
+          DELETE is DML: it removes rows one at a time (optionally filtered
+          by a WHERE clause), is logged, and can be rolled back before a
+          COMMIT. TRUNCATE is DDL: it deallocates the whole table's storage
+          at once, is much faster because it doesn't log individual row
+          deletions, and typically can't be rolled back once issued.
+
+          COMMIT makes a transaction's changes permanent — before it, your
+          changes are visible only within your own session (or not at all,
+          depending on isolation level); after it, they're durable even
+          across a crash. This trio (DELETE vs TRUNCATE, plus COMMIT) is
+          reported as a real stumbling block for candidates, so don't treat
+          it as too basic to rehearse.
+        source_name: GeeksforGeeks — Cognizant GenC interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-interview-experience-5/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What's a self join, and when would you use one?
+        answer_md: |
+          A self join is a table joined to itself, using an alias so SQL can
+          treat it as two logically separate copies — used when a row needs
+          to be compared against another row in the *same* table, such as
+          finding employees who share the same manager, or comparing each
+          product's price against every other product's price.
+
+          The syntax pattern to remember: `SELECT a.name, b.name FROM
+          employees a JOIN employees b ON a.manager_id = b.manager_id AND
+          a.id != b.id` — the alias is what makes "join a table to itself"
+          possible at all.
+        source_name: GeeksforGeeks — Cognizant GenC interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-interview-experience-5/
+
+      - kind: interview
+        round: technical
+        topic: Python
+        difficulty: medium
+        question: >-
+          What do `*args` and `**kwargs` do in a Python function signature?
+        answer_md: |
+          `*args` collects any extra *positional* arguments into a tuple —
+          `def f(*args): ...` called as `f(1, 2, 3)` gives you
+          `args = (1, 2, 3)`. `**kwargs` collects extra *keyword* arguments
+          into a dict — `def f(**kwargs): ...` called as `f(a=1, b=2)` gives
+          you `kwargs = {'a': 1, 'b': 2}`.
+
+          The practical use: writing a function (or a wrapper/decorator)
+          that needs to accept an arbitrary, unknown set of arguments and
+          forward them unchanged to another function — that's the scenario
+          where these actually earn their place over named parameters.
+        source_name: GeeksforGeeks — Cognizant GenC interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-interview-experience-5/
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: easy
+        question: >-
+          What's the difference between a process and a thread, and why does
+          multithreading help?
+        answer_md: |
+          A process is an independently executing instance of a program
+          with its own memory space; a thread is the smallest schedulable
+          unit *within* a process, and multiple threads in the same process
+          share that process's memory.
+
+          Multithreading helps because switching between threads is cheaper
+          than switching between processes (no memory-space swap), and
+          because it lets a program stay responsive or make progress on one
+          task while another is blocked — e.g. one thread handling I/O while
+          another keeps computing.
+        source_name: PrepInsta — Cognizant GenC technical interview questions
+        source_url: https://prepinsta.com/cognizant/genc-technical-interview-questions/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Are you ready to relocate, and can you work under pressure?
+        answer_md: |
+          Answer both directly — willingness to work any location or shift
+          is stated as a formal eligibility condition for this track, not
+          just an interview preference question, so a hedge here has real
+          consequences for your candidature.
+
+          For "work under pressure," a specific example beats a general
+          claim: a deadline you actually hit under real time pressure, and
+          what you did differently to hit it, rather than "yes, I handle
+          pressure well."
+        source_name: PrepInsta — Cognizant GenC interview experience
+        source_url: https://prepinsta.com/interview-preparation/cognizant-genc-interview-experience/
+
+  - slug: genc-next
+    title: Programmer Analyst (GenC Next)
+    level: mid
+    maps_to_role: fullstack-engineer
+    sort_order: 2
+    source_url: https://prepinsta.com/cognizant-genc-next/recruitment-process/
+    description: >-
+      The advanced, specialisation-mapped track — ₹6.75 LPA, a 70%
+      eligibility bar, and roughly the 90th percentile of the combined
+      assessment to be routed here. Maps into AI/ML, Full Stack, Cloud/AWS,
+      Cybersecurity or Data Science based on declared skills.
+    focus_md: |
+      **The opening round is different in kind, not just harder.** Instead
+      of a plain aptitude test, GenC Next starts with a Code Debugging round
+      — 20 MCQs in 40 minutes, spotting bugs and predicting output across
+      programming constructs, DSA, DBMS/SQL and web UI, rather than solving
+      from scratch. Practise reading unfamiliar broken code quickly, not
+      just writing correct code slowly.
+
+      SQL questions here go past retrieval into analysis — expect a
+      "moderate" multi-table join question that explicitly asks you to
+      reason about the result, not just produce it (aggregate it, explain
+      what it implies), on top of an easier join-only question.
+
+      Exception-handling pseudocode (try/catch/finally execution order) is
+      a specific, reported trap: know precisely what runs and in what order
+      when an exception is thrown inside a catch block, or when finally
+      itself throws.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Code debugging MCQs", weight: 5,
+          notes: "20 questions/40 minutes — spot the bug and predict output, across DSA, DBMS/SQL and web UI." }
+      - { concept: backend-relational-databases, label: "Analytical SQL", weight: 5,
+          notes: "Multi-table joins plus reasoning about the result, not just retrieving it." }
+      - { concept: python-learn-the-basics, label: "Exception handling", weight: 4,
+          notes: "try/catch/finally execution order under nested and re-thrown exceptions." }
+      - { label: "Specialisation track (Cloud, AI/ML, Security, Full Stack, Data Science)", weight: 4,
+          notes: "You're mapped into one based on declared skills — expect follow-up questions specific to it." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP with live coding", weight: 3,
+          notes: "Interview problems combine OOP design with strings/arrays rather than testing them separately." }
+      - { label: "Sectional bar: solve all 4", weight: 3,
+          notes: "Unlike GenC's 3-of-4, this band requires both SQL questions and both coding questions solved." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Code debugging
+        difficulty: medium
+        year: 2024
+        question: >-
+          GenC Next's opening round is 20 MCQs on spotting bugs and
+          predicting output, not writing code from scratch. What's the
+          right way to practise for that format?
+        answer_md: |
+          Debugging-style MCQs reward reading speed and precision over
+          writing speed. The useful practice is deliberately reading broken
+          or subtle code snippets — off-by-one loop bounds, operator
+          precedence traps, a variable shadowed in an inner scope — and
+          predicting the exact output before running it, rather than
+          grinding "write a function that..." problems.
+
+          Do this across the four areas the round actually covers —
+          programming constructs, DSA, DBMS/SQL and basic web UI — since
+          the round samples from all of them, not just general programming.
+        source_name: PrepInsta — Cognizant GenC Next recruitment process
+        source_url: https://prepinsta.com/cognizant-genc-next/recruitment-process/
+
+      - kind: online-assessment
+        round: coding
+        topic: SQL
+        difficulty: medium
+        year: 2024
+        question: >-
+          You're given two tables and asked to write a query that joins
+          them, then to explain what the result *implies* about the
+          business, not just to produce the rows.
+        answer_md: |
+          The "explain what it implies" instruction is the actual test —
+          GenC Next's SQL round is explicitly described as requiring
+          "detailed analysis" of the output, beyond a plain retrieval
+          query.
+
+          Practically: after writing the join, group and aggregate to
+          answer a real question ("which category has the highest average
+          order value," not just "list all orders with their category"),
+          and be ready to state that conclusion in one sentence — the
+          interviewer wants to see you reason about data, not just fetch
+          it.
+        source_name: GeeksforGeeks — Cognizant GenC Next Java-cluster interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-next-interview-experience-2024-java-cluster/
+
+      - kind: interview
+        round: technical
+        topic: Exception handling
+        difficulty: medium
+        question: >-
+          Trace this: a `try` block throws an exception, the matching
+          `catch` block itself throws a different exception, and there's a
+          `finally` block. What executes, and in what order?
+        answer_md: |
+          `finally` runs no matter what — even when the `catch` block
+          itself throws. The order: the `try` block runs until its
+          exception; the matching `catch` runs and throws its own
+          exception; `finally` still runs next (its side effects happen);
+          then the *catch block's* exception (not the original one)
+          propagates up to the caller, since it's the more recent unhandled
+          exception.
+
+          This is exactly the pattern GenC Next candidates report getting
+          wrong — the intuition that "finally always runs" is right, but
+          candidates often get confused about *which* exception ultimately
+          propagates.
+        source_name: GeeksforGeeks — Cognizant GenC Next Java-cluster interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-next-interview-experience-2024-java-cluster/
+
+      - kind: interview
+        round: technical
+        topic: Cloud
+        difficulty: medium
+        question: >-
+          If you had to compare GCP and AWS for a new project, how would you
+          reason about the choice?
+        answer_md: |
+          Don't recite a feature checklist — anchor on the project's actual
+          constraints. If the team already has AWS expertise or the project
+          needs a specific mature service (say, a particular managed
+          database or a large existing ecosystem of integrations), that
+          weighs toward AWS; if cost predictability on a specific workload
+          shape or a specific managed-Kubernetes experience matters more,
+          that might weigh toward GCP.
+
+          The interviewer is testing whether you reason about trade-offs at
+          all, not whether you land on the "right" platform — say what you'd
+          need to know about the actual project before committing to one.
+        source_name: GeeksforGeeks — Cognizant GenC Next Java-cluster interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-next-interview-experience-2024-java-cluster/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: medium
+        question: >-
+          Implement a class-based solution for a simple problem — say,
+          tracking word frequency in a string — rather than a bare function.
+        answer_md: |
+          The shift from "write a function" to "design a class" is the
+          actual test: think about what state belongs on the object (the
+          input text, the frequency map) versus what's a method (`count()`,
+          `most_common(n)`), and whether the class should expose the raw map
+          or only query methods over it (the latter is generally the better
+          answer — it keeps the internal representation free to change).
+
+          GenC Next interviewers reportedly combine OOP design with basic
+          string/array logic like this rather than testing the two
+          separately, so practise wrapping familiar array/string problems in
+          a small class rather than just solving them as standalone
+          functions.
+        source_name: GeeksforGeeks — Cognizant GenC Next interview experience 2025
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-interview-experience-genc-next-role-2025/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Are you willing to relocate for this specialisation?
+        answer_md: |
+          Standard across all three Cognizant tracks, but worth restating
+          for GenC Next specifically: specialisation roles (Cloud, AI/ML,
+          Cybersecurity and the rest) are assigned across delivery centres
+          rather than a single location, so the same unqualified "yes"
+          applies here as it does for the baseline GenC track.
+        source_name: GeeksforGeeks — Cognizant GenC Next Java-cluster interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/cognizant-genc-next-interview-experience-2024-java-cluster/

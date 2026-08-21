@@ -13,6 +13,7 @@ from sqlalchemy.orm import selectinload
 from app.deps import CurrentUser, DbSession, OptionalUser
 from app.models.company import Company, CompanyRole
 from app.models.progress import STATUS_COMPLETED, UserProgress
+from app.routers.reviews import rating_summary
 from app.routers.roadmaps import serialize_roadmap
 from app.schemas.company import (
     AddFocusToRoadmap,
@@ -148,6 +149,7 @@ def get_company(slug: str, db: DbSession, user: OptionalUser):
         hiring_process_md=company.hiring_process_md,
         roles=roles,
         resources=[CompanyResourceOut.model_validate(r) for r in company.resources],
+        reviews=rating_summary(db, company.id),
     )
 
 

@@ -1,0 +1,641 @@
+# Oracle.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (a company's LeetCode tag, a Glassdoor thread),
+#     we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI
+#     shows it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: oracle
+  name: Oracle
+  industry: Enterprise Software / Cloud Infrastructure
+  hq: Austin, Texas
+  website: https://www.oracle.com/careers/
+  icon: Database
+  fetched_on: 2026-08-21
+  sort_order: 13
+  description: >-
+    Oracle Database, Fusion Applications and Oracle Cloud Infrastructure
+    (OCI). A genuinely different company depending on which org you land
+    in — OCI runs a distributed-systems-heavy loop close to AWS or GCP's,
+    while Fusion Apps and the database org lean harder on SQL, data
+    modeling and enterprise reliability requirements.
+  hiring_process_md: |
+    Oracle's process is more structured and predictable than most Big Tech
+    loops — there is less randomness in what gets asked, and the evaluation
+    rubric is more standardized across interviewers — but *which* org you're
+    interviewing into changes what "technical" means substantially.
+
+    **The shape of it, typically six stages:**
+
+    1. **Application + resume screen.**
+    2. **Online assessment (60–90 min, HackerRank/Codility or Oracle's own
+       platform)** — 2–3 medium-to-hard problems spanning DSA, SQL and OOP.
+       This gates entry to the human rounds.
+    3. **Recruiter/HR screen** — logistics, timeline, comp expectations.
+    4. **Two technical/coding rounds** — DSA in your language of choice,
+       often with an OOP design component (class design, SOLID principles).
+    5. **System design round** — the content here is where the org split
+       matters most (see below).
+    6. **Hiring manager / bar-raiser round** — team fit, past project depth.
+
+    **OCI (cloud infrastructure) roles** weight distributed systems heavily:
+    consistency models, replication, and how a design holds up across a
+    cluster of machines rather than one node — interviewers will explicitly
+    ask you to modify an algorithm's approach for a distributed setting
+    partway through, not just design one system once.
+
+    **Fusion Applications and Database org roles** weight SQL, schema
+    design and enterprise reliability requirements (ACID guarantees,
+    backward compatibility, upgrade paths) more than distributed-systems
+    trivia — because the product being built has decades of enterprise
+    customers who cannot tolerate a breaking change.
+
+    **What's consistent:** Java is the dominant language across nearly
+    every org (though other languages are accepted), and interviewers are
+    explicitly told to evaluate cultural fit — collaboration and customer
+    focus — alongside raw technical correctness, not as an afterthought.
+  resources:
+    - kind: careers
+      title: "Oracle Careers"
+      url: https://www.oracle.com/careers/
+    - kind: blog
+      title: "Jobs at Oracle — the official Oracle careers blog"
+      url: https://blogs.oracle.com/jobsatoracle/
+    - kind: prep
+      title: "Oracle Software Engineer interview guide — InterviewQuery"
+      url: https://www.interviewquery.com/interview-guides/oracle-software-engineer
+    - kind: prep
+      title: "Oracle system design interview — System Design Handbook"
+      url: https://www.systemdesignhandbook.com/guides/oracle-system-design-interview/
+    - kind: prep
+      title: "Oracle Software Engineer interview experience — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/oracle-interview-experience-for-software-engineer-2/
+
+roles:
+  - slug: software-engineer-oci
+    title: Software Engineer, Oracle Cloud Infrastructure (OCI)
+    level: entry to mid
+    maps_to_role: cloud-engineer
+    sort_order: 1
+    source_url: https://www.systemdesignhandbook.com/guides/oracle-system-design-interview/
+    description: >-
+      Builds the infrastructure layer of Oracle's public cloud — compute,
+      storage, networking. The loop that most resembles a hyperscaler
+      interview, with distributed systems as the recurring thread through
+      coding, design and follow-ups alike.
+    focus_md: |
+      The tell that distinguishes a strong OCI candidate: when a coding
+      interviewer asks the standard follow-up "now imagine this runs across
+      a cluster of machines instead of one," do you have a real answer
+      ready, or does the question catch you off guard? OCI interviewers ask
+      this specific follow-up often enough that it's worth explicitly
+      preparing an answer to "how does this change under partition,
+      replication or a cluster" for every algorithm you review.
+
+      System design here also has a distinct enterprise flavor compared to
+      a typical consumer-scale system design round: reliability,
+      compliance and strict SLAs are graded as first-class requirements,
+      not implicit ones, because the customers are other enterprises
+      trusting Oracle with their infrastructure.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5 }
+      - { concept: system-design-consistency-patterns, label: "Distributed consistency", weight: 5,
+          notes: "Explaining Raft or Paxos at a conceptual level is a recurring, explicit ask." }
+      - { concept: system-design-reliability-patterns, label: "Reliability at enterprise SLAs", weight: 4,
+          notes: "OCI's customers are enterprises with contractual uptime guarantees, not consumer apps." }
+      - { concept: system-design-cloud-design-patterns, label: "Cloud infrastructure design patterns", weight: 4 }
+      - { concept: computer-science-networking, label: "Networking fundamentals", weight: 3 }
+      - { concept: java-concurrency, label: "Concurrency (Java)", weight: 3,
+          notes: "Java is the dominant language across nearly every Oracle org." }
+      - { concept: system-design-high-availability, label: "High availability & failover", weight: 3 }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: String manipulation
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a string, remove duplicate letters so each letter appears
+          exactly once, and the result is the lexicographically smallest
+          string possible among all valid results.
+        answer_md: |
+          Greedy with a stack: track the last occurrence index of every
+          character, then scan left to right. For each character, while the
+          stack's top is greater than the current character *and* that top
+          character still appears later in the string (its last-occurrence
+          index is beyond the current position), pop it — it's safe to drop
+          now and pick up again later. Push the current character if it
+          isn't already in the stack.
+
+          The two conditions on the pop are both required and is where most
+          candidates lose points: popping without checking "does this
+          character reappear later" can drop a character's only remaining
+          occurrence.
+        source_name: "Oracle Interview Experience for Software Engineer — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/oracle-interview-experience-for-software-engineer-2/
+
+      - kind: interview
+        round: coding
+        topic: Binary trees
+        difficulty: easy
+        year: 2025
+        question: >-
+          Given a binary tree, invert it (mirror every subtree) and explain
+          the complexity.
+        answer_md: |
+          Recursively swap each node's left and right children, then
+          recurse into both (now-swapped) children — three lines: swap,
+          recurse left, recurse right, in any order since they're
+          independent subtrees. O(n) time visiting every node once, O(h)
+          space for the recursion stack where h is the tree's height.
+
+          Interviewers commonly follow up asking for an iterative version:
+          a BFS or DFS with an explicit stack/queue does the same swap at
+          each visited node, useful to mention if recursion depth on a very
+          unbalanced tree is a stated concern.
+        source_name: "Oracle Interview Experience for Software Engineer — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/oracle-interview-experience-for-software-engineer-2/
+
+      - kind: interview
+        round: system-design
+        topic: Distributed object storage
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a large-scale object storage service (think OCI Object
+          Storage). How do you keep data consistent and available if a node
+          fails mid-write?
+        answer_md: |
+          Replicate every object across multiple nodes (commonly three,
+          across separate failure domains) and require a write quorum —
+          the write is acknowledged once a majority of replicas confirm it,
+          not just one — so a single node failing mid-write doesn't lose
+          the data, and a read quorum on the read path guards against
+          reading a stale replica.
+
+          The trade-off worth naming explicitly: strict consistency (every
+          read sees the latest write) costs latency, because you wait on a
+          quorum; eventual consistency serves reads faster but can briefly
+          return stale data after a write. Object storage for enterprise
+          customers usually leans toward strong consistency on metadata and
+          more tolerance for eventual consistency on cross-region
+          replication specifically.
+        source_name: "Oracle system design interview — System Design Handbook"
+        source_url: https://www.systemdesignhandbook.com/guides/oracle-system-design-interview/
+
+      - kind: interview
+        round: technical
+        topic: Consensus algorithms
+        difficulty: hard
+        year: 2025
+        question: >-
+          Explain, at a conceptual level, what problem Raft or Paxos solves
+          and why a distributed system can't just have one node be the
+          "source of truth" and call it done.
+        answer_md: |
+          A single source-of-truth node is a single point of failure — if
+          it goes down, the whole system is either unavailable or has to
+          fail over to a replica that might be behind. Consensus algorithms
+          solve a narrower, harder problem: getting a cluster of nodes,
+          some of which might be slow, crashed, or partitioned from the
+          rest, to agree on a single sequence of values (like log entries)
+          even though no single node's view is automatically trusted.
+
+          The intuition worth stating plainly: Raft works by electing a
+          leader that all writes go through, replicating its log to a
+          majority of followers before considering an entry committed — a
+          majority, not all nodes, so the system keeps working even if a
+          minority of nodes are unreachable.
+        source_name: "Oracle OCI interview questions — CloudFoundation"
+        source_url: https://cloudfoundation.com/blog/oracle-oci-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Algorithms under a cluster constraint
+        difficulty: hard
+        year: 2025
+        question: >-
+          You've just solved a top-k frequent elements problem on a single
+          machine. Now the data is spread across 100 machines and doesn't
+          fit on any one of them — how does your approach change?
+        answer_md: |
+          The single-machine answer (hash map of counts, then a heap for
+          the top-k) doesn't survive as-is because no machine has the full
+          count. The distributed version is a two-phase MapReduce shape:
+          each machine computes local top-k (or full local counts, if
+          feasible) independently, then a reduce phase merges the partial
+          results — but a naive merge of only each machine's local top-k
+          can miss a globally-frequent item that wasn't locally frequent
+          anywhere.
+
+          The correct fix is to have each machine report *all* its counts
+          for a bounded candidate set (or use a count-min sketch to bound
+          memory) rather than only its local top-k, so the merge phase has
+          enough information to compute a correct global top-k. This is
+          the exact kind of "your algorithm is right for one machine, now
+          make it right for a cluster" follow-up OCI interviewers are known
+          to ask.
+        source_name: "Oracle (OCI) interview process and tips — Medium"
+        source_url: https://medium.com/interview-process/oracle-oci-interview-process-and-tips-887274a2845a
+
+      - kind: interview
+        round: managerial
+        topic: Customer-focus & collaboration
+        difficulty: easy
+        year: 2025
+        question: >-
+          Tell me about a time you had to compromise on a technical
+          approach to meet a customer's timeline or requirement.
+        answer_md: |
+          Oracle's interviewer guidance explicitly names collaboration and
+          customer focus as scored criteria alongside technical
+          correctness, so a purely technical answer here under-delivers.
+          Strong answers name the actual trade-off given up (not "nothing,
+          we found a way to have it all," which reads as evasive), why it
+          was the right call given the customer's actual constraint, and
+          what — if anything — you did afterward to close the gap you'd
+          accepted.
+        source_name: "Oracle interview process + tips — Final Round AI"
+        source_url: https://www.finalroundai.com/blog/oracle-interview-process
+
+      - kind: online-assessment
+        round: technical
+        topic: SQL
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given `Employee` and `Department` tables, write a query returning
+          each department's highest-paid employee.
+        answer_md: |
+          A correlated subquery or a window function both work; the window
+          function is the cleaner, more scalable answer: `RANK() OVER
+          (PARTITION BY department_id ORDER BY salary DESC)` assigns a rank
+          within each department, then filter the outer query to rank = 1.
+
+          Use `RANK()` rather than `ROW_NUMBER()` if ties (two employees at
+          the exact same top salary) should both be returned — a detail
+          worth asking about rather than assuming, since it changes which
+          function is correct.
+        source_name: "Oracle Interview Experience for Software Engineer — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/oracle-interview-experience-for-software-engineer-2/
+
+  - slug: software-engineer-fusion-apps
+    title: Software Engineer, Fusion Applications
+    level: entry to mid
+    maps_to_role: fullstack-engineer
+    sort_order: 2
+    source_url: https://www.interviewquery.com/interview-guides/oracle-software-engineer
+    description: >-
+      Builds Oracle's enterprise SaaS applications (ERP, HCM, SCM). Less
+      distributed-systems-flavored than OCI, more focused on data modeling,
+      SQL depth and backward-compatible enterprise design.
+    focus_md: |
+      The organizing constraint here is different from OCI's: Fusion Apps
+      customers are enterprises running decades-old business processes on
+      top of the product, so a design that requires every customer to
+      migrate data or change a workflow is a much bigger deal than it would
+      be at a consumer product. Expect system design questions to include
+      an explicit backward-compatibility or upgrade-path constraint, not
+      just a scale constraint.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4 }
+      - { concept: backend-relational-databases, label: "Relational data modeling", weight: 5,
+          notes: "ERP/HCM/SCM data models are deep and highly normalized; schema design questions are common." }
+      - { concept: sql-join-queries, label: "SQL — joins, aggregation, subqueries", weight: 4 }
+      - { concept: computer-science-design-patterns, label: "OOP design & SOLID principles", weight: 4,
+          notes: "Explicitly named in Oracle's own prep guidance as an evaluated area." }
+      - { concept: backend-api-styles, label: "API design for enterprise integration", weight: 3 }
+      - { concept: java-basics-of-oop, label: "Java", weight: 3,
+          notes: "The dominant language in Fusion Apps engineering." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: String matching
+        difficulty: easy
+        year: 2025
+        question: >-
+          Given a string, determine whether it's a palindrome, and if not,
+          determine whether it can be rearranged into one.
+        answer_md: |
+          The palindrome check is a two-pointer scan from both ends toward
+          the middle, comparing characters — O(n) time, O(1) space.
+
+          "Can it be rearranged into a palindrome" is a different, purely
+          counting question: a string can be rearranged into a palindrome
+          if and only if at most one character has an odd count (that
+          character, if it exists, sits in the middle; every other
+          character needs a pair on each side). A hash map of character
+          counts followed by counting how many counts are odd answers it
+          in one pass.
+        source_name: "Oracle Interview Experience for Software Engineer — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/oracle-interview-experience-for-software-engineer-2/
+
+      - kind: interview
+        round: technical
+        topic: Relational data modeling
+        difficulty: medium
+        year: 2025
+        question: >-
+          Design the schema for an employee reporting hierarchy (each
+          employee has one manager) that needs to answer "list everyone who
+          reports up to this person, at any depth" efficiently.
+        answer_md: |
+          The straightforward adjacency-list model (`employee_id,
+          manager_id`) is the right normalized schema, but "at any depth"
+          on that model means a recursive query — a recursive common table
+          expression (`WITH RECURSIVE`) that walks the hierarchy from a
+          starting manager down, unioning each level's direct reports until
+          none remain.
+
+          For a hierarchy that's read far more than it's restructured, a
+          closure table (a second table pre-storing every ancestor-
+          descendant pair, not just direct ones) trades write complexity
+          for O(1) "everyone below this person" reads — worth naming as the
+          alternative if the recursive query becomes a measured performance
+          problem at scale.
+        source_name: "Oracle Software Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/oracle-software-engineer
+
+      - kind: interview
+        round: technical
+        topic: OOP & SOLID
+        difficulty: medium
+        year: 2025
+        question: >-
+          A class you're reviewing has a constructor that takes 12
+          parameters and a 200-line method that handles five different
+          approval workflows with a long if/else chain. Which SOLID
+          principle does this violate, and how would you refactor it?
+        answer_md: |
+          Primarily the Single Responsibility Principle — one class doing
+          five workflows' worth of logic has five reasons to change, which
+          means a bug fix in one workflow risks breaking the other four.
+          The Open/Closed Principle is also relevant: adding a sixth
+          workflow means editing the existing if/else chain rather than
+          adding new code alongside it.
+
+          The refactor: extract each workflow into its own class behind a
+          common interface (`ApprovalWorkflow.process(request)`), and
+          replace the if/else with dispatch — a factory or a registry
+          keyed by workflow type. This is a very live pattern in enterprise
+          ERP code specifically, where "add a sixth approval type" is a
+          real, recurring feature request.
+        source_name: "Oracle Software Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/oracle-software-engineer
+
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given two sorted arrays, merge them into one sorted array without
+          using extra space proportional to their combined size.
+        answer_md: |
+          If one array has trailing empty capacity for the merged result
+          (the classic "merge into the first array" variant), fill from the
+          back: compare the last real elements of each array and place the
+          larger at the end of the available space, working backward. This
+          avoids the overwrite problem that filling from the front would
+          cause, since writing from the front can clobber values in the
+          first array you haven't compared yet.
+
+          If neither array has spare capacity, true O(1)-extra-space
+          merging isn't possible without changing the output format — say
+          this limitation out loud rather than forcing an in-place
+          "solution" that's actually just hiding O(n) space in a gap-and-
+          shift trick.
+        source_name: "Oracle Interview Experience for Software Engineer — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/oracle-interview-experience-for-software-engineer-2/
+
+      - kind: interview
+        round: system-design
+        topic: Backward-compatible API evolution
+        difficulty: hard
+        year: 2025
+        question: >-
+          You need to change the shape of a widely-used internal API that
+          dozens of enterprise customers' custom integrations call. How do
+          you make the change without breaking them?
+        answer_md: |
+          Version the API explicitly (a versioned path or header) rather
+          than mutating the existing contract in place — existing
+          integrations keep working against the old version indefinitely
+          or until a announced deprecation window closes, while new
+          integrations can adopt the new shape.
+
+          For additive changes (a new optional field) versioning is often
+          unnecessary — the real discipline is: never remove or repurpose
+          an existing field's meaning, never make an optional field
+          required, and never change a field's type, because any of those
+          silently breaks a customer's integration that has no reason to
+          be watching for the change.
+        source_name: "Oracle Software Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/oracle-software-engineer
+
+      - kind: interview
+        round: managerial
+        topic: Enterprise customer impact
+        difficulty: medium
+        year: 2025
+        question: >-
+          Describe a time a technically "correct" fix would have caused
+          real disruption to how customers actually use the product, and
+          what you did instead.
+        answer_md: |
+          The scoring signal is whether you actually talked to (or found
+          data about) how customers used the thing before deciding the
+          "correct" fix was too disruptive, rather than assuming. A strong
+          close names the concrete alternative you shipped — a
+          feature-flagged rollout, a longer deprecation window, an opt-in
+          migration path — and how you decided it was the right trade-off
+          rather than just the path of least resistance.
+        source_name: "Oracle interview process + tips — Final Round AI"
+        source_url: https://www.finalroundai.com/blog/oracle-interview-process
+
+  - slug: senior-software-engineer-database
+    title: Senior Software Engineer, Database Org
+    level: senior
+    maps_to_role: senior-backend-engineer
+    sort_order: 3
+    source_url: https://roundz.substack.com/p/interview-experience-oracle-sde-ic2
+    description: >-
+      Works on Oracle Database internals or the tooling around it. The
+      deepest CS-fundamentals bar of the three Oracle loops here — ACID
+      internals, indexing strategy and query optimization are treated as
+      baseline knowledge, not advanced topics.
+    focus_md: |
+      This loop assumes you already clear the standard DSA bar and spends
+      its scarce interview time on database internals specifically —
+      what an index actually costs to maintain, why a query plan picked a
+      full scan over an available index, how a transaction's isolation
+      level changes what anomalies are possible. A candidate who can
+      write correct SQL but can't explain *why* a query is slow will
+      underperform relative to their coding-round score.
+    focus_areas:
+      - { concept: postgresql-dba-indexes-and-their-usecases, label: "Indexing strategy", weight: 5,
+          notes: "When an index helps, when it doesn't, and what maintaining one costs on writes." }
+      - { concept: sql-transactions, label: "Transactions & isolation levels", weight: 5,
+          notes: "ACID guarantees and the specific anomalies each isolation level does and doesn't prevent." }
+      - { concept: postgresql-dba-query-analysis, label: "Query plan analysis", weight: 4 }
+      - { concept: computer-science-system-design, label: "System design", weight: 4 }
+      - { concept: sql-performance-optimization, label: "Query performance optimization", weight: 4 }
+      - { concept: postgresql-dba-replication, label: "Replication & durability", weight: 3 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Isolation levels
+        difficulty: hard
+        year: 2025
+        question: >-
+          Explain the difference between Read Committed and Serializable
+          isolation, and describe a concrete bug that Read Committed allows
+          which Serializable prevents.
+        answer_md: |
+          Read Committed guarantees you never read uncommitted data, but
+          two separate reads in the same transaction can see different
+          committed values if another transaction commits in between — a
+          non-repeatable read. Serializable guarantees the whole
+          transaction behaves as if it ran alone, with no other transaction
+          interleaved, which rules out non-repeatable reads and phantom
+          reads entirely.
+
+          Concrete bug: a transaction reads an account balance, computes a
+          new balance based on it, and writes the new balance back. Under
+          Read Committed, another transaction can commit a withdrawal
+          between the read and the write, and the first transaction's write
+          silently overwrites it — a lost update. Serializable (or, more
+          practically, an explicit row lock via `SELECT ... FOR UPDATE`)
+          prevents this by ensuring the two transactions can't interleave
+          that way.
+        source_name: "Oracle interview experience, SDE IC2 — Roundz"
+        source_url: https://roundz.substack.com/p/interview-experience-oracle-sde-ic2
+
+      - kind: interview
+        round: technical
+        topic: Indexing
+        difficulty: hard
+        year: 2025
+        question: >-
+          A query filtering on two columns is still doing a full table
+          scan despite an index existing on one of them. Walk through why,
+          and what index would actually fix it.
+        answer_md: |
+          A single-column index on column A only helps the query planner
+          narrow down rows by A; it still has to scan every A-matching row
+          to check column B, and if A alone isn't selective (it matches a
+          large fraction of the table), the planner often decides a full
+          scan is cheaper than using the index at all — this is a real,
+          common planner decision, not a bug.
+
+          A composite index on `(A, B)` — in that column order, if queries
+          typically filter on A first — lets the planner narrow on both
+          columns from the index directly. Column order in a composite
+          index matters: an index on `(A, B)` doesn't help a query that
+          filters on B alone, because B isn't the index's leading column.
+        source_name: "Oracle OCI interview questions — Mindmajix"
+        source_url: https://mindmajix.com/oracle-oci-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Query plan analysis
+        difficulty: hard
+        year: 2025
+        question: >-
+          You're handed a query's execution plan and asked to identify the
+          most expensive step. What do you look at first?
+        answer_md: |
+          Estimated vs. actual row counts at each step, first — a large gap
+          between what the planner estimated and what actually happened
+          (stale statistics are the usual cause) is often *the* reason a
+          plan chose badly, more often than the query itself being poorly
+          written. After that, look for full table scans on large tables,
+          nested-loop joins where one side is large and unfiltered (usually
+          cheaper as a hash join instead), and any step where a sort
+          spills to disk because it didn't fit in the configured memory
+          budget.
+
+          Naming "check estimated-vs-actual rows first" unprompted is the
+          detail that separates someone who's actually tuned production
+          queries from someone reciting a checklist.
+        source_name: "Oracle interview experience, SDE IC2 — Roundz"
+        source_url: https://roundz.substack.com/p/interview-experience-oracle-sde-ic2
+
+      - kind: interview
+        round: system-design
+        topic: Read replica staleness
+        difficulty: hard
+        year: 2025
+        question: >-
+          A service reads from a read replica for scale, but users report
+          seeing their own just-written data disappear on the next page
+          load. What's happening, and how do you fix it?
+        answer_md: |
+          Replication to the read replica is asynchronous, so there's a
+          real (usually small) lag between a write committing on the
+          primary and that write appearing on the replica — a user's next
+          read can land on a replica that hasn't caught up yet, making
+          their own write appear to vanish.
+
+          The standard fix is read-your-writes consistency: route reads
+          immediately following a user's own write to the primary (or to a
+          replica known to be caught up) for some short window, then fall
+          back to any replica afterward — trading a bit of the read-scaling
+          benefit for the specific case where a user needs to see their own
+          change immediately.
+        source_name: "Oracle system design interview — System Design Handbook"
+        source_url: https://www.systemdesignhandbook.com/guides/oracle-system-design-interview/
+
+      - kind: online-assessment
+        round: technical
+        topic: SQL performance
+        difficulty: hard
+        year: 2025
+        question: >-
+          Rewrite this query to avoid a correlated subquery that's running
+          once per outer row: find every order whose total exceeds that
+          customer's average order total.
+        answer_md: |
+          A correlated subquery (`WHERE total > (SELECT AVG(total) FROM
+          orders o2 WHERE o2.customer_id = o1.customer_id)`) re-executes the
+          average calculation for every single outer row, which is
+          expensive at scale. Precomputing the per-customer average once —
+          as a CTE or a joined subquery grouped by customer — then joining
+          it against the orders table turns an O(n²)-shaped access pattern
+          into one pass over each table plus a join.
+
+          This rewrite — precompute the aggregate once, join instead of
+          correlate — is one of the most common "make this query actually
+          fast" transformations in real database work, and interviewers
+          use it because it tests whether you understand *why* the
+          original is slow, not just SQL syntax.
+        source_name: "Oracle OCI interview questions — CloudFoundation"
+        source_url: https://cloudfoundation.com/blog/oracle-oci-interview-questions/
+
+      - kind: interview
+        round: managerial
+        topic: Reliability under enterprise SLAs
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a time you had to choose between shipping a
+          performance improvement faster and shipping it with full
+          backward-compatibility guarantees for existing customers.
+        answer_md: |
+          The scoring signal is whether you treated backward compatibility
+          as a real constraint rather than something to negotiate away
+          under time pressure — Oracle's database customers run
+          decades-old systems on top of the product, so "we'll just ask
+          customers to migrate" is rarely an acceptable answer here the way
+          it might be at a consumer startup. Strong answers describe how
+          you found a path that delivered the improvement without breaking
+          existing behavior, even if it took longer or was architecturally
+          less elegant.
+        source_name: "Oracle interview process + tips — Final Round AI"
+        source_url: https://www.finalroundai.com/blog/oracle-interview-process

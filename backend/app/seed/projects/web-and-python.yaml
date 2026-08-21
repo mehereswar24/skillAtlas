@@ -1,0 +1,1917 @@
+# Projects for general web (JavaScript/TypeScript/React/Node) and Python
+# concepts that the frontend- and backend-developer tracks don't otherwise
+# cover with a project.
+#
+# Same two runtimes as the other files in this directory:
+#
+# `runtime: web` — plain HTML/CSS/JS assembled into a document in a sandboxed
+# iframe, no network and no bundler. React and TypeScript still cannot run as
+# themselves here, so `runtime-type-validator` and `build-your-own-hooks`
+# build the mechanism underneath a TypeScript-style runtime check and React's
+# `useState` respectively, in vanilla JavaScript — continuing what
+# `frontend-developer.yaml` started with its reconciler project.
+#
+# `runtime: python` — pure standard-library Python under Pyodide. Several
+# briefs here are framed around a Node.js concept (the `path` module, the
+# error-first callback) but built in Python, the same way the backend track's
+# `http-message-parser` builds an HTTP concept in Python: the mechanism is the
+# lesson, not the host language.
+
+projects:
+  # =========================================================== runtime: web
+
+  - slug: debounce-and-throttle
+    concept: javascript-functions
+    title: Debounce and throttle, proven not just implemented
+    tagline: Two closures every UI needs, tested without waiting around for real time to pass.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      A search box that fires a request on every keystroke and a scroll
+      handler that runs on every pixel are the same mistake: doing expensive
+      work far more often than the user needed it. Debounce and throttle are
+      the two closures that fix it, and they fix it in opposite ways.
+
+      Implement both in `app.js`. Each takes a `clock` argument — an object
+      with `setTimeout(callback, ms)` and `clearTimeout(id)` — instead of
+      calling the globals directly. That is what lets the tests prove the
+      timing logic without a test suite that actually waits: they hand you a
+      fake clock and inspect what you scheduled.
+
+      **`debounce(fn, wait, clock = window)`** — return a wrapped function
+      that, on each call, cancels whatever call it previously scheduled and
+      schedules a new one for `wait` ms later. `fn` only ever runs once
+      calls stop arriving for `wait` ms, with the arguments and `this` of the
+      *last* call.
+
+      **`throttle(fn, wait, clock = window)`** — return a wrapped function
+      that calls `fn` immediately on the first call (the "leading edge"),
+      then ignores every call for the next `wait` ms. A call after the
+      cooldown elapses fires immediately again, starting a new cooldown.
+
+      Both must actually use `clock.setTimeout` / `clock.clearTimeout` — not
+      the global `setTimeout` — or the tests cannot observe what you did.
+    must_contain:
+      - "clock.setTimeout"
+      - "clock.clearTimeout"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="root"></div>
+      - path: app.js
+        content: |
+          function debounce(fn, wait, clock = window) {
+            // Cancel the previous scheduled call, then schedule a new one.
+          }
+
+          function throttle(fn, wait, clock = window) {
+            // Call immediately, then ignore calls until the cooldown ends.
+          }
+
+          window.debounce = debounce;
+          window.throttle = throttle;
+    tests:
+      - name: A burst of debounced calls collapses into one, with the last arguments
+        kind: dom-assert
+        code: |
+          (() => {
+            let id = 0;
+            const timers = new Map();
+            const clock = {
+              setTimeout(cb) { const t = ++id; timers.set(t, cb); return t; },
+              clearTimeout(t) { timers.delete(t); },
+            };
+            const calls = [];
+            const d = debounce((x) => calls.push(x), 100, clock);
+            d(1); d(2); d(3);
+            for (const cb of [...timers.values()]) cb();
+            return calls.length === 1 && calls[0] === 3;
+          })()
+      - name: Each new call cancels the timer the previous call scheduled
+        kind: dom-assert
+        code: |
+          (() => {
+            let id = 0;
+            let cleared = [];
+            const clock = {
+              setTimeout(cb) { return ++id; },
+              clearTimeout(t) { cleared.push(t); },
+            };
+            const d = debounce(() => {}, 50, clock);
+            d();
+            d();
+            d();
+            return cleared.length === 2;
+          })()
+      - name: Throttle fires on the very first call
+        kind: dom-assert
+        code: |
+          (() => {
+            const clock = { setTimeout() { return 1; }, clearTimeout() {} };
+            let calls = 0;
+            const t = throttle(() => calls++, 100, clock);
+            t();
+            return calls === 1;
+          })()
+      - name: Calls made during the cooldown are dropped, not queued
+        kind: dom-assert
+        code: |
+          (() => {
+            const clock = { setTimeout() { return 1; }, clearTimeout() {} };
+            let calls = 0;
+            const t = throttle(() => calls++, 100, clock);
+            t(); t(); t();
+            return calls === 1;
+          })()
+      - name: Once the cooldown elapses, the next call fires again
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            let id = 0;
+            const timers = new Map();
+            const clock = {
+              setTimeout(cb) { const t = ++id; timers.set(t, cb); return t; },
+              clearTimeout(t) { timers.delete(t); },
+            };
+            let calls = 0;
+            const t = throttle(() => calls++, 100, clock);
+            t();
+            t();
+            for (const cb of [...timers.values()]) cb();
+            t();
+            return calls === 2;
+          })()
+      - name: debounce preserves the arguments and `this` of the call that survives
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            let id = 0;
+            const timers = new Map();
+            const clock = {
+              setTimeout(cb) { const t = ++id; timers.set(t, cb); return t; },
+              clearTimeout(t) { timers.delete(t); },
+            };
+            const obj = { value: 0, bump(n) { this.value += n; } };
+            obj.bumpLater = debounce(obj.bump, 10, clock);
+            obj.bumpLater(5);
+            for (const cb of [...timers.values()]) cb();
+            return obj.value === 5;
+          })()
+    solution_md: |
+      ```js
+      function debounce(fn, wait, clock = window) {
+        let timer = null;
+        return function (...args) {
+          if (timer !== null) clock.clearTimeout(timer);
+          timer = clock.setTimeout(() => {
+            timer = null;
+            fn.apply(this, args);
+          }, wait);
+        };
+      }
+
+      function throttle(fn, wait, clock = window) {
+        let cooling = false;
+        return function (...args) {
+          if (cooling) return;
+          fn.apply(this, args);
+          cooling = true;
+          clock.setTimeout(() => {
+            cooling = false;
+          }, wait);
+        };
+      }
+      ```
+
+      The `clock` parameter is the whole trick for testing this without a
+      real stopwatch: production code gets `window` for free (`window` has
+      real `setTimeout`/`clearTimeout`), and a test hands in an object that
+      just records what was scheduled and lets the test decide when to "let
+      time pass" by calling the callback directly. It is the same move as
+      the backend track's `sleep` indirection in the retry decorator —
+      inject the thing you cannot control, and the untestable becomes
+      testable.
+
+      Debounce and throttle are often confused because both "limit how often
+      a function runs," but they answer different questions. Debounce asks
+      "has the user stopped typing?" — useful for search-as-you-type.
+      Throttle asks "has enough time passed since the last real action?" —
+      useful for a scroll or resize handler, where you want steady updates,
+      not one big one at the end.
+
+  - slug: focus-trap-modal
+    concept: javascript-dom-apis
+    title: A modal that traps focus and gives it back
+    tagline: Escape closes it, Tab cannot escape it, and the trigger gets focus back.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      A modal implemented with only `display: none` and a click handler is a
+      keyboard trap in the making: focus stays wherever it was, `Tab` walks
+      the user straight through the page behind the dialog, and closing it
+      abandons them wherever the cursor happened to land. Fix all three in
+      `app.js` — the markup in `index.html` is already correct.
+
+      **Opening** (`#open` is clicked): unhide `#modal`, and move focus to
+      the first focusable element inside `.panel`.
+
+      **Closing** (`#close` is clicked, or `Escape` is pressed while the
+      modal is open): hide `#modal` again, and return focus to whatever
+      element had it before the modal opened — usually `#open`, but the code
+      must not hard-code that assumption.
+
+      **The trap**: while the modal is open, pressing `Tab` on the *last*
+      focusable element inside `.panel` must move focus to the *first* one,
+      not out into the page. Pressing `Shift+Tab` on the *first* one must
+      move focus to the *last*. This is what "trap" means — focus can move
+      freely inside the dialog, and cannot leave it by keyboard.
+
+      Focusable, here, means the `input` and `button` elements inside
+      `.panel`, in DOM order.
+    must_contain:
+      - "addEventListener"
+      - "keydown"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <button id="open" type="button">Open settings</button>
+
+          <div id="modal" class="modal" hidden>
+            <div class="panel" role="dialog" aria-modal="true" aria-label="Settings">
+              <input id="first-field" type="text" placeholder="Name">
+              <input id="second-field" type="text" placeholder="Email">
+              <button id="close" type="button">Close</button>
+            </div>
+          </div>
+      - path: app.js
+        content: |
+          const openButton = document.getElementById('open');
+          const modal = document.getElementById('modal');
+          const closeButton = document.getElementById('close');
+
+          // Wire up open/close, Escape, and a focus trap that keeps Tab
+          // cycling inside the modal while it is open.
+    tests:
+      - name: Opening the modal shows it and focuses the first field
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('open').click();
+            const modal = document.getElementById('modal');
+            return !modal.hidden && document.activeElement.id === 'first-field';
+          })()
+      - name: Escape closes the modal
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('open').click();
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+            return document.getElementById('modal').hidden === true;
+          })()
+      - name: Closing returns focus to whatever opened it
+        kind: dom-assert
+        code: |
+          (() => {
+            const open = document.getElementById('open');
+            open.focus();
+            open.click();
+            document.getElementById('close').click();
+            return document.activeElement === open;
+          })()
+      - name: Tab on the last focusable element wraps to the first
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('open').click();
+            const close = document.getElementById('close');
+            close.focus();
+            close.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true, cancelable: true}));
+            return document.activeElement.id === 'first-field';
+          })()
+      - name: Shift+Tab on the first focusable element wraps to the last
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            document.getElementById('open').click();
+            const first = document.getElementById('first-field');
+            first.focus();
+            first.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', shiftKey: true, bubbles: true, cancelable: true}));
+            return document.activeElement.id === 'close';
+          })()
+      - name: Reopening always focuses the first field, regardless of where focus was left
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const open = document.getElementById('open');
+            open.click();
+            document.getElementById('close').click();
+            document.getElementById('second-field').focus();
+            open.click();
+            return document.activeElement.id === 'first-field';
+          })()
+    solution_md: |
+      ```js
+      const panel = modal.querySelector('.panel');
+      let previouslyFocused = null;
+
+      function focusable() {
+        return [...panel.querySelectorAll('input, button')];
+      }
+
+      function openModal() {
+        previouslyFocused = document.activeElement;
+        modal.hidden = false;
+        focusable()[0].focus();
+      }
+
+      function closeModal() {
+        modal.hidden = true;
+        if (previouslyFocused) previouslyFocused.focus();
+      }
+
+      openButton.addEventListener('click', openModal);
+      closeButton.addEventListener('click', closeModal);
+
+      document.addEventListener('keydown', (event) => {
+        if (modal.hidden) return;
+
+        if (event.key === 'Escape') {
+          closeModal();
+          return;
+        }
+        if (event.key !== 'Tab') return;
+
+        const elements = focusable();
+        const first = elements[0];
+        const last = elements[elements.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
+      ```
+
+      Recording `previouslyFocused` at open time, rather than assuming it was
+      `#open`, is what makes this correct when a modal can be triggered from
+      more than one place. And the trap only needs to intercept the two
+      *boundary* cases — Tab on the last element, Shift+Tab on the first —
+      because every Tab press in between already lands somewhere inside the
+      panel on its own; you are only rerouting the moments it would escape.
+
+  - slug: virtual-scroll-list
+    concept: frontend-web-apis
+    title: Render ten rows for a list of a thousand
+    tagline: The scrollbar lies about how much is actually in the DOM.
+    runtime: web
+    difficulty: advanced
+    est_minutes: 60
+    xp_reward: 170
+    brief_md: |
+      Render 10,000 rows into the DOM and the browser lays out 10,000
+      elements the user can see maybe twenty of at a time. A virtual list
+      renders only the rows currently in the viewport, and fakes the rest
+      with an empty spacer the height of everything you *didn't* render.
+      That is the entire trick behind every "infinite" list you have ever
+      scrolled through.
+
+      Implement `renderVisible(container, items, { rowHeight, viewportHeight })`
+      in `app.js`.
+
+      - Build two children inside `container`: a `.spacer` whose height is
+        `items.length * rowHeight` (so the scrollbar's size is correct even
+        though most rows do not exist yet), and a `.viewport` that holds only
+        the currently-visible `.row` elements.
+      - On the first call, render the rows visible at `container.scrollTop`.
+      - Listen for the container's `scroll` event and re-render the visible
+        rows whenever it fires — reading `container.scrollTop` to work out
+        which slice of `items` is now in view.
+      - Render one extra row past what exactly fits, so a partially-visible
+        row at the bottom is not left blank.
+      - **Clamp** the range: scrolling past the end of the list must still
+        show the *last* real rows, never an empty tail or an out-of-range
+        slice.
+      - Calling `renderVisible` again (new items) replaces the previous
+        render rather than appending to it.
+    must_contain:
+      - "scrollTop"
+      - "addEventListener"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="list"></div>
+      - path: app.js
+        content: |
+          function renderVisible(container, items, { rowHeight, viewportHeight }) {
+            // Build a `.spacer` (full height) and a `.viewport` (visible
+            // rows only), and keep the viewport in sync with scrollTop.
+          }
+
+          window.renderVisible = renderVisible;
+    tests:
+      - name: Far fewer rows are rendered than items exist
+        kind: dom-assert
+        code: |
+          (() => {
+            const container = document.getElementById('list');
+            const items = Array.from({length: 1000}, (_, i) => `Item ${i}`);
+            renderVisible(container, items, {rowHeight: 20, viewportHeight: 100});
+            const rows = container.querySelectorAll('.row');
+            return rows.length > 0 && rows.length <= 6;
+          })()
+      - name: The initial render starts from the top of the list
+        kind: dom-assert
+        code: |
+          (() => {
+            const container = document.getElementById('list');
+            const items = Array.from({length: 1000}, (_, i) => `Item ${i}`);
+            renderVisible(container, items, {rowHeight: 20, viewportHeight: 100});
+            const rows = [...container.querySelectorAll('.row')];
+            return rows[0].textContent === 'Item 0';
+          })()
+      - name: Scrolling swaps in the rows now in view
+        kind: dom-assert
+        code: |
+          (() => {
+            const container = document.getElementById('list');
+            const items = Array.from({length: 1000}, (_, i) => `Item ${i}`);
+            renderVisible(container, items, {rowHeight: 20, viewportHeight: 100});
+            container.scrollTop = 500;
+            container.dispatchEvent(new Event('scroll'));
+            const rows = [...container.querySelectorAll('.row')];
+            return rows[0].textContent === 'Item 25';
+          })()
+      - name: The spacer preserves the true scrollable height
+        kind: dom-assert
+        code: |
+          (() => {
+            const container = document.getElementById('list');
+            const items = Array.from({length: 1000}, (_, i) => `Item ${i}`);
+            renderVisible(container, items, {rowHeight: 20, viewportHeight: 100});
+            return container.querySelector('.spacer').style.height === '20000px';
+          })()
+      - name: Scrolling past the end still shows the real last rows
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const container = document.getElementById('list');
+            const items = Array.from({length: 1000}, (_, i) => `Item ${i}`);
+            renderVisible(container, items, {rowHeight: 20, viewportHeight: 100});
+            container.scrollTop = 1000000;
+            container.dispatchEvent(new Event('scroll'));
+            const rows = [...container.querySelectorAll('.row')];
+            return rows.length > 0 && rows.length <= 6 &&
+                   rows[rows.length - 1].textContent === 'Item 999';
+          })()
+      - name: A second call replaces the render instead of appending to it
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const container = document.getElementById('list');
+            renderVisible(container, Array.from({length: 5}, (_, i) => `A${i}`), {rowHeight: 20, viewportHeight: 100});
+            renderVisible(container, Array.from({length: 5}, (_, i) => `B${i}`), {rowHeight: 20, viewportHeight: 100});
+            return container.querySelectorAll('.spacer').length === 1 &&
+                   container.querySelector('.row').textContent === 'B0';
+          })()
+    solution_md: |
+      ```js
+      function renderVisible(container, items, { rowHeight, viewportHeight }) {
+        container.innerHTML = '';
+        container.style.height = viewportHeight + 'px';
+        container.style.overflowY = 'auto';
+        container.style.position = 'relative';
+
+        const spacer = document.createElement('div');
+        spacer.className = 'spacer';
+        spacer.style.height = items.length * rowHeight + 'px';
+        container.append(spacer);
+
+        const viewport = document.createElement('div');
+        viewport.className = 'viewport';
+        viewport.style.position = 'absolute';
+        viewport.style.top = '0';
+        viewport.style.left = '0';
+        viewport.style.right = '0';
+        container.append(viewport);
+
+        function update() {
+          const visibleCount = Math.ceil(viewportHeight / rowHeight) + 1;
+          const maxStart = Math.max(0, items.length - visibleCount);
+          const rawStart = Math.floor(container.scrollTop / rowHeight);
+          const start = Math.min(Math.max(0, rawStart), maxStart);
+          const end = Math.min(items.length, start + visibleCount);
+
+          viewport.style.transform = `translateY(${start * rowHeight}px)`;
+          viewport.innerHTML = '';
+          for (let i = start; i < end; i++) {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.style.height = rowHeight + 'px';
+            row.textContent = items[i];
+            viewport.append(row);
+          }
+        }
+
+        container.addEventListener('scroll', update);
+        update();
+      }
+      ```
+
+      The clamp (`Math.min(rawStart, maxStart)`) is the line most first
+      attempts skip, and it is the one that matters most: without it,
+      scrolling to the bottom asks for rows starting past the end of
+      `items`, and you render nothing — a blank list exactly where the user
+      expected to see the last entries. A production virtual list (a data
+      grid, a chat log) adds a small overscan buffer and recycles DOM nodes
+      instead of recreating them, but the core idea — the DOM only ever
+      holds what's visible, and a spacer stands in for the rest — is exactly
+      what you just built.
+
+  - slug: runtime-type-validator
+    concept: frontend-type-checkers
+    title: The checker TypeScript compiles away
+    tagline: Types that vanish at build time still need to be enforced somewhere at runtime.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 55
+    xp_reward: 150
+    brief_md: |
+      TypeScript's types disappear the moment `tsc` finishes — the `.js` it
+      emits has no idea what a `string` is. That is fine for your own code,
+      which the compiler already checked, but useless for data arriving from
+      outside: an API response, `JSON.parse`, a form. Something has to check
+      *that* at runtime, and it looks a lot like the compiler's own logic,
+      just running later.
+
+      Implement `check(schema, value, path = '')` in `app.js`. It returns
+      `{ valid, errors }`, where `errors` is an array of strings.
+
+      The schema mini-language:
+
+      - A **string** schema (`'string'`, `'number'`, `'boolean'`) matches a
+        value of that `typeof`. On mismatch, push
+        `` `${path prefix}expected <type>, got <actual typeof>` `` — with no
+        prefix at the root, or `"name: "` when checking a property.
+      - `{ type: 'array', items: <schema> }` matches an array where every
+        element satisfies `items`. Report failures with the index appended,
+        e.g. `"[1]: expected number, got string"`.
+      - `{ type: 'object', properties: {...}, required: [...] }` matches a
+        non-null, non-array object. Every key in `required` must be present;
+        a missing one reports `` `${key}: missing required property` ``
+        (dotted onto the parent path, e.g. `"user.name: ..."`). A key
+        present in `value` but not in `required` is optional — allowed to be
+        absent, but must match its schema if it *is* present. Keys in
+        `value` that aren't in `properties` are ignored.
+      - Nested schemas compose: an object inside an array inside an object
+        all build the path up as you go, e.g. `"user.tags[1]"`.
+    must_contain:
+      - "Array.isArray"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="root"></div>
+      - path: app.js
+        content: |
+          function check(schema, value, path = '') {
+            // string schema -> typeof check
+            // {type: 'array', items} -> check every element
+            // {type: 'object', properties, required} -> check every property
+          }
+
+          window.check = check;
+    tests:
+      - name: A matching primitive is valid
+        kind: dom-assert
+        code: |
+          (() => {
+            const r = check('string', 'hello');
+            return r.valid === true && r.errors.length === 0;
+          })()
+      - name: A mismatched primitive reports the expected and actual type
+        kind: dom-assert
+        code: |
+          (() => {
+            const r = check('number', 'nope');
+            return r.valid === false && r.errors[0] === 'expected number, got string';
+          })()
+      - name: Object properties are checked, and required ones enforced
+        kind: dom-assert
+        code: |
+          (() => {
+            const schema = {type: 'object', properties: {name: 'string', age: 'number'}, required: ['name']};
+            const ok = check(schema, {name: 'Ada'});
+            const bad = check(schema, {age: 30});
+            return ok.valid === true && bad.valid === false &&
+                   bad.errors[0] === 'name: missing required property';
+          })()
+      - name: An optional property may be omitted, but must match when present
+        kind: dom-assert
+        code: |
+          (() => {
+            const schema = {type: 'object', properties: {nickname: 'string'}, required: []};
+            const withoutIt = check(schema, {});
+            const wrongType = check(schema, {nickname: 42});
+            return withoutIt.valid === true && wrongType.valid === false &&
+                   wrongType.errors[0] === 'nickname: expected string, got number';
+          })()
+      - name: An array reports which index failed
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const schema = {type: 'array', items: 'number'};
+            const ok = check(schema, [1, 2, 3]);
+            const bad = check(schema, [1, 'two', 3]);
+            return ok.valid === true && bad.valid === false &&
+                   bad.errors[0] === '[1]: expected number, got string';
+          })()
+      - name: Nested object and array schemas build up a full path
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const schema = {
+              type: 'object',
+              properties: { user: { type: 'object', properties: { tags: {type: 'array', items: 'string'} }, required: ['tags'] } },
+              required: ['user'],
+            };
+            const bad = check(schema, { user: { tags: ['a', 2] } });
+            return bad.valid === false && bad.errors[0] === 'user.tags[1]: expected string, got number';
+          })()
+    solution_md: |
+      ```js
+      function check(schema, value, path = '') {
+        const errors = [];
+        const prefix = path === '' ? '' : `${path}: `;
+
+        if (typeof schema === 'string') {
+          if (typeof value !== schema) {
+            errors.push(`${prefix}expected ${schema}, got ${typeof value}`);
+          }
+          return { valid: errors.length === 0, errors };
+        }
+
+        if (schema.type === 'array') {
+          if (!Array.isArray(value)) {
+            errors.push(`${prefix}expected array, got ${typeof value}`);
+            return { valid: false, errors };
+          }
+          value.forEach((item, index) => {
+            errors.push(...check(schema.items, item, `${path}[${index}]`).errors);
+          });
+          return { valid: errors.length === 0, errors };
+        }
+
+        if (schema.type === 'object') {
+          if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+            errors.push(`${prefix}expected object, got ${typeof value}`);
+            return { valid: false, errors };
+          }
+          const required = schema.required || [];
+          for (const key of Object.keys(schema.properties)) {
+            const childPath = path ? `${path}.${key}` : key;
+            if (value[key] === undefined) {
+              if (required.includes(key)) errors.push(`${childPath}: missing required property`);
+              continue;
+            }
+            errors.push(...check(schema.properties[key], value[key], childPath).errors);
+          }
+          return { valid: errors.length === 0, errors };
+        }
+
+        throw new Error(`unknown schema: ${JSON.stringify(schema)}`);
+      }
+      ```
+
+      The `Array.isArray` check earns its place in `must_contain` because
+      `typeof []` is `'object'` in JavaScript — the single most common bug in
+      a hand-rolled validator is an array silently passing an `object`
+      schema check, or vice versa. Tools like Zod and io-ts are this same
+      recursive walk with a friendlier builder API on top; the recursion —
+      not the API — is the part worth understanding.
+
+  - slug: build-your-own-hooks
+    concept: react-basic-hooks
+    title: Build useState from nothing
+    tagline: The array of state, the index that walks it, and the rule that keeps them in sync.
+    runtime: web
+    difficulty: advanced
+    est_minutes: 65
+    xp_reward: 180
+    brief_md: |
+      "Only call hooks at the top level, never inside a condition" sounds
+      like an arbitrary rule until you build what `useState` actually is:
+      state slots in a plain array, matched to `useState` calls purely by
+      the *order* they run in. Skip a call on some render and every hook
+      after it reads the wrong slot. Build the mechanism, and the rule stops
+      needing to be memorised.
+
+      Implement `createHooksRuntime()` in `app.js`. It returns
+      `{ useState, render }`, both closed over the same private state:
+
+      - **`render(component)`** — call `component()` and return whatever it
+        returns. This is "rendering": running the function fresh, top to
+        bottom.
+      - **`useState(initial)`** — callable only from inside a component that
+        `render` is currently running. Returns `[value, setValue]`. On the
+        *first* render, the slot is seeded with `initial`; on every render
+        after, it reads back whatever is currently stored — `initial` is
+        ignored. `setValue` updates the slot (accepting either a plain value
+        or an updater function, called with the current value, exactly like
+        React) and immediately triggers **another** call to `render` on the
+        same `component`.
+      - Two calls to `useState` in the same component get two independent
+        slots, matched to the same call **by the order they run in** —
+        that's the whole mechanism. The first `useState` call of a render
+        always reads slot 0, the second always reads slot 1, and so on.
+      - Two different runtimes created by separate `createHooksRuntime()`
+        calls must not share any state.
+    must_contain:
+      - "function createHooksRuntime"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="root"></div>
+      - path: app.js
+        content: |
+          function createHooksRuntime() {
+            // A slot array, an index into it that resets each render, and
+            // useState/render closed over both.
+          }
+
+          window.createHooksRuntime = createHooksRuntime;
+    tests:
+      - name: The first render seeds state with the initial value
+        kind: dom-assert
+        code: |
+          (() => {
+            const { render, useState } = createHooksRuntime();
+            let renders = 0;
+            function Counter() {
+              renders++;
+              const [count] = useState(0);
+              return count;
+            }
+            return render(Counter) === 0 && renders === 1;
+          })()
+      - name: Calling setState triggers a re-render with the updated value
+        kind: dom-assert
+        code: |
+          (() => {
+            const { render, useState } = createHooksRuntime();
+            const seen = [];
+            let setCount;
+            function Counter() {
+              const [count, set] = useState(0);
+              setCount = set;
+              seen.push(count);
+            }
+            render(Counter);
+            setCount(5);
+            return seen.length === 2 && seen[0] === 0 && seen[1] === 5;
+          })()
+      - name: Multiple hooks keep independent slots, matched by call order
+        kind: dom-assert
+        code: |
+          (() => {
+            const { render, useState } = createHooksRuntime();
+            const seen = [];
+            let setA, setB;
+            function Component() {
+              const [a, sa] = useState('x');
+              const [b, sb] = useState(1);
+              setA = sa; setB = sb;
+              seen.push([a, b]);
+            }
+            render(Component);
+            setA('y');
+            setB(2);
+            return JSON.stringify(seen) === JSON.stringify([['x', 1], ['y', 1], ['y', 2]]);
+          })()
+      - name: setState accepts an updater function, like real React
+        kind: dom-assert
+        code: |
+          (() => {
+            const { render, useState } = createHooksRuntime();
+            const seen = [];
+            let setCount;
+            function Counter() {
+              const [count, set] = useState(0);
+              setCount = set;
+              seen.push(count);
+            }
+            render(Counter);
+            setCount((c) => c + 1);
+            setCount((c) => c + 1);
+            return seen[seen.length - 1] === 2;
+          })()
+      - name: Two runtimes never share state
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            function run(runtime, seen) {
+              let set;
+              function Counter() {
+                const [count, s] = runtime.useState(0);
+                set = s;
+                seen.push(count);
+              }
+              runtime.render(Counter);
+              return () => set;
+            }
+            const seenA = [], seenB = [];
+            const getSetA = run(createHooksRuntime(), seenA);
+            getSetA()(10);
+            run(createHooksRuntime(), seenB);
+            return seenA[seenA.length - 1] === 10 && seenB[0] === 0;
+          })()
+      - name: A manual re-render does not reset state back to its initial value
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            const { render, useState } = createHooksRuntime();
+            const seen = [];
+            let setCount;
+            function Counter() {
+              const [count, set] = useState(0);
+              setCount = set;
+              seen.push(count);
+            }
+            render(Counter);
+            setCount(9);
+            render(Counter);
+            return seen[seen.length - 1] === 9;
+          })()
+    solution_md: |
+      ```js
+      function createHooksRuntime() {
+        const slots = [];
+        let index = 0;
+        let currentComponent = null;
+
+        function useState(initial) {
+          const i = index++;
+          if (i >= slots.length) slots[i] = initial;
+
+          const setState = (next) => {
+            slots[i] = typeof next === 'function' ? next(slots[i]) : next;
+            run();
+          };
+          return [slots[i], setState];
+        }
+
+        function run() {
+          index = 0;
+          return currentComponent();
+        }
+
+        function render(component) {
+          currentComponent = component;
+          return run();
+        }
+
+        return { useState, render };
+      }
+      ```
+
+      `i >= slots.length`, not `slots[i] === undefined`, is what makes this
+      correct: a slot's real value can legitimately *become* `undefined`
+      later (`setState(undefined)` is valid state), and the seed check must
+      not confuse "never visited" with "currently holds undefined." Length
+      only grows the first time each index is reached, which is exactly the
+      "first render" moment the brief describes.
+
+      This is also, almost verbatim, why the rules of hooks exist. `slots`
+      is one flat array, and `index` only means anything because every
+      render calls `useState` the same number of times in the same order.
+      Wrap a `useState` call in an `if`, and on the render where the branch
+      is skipped, every hook after it shifts down one slot and reads
+      somebody else's state.
+
+  - slug: lazy-generator-pipeline
+    concept: javascript-iterators-and-generators
+    title: A pipeline that never runs ahead of you
+    tagline: map, filter and take, lazy enough to walk an infinite sequence.
+    runtime: web
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      `array.map().filter()` builds a whole new array at every step, even if
+      you only wanted the first three results. A **generator** pipeline
+      processes one value at a time, on demand — which means it can run over
+      a sequence with no defined end, as long as something downstream
+      eventually stops asking for more.
+
+      Implement four generator functions in `app.js`:
+
+      - **`range(start, end)`** — yields `start, start + 1, ..., end - 1`.
+      - **`mapIter(iterable, fn)`** — lazily yields `fn(value)` for each
+        `value` of `iterable`.
+      - **`filterIter(iterable, fn)`** — lazily yields only the values of
+        `iterable` where `fn(value)` is truthy.
+      - **`takeIter(iterable, n)`** — yields at most `n` values from
+        `iterable`, then stops — critically, it must stop *pulling* from
+        `iterable` too, not just stop yielding. `takeIter(x, 0)` must not
+        touch `x` at all.
+
+      They compose by nesting: `takeIter(mapIter(filterIter(range(0, 1e9),
+      isEven), double), 3)` must produce its three answers instantly,
+      without ever generating a billion values first. All four must be
+      generator functions (`function*`) — an eager implementation using
+      arrays would defeat the entire point and fail the tests that check for
+      laziness.
+    must_contain:
+      - "function*"
+    files:
+      - path: index.html
+        readonly: true
+        entry: true
+        content: |
+          <div id="root"></div>
+      - path: app.js
+        content: |
+          function* range(start, end) {
+            // yield start, start + 1, ..., end - 1
+          }
+
+          function* mapIter(iterable, fn) {
+            // lazily yield fn(value) for each value
+          }
+
+          function* filterIter(iterable, fn) {
+            // lazily yield only the values where fn(value) is truthy
+          }
+
+          function* takeIter(iterable, n) {
+            // yield at most n values, and stop pulling once you have them
+          }
+
+          window.range = range;
+          window.mapIter = mapIter;
+          window.filterIter = filterIter;
+          window.takeIter = takeIter;
+    tests:
+      - name: range yields the expected sequence
+        kind: dom-assert
+        code: |
+          (() => {
+            return [...range(0, 5)].join(',') === '0,1,2,3,4';
+          })()
+      - name: map and filter compose into the right values, in order
+        kind: dom-assert
+        code: |
+          (() => {
+            const result = [...takeIter(mapIter(filterIter(range(0, 100), (x) => x % 2 === 0), (x) => x * 10), 3)];
+            return result.join(',') === '0,20,40';
+          })()
+      - name: map only calls its function on the values actually pulled
+        kind: dom-assert
+        code: |
+          (() => {
+            let calls = 0;
+            const result = [...takeIter(mapIter(range(0, 1000), (x) => { calls++; return x; }), 4)];
+            return result.length === 4 && calls === 4;
+          })()
+      - name: take stops pulling from an endless source once it has enough
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            let pulled = 0;
+            function* infinite() {
+              while (true) { pulled++; yield pulled; }
+            }
+            const result = [...takeIter(infinite(), 3)];
+            return result.length === 3 && pulled === 3;
+          })()
+      - name: filter only evaluates its predicate as far as downstream needs
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            let calls = 0;
+            const result = [...takeIter(filterIter(range(0, 1000), (x) => { calls++; return x > 5; }), 2)];
+            return result.join(',') === '6,7' && calls === 8;
+          })()
+      - name: take(0) does not touch its source at all
+        hidden: true
+        kind: dom-assert
+        code: |
+          (() => {
+            let pulled = 0;
+            function* gen() { pulled++; yield 1; }
+            const result = [...takeIter(gen(), 0)];
+            return result.length === 0 && pulled === 0;
+          })()
+    solution_md: |
+      ```js
+      function* range(start, end) {
+        for (let i = start; i < end; i++) yield i;
+      }
+
+      function* mapIter(iterable, fn) {
+        for (const value of iterable) yield fn(value);
+      }
+
+      function* filterIter(iterable, fn) {
+        for (const value of iterable) if (fn(value)) yield value;
+      }
+
+      function* takeIter(iterable, n) {
+        if (n <= 0) return;
+        let count = 0;
+        for (const value of iterable) {
+          yield value;
+          if (++count >= n) return;
+        }
+      }
+      ```
+
+      Nothing here builds an array. `for...of` on a generator calls `.next()`
+      once per iteration, and `yield` suspends execution until the *next*
+      `.next()` call — so a chain of four generators processes one value at
+      a time, pulled from the bottom (`takeIter`) up through `filterIter` and
+      `mapIter` to `range`, only as far as it needs to. That is precisely how
+      `itertools` works in Python, and it is the mechanism a database cursor
+      or a Node readable stream both rely on: never materialise more than the
+      consumer asked for.
+
+  # ======================================================== runtime: python
+
+  - slug: token-bucket-rate-limiter
+    concept: python-decorators
+    title: A rate limiter with a bucket of tokens
+    tagline: The algorithm behind "429 Too Many Requests," as a decorator.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      A rate limiter is a small piece of state wearing a decorator's
+      clothes: a bucket that holds up to `capacity` tokens, refills at
+      `rate` tokens per second, and each call spends one token or gets
+      refused. Get the refill arithmetic wrong and you either throttle
+      nothing or throttle everything — there is no partial credit.
+
+      Implement `rate_limited(rate, capacity, clock=time.monotonic)` in
+      `solution.py`, a decorator factory:
+
+      ```python
+      @rate_limited(rate=5, capacity=5)
+      def handle_request(): ...
+      ```
+
+      - The bucket starts **full** (`capacity` tokens) the first time the
+        decorated function is defined.
+      - On every call, first refill: add `elapsed_seconds * rate` tokens to
+        the bucket (where `elapsed_seconds` is the time since the bucket was
+        last touched), capped at `capacity` — it never overfills.
+      - If at least 1 token is available after refilling, spend one and call
+        the function, returning its result.
+      - Otherwise, raise `RateLimitExceeded` — do not call the function.
+      - `clock` is called instead of `time.monotonic()` directly, so the
+        tests can hand in a fake one and control time exactly.
+      - Two functions decorated separately must not share a bucket.
+    must_contain:
+      - "class RateLimitExceeded"
+      - "def rate_limited"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import functools
+          import time
+
+
+          class RateLimitExceeded(Exception):
+              """Raised when a call is refused because the bucket is empty."""
+
+
+          def rate_limited(rate: float, capacity: float, clock=time.monotonic):
+              """Return a decorator enforcing `rate` tokens/second, capped at `capacity`."""
+              raise NotImplementedError
+    tests:
+      - name: The bucket starts full — capacity calls in a row all succeed
+        code: |
+          now = {"t": 0.0}
+          clock = lambda: now["t"]
+
+          @rate_limited(rate=1, capacity=3, clock=clock)
+          def ping():
+              return "ok"
+
+          results = [ping() for _ in range(3)]
+          assert results == ["ok", "ok", "ok"], results
+      - name: An empty bucket refuses the call and does not run the function
+        code: |
+          now = {"t": 0.0}
+          clock = lambda: now["t"]
+          calls = []
+
+          @rate_limited(rate=1, capacity=2, clock=clock)
+          def ping():
+              calls.append(1)
+              return "ok"
+
+          ping(); ping()
+          try:
+              ping()
+          except RateLimitExceeded:
+              pass
+          else:
+              raise AssertionError("a third call with an empty bucket should have been refused")
+          assert calls == [1, 1], f"the refused call must not have run the function: {calls}"
+      - name: Tokens refill over time, at exactly `rate` tokens per second
+        code: |
+          now = {"t": 0.0}
+          clock = lambda: now["t"]
+
+          @rate_limited(rate=2, capacity=2, clock=clock)
+          def ping():
+              return "ok"
+
+          ping(); ping()               # bucket is now empty
+          now["t"] = 0.5                # 0.5s later, at 2 tokens/sec -> +1 token
+          assert ping() == "ok"
+          try:
+              ping()
+          except RateLimitExceeded:
+              pass
+          else:
+              raise AssertionError("only one token should have refilled after 0.5s at 2/s")
+      - name: Refilled tokens never exceed capacity
+        code: |
+          now = {"t": 0.0}
+          clock = lambda: now["t"]
+
+          @rate_limited(rate=10, capacity=2, clock=clock)
+          def ping():
+              return "ok"
+
+          now["t"] = 1000  # plenty of time to overfill, if the cap were missing
+          results = [ping(), ping()]
+          assert results == ["ok", "ok"], results
+          try:
+              ping()
+          except RateLimitExceeded:
+              pass
+          else:
+              raise AssertionError("capacity=2 should still cap the bucket after 1000s of refill")
+      - name: functools.wraps keeps the decorated function's identity
+        hidden: true
+        code: |
+          @rate_limited(rate=1, capacity=1)
+          def named():
+              """A docstring worth keeping."""
+              return 1
+
+          assert named.__name__ == "named", named.__name__
+          assert named.__doc__ == "A docstring worth keeping."
+      - name: Each decorated function gets its own independent bucket
+        hidden: true
+        code: |
+          now = {"t": 0.0}
+          clock = lambda: now["t"]
+
+          @rate_limited(rate=1, capacity=1, clock=clock)
+          def a():
+              return "a"
+
+          @rate_limited(rate=1, capacity=1, clock=clock)
+          def b():
+              return "b"
+
+          assert a() == "a"
+          assert b() == "b", "b's bucket must not have been drained by a's call"
+          try:
+              a()
+          except RateLimitExceeded:
+              pass
+          else:
+              raise AssertionError("a's bucket should be empty after its one call")
+    solution_md: |
+      ```python
+      def rate_limited(rate, capacity, clock=time.monotonic):
+          def decorator(fn):
+              state = {"tokens": capacity, "last": clock()}
+
+              @functools.wraps(fn)
+              def wrapper(*args, **kwargs):
+                  now = clock()
+                  elapsed = now - state["last"]
+                  state["tokens"] = min(capacity, state["tokens"] + elapsed * rate)
+                  state["last"] = now
+
+                  if state["tokens"] < 1:
+                      raise RateLimitExceeded(
+                          f"no tokens available ({state['tokens']:.2f} < 1)"
+                      )
+                  state["tokens"] -= 1
+                  return fn(*args, **kwargs)
+
+              return wrapper
+          return decorator
+      ```
+
+      The `state` dict lives in the closure created by `decorator(fn)`, so
+      every function decorated separately gets its own dict — that is what
+      keeps two rate limiters from draining each other's bucket. Refilling
+      *before* checking, on every call rather than on a timer, is what makes
+      this correct without a background thread: the bucket only needs to
+      know how much time passed since it was last asked, not what happened
+      in between.
+
+  - slug: pooled-resource-context-manager
+    concept: python-context-manager
+    title: A connection pool that gives its connections back
+    tagline: The protocol behind `with`, applied to something scarcer than a file handle.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      A database connection is expensive enough that you don't open a fresh
+      one per request — you keep a small pool and check connections out and
+      back in. The interesting part is not the pool itself; it's making sure
+      a connection **always** goes back, including when the code using it
+      raises. `with` is the language feature built for exactly that
+      guarantee, so build the pool around it.
+
+      Implement `ConnectionPool` in `solution.py`, using
+      `@contextlib.contextmanager` for `acquire`:
+
+      ```python
+      pool = ConnectionPool(create=make_connection, max_size=5)
+      with pool.acquire() as conn:
+          conn.query(...)
+      # conn is back in the pool here, whether or not the block raised.
+      ```
+
+      - `create` is a zero-argument factory the pool calls to make a new
+        connection, only when it needs one it doesn't already have.
+      - `acquire()` returns a context manager. Entering it hands back a free
+        connection if one exists; otherwise, if the pool has created fewer
+        than `max_size` connections so far, it creates one. If neither is
+        possible, raise `PoolExhausted`.
+      - Exiting the `with` block returns the connection to the pool's free
+        list — **even if the block raised** — so it can be handed out again.
+      - A connection is never created twice for the same slot: reusing a
+        released connection must not call `create` again.
+    must_contain:
+      - "class PoolExhausted"
+      - "contextlib.contextmanager"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import contextlib
+
+
+          class PoolExhausted(Exception):
+              """Raised when no connection is free and the pool is at capacity."""
+
+
+          class ConnectionPool:
+              """A fixed-size pool of connections, checked out via `with`."""
+
+              def __init__(self, create, max_size: int):
+                  self._create = create
+                  self._max_size = max_size
+                  self._free = []
+                  self._in_use = 0
+
+              def acquire(self):
+                  """Return a context manager yielding one checked-out connection."""
+                  raise NotImplementedError
+    tests:
+      - name: Acquiring yields a connection, and it comes back on exit
+        code: |
+          made = []
+          def create():
+              made.append(1)
+              return object()
+
+          pool = ConnectionPool(create, max_size=2)
+          with pool.acquire() as conn:
+              assert conn is not None
+          assert len(made) == 1, f"expected exactly one connection created, made {len(made)}"
+      - name: A later checkout reuses the released connection instead of making a new one
+        code: |
+          made = []
+          def create():
+              made.append(1)
+              return f"conn-{len(made)}"
+
+          pool = ConnectionPool(create, max_size=2)
+          with pool.acquire() as first:
+              pass
+          with pool.acquire() as second:
+              assert second == first, f"expected the same connection reused, got {first!r} then {second!r}"
+          assert len(made) == 1, f"a second connection was created unnecessarily: {made}"
+      - name: Two connections held at once are distinct
+        code: |
+          made = []
+          def create():
+              made.append(1)
+              return f"conn-{len(made)}"
+
+          pool = ConnectionPool(create, max_size=2)
+          with pool.acquire() as a:
+              with pool.acquire() as b:
+                  assert a != b, "two simultaneously-held connections must be distinct"
+          assert len(made) == 2, f"expected 2 connections created, made {len(made)}"
+      - name: Exceeding max_size while every connection is checked out raises PoolExhausted
+        code: |
+          pool = ConnectionPool(lambda: object(), max_size=1)
+          with pool.acquire() as a:
+              try:
+                  with pool.acquire() as b:
+                      pass
+              except PoolExhausted:
+                  pass
+              else:
+                  raise AssertionError("a second checkout beyond max_size=1 should have been refused")
+      - name: A connection is released even when the block raises
+        hidden: true
+        code: |
+          pool = ConnectionPool(lambda: object(), max_size=1)
+          try:
+              with pool.acquire() as conn:
+                  raise ValueError("boom")
+          except ValueError:
+              pass
+
+          # If release didn't happen on the exception path, this raises PoolExhausted.
+          with pool.acquire() as conn:
+              assert conn is not None
+      - name: Repeated use never leaks capacity
+        hidden: true
+        code: |
+          made = []
+          def create():
+              made.append(1)
+              return f"conn-{len(made)}"
+
+          pool = ConnectionPool(create, max_size=1)
+          for _ in range(5):
+              with pool.acquire() as conn:
+                  assert conn == "conn-1", conn
+          assert len(made) == 1, f"only one connection should ever be created, made {len(made)}"
+    solution_md: |
+      ```python
+      class ConnectionPool:
+          def __init__(self, create, max_size):
+              self._create = create
+              self._max_size = max_size
+              self._free = []
+              self._in_use = 0
+
+          @contextlib.contextmanager
+          def acquire(self):
+              if self._free:
+                  conn = self._free.pop()
+              elif self._in_use < self._max_size:
+                  conn = self._create()
+              else:
+                  raise PoolExhausted(f"all {self._max_size} connections are checked out")
+
+              self._in_use += 1
+              try:
+                  yield conn
+              finally:
+                  self._in_use -= 1
+                  self._free.append(conn)
+      ```
+
+      The `try`/`finally` around `yield` is the entire lesson.
+      `@contextlib.contextmanager` turns a generator into a context
+      manager by running everything before `yield` on `__enter__` and
+      everything after on `__exit__` — including when `__exit__` is called
+      because the `with` block raised. Put the cleanup in `finally`, and it
+      runs regardless of why control left the block; leave it as a plain
+      statement after `yield`, and an exception in the caller's code skips
+      it, quietly leaking a connection every time something goes wrong.
+
+  - slug: csv-typed-json-pipeline
+    concept: python-generator-expressions
+    title: Type inference for a CSV, one row at a time
+    tagline: Every value off a CSV is a string — infer what it actually is, lazily.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 45
+    xp_reward: 130
+    brief_md: |
+      A CSV has no types. `"30"`, `"true"` and `""` are all just text until
+      something decides `"30"` should become the integer `30`. Do that
+      conversion eagerly, though, and a multi-gigabyte export gets fully
+      parsed into memory before the first row is even used.
+
+      Implement `typed_rows(lines)` in `solution.py` as a **generator
+      function** — `lines` is an iterable of raw text lines (the first is a
+      comma-separated header, the rest are data rows), and `typed_rows`
+      yields one `dict` per data row with each value converted:
+
+      - `""` becomes `None`.
+      - `"true"` / `"false"` (any case) become `True` / `False`.
+      - A value that parses as an integer becomes an `int`; one that parses
+        as a float (and isn't an int) becomes a `float`.
+      - Anything else stays a `str`.
+
+      A row is paired with the header **positionally**: extra values beyond
+      the header are dropped, and a row with fewer values than the header
+      simply has those trailing keys absent from its dict — do not pad with
+      `None`.
+
+      Because it's a generator, consuming the first row must not force the
+      rest of `lines` to be read. If `lines` were a generator streaming from
+      a file, `typed_rows` must not defeat that streaming.
+    must_contain:
+      - "yield"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def typed_rows(lines):
+              """Yield each data row as a dict with inferred types.
+
+              `lines` is an iterable: the first item is the comma-separated
+              header, the rest are data rows. Must be a generator function —
+              consuming only the first result must not touch the rest of
+              `lines`.
+              """
+              raise NotImplementedError
+    tests:
+      - name: Values are converted to their inferred types
+        code: |
+          lines = ["name,age,active", "Ada,30,true", "Bo,,false"]
+          rows = list(typed_rows(lines))
+          assert rows[0] == {"name": "Ada", "age": 30, "active": True}, rows[0]
+          assert rows[1] == {"name": "Bo", "age": None, "active": False}, rows[1]
+      - name: Floats are distinguished from ints
+        code: |
+          rows = list(typed_rows(["x,y", "3,3.5"]))
+          assert rows[0]["x"] == 3 and isinstance(rows[0]["x"], int), rows[0]
+          assert rows[0]["y"] == 3.5 and isinstance(rows[0]["y"], float), rows[0]
+      - name: Consuming one row does not pull the rest of the source
+        code: |
+          pulled = []
+          def lines():
+              yield "n"
+              for i in range(1000):
+                  pulled.append(i)
+                  yield str(i)
+
+          it = typed_rows(lines())
+          first = next(it)
+          assert first == {"n": 0}, first
+          assert pulled == [0], f"pulled {pulled[:5]} — the source was consumed too eagerly"
+      - name: Unrecognised text is left as a string
+        code: |
+          rows = list(typed_rows(["word", "hello"]))
+          assert rows[0] == {"word": "hello"}, rows[0]
+          assert isinstance(rows[0]["word"], str)
+      - name: typed_rows is itself a generator, not a function returning a list
+        hidden: true
+        code: |
+          import types
+          result = typed_rows(["a", "1"])
+          assert isinstance(result, types.GeneratorType), f"expected a generator, got {type(result)}"
+      - name: A row shorter or longer than the header is paired positionally, not padded
+        hidden: true
+        code: |
+          rows = list(typed_rows(["a,b", "1,2,3", "9"]))
+          assert len(rows) == 2, len(rows)
+          assert rows[0] == {"a": 1, "b": 2}, rows[0]
+          assert rows[1] == {"a": 9}, rows[1]
+    solution_md: |
+      ```python
+      def infer(value):
+          if value == "":
+              return None
+          if value.lower() in ("true", "false"):
+              return value.lower() == "true"
+          try:
+              return int(value)
+          except ValueError:
+              pass
+          try:
+              return float(value)
+          except ValueError:
+              pass
+          return value
+
+
+      def typed_rows(lines):
+          iterator = iter(lines)
+          header = next(iterator).split(",")
+          for line in iterator:
+              values = line.split(",")
+              yield {name: infer(value) for name, value in zip(header, values)}
+      ```
+
+      `zip(header, values)` is what gives you the positional pairing for
+      free: it stops at the shorter of the two, so a short row just yields
+      fewer pairs and a long row's extra values are silently ignored — no
+      explicit length-checking needed. And because the whole function is
+      built around `yield` rather than returning `[dict(...) for line in
+      lines]`, calling `next()` once does exactly one unit of work: read one
+      line, convert it, hand it back. The rest of `lines` — however large,
+      however slow to produce — is never touched until you ask for more.
+
+  - slug: mini-template-renderer
+    concept: python-regular-expressions
+    title: A template engine in one regex and a loop
+    tagline: Variable substitution and for-loops, built entirely on re.sub.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      Every templating library — Jinja2, Handlebars, Django's own — starts
+      as this: find `{{ ... }}`, look the name up, and splice in the answer.
+      Build the small version and the large ones stop looking like magic.
+
+      Implement `render(template, context)` in `solution.py`.
+
+      - `{{ name }}` substitutes `str(context['name'])`. Whitespace right
+        inside the braces is optional — `{{name}}` and `{{ name }}` are
+        both valid.
+      - `{% for item in items %}...{% endfor %}` repeats the text between
+        the tags once per element of `context['items']`, with `item` bound
+        to that element inside the loop body (in addition to whatever else
+        is in `context`). Loops do not nest — a `{% for %}` inside another
+        `{% for %}` is out of scope.
+      - Referencing a name that isn't in the active context — for a plain
+        `{{ }}` or for the list in a `{% for %}` — raises `TemplateError`
+        naming the missing variable.
+
+      Build the tokenising with `re` rather than hand-rolled string
+      scanning: a compiled pattern for `{{ name }}` and one for the
+      `{% for %}...{% endfor %}` block, each substituted with `.sub()` and a
+      replacement function.
+    must_contain:
+      - "re.compile"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          import re
+
+
+          class TemplateError(Exception):
+              """Raised when a template references a name not in the context."""
+
+
+          def render(template: str, context: dict) -> str:
+              """Render `{{ name }}` substitutions and `{% for x in xs %}` loops."""
+              raise NotImplementedError
+    tests:
+      - name: A variable is substituted with its string value
+        code: |
+          result = render("Hello, {{ name }}!", {"name": "Ada"})
+          assert result == "Hello, Ada!", result
+      - name: Whitespace inside the braces is optional
+        code: |
+          result = render("{{name}}-{{ name }}", {"name": "x"})
+          assert result == "x-x", result
+      - name: A for loop repeats its body once per item
+        code: |
+          result = render(
+              "Items: {% for item in items %}[{{ item }}]{% endfor %}",
+              {"items": ["a", "b", "c"]},
+          )
+          assert result == "Items: [a][b][c]", result
+      - name: An undefined variable raises TemplateError naming it
+        code: |
+          try:
+              render("{{ missing }}", {})
+          except TemplateError as exc:
+              assert "missing" in str(exc), str(exc)
+          else:
+              raise AssertionError("an undefined variable should have raised TemplateError")
+      - name: The loop variable does not leak into text outside the loop
+        hidden: true
+        code: |
+          result = render("{% for x in xs %}{{ x }}{% endfor %}|{{ after }}", {"xs": [1, 2], "after": "done"})
+          assert result == "12|done", result
+      - name: An empty list runs the loop body zero times
+        hidden: true
+        code: |
+          result = render("[{% for x in xs %}{{ x }}{% endfor %}]", {"xs": []})
+          assert result == "[]", result
+    solution_md: |
+      ```python
+      VAR = re.compile(r"\{\{\s*(\w+)\s*\}\}")
+      FOR = re.compile(r"\{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}", re.DOTALL)
+
+
+      def _substitute(text, context):
+          def replace(match):
+              name = match.group(1)
+              if name not in context:
+                  raise TemplateError(f"undefined variable: {name!r}")
+              return str(context[name])
+          return VAR.sub(replace, text)
+
+
+      def render(template, context):
+          def replace_loop(match):
+              loopvar, listvar, body = match.group(1), match.group(2), match.group(3)
+              if listvar not in context:
+                  raise TemplateError(f"undefined variable: {listvar!r}")
+              return "".join(
+                  _substitute(body, {**context, loopvar: item})
+                  for item in context[listvar]
+              )
+
+          without_loops = FOR.sub(replace_loop, template)
+          return _substitute(without_loops, context)
+      ```
+
+      Loops are resolved *first*, each one fully substituted into plain text
+      using a context with the loop variable added — so by the time the
+      final `_substitute` pass runs over the whole template, every `{{ }}`
+      still standing belongs to the outer scope, and every one already
+      inside a loop body has already become real text. `{**context, loopvar:
+      item}` is what keeps the loop variable from leaking outward: it's a
+      new dict for that one iteration, not a mutation of `context` itself.
+
+  - slug: path-normalizer
+    concept: nodejs-common-built-in-modules
+    title: The algorithm behind path.join
+    tagline: Node's `path` module, minus Node — just the string algorithm.
+    runtime: python
+    difficulty: beginner
+    est_minutes: 40
+    xp_reward: 120
+    brief_md: |
+      Every backend touches file paths, and every language ships a module
+      for combining them safely — Node has `path.join`/`path.normalize`,
+      Python has `os.path`. Both are a thin wrapper around the same handful
+      of string rules. Build those rules yourself, in Python, without
+      reaching for `os.path` — the point is the algorithm, not the module
+      that already implements it for you.
+
+      Implement `normalize_path(*parts)` in `solution.py`, using
+      **POSIX-style forward slashes only** (no Windows backslash handling
+      needed):
+
+      - Join every part with `/`, then collapse the result: drop empty
+        segments (from doubled slashes) and `.` segments outright.
+      - A `..` segment cancels out the segment immediately before it — `..`
+        after `a` removes `a` (`"a/.."` becomes `""`).
+      - If the path is **absolute** (the first part passed in starts with
+        `/`), a `..` that has nothing left to cancel is simply dropped — you
+        cannot go above the root.
+      - If the path is **relative**, a `..` with nothing to cancel is kept
+        in the result — you end up with a leading `../` in the output,
+        which is the correct answer for "go up from somewhere unknown."
+      - No parts at all (or a result that resolves to nothing) normalizes
+        to `"."`, matching what every real path library does for "the
+        current directory."
+    must_contain:
+      - "def normalize_path"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          def normalize_path(*parts: str) -> str:
+              """Join and normalise POSIX-style path segments, from scratch."""
+              raise NotImplementedError
+    tests:
+      - name: Segments join with a single slash
+        code: |
+          result = normalize_path("a", "b", "c")
+          assert result == "a/b/c", result
+      - name: Dot segments are dropped
+        code: |
+          result = normalize_path("a/./b", "./c")
+          assert result == "a/b/c", result
+      - name: A double-dot segment cancels the one before it
+        code: |
+          result = normalize_path("a/b", "../c")
+          assert result == "a/c", result
+      - name: An absolute path stays absolute and cannot climb above root
+        code: |
+          result = normalize_path("/a", "../../b")
+          assert result == "/b", result
+      - name: A relative path keeps a leading .. it has nowhere else to put
+        hidden: true
+        code: |
+          result = normalize_path("a", "../../b")
+          assert result == "../b", result
+      - name: No parts normalises to the current directory, and a bare slash stays a slash
+        hidden: true
+        code: |
+          assert normalize_path() == ".", normalize_path()
+          assert normalize_path("/") == "/", normalize_path("/")
+    solution_md: |
+      ```python
+      def normalize_path(*parts):
+          absolute = bool(parts) and parts[0].startswith("/")
+          segments = "/".join(parts).split("/")
+
+          stack = []
+          for segment in segments:
+              if segment in ("", "."):
+                  continue
+              if segment == "..":
+                  if stack and stack[-1] != "..":
+                      stack.pop()
+                  elif not absolute:
+                      stack.append("..")
+                  # else: absolute and nothing to cancel — drop it, can't
+                  # go above root.
+              else:
+                  stack.append(segment)
+
+          path = "/".join(stack)
+          if absolute:
+              return "/" + path
+          return path or "."
+      ```
+
+      The `stack[-1] != ".."` check is what keeps `"../../b"` correct for a
+      relative path: without it, the second `..` would try to "cancel" the
+      first `..` already sitting on the stack, collapsing `../.. ` down to
+      nothing instead of keeping both. A `..` can only cancel a *real*
+      segment — cancelling another `..` would mean climbing back down into a
+      directory you never named.
+
+  - slug: result-type-error-handling
+    concept: nodejs-error-handling
+    title: Errors as values, not exceptions
+    tagline: The type that makes "did anyone check the error?" answerable by reading the code.
+    runtime: python
+    difficulty: intermediate
+    est_minutes: 50
+    xp_reward: 140
+    brief_md: |
+      Node's callback convention — `(err, data) => ...` — puts the error
+      right there as an argument, but nothing stops you from writing
+      `(err, data) => use(data)` and never looking at `err`. A `Result` type
+      makes that mistake harder: the success value is only reachable by
+      going through operations that know how to handle failure, so ignoring
+      an error means the pipeline itself stops producing values.
+
+      Implement `Ok` and `Err` in `solution.py`, both subclasses of `Result`:
+
+      - **`Ok(value)`** wraps a success. **`Err(error)`** wraps a failure.
+      - **`is_ok()`** — `True` for `Ok`, `False` for `Err`.
+      - **`map(fn)`** — on `Ok(v)`, return `Ok(fn(v))`. On `Err`, return the
+        same `Err` unchanged, and **do not call `fn`**.
+      - **`and_then(fn)`** — `fn` itself returns a `Result`. On `Ok(v)`,
+        return `fn(v)` directly (not wrapped again). On `Err`, return the
+        same `Err` unchanged, without calling `fn`. This is what lets you
+        chain several fallible steps: each one only runs if everything
+        before it succeeded.
+      - **`unwrap_or(default)`** — the wrapped value for `Ok`, or `default`
+        for `Err`.
+      - `Ok` and `Err` instances must support `==`, comparing by kind and
+        by their wrapped value/error, so tests (and calling code) can
+        compare results directly.
+    must_contain:
+      - "class Ok"
+      - "class Err"
+    files:
+      - path: solution.py
+        entry: true
+        content: |
+          class Result:
+              """Base class — construct Ok(value) or Err(error), never Result() itself."""
+
+              def is_ok(self) -> bool:
+                  raise NotImplementedError
+
+              def map(self, fn):
+                  raise NotImplementedError
+
+              def and_then(self, fn):
+                  raise NotImplementedError
+
+              def unwrap_or(self, default):
+                  raise NotImplementedError
+
+
+          class Ok(Result):
+              def __init__(self, value):
+                  self.value = value
+
+
+          class Err(Result):
+              def __init__(self, error):
+                  self.error = error
+    tests:
+      - name: Ok and Err report their own kind
+        code: |
+          assert Ok(5).is_ok() is True
+          assert Err("bad").is_ok() is False
+      - name: map transforms the value inside Ok, and leaves Err untouched
+        code: |
+          assert Ok(5).map(lambda x: x * 2) == Ok(10), Ok(5).map(lambda x: x * 2)
+          assert Err("bad").map(lambda x: x * 2) == Err("bad")
+      - name: map never calls its function on an Err
+        code: |
+          calls = []
+          Err("bad").map(lambda x: calls.append(x))
+          assert calls == [], f"map ran its function on an Err: {calls}"
+      - name: and_then chains a Result-returning function, short-circuiting on Err
+        code: |
+          def half(x):
+              return Ok(x // 2) if x % 2 == 0 else Err(f"{x} is not even")
+
+          assert Ok(10).and_then(half) == Ok(5), Ok(10).and_then(half)
+          assert Ok(9).and_then(half) == Err("9 is not even"), Ok(9).and_then(half)
+          assert Err("prior failure").and_then(half) == Err("prior failure")
+      - name: unwrap_or returns the value, or falls back to the default on Err
+        hidden: true
+        code: |
+          assert Ok(5).unwrap_or(0) == 5
+          assert Err("bad").unwrap_or(0) == 0
+      - name: A chain of steps stops at the first failure and carries its message
+        hidden: true
+        code: |
+          def half(x):
+              return Ok(x // 2) if x % 2 == 0 else Err(f"{x} is not even")
+
+          pipeline = Ok(20).and_then(half).and_then(half).and_then(half)
+          # 20 -> 10 -> 5, then 5 is odd: fails on the third step
+          assert pipeline == Err("5 is not even"), pipeline
+          assert pipeline.unwrap_or(-1) == -1
+    solution_md: |
+      ```python
+      class Ok(Result):
+          def __init__(self, value):
+              self.value = value
+
+          def is_ok(self):
+              return True
+
+          def map(self, fn):
+              return Ok(fn(self.value))
+
+          def and_then(self, fn):
+              return fn(self.value)
+
+          def unwrap_or(self, default):
+              return self.value
+
+          def __eq__(self, other):
+              return isinstance(other, Ok) and self.value == other.value
+
+
+      class Err(Result):
+          def __init__(self, error):
+              self.error = error
+
+          def is_ok(self):
+              return False
+
+          def map(self, fn):
+              return self
+
+          def and_then(self, fn):
+              return self
+
+          def unwrap_or(self, default):
+              return default
+
+          def __eq__(self, other):
+              return isinstance(other, Err) and self.error == other.error
+      ```
+
+      `map` and `and_then` on `Err` both return `self` — not a new `Err`,
+      not `None`, the exact same object — and never touch `fn`. That single
+      rule is what makes a whole chain "just work": once one step fails,
+      every `.map()`/`.and_then()` after it is a no-op that passes the same
+      `Err` straight through, so the final result tells you which step
+      failed without any of the later steps needing to check for failure
+      themselves. That's the whole pitch over exceptions: the failure is
+      data flowing through the same pipe as the success, not a different
+      control-flow path you might forget to wire up.

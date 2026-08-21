@@ -22,11 +22,26 @@ if settings.is_sqlite:
 
     @event.listens_for(engine, "connect")
     def _sqlite_pragmas(dbapi_connection, _connection_record):
-        """SQLite ignores foreign keys unless asked; WAL keeps reads concurrent."""
+        """SQLite ignores foreign keys unless asked; WAL keeps reads concurrent.
+
+        ``isolation_level = None`` turns off pysqlite's own transaction
+        handling. Left on, the driver opens and commits transactions behind
+        SQLAlchemy's back, which silently breaks SAVEPOINT: the test suite's
+        rollback-per-test isolation released its savepoint outside any
+        transaction and rows leaked between tests. SQLAlchemy's pysqlite
+        dialect documents this exact workaround, with the explicit BEGIN below
+        as its other half.
+        """
+        dbapi_connection.isolation_level = None
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.close()
+
+    @event.listens_for(engine, "begin")
+    def _sqlite_begin(conn):
+        """Emit the BEGIN that pysqlite no longer emits for us."""
+        conn.exec_driver_sql("BEGIN")
 
 
 SessionLocal = sessionmaker(

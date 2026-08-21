@@ -8,6 +8,12 @@ YAML file then re-running propagates the edit. Child collections (resources,
 quiz questions, interview questions, role skills) are replaced wholesale —
 they have no independent identity and no user data hangs off them.
 
+Quizzes live apart from the concepts they belong to, in `seed/quizzes/`, and
+are attached by `seed_quizzes` after the tracks are in. `seed/tracks/` is
+regenerated wholesale by `scripts/import_roadmapsh.py` and is git-ignored, so
+anything written there is one re-import away from being deleted. The questions
+are ours, not roadmap.sh's, and they have to survive that.
+
 Concepts are loaded across *all* track files before prerequisites are wired,
 because tracks share concepts: `programming-language-python` and
 `containers-docker` appear in both the backend and AI-engineer tracks, which is
@@ -17,7 +23,9 @@ exactly what makes this a graph rather than a set of lists.
 from __future__ import annotations
 
 import argparse
+import secrets
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -27,12 +35,14 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.company import (
+    INTERVIEW_OUTCOMES,
     QUESTION_KINDS,
     ROUNDS,
     Company,
     CompanyFocus,
     CompanyQuestion,
     CompanyResource,
+    CompanyReview,
     CompanyRole,
 )
 from app.models.content import (
@@ -56,11 +66,20 @@ from app.models.project import (
     ProjectFile,
     ProjectTest,
 )
+from app.models.user import User
+from app.security import hash_password
 
 SEED_DIR = Path(__file__).resolve().parent
 TRACKS_DIR = SEED_DIR / "tracks"
 PROJECTS_DIR = SEED_DIR / "projects"
 COMPANIES_DIR = SEED_DIR / "companies"
+QUIZZES_DIR = SEED_DIR / "quizzes"
+REVIEWS_DIR = SEED_DIR / "reviews"
+
+# Sample reviewers get addresses in a reserved TLD (RFC 2606) that can never
+# resolve, so a placeholder account cannot collide with a real signup or be
+# mistaken for one.
+SAMPLE_AUTHOR_DOMAIN = "samples.skillatlas.invalid"
 
 # The default test kind for each runtime, so simple YAML can omit `kind:`.
 TEST_KIND_FOR_RUNTIME = {
@@ -134,36 +153,80 @@ def _replace_children(db: Session, concept: Concept, raw: dict[str, Any]) -> Non
 
     concept.quiz_questions.clear()
     for q_order, q in enumerate(raw.get("quiz", [])):
-        options = q.get("options", [])
-        if not any(o.get("correct") for o in options):
-            raise SeedError(
-                f"Quiz question on '{concept.slug}' has no correct option: {q['prompt'][:60]!r}"
-            )
-        question = QuizQuestion(
-            prompt=q["prompt"],
-            explanation=q.get("explanation"),
-            sort_order=q_order,
-        )
-        for o_order, opt in enumerate(options):
-            question.options.append(
-                QuizOption(
-                    text=opt["text"],
-                    is_correct=bool(opt.get("correct", False)),
-                    sort_order=o_order,
-                )
-            )
-        concept.quiz_questions.append(question)
+        concept.quiz_questions.append(_build_quiz_question(concept.slug, q, q_order))
 
     concept.interview_questions.clear()
     for order, iq in enumerate(raw.get("interview", [])):
         concept.interview_questions.append(
-            InterviewQuestion(
-                question=iq["question"],
-                answer_md=iq.get("answer_md"),
-                difficulty=iq.get("difficulty", "medium"),
-                sort_order=order,
+            _build_interview_question(concept.slug, iq, order)
+        )
+
+
+def _build_quiz_question(
+    concept_slug: str,
+    raw: dict[str, Any],
+    order: int,
+    generated_by: str | None = None,
+    verified_at: datetime | None = None,
+) -> QuizQuestion:
+    """One multiple-choice question, with the rules the grader depends on.
+
+    ``routers/progress.py`` scores an attempt by looking up *the* correct
+    option, so "exactly one" is not a style preference — two correct options
+    make a question ungradeable and none makes it unpassable. Three options is
+    the floor at which a guess is worth less than knowing the answer.
+    """
+    options = raw.get("options", [])
+    correct = [o for o in options if o.get("correct")]
+    if len(correct) != 1:
+        raise SeedError(
+            f"Quiz question on '{concept_slug}' has {len(correct)} correct "
+            f"options, expected exactly 1: {raw['prompt'][:60]!r}"
+        )
+    if len(options) < 3:
+        raise SeedError(
+            f"Quiz question on '{concept_slug}' has only {len(options)} options: "
+            f"{raw['prompt'][:60]!r}"
+        )
+
+    question = QuizQuestion(
+        prompt=raw["prompt"],
+        explanation=raw.get("explanation"),
+        sort_order=order,
+        generated_by=generated_by,
+        verified_at=verified_at,
+    )
+    for o_order, opt in enumerate(options):
+        question.options.append(
+            QuizOption(
+                text=opt["text"],
+                is_correct=bool(opt.get("correct", False)),
+                sort_order=o_order,
             )
         )
+    return question
+
+
+def _build_interview_question(
+    concept_slug: str,
+    raw: dict[str, Any],
+    order: int,
+    generated_by: str | None = None,
+    verified_at: datetime | None = None,
+) -> InterviewQuestion:
+    if not (raw.get("answer_md") or "").strip():
+        raise SeedError(
+            f"Interview question on '{concept_slug}' has no answer: "
+            f"{raw['question'][:60]!r}"
+        )
+    return InterviewQuestion(
+        question=raw["question"],
+        answer_md=raw["answer_md"],
+        difficulty=raw.get("difficulty", "medium"),
+        sort_order=order,
+        generated_by=generated_by,
+        verified_at=verified_at,
+    )
 
 
 def upsert_concept(
@@ -242,10 +305,29 @@ def _assert_acyclic(concept_specs: dict[str, dict[str, Any]]) -> None:
 # --------------------------------------------------------------------------
 
 
+def track_files() -> list[Path]:
+    """Track YAMLs to seed, with hand-authored files superseding imported ones.
+
+    `authored-<slug>.yaml` is ours: written independently, tracked in git and
+    publishable. `<slug>.yaml` is whatever `scripts/import_roadmapsh.py` last
+    wrote, and is git-ignored. Both define the same track slug and the same
+    concept slugs, so seeding them together is an error — the importer already
+    refuses to regenerate a roadmap that has an authored file, and this is the
+    same rule applied to a tree that still has the pre-authoring import in it.
+    """
+    files = sorted(TRACKS_DIR.glob("*.yaml"))
+    superseded = {
+        TRACKS_DIR / f"{path.name[len('authored-'):]}"
+        for path in files
+        if path.name.startswith("authored-")
+    }
+    return [path for path in files if path not in superseded]
+
+
 def seed_tracks(
     db: Session, domains: dict[str, Domain]
 ) -> tuple[dict[str, Track], dict[str, Concept]]:
-    files = sorted(TRACKS_DIR.glob("*.yaml"))
+    files = track_files()
     if not files:
         raise SeedError(f"No track files found in {TRACKS_DIR}")
 
@@ -605,6 +687,226 @@ def _build_company_role(
 
 
 # --------------------------------------------------------------------------
+# sample reviews
+# --------------------------------------------------------------------------
+
+
+def _sample_author(db: Session, key: str, display_name: str) -> User:
+    """Get or create the placeholder account a sample review is attributed to.
+
+    These are not usable accounts: the address sits in a reserved, unresolvable
+    TLD, ``is_active`` is False so ``deps.get_current_user`` would reject any
+    token naming one, and the password is a random value that is discarded
+    after hashing, so nobody holds it.
+
+    They exist at all only because a review has an author by design. Adding a
+    nullable "authorless review" path just to seed demo content would leave a
+    hole that real reviews could later fall through — the honest fix is a real
+    author who happens to be a placeholder, labelled as one.
+    """
+    email = f"{key}@{SAMPLE_AUTHOR_DOMAIN}"
+    user = db.scalar(select(User).where(User.email == email))
+    if user is None:
+        user = User(
+            email=email,
+            # A real hash of a value nobody holds, rather than an empty
+            # string: `verify_password` then behaves normally and simply never
+            # matches, instead of every login attempt taking the malformed-hash
+            # path. `is_active=False` is what actually locks the account.
+            password_hash=hash_password(secrets.token_urlsafe(32)),
+            is_active=False,
+        )
+        db.add(user)
+    user.display_name = display_name
+    db.flush()
+    return user
+
+
+def seed_reviews(db: Session, companies: dict[str, Company]) -> int:
+    """Load every `reviews/*.yaml` — illustrative member reviews.
+
+    Sample content, and it says so in three places: `is_sample` on the row, a
+    display name containing "sample", and body text that opens by admitting it.
+    That triple is deliberate. A demo review that reads as real testimony is
+    worse than an empty section, because a learner would weigh it when deciding
+    where to apply.
+
+    Unlike `seed_companies` these rows are not authored claims about a company,
+    so there is no `source_url` rule to enforce. What is enforced instead is
+    that every review points at a company and a role that actually exist, and
+    carries a rating and an outcome the API can serve — an unknown company slug
+    is a hard error, exactly as it is for a focus area's concept.
+    """
+    if not REVIEWS_DIR.exists():
+        return 0
+
+    loaded = 0
+    for path in sorted(REVIEWS_DIR.glob("*.yaml")):
+        data = _read_yaml(path)
+
+        authors: dict[str, User] = {}
+        for raw in data.get("authors", []) or []:
+            key = raw["key"]
+            if key in authors:
+                raise SeedError(f"{path.name} defines sample author '{key}' twice")
+            authors[key] = _sample_author(db, key, raw["display_name"])
+
+        for raw in data.get("reviews", []) or []:
+            company_slug = raw["company"]
+            company = companies.get(company_slug)
+            if company is None:
+                raise SeedError(
+                    f"{path.name} has a review for unknown company '{company_slug}'"
+                )
+
+            author_key = raw["author"]
+            if author_key not in authors:
+                raise SeedError(
+                    f"{path.name} has a review by unknown sample author "
+                    f"'{author_key}' for '{company_slug}'"
+                )
+            author = authors[author_key]
+
+            role_slug = raw.get("role")
+            role_id = None
+            if role_slug:
+                role = next((r for r in company.roles if r.slug == role_slug), None)
+                if role is None:
+                    raise SeedError(
+                        f"{path.name}: review for '{company_slug}' names unknown "
+                        f"role '{role_slug}'"
+                    )
+                role_id = role.id
+
+            rating = int(raw["rating"])
+            if not 1 <= rating <= 5:
+                raise SeedError(
+                    f"{path.name}: review for '{company_slug}' has rating {rating}, "
+                    f"expected 1-5"
+                )
+
+            outcome = raw.get("interview_outcome", "not-interviewed")
+            if outcome not in INTERVIEW_OUTCOMES:
+                raise SeedError(
+                    f"{path.name}: review for '{company_slug}' has unknown outcome "
+                    f"'{outcome}' (expected one of {', '.join(INTERVIEW_OUTCOMES)})"
+                )
+
+            # Keyed on (company, author) — the same pair the unique constraint
+            # covers — so re-running edits the row rather than colliding.
+            review = db.scalar(
+                select(CompanyReview).where(
+                    CompanyReview.company_id == company.id,
+                    CompanyReview.user_id == author.id,
+                )
+            ) or CompanyReview(company_id=company.id, user_id=author.id)
+
+            review.company_role_id = role_id
+            review.rating = rating
+            review.title = raw["title"]
+            review.body_md = raw["body_md"]
+            review.interview_outcome = outcome
+            review.interview_year = raw.get("interview_year")
+            review.is_anonymous = bool(raw.get("is_anonymous", False))
+            # Not configurable from YAML. Anything loaded from here is a sample
+            # by definition, and a file that could opt out of the label would
+            # be a way to seed content that passes as genuine.
+            review.is_sample = True
+            review.helpful_count = review.helpful_count or 0
+            review.not_helpful_count = review.not_helpful_count or 0
+            db.add(review)
+            loaded += 1
+
+        db.flush()
+
+    return loaded
+
+
+# --------------------------------------------------------------------------
+# quizzes
+# --------------------------------------------------------------------------
+
+
+def _parse_verified_at(value: Any, slug: str) -> datetime | None:
+    """Accept an ISO-8601 string or the date/datetime PyYAML already parsed."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise SeedError(
+                f"Quiz block for '{slug}' has an unparseable verified_at "
+                f"{value!r}: {exc}"
+            ) from None
+    raise SeedError(f"Quiz block for '{slug}' has a non-date verified_at {value!r}")
+
+
+def seed_quizzes(db: Session, concepts: dict[str, Concept]) -> dict[str, int]:
+    """Load every `quizzes/*.yaml` and attach the questions to their concept.
+
+    These files are the reason the product's "every step ends in a check"
+    claim can be true: roadmap.sh ships no assessment material at all, so
+    without them ``routers/progress.py`` waves every concept through on its
+    ``question_count == 0`` fallback.
+
+    They live outside `tracks/` deliberately. `tracks/` is machine-generated
+    and git-ignored; re-running the importer wipes it. The questions were
+    written for this product and have to outlive a re-import, so they are keyed
+    by concept slug and attached here instead of being folded into the concept
+    body.
+
+    Attached wholesale, like every other child collection: a concept named in
+    one of these files loses whatever questions it already had. A file naming a
+    concept that does not exist is an error rather than a silent skip — that is
+    a typo or a slug that moved under the importer, and either way the check it
+    was meant to gate has quietly stopped existing.
+    """
+    seen: dict[str, str] = {}
+    counts = {"concepts": 0, "quiz": 0, "interview": 0}
+
+    for path in sorted(QUIZZES_DIR.glob("*.yaml")) if QUIZZES_DIR.exists() else []:
+        data = _read_yaml(path)
+        for slug, raw in (data.get("concepts") or {}).items():
+            if slug in seen:
+                raise SeedError(
+                    f"Concept '{slug}' has quizzes in both {seen[slug]} and "
+                    f"{path.name}. Define them in one file."
+                )
+            if slug not in concepts:
+                raise SeedError(
+                    f"{path.name} attaches questions to unknown concept '{slug}'"
+                )
+            seen[slug] = path.name
+
+            concept = concepts[slug]
+            generated_by = raw.get("generated_by")
+            verified_at = _parse_verified_at(raw.get("verified_at"), slug)
+
+            concept.quiz_questions.clear()
+            concept.interview_questions.clear()
+            db.flush()
+
+            for order, q in enumerate(raw.get("quiz", []) or []):
+                concept.quiz_questions.append(
+                    _build_quiz_question(slug, q, order, generated_by, verified_at)
+                )
+            for order, iq in enumerate(raw.get("interview", []) or []):
+                concept.interview_questions.append(
+                    _build_interview_question(slug, iq, order, generated_by, verified_at)
+                )
+
+            counts["concepts"] += 1
+            counts["quiz"] += len(concept.quiz_questions)
+            counts["interview"] += len(concept.interview_questions)
+            db.flush()
+
+    return counts
+
+
+# --------------------------------------------------------------------------
 # entrypoint
 # --------------------------------------------------------------------------
 
@@ -615,6 +917,10 @@ def seed_all(db: Session, *, verbose: bool = True) -> dict[str, int]:
     seed_roles(db, concepts)
     projects = seed_projects(db, concepts)
     companies = seed_companies(db, concepts)
+    reviews = seed_reviews(db, companies)
+    # After the tracks: upserting a concept clears its child collections, so
+    # anything attached before this point would be thrown away.
+    quizzes = seed_quizzes(db, concepts)
     db.commit()
 
     counts = {
@@ -623,6 +929,10 @@ def seed_all(db: Session, *, verbose: bool = True) -> dict[str, int]:
         "concepts": len(concepts),
         "projects": len(projects),
         "companies": len(companies),
+        "sample_reviews": reviews,
+        "quizzed_concepts": quizzes["concepts"],
+        "quiz_questions": quizzes["quiz"],
+        "interview_questions": quizzes["interview"],
         "with_content": sum(1 for d in domains.values() if d.has_content),
     }
     if verbose:
@@ -630,7 +940,11 @@ def seed_all(db: Session, *, verbose: bool = True) -> dict[str, int]:
             f"Seeded {counts['domains']} domains "
             f"({counts['with_content']} with content), "
             f"{counts['tracks']} tracks, {counts['concepts']} concepts, "
-            f"{counts['projects']} projects, {counts['companies']} companies."
+            f"{counts['projects']} projects, {counts['companies']} companies, "
+            f"{counts['sample_reviews']} sample reviews, "
+            f"{counts['quiz_questions']} quiz + "
+            f"{counts['interview_questions']} interview questions "
+            f"across {counts['quizzed_concepts']} concepts."
         )
     return counts
 

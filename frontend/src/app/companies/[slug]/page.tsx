@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowRight, ExternalLink, Star } from 'lucide-react';
 
 import { AppShell } from '@/components/app-shell';
+import { CompanyReviews } from '@/components/company-reviews';
 import { Markdown } from '@/components/markdown';
 import { SiteHeader } from '@/components/site-header';
 import { apiOrNull } from '@/lib/api';
-import { requireUser } from '@/lib/dal';
-import type { CompanyDetail } from '@/lib/types';
+import { getCurrentUser } from '@/lib/dal';
+import type { CompanyDetail, CompanyReviewList } from '@/lib/types';
 
 export async function generateMetadata({
   params,
@@ -27,13 +28,20 @@ export default async function CompanyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  await requireUser(`/companies/${slug}`);
+  // Not `requireUser`: the reviews section below is readable signed out, and
+  // the Proxy already keeps anonymous visitors off /companies. Anyone who does
+  // reach this page without a session sees the profile and the reviews, and is
+  // prompted to sign in before writing one.
+  const user = await getCurrentUser();
 
-  const company = await apiOrNull<CompanyDetail>(`/api/v1/companies/${slug}`);
+  const [company, reviews] = await Promise.all([
+    apiOrNull<CompanyDetail>(`/api/v1/companies/${slug}`),
+    apiOrNull<CompanyReviewList>(`/api/v1/companies/${slug}/reviews`),
+  ]);
   if (!company) notFound();
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'company', companySlug: company.slug }}>
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6">
@@ -68,8 +76,32 @@ export default async function CompanyPage({
             {company.fetched_on && (
               <span className="text-xs">Last verified {formatDate(company.fetched_on)}</span>
             )}
+            {company.reviews.average_rating !== null && (
+              <a href="#reviews-heading" className="flex items-center gap-1.5 hover:text-foreground">
+                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                <span className="font-medium tabular-nums text-foreground">
+                  {company.reviews.average_rating.toFixed(1)}
+                </span>
+                <span className="text-xs">
+                  from {company.reviews.review_count}{' '}
+                  {company.reviews.review_count === 1 ? 'member review' : 'member reviews'}
+                </span>
+              </a>
+            )}
           </div>
         </header>
+
+        {/* Says which half of this page is which. Everything above the reviews
+            section is researched and cited; the reviews are not. */}
+        <div className="mb-8 flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 font-medium text-primary">
+            Researched profile
+          </span>
+          <span className="text-muted-foreground">
+            Roles, process and links below are compiled from public sources and dated.
+            Member reviews are further down, and are not verified.
+          </span>
+        </div>
 
         <div className="space-y-12">
           <section>
@@ -156,6 +188,23 @@ export default async function CompanyPage({
               </ul>
             </section>
           )}
+
+          <hr className="border-dashed" />
+
+          <CompanyReviews
+            companySlug={company.slug}
+            companyName={company.name}
+            roles={company.roles}
+            signedIn={Boolean(user)}
+            initial={
+              reviews ?? {
+                summary: company.reviews,
+                reviews: [],
+                viewer_can_write: Boolean(user),
+                viewer_review_id: null,
+              }
+            }
+          />
         </div>
       </main>
     </AppShell>

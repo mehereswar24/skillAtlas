@@ -65,7 +65,8 @@ def test_readiness_rises_with_real_progress(client, learner):
         "/api/v1/companies/google/roles/software-engineer", headers=headers
     ).json()
 
-    complete_concept(client, headers, "internet-and-http")
+    # The concept behind this role's "How the web actually works" focus area.
+    complete_concept(client, headers, "frontend-internet")
 
     after = client.get(
         "/api/v1/companies/google/roles/software-engineer", headers=headers
@@ -101,7 +102,7 @@ def test_adding_a_roles_focus_areas_extends_the_roadmap(client, learner):
     assert updated.status_code == 200, updated.text
 
     after = {i["concept"]["slug"] for w in updated.json()["weeks"] for i in w["items"]}
-    assert "deep-learning-foundations" in after
+    assert "ai-data-scientist-deep-learning" in after
     # Prerequisites come along, which is the whole reason this goes through the graph.
     assert len(after) > len(before)
 

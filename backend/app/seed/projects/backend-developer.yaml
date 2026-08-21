@@ -18,7 +18,7 @@
 projects:
   # ------------------------------------------------------------------ HTTP
   - slug: http-message-parser
-    concept: internet-and-http
+    concept: frontend-internet
     title: Parse a raw HTTP request
     tagline: Turn bytes off the wire into a method, path, headers and body.
     runtime: python
@@ -127,7 +127,7 @@ projects:
 
   # ------------------------------------------------------------------- git
   - slug: commit-graph-walker
-    concept: git-version-control
+    concept: backend-version-control-systems
     title: Find the merge base
     tagline: Implement the graph algorithm behind every `git merge`.
     runtime: python
@@ -239,7 +239,7 @@ projects:
 
   # ---------------------------------------------------------------- python
   - slug: retry-with-backoff
-    concept: programming-language-python
+    concept: python-learn-the-basics
     title: A retry decorator with exponential backoff
     tagline: The utility every service ends up writing — write it properly once.
     runtime: python
@@ -394,7 +394,7 @@ projects:
 
   # -------------------------------------------------------------------- SQL
   - slug: orders-analytics-sql
-    concept: relational-databases-sql
+    concept: backend-relational-databases
     title: Answer a business question in SQL
     tagline: Joins, grouping and a window function against a real schema.
     runtime: sql
@@ -503,7 +503,7 @@ projects:
 
   # ---------------------------------------------------------- data modeling
   - slug: normalise-the-schema
-    concept: data-modeling
+    concept: bi-analyst-data-modeling-for-bi
     title: Normalise a spreadsheet into tables
     tagline: Turn one wide, duplicated table into a schema that cannot lie.
     runtime: python
@@ -633,7 +633,7 @@ projects:
 
   # -------------------------------------------------------------- REST APIs
   - slug: build-a-router
-    concept: rest-api-design
+    concept: api-design-building-json-restful-apis
     title: Build the router behind a REST framework
     tagline: Path parameters, method dispatch and the right status codes.
     runtime: python
@@ -794,7 +794,7 @@ projects:
 
   # ------------------------------------------------------------- ORM + DDL
   - slug: migration-planner
-    concept: orm-and-migrations
+    concept: django-migrations
     title: Diff two schemas into a migration
     tagline: Work out what Alembic's autogenerate is actually doing.
     runtime: python
@@ -903,7 +903,7 @@ projects:
 
   # ----------------------------------------------------------------- authn
   - slug: password-and-token-guards
-    concept: auth-and-security
+    concept: computer-science-security
     title: Verify a token without leaking secrets
     tagline: Constant-time comparison, expiry, and the errors you must not give away.
     runtime: python
@@ -1064,7 +1064,7 @@ projects:
 
   # --------------------------------------------------------------- caching
   - slug: lru-cache-with-ttl
-    concept: caching-strategies
+    concept: backend-caching
     title: An LRU cache that also expires
     tagline: Eviction policy and staleness are different problems. Solve both.
     runtime: python
@@ -1347,7 +1347,7 @@ projects:
 
   # ------------------------------------------------------- async and queues
   - slug: at-least-once-queue
-    concept: async-and-message-queues
+    concept: server-side-game-developer-message-queues
     title: A queue with visibility timeouts
     tagline: Redelivery, idempotency and the dead-letter queue, in miniature.
     runtime: python
@@ -1483,7 +1483,7 @@ projects:
 
   # ------------------------------------------------------------- containers
   - slug: dockerfile-linter
-    concept: containers-docker
+    concept: devops-containers
     title: Lint a Dockerfile
     tagline: Encode the layer-caching rules you would otherwise learn by waiting.
     runtime: python
@@ -1597,7 +1597,7 @@ projects:
 
   # ------------------------------------------------------------------ CI/CD
   - slug: pipeline-scheduler
-    concept: ci-cd
+    concept: backend-ci-cd
     title: Schedule a pipeline's jobs
     tagline: Topologically sort the stages, and refuse to run a cycle.
     runtime: python
@@ -1691,7 +1691,7 @@ projects:
 
   # --------------------------------------------------------- observability
   - slug: slo-error-budget
-    concept: observability
+    concept: devops-observability
     title: Compute an SLO error budget
     tagline: Percentiles and burn rate — the numbers that decide whether to page.
     runtime: python
@@ -1810,7 +1810,7 @@ projects:
 
   # ---------------------------------------------------------- system design
   - slug: consistent-hash-ring
-    concept: system-design-basics
+    concept: computer-science-system-design
     title: A consistent hash ring
     tagline: Add a server without reshuffling every key in the cache.
     runtime: python

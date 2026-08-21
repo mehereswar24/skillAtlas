@@ -1,0 +1,749 @@
+# Airbnb.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: airbnb
+  name: Airbnb
+  industry: Travel & Marketplace
+  hq: San Francisco, California
+  website: https://careers.airbnb.com/
+  icon: Home
+  fetched_on: 2026-08-21
+  sort_order: 6
+  description: >-
+    The two-sided marketplace for stays and experiences. Airbnb's loop looks
+    like a standard FAANG process on paper, but it runs a separately-scored
+    Core Values interview alongside it — and a strong technical performance
+    does not save you from a weak one.
+
+  hiring_process_md: |
+    Airbnb's loop is structurally close to a generic big-tech process — phone
+    screen, technical screen, onsite panel — but it adds one thing most
+    companies treat as a soft gate and Airbnb treats as a hard one: **Core
+    Values are scored as their own independent signal**, usually by a
+    dedicated interviewer who is not on your immediate team and sometimes
+    not even in your discipline. Passing every technical round and failing
+    that one interview is a real, commonly-reported way to lose an offer
+    here, not a hypothetical.
+
+    The four values you will be measured against: **Champion the Mission**
+    (belonging, at a company level rather than a slogan), **Be a Host**
+    (do you make the people around you — teammates, not just users — feel
+    looked after), **Embrace the Adventure** (comfort with ambiguity and
+    change), and **Be a Cereal Entrepreneur** (a deliberately corny pun on
+    the founders funding the company with cereal boxes — it means
+    scrappiness, doing the unscalable thing first). Prepare two distinct
+    STAR stories per value; interviewers compare notes, and reusing one
+    story to answer three different values reads as thin.
+
+    **The shape of it, role-dependent but roughly:**
+
+    1. **Recruiter screen (30 min)** — background, level, why Airbnb, and an
+       early gut check on mission alignment.
+    2. **Technical screen (45–60 min)** — live coding on CoderPad, or an
+       automated CodeSignal/HackerRank assessment depending on the pipeline.
+       Working code is required; talking through pseudocode is not enough.
+    3. **Onsite / virtual onsite (4–5 rounds, same day or split across two)**
+       — for engineers this typically includes two coding rounds, one system
+       design round, a distinctive **code-review round** (you critique
+       someone else's pull request rather than write from scratch), and one
+       or two Core Values interviews. For data and design roles the coding
+       rounds are swapped for domain rounds — SQL/product-sense/experiment
+       design for DS, portfolio review/design exercise/cross-functional for
+       PD — but the Core Values round stays in every loop.
+    4. **Hiring manager / team-match conversation**, then a decision.
+
+    What differentiates this from a generic loop: the system design and
+    take-home prompts are almost always grounded in Airbnb's actual product
+    surface (booking race conditions, host/guest messaging, search ranking,
+    a waitlist for a fully-booked listing) rather than abstract
+    infrastructure, and the code-review round tests whether you can spot a
+    real bug and explain it kindly — a proxy for what it's like to work with
+    you, which is exactly what the Core Values round is also measuring from
+    a different angle.
+
+  resources:
+    - kind: careers
+      title: "Airbnb Careers"
+      url: https://careers.airbnb.com/
+    - kind: blog
+      title: "The Airbnb Tech Blog"
+      url: https://medium.com/airbnb-engineering
+    - kind: prep
+      title: "Airbnb's Interview Process & Questions — interviewing.io"
+      url: https://interviewing.io/airbnb-interview-questions
+    - kind: prep
+      title: "Airbnb Software Engineer Interview Guide — Exponent"
+      url: https://www.tryexponent.com/guides/airbnb-software-engineer-interview
+    - kind: prep
+      title: "Airbnb interview experiences — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/airbnb-interview-experience-on-campus/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: fullstack-engineer
+    sort_order: 1
+    source_url: https://www.tryexponent.com/guides/airbnb-software-engineer-interview
+    description: >-
+      The generalist engineering role. Coding and system design carry the
+      usual weight, but a distinctive code-review round and a separately-
+      scored Core Values interview sit alongside them.
+    focus_md: |
+      Treat this as two preparation tracks, not one. The coding and system
+      design tracks are what you'd expect from any big-tech loop — but
+      Airbnb adds a **code-review round**, where you are handed someone
+      else's pull request and asked to find the bug, the security hole, and
+      the maintainability problem, then explain them without being a jerk
+      about it. Practice reading code cold, not just writing it: spot the
+      off-by-one, the missing null check, the N+1 query, and say what you'd
+      change and why, out loud, the way you'd comment on a real PR.
+
+      For system design, expect the prompt to sit close to Airbnb's actual
+      product: a booking system with a double-booking race condition, a
+      host/guest messaging system, or a waitlist for a listing that just
+      opened up. The interviewer often starts vague on purpose — leading
+      with your own clarifying questions before you draw anything is itself
+      part of the grade.
+
+      Do not skip the **Core Values round**. It is scored independently of
+      the technical rounds, by an interviewer who may not be on your team,
+      and it is one of the more commonly cited reasons a strong technical
+      candidate gets a no. Prepare two concrete stories per value —
+      Champion the Mission, Be a Host, Embrace the Adventure, Be a Cereal
+      Entrepreneur — with a real decision and a real result, not a value
+      statement dressed up as an anecdote.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "One LeetCode-medium problem, live, in CoderPad. Working code required — pseudocode is rejected." }
+      - { concept: computer-science-system-design, label: "System design", weight: 4,
+          notes: "Prompts are grounded in Airbnb's actual product — booking, messaging, search, waitlists — not abstract infra." }
+      - { concept: computer-science-graphs, label: "Graph & tree traversal", weight: 3,
+          notes: "DFS/BFS over trees and grids comes up repeatedly in the technical screen and round one of the onsite." }
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 3 }
+      - { concept: backend-relational-databases, label: "Databases & data modeling", weight: 2,
+          notes: "Surfaces inside system design: what you'd index, what you'd shard, where a booking write can race." }
+      - { label: "Code review", weight: 4,
+          notes: "You are handed a PR and asked to find bugs, security issues, and style problems — a distinctive Airbnb round." }
+      - { label: "Core Values interview", weight: 5,
+          notes: "Scored independently of the technical rounds. A weak score here can sink an otherwise strong loop." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Strings
+        difficulty: medium
+        year: 2024
+        question: >-
+          You're given a string; find the length of the longest substring
+          that contains no repeated characters. This is the kind of single
+          medium-difficulty problem reported in Airbnb's on-campus coding
+          round — walk through going from a brute-force check to something
+          linear.
+        answer_md: |
+          Brute force checks every substring for repeats: O(n³) naively, or
+          O(n²) if you keep a running set per starting index. Say this out
+          loud before jumping to the fast version — it costs a few seconds
+          and shows you know what you're improving on.
+
+          The sliding-window version is O(n): keep a map from character to
+          its last seen index, advance a right pointer one character at a
+          time, and whenever the character has been seen inside the current
+          window, jump the left pointer to `max(left, last_seen + 1)`. The
+          `max` matters — a duplicate character that's already behind your
+          current window shouldn't drag the window backwards.
+        source_name: GeeksforGeeks — Airbnb interview experience (on-campus)
+        source_url: https://www.geeksforgeeks.org/airbnb-interview-experience-on-campus/
+
+      - kind: interview
+        round: coding
+        topic: Grids & DFS
+        difficulty: medium
+        year: 2024
+        question: >-
+          Given a grid of heights representing terrain between the Pacific
+          and Atlantic oceans, find every cell from which water can flow to
+          both oceans, where water flows from a cell to an equal-or-lower
+          neighbour. This "Atlantic Pacific Water Flow" style problem was
+          reported as a real Airbnb onsite question.
+        answer_md: |
+          Working forward from every cell — can this cell reach both oceans —
+          is the trap: it's an O(rows × cols) search from *each* cell,
+          O((rows × cols)²) overall, and it's slow enough that interviewers
+          notice.
+
+          Flip the direction instead. Run DFS/BFS *outward* from the
+          Pacific-adjacent edges (top and left) following cells whose height
+          is greater-than-or-equal to where you came from — that's water
+          flowing backwards uphill into the ocean's reachable set — and mark
+          every cell you touch as "reaches Pacific." Do the same from the
+          Atlantic-adjacent edges (bottom and right) for "reaches Atlantic."
+          The answer is the intersection of the two marked sets, found in a
+          single O(rows × cols) pass over both searches.
+        source_name: GeeksforGeeks — Airbnb interview experience (on-campus)
+        source_url: https://www.geeksforgeeks.org/airbnb-interview-experience-on-campus/
+
+      - kind: online-assessment
+        round: coding
+        topic: Automated screen
+        difficulty: medium
+        year: 2025
+        question: >-
+          Before the live technical screen, some pipelines route candidates
+          through an automated CodeSignal or HackerRank assessment instead.
+          What should you actually optimize for, given it's graded by test
+          cases rather than a person?
+        answer_md: |
+          Optimize for passing every hidden test case, including the edge
+          cases nobody states out loud: empty input, a single element,
+          duplicate values, and the largest size the constraints allow —
+          automated graders have no partial-credit conversation with you the
+          way a human interviewer does, so an off-by-one that a live
+          interviewer would let you fix costs you the whole test case here.
+
+          Second, respect the stated time limit as a real constraint, not a
+          suggestion — a brute-force solution that's "obviously right" but
+          times out on the largest input scores the same as no answer.
+          Submit early and iterate if the platform allows resubmission;
+          don't save your only submission for a "final" polish pass.
+        source_name: Exponent — Airbnb Software Engineer interview guide
+        source_url: https://www.tryexponent.com/guides/airbnb-software-engineer-interview
+
+      - kind: interview
+        round: system-design
+        topic: Booking systems
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the booking flow for a listing so that two guests can't
+          both successfully reserve the same dates — a real race condition
+          Airbnb's own system has to prevent. Where does the design actually
+          break?
+        answer_md: |
+          Start by naming the race explicitly: two requests both read "dates
+          available," both proceed to write, and without protection both
+          succeed. A design that only checks availability before writing,
+          without controlling the write itself, hasn't solved anything —
+          it's just made the race window shorter.
+
+          The fix is to make the check-and-write atomic: a unique constraint
+          on (listing_id, date_range) enforced by the database, or a
+          conditional write ("insert this reservation only if no overlapping
+          row exists") inside a transaction, so the database — not
+          application code — is the thing that rejects the loser. A
+          distributed lock per listing is the alternative if you're not on a
+          single relational store, but it's more moving parts for the same
+          guarantee.
+
+          What breaks first at scale is holding that lock or transaction
+          open too long — payment processing inside the same critical
+          section turns a fast row-lock into a slow one that queues up every
+          other booking attempt on a popular listing. Reserve the dates
+          first (short critical section), then process payment, with a
+          timeout that releases the hold if payment never completes.
+        source_name: Coding Interview guide — Airbnb interview process
+        source_url: https://www.codinginterview.com/guide/airbnb-interview-process/
+
+      - kind: interview
+        round: technical
+        topic: Code review
+        difficulty: medium
+        year: 2025
+        question: >-
+          Airbnb runs a distinctive round where you're handed an existing
+          pull request — say, a meeting-room booking function — and asked to
+          review it rather than write new code. What are you actually being
+          graded on?
+        answer_md: |
+          The round is measuring what it's like to receive your feedback,
+          not just whether you can spot a bug. So the answer has two parts:
+          find the real issues, and say them the way you'd want to hear them
+          from a teammate.
+
+          On substance, work through the same checklist every time:
+          correctness first (does it handle the empty case, the boundary
+          case, concurrent calls), then security (is user input trusted
+          anywhere it shouldn't be), then maintainability (naming, a
+          function doing three things, a magic number that should be a
+          constant), then style last — style comments are cheap and easy to
+          over-index on, so lead with the ones that actually matter.
+
+          On delivery: frame findings as questions or observations ("what
+          happens if two people book the same room at once?") rather than
+          verdicts, and say what's good about the PR too — a review that's
+          100% criticism reads as unable to collaborate, which is precisely
+          the signal this round exists to catch.
+        source_name: interviewing.io — Airbnb interview questions
+        source_url: https://interviewing.io/airbnb-interview-questions
+
+      - kind: interview
+        round: managerial
+        topic: Core Values
+        difficulty: medium
+        year: 2025
+        question: >-
+          "Be a Host" is one of Airbnb's four core values. Tell me about a
+          time you made someone on your team feel like they belonged.
+        answer_md: |
+          The failure mode here is answering about a *user*, not a
+          *colleague* — "I improved onboarding for new customers" answers a
+          product question, not this one. The value is about how you treat
+          the people you work alongside, so the story needs a specific
+          person: a new hire you paired with in their first week, a quieter
+          teammate whose idea you made sure got credit in a meeting, a
+          contractor nobody looped into context they needed.
+
+          Structure it as: who was being left out and how you noticed,
+          the specific thing you did (not "I was welcoming" — the concrete
+          action), and what changed for them afterward, ideally something
+          you can point to rather than assert. Airbnb interviewers compare
+          notes across the Core Values rounds, so if you're asked about a
+          second value in a different interview, don't reuse this same
+          story with the label swapped — have a second one ready.
+        source_name: interviewing.io — Airbnb interview questions
+        source_url: https://interviewing.io/airbnb-interview-questions
+
+  - slug: data-scientist
+    title: Data Scientist
+    level: mid
+    maps_to_role: data-scientist
+    sort_order: 2
+    source_url: https://www.codinginterview.com/guide/airbnb-data-scientist-interview/
+    description: >-
+      A marketplace-analytics role: every answer is expected to tie back to
+      supply, demand, pricing, or conversion, not just be statistically
+      correct in the abstract.
+    focus_md: |
+      Airbnb's DS loop leans harder on product sense and experimentation
+      than a typical analytics interview, because the job is a two-sided
+      marketplace: almost every metric you'd propose has a supply side
+      (hosts, listings, pricing) and a demand side (guests, search,
+      booking), and interviewers are listening for whether you reason about
+      both, not just the one that's easier to measure.
+
+      SQL and Python show up as a fluency check, not the main event — window
+      functions, CTEs, and clean groupby logic over booking-shaped tables
+      (reservations, listings, search events). The weight is in the
+      **product sense and experimentation rounds**: given a launch that
+      moves one metric up and a related one down (bookings up, cancellations
+      up), what do you actually recommend, and what would change your mind.
+      Know your causal-inference vocabulary — randomization unit, network
+      effects between guests and hosts sharing a market, novelty effects,
+      CUPED-style variance reduction — cold enough to use it in a live
+      conversation, not just recite the definition.
+
+      Core Values still gets its own round here, same as engineering — don't
+      assume a quant role is exempt.
+    focus_areas:
+      - { concept: sql-join-queries, label: "SQL: joins & window functions", weight: 4,
+          notes: "CTEs, ROW_NUMBER/LAG-LEAD, and moving aggregates over booking and listing tables." }
+      - { concept: machine-learning-what-is-model-evaluation, label: "A/B testing & experiment design", weight: 5,
+          notes: "The centerpiece round. Hypothesis tests, power, guardrail metrics, and what breaks a randomized experiment." }
+      - { concept: data-analyst-statistical-analysis, label: "Applied statistics", weight: 4,
+          notes: "p-values, confidence intervals and Type I/II errors explained in plain business language, not just formulas." }
+      - { concept: machine-learning-metrics-to-evaluate, label: "Model evaluation", weight: 3,
+          notes: "Especially for imbalanced data — fraud, cancellations — where accuracy alone is meaningless." }
+      - { concept: data-analyst-learn-a-programming-lang, label: "Python for data manipulation", weight: 3 }
+      - { label: "Product sense", weight: 5,
+          notes: "Metric selection and trade-off reasoning on a two-sided marketplace — supply and demand both, every time." }
+      - { label: "Core Values interview", weight: 4,
+          notes: "Scored independently, same as every other role in the loop." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: SQL
+        difficulty: medium
+        year: 2025
+        question: >-
+          Write a query to find the top five cities by the percentage of
+          bookings completed within 24 hours of the guest's first search,
+          excluding cancelled reservations.
+        answer_md: |
+          The trap is computing "percentage within 24 hours" as an average
+          of a boolean without being careful about the denominator —
+          cancelled reservations need to be excluded from *both* the
+          numerator and denominator, or a city with lots of fast-cancelled
+          bookings looks artificially efficient.
+
+          Structure: a CTE that joins searches to their resulting booking
+          (by guest and listing, nearest booking after the search
+          timestamp), filters out cancellations, and flags each row as
+          within-24h or not with a `CASE`. Aggregate by city with
+          `AVG(within_24h::int)` or `SUM(within_24h) / COUNT(*)`, order
+          descending, and take the top five. Say out loud that you're
+          assuming one search maps to one eventual booking — real search
+          logs are messier, and naming the assumption is part of the
+          answer.
+        source_name: Coding Interview guide — Airbnb Data Scientist interview
+        source_url: https://www.codinginterview.com/guide/airbnb-data-scientist-interview/
+
+      - kind: online-assessment
+        round: coding
+        topic: Python data manipulation
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a list of reservation events per guest, compute each guest's
+          longest streak of consecutive stays (consecutive check-in dates
+          with no gap).
+        answer_md: |
+          Group events by guest first — a dict of guest_id to a sorted list
+          of stay date ranges. For each guest, walk the sorted list once:
+          keep a running streak length, and reset it to 1 whenever the
+          current stay's check-in date isn't exactly one day after the
+          previous stay's check-out date; otherwise extend the streak.
+          Track the max seen per guest as you go.
+
+          This is O(n log n) dominated by the sort, O(n) after that. The
+          part interviewers actually check is whether you handle the reset
+          condition correctly — "gap" has to mean strictly more than a
+          day, and off-by-one errors here (using check-in-to-check-in
+          instead of check-out-to-check-in) are the most common mistake.
+        source_name: Coding Interview guide — Airbnb Data Scientist interview
+        source_url: https://www.codinginterview.com/guide/airbnb-data-scientist-interview/
+
+      - kind: interview
+        round: technical
+        topic: Experimentation
+        difficulty: hard
+        year: 2025
+        question: >-
+          A new search-ranking algorithm increases completed bookings by 4%
+          but also increases cancellations by 2%. Do you ship it?
+        answer_md: |
+          Refuse the premise that this is a single yes/no question — the
+          real work is deciding what the two numbers are actually measuring
+          before combining them. A booking that gets cancelled a week later
+          isn't worth the same as one that sticks; net completed *stays*
+          (bookings minus the cancellations they caused) is closer to the
+          real north star than raw bookings.
+
+          Next, check whether the two effects are on the same guests or
+          different ones — if the ranking change is surfacing riskier or
+          less-suited listings that convert more easily but disappoint
+          faster, that's a quality problem the metric is hiding, not a
+          quantity win. Segment cancellations by lead time and by whether
+          the guest re-books elsewhere; a cancellation two hours before
+          check-in is a much worse signal than one made a month out.
+
+          Only after that: look at guardrails — host revenue impact,
+          support-ticket volume, review scores — and if those hold steady,
+          ship with a plan to monitor the cancellation rate over a longer
+          window than the test itself ran, since some effects (like guest
+          trust) show up with a lag.
+        source_name: Airbnb Data Scientist interview guide — DataInterview
+        source_url: https://www.datainterview.com/blog/airbnb-data-scientist-interview
+
+      - kind: interview
+        round: technical
+        topic: A/B test design
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design an A/B test for a new checkout nudge shown to guests during
+          booking. What do you randomize on, what's your primary metric,
+          and what are your guardrails?
+        answer_md: |
+          Randomize at the guest level, not the session or request level —
+          a guest who searches multiple times or across devices should see
+          a consistent experience, and request-level randomization would
+          also let the same guest contaminate both arms.
+
+          Primary metric: completed booking within some fixed window (say,
+          7 days) of first exposure to the nudge, not same-session
+          conversion, because checkout on a marketplace like this is often
+          not instant — guests compare listings before committing.
+          Guardrails: bounce rate on the checkout page (did the nudge annoy
+          people into leaving) and page latency (did adding the nudge slow
+          the page enough to hurt conversion independent of its content).
+
+          Before reading results, check for sample ratio mismatch — an
+          unequal split between arms is often the first sign the
+          randomization itself is broken — and hold the test long enough to
+          cover at least one full weekly cycle, since booking behavior
+          differs meaningfully between weekdays and weekends.
+        source_name: "PracHub — Airbnb interview question: A/B test with causal inference"
+        source_url: https://prachub.com/interview-questions/design-an-a-b-test-with-causal-inference
+
+      - kind: interview
+        round: managerial
+        topic: Product sense
+        difficulty: medium
+        year: 2024
+        question: >-
+          Airbnb wants to grow bookings in a mature market where listing
+          supply isn't the bottleneck. What metrics would you look at first,
+          and what would you propose?
+        answer_md: |
+          Start by ruling out supply as the constraint explicitly, since
+          the prompt already told you — so resist the instinct to propose
+          "recruit more hosts." Instead look at the funnel between search
+          and booking: search-to-view rate, view-to-contact rate,
+          contact-to-booking rate, and where the biggest relative drop is.
+
+          If the drop is search-to-view, the problem is likely ranking or
+          relevance — guests aren't finding listings that match intent. If
+          it's view-to-contact or contact-to-booking, the problem is more
+          likely trust or friction — pricing surprises, unclear
+          cancellation policy, slow host response time. Propose an
+          experiment targeted at whichever stage is worst, with a metric
+          specific to that stage as primary rather than jumping straight to
+          overall bookings, which moves too slowly and too indirectly to
+          tell you if the fix worked.
+        source_name: interviewing.io — Airbnb interview questions
+        source_url: https://interviewing.io/airbnb-interview-questions
+
+      - kind: interview
+        round: managerial
+        topic: Core Values
+        difficulty: medium
+        year: 2025
+        question: >-
+          "Champion the Mission" is about belonging at a company level, not
+          just individual kindness. Tell me about a decision you made that
+          only makes sense if you take that mission seriously.
+        answer_md: |
+          The weak version of this answer describes being personally
+          welcoming to someone. The value being tested is bigger than that:
+          did you make a call — in an analysis, a metric definition, a
+          recommendation — that considered who gets excluded by the
+          "efficient" answer, and chose differently because of it.
+
+          A strong example: recommending against a purely revenue-optimal
+          ranking change because it would systematically deprioritize
+          lower-priced or newer listings (often disproportionately hosted
+          by newer or less-resourced hosts), even though the raw metric
+          said ship it — and proposing a guardrail metric that protected
+          against that instead. Name the trade-off explicitly and the
+          result, including any pushback you got for prioritizing it, since
+          "and everyone agreed immediately" is the least believable part of
+          most of these stories.
+        source_name: interviewing.io — Airbnb interview questions
+        source_url: https://interviewing.io/airbnb-interview-questions
+
+  - slug: product-designer
+    title: Product Designer
+    level: mid
+    maps_to_role: product-designer
+    sort_order: 3
+    source_url: https://interm.ai/solutions/airbnb-product-designer-portfolio-review-preparation.html
+    description: >-
+      Design craft is table stakes; the loop is really testing narrative
+      (can you tell your portfolio as a coherent story) and values alignment,
+      with two full rounds that have nothing to do with pixels.
+    focus_md: |
+      The most important thing to know about Airbnb's design loop is that
+      it's not primarily a craft evaluation — there's no take-home, and by
+      the time you're in the onsite your work has already cleared that bar.
+      What it actually tests is **narrative and judgment**: can you walk
+      someone through 2–3 case studies as a coherent story with a real
+      point of view, not just a highlight reel of pretty screens.
+
+      The portfolio review is often with the hiring manager directly, and
+      they will ask "story" questions — why this project, why this
+      decision, what would you do differently — as much as they ask about
+      the pixels. Prepare a tight "why Airbnb" narrative too; you'll be
+      asked some version of it more than once across the loop.
+
+      The live design exercise (60–90 minutes) is grounded in Airbnb's
+      actual product surface — redesigning part of host onboarding,
+      improving a guest booking flow for an edge case, or a new feature for
+      Airbnb Experiences — and is scored on how you structure ambiguity:
+      do you ask clarifying questions, generate more than one concept, and
+      explain *why* you converged on the one you did, rather than jumping
+      straight to a polished screen.
+
+      Budget real prep time for **Core Values**, which gets its own round
+      here too, plus a cross-functional interview (usually with an
+      engineer or PM you'd work alongside) that is explicitly checking
+      collaboration rather than design skill. Two rounds out of four to
+      five have nothing to do with your portfolio — treat them that way.
+    focus_areas:
+      - { concept: ux-design-wireframing, label: "Design process & wireframing under time pressure", weight: 4,
+          notes: "The 60-90 minute live exercise rewards visible process — sketches and options, not one polished screen." }
+      - { concept: ux-design-testing, label: "User research & testing", weight: 3,
+          notes: "Portfolio stories need a real research or validation step, not just a final design." }
+      - { concept: ux-design-prototyping, label: "Prototyping & iteration", weight: 3 }
+      - { concept: ux-design-ux-patterns, label: "Interaction & UX patterns", weight: 3,
+          notes: "Design exercises are grounded in real Airbnb flows: booking, host onboarding, Experiences." }
+      - { concept: ux-design-deliverables, label: "Storytelling a case study", weight: 5,
+          notes: "The portfolio round is graded on narrative and rationale as much as visuals — why, not just what." }
+      - { label: "Cross-functional collaboration", weight: 4,
+          notes: "A dedicated round, usually with an engineer or PM, explicitly testing how you work with non-designers." }
+      - { label: "Core Values interview", weight: 5,
+          notes: "Scored independently. As real a gate for design candidates as for engineers." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Portfolio review
+        difficulty: medium
+        year: 2024
+        question: >-
+          Walk me through a case study from your portfolio, start to finish.
+          What was the problem, and why did you make the decisions you made?
+        answer_md: |
+          The failure mode is narrating the final screens ("then I designed
+          this flow") instead of the reasoning that produced them. Structure
+          the story as: the problem as you found it (with a number or a
+          concrete user pain, not just "the flow was confusing"), the
+          constraints you were working under (timeline, technical, business),
+          two or three directions you considered and why you ruled the
+          others out, and what happened after launch — ideally a measured
+          result, but a specific qualitative one is fine if that's what you
+          have.
+
+          Airbnb reviewers are listening for judgment under real constraints
+          more than for the final visual polish, since polish is already
+          evident from the file itself. Have an honest answer ready for
+          "what would you do differently" — a case study with no regrets is
+          the one detail most likely to make an interviewer skeptical of the
+          rest of the story.
+        source_name: interm.ai — Airbnb Product Designer portfolio review guide
+        source_url: https://interm.ai/solutions/airbnb-product-designer-portfolio-review-preparation.html
+
+      - kind: interview
+        round: technical
+        topic: Live design exercise
+        difficulty: hard
+        year: 2024
+        question: >-
+          Redesign part of the host onboarding flow to reduce drop-off
+          between signing up and publishing a first listing. You have 60–90
+          minutes.
+        answer_md: |
+          Resist opening a design tool in the first five minutes. Start by
+          asking where in the funnel the drop-off actually concentrates —
+          onboarding has several distinct steps (account creation, listing
+          details, photos, pricing, calendar, publish), and "reduce drop-off"
+          without knowing which step bleeds the most is designing blind.
+          Interviewers expect you to ask, and will usually give you a
+          plausible answer (e.g. "most drop-off happens at the photo upload
+          step") to work from.
+
+          Once you have a target step, sketch two or three different
+          approaches rather than one — maybe letting hosts save and return
+          later, maybe reducing required fields at that step and collecting
+          the rest post-publish, maybe adding social proof or a progress
+          indicator. Talk through the trade-off of each (a "publish now,
+          finish later" flow reduces friction but risks low-quality listings
+          going live) before committing to one and detailing it. The
+          decision and its stated trade-off matter more than how refined
+          the final mockup looks in the time you have.
+        source_name: interm.ai — Airbnb Product Designer portfolio review guide
+        source_url: https://interm.ai/solutions/airbnb-product-designer-portfolio-review-preparation.html
+
+      - kind: interview
+        round: technical
+        topic: Cross-functional collaboration
+        difficulty: medium
+        year: 2024
+        question: >-
+          A cross-functional round, often with an engineer, asks: tell me
+          about a time an engineer pushed back on a design for technical
+          reasons. What did you do?
+        answer_md: |
+          The trap is a story where you were right and engineering simply
+          implemented your original design after you explained it better —
+          that reads as "I persuade people," which isn't what this round is
+          checking. It's checking whether you can find a real compromise
+          when a constraint is genuine, not just perceived.
+
+          A better shape: name the specific technical constraint (a data
+          model that didn't support what you wanted, a performance cost to
+          an interaction you'd designed), what you learned about *why* it
+          mattered by asking rather than assuming it was an excuse, and a
+          version of the design you arrived at together that kept the user
+          outcome intact while respecting the constraint. If the compromise
+          made the design measurably worse in some way, say so — a
+          collaboration story with no real cost paid is as suspicious here
+          as a portfolio case study with no regrets.
+        source_name: Airbnb Product Design Interview — Nishtha Dalal (Medium)
+        source_url: https://nishthahd.medium.com/airbnb-product-design-interview-294cb22eb572
+
+      - kind: interview
+        round: managerial
+        topic: Core Values
+        difficulty: medium
+        year: 2025
+        question: >-
+          "Embrace the Adventure" is about comfort with ambiguity and
+          change. Tell me about a project where the requirements shifted
+          significantly partway through. How did you handle it?
+        answer_md: |
+          Avoid a story where the shift was mostly annoying and you simply
+          absorbed it — the value is testing whether ambiguity is something
+          you can work *with*, not just tolerate. Pick a project where the
+          shift genuinely changed your approach, not just your timeline.
+
+          Name what changed and why (new information, a business pivot, a
+          research finding that contradicted your assumption), what you did
+          differently as a direct result — not "I stayed flexible" as an
+          abstraction, but the actual design decision that changed — and
+          what you'd keep doing the same way if it happened again versus
+          what you'd do differently. Airbnb interviewers are listening for
+          whether ambiguity produced better judgment from you, not just
+          less complaining.
+        source_name: interviewing.io — Airbnb interview questions
+        source_url: https://interviewing.io/airbnb-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Design critique
+        difficulty: easy
+        year: 2024
+        question: >-
+          Show me a piece of work where a critique or piece of feedback
+          significantly changed the direction. How did you respond in the
+          moment, and what did you actually change?
+        answer_md: |
+          Two weak answers show up often here: the story where you agreed
+          instantly and the story where you politely ignored the feedback
+          and did your original design anyway. Both dodge the actual
+          question, which is about how you process disagreement about your
+          own work in real time.
+
+          Pick a critique that stung a little — from a peer, not just a
+          manager — where your first reaction wasn't full agreement. Explain
+          what you did to test whether the critique was right rather than
+          just deferring to seniority: did you go back to research, run a
+          quick usability check, look at analytics. Then say specifically
+          what changed in the design as a result, and — just as
+          importantly — what you pushed back on and kept, if anything,
+          because a critique story with zero pushback reads as someone who
+          doesn't have a point of view of their own.
+        source_name: Airbnb Product Design Interview — Nishtha Dalal (Medium)
+        source_url: https://nishthahd.medium.com/airbnb-product-design-interview-294cb22eb572
+
+      - kind: interview
+        round: managerial
+        topic: Core Values
+        difficulty: easy
+        year: 2025
+        question: >-
+          Give me your 60-second story: who you are, and why Airbnb.
+        answer_md: |
+          This is asked early and often verbatim in more than one round, so
+          it needs to be genuinely rehearsed, not improvised each time —
+          but rehearsed doesn't mean generic. The weak version is a resume
+          read aloud; the strong version connects one or two real threads
+          in your career to something specific about Airbnb's actual
+          product or mission, not the word "belonging" used as a buzzword.
+
+          A workable structure: one sentence on your design throughline
+          (the kind of problem you keep choosing to work on), one concrete
+          reason it points at Airbnb specifically — a product decision
+          you admire, a problem space (trust between strangers, a
+          two-sided marketplace) you find genuinely interesting to design
+          for — and end on what you want to work on next, so the
+          interviewer has an obvious follow-up question rather than a dead
+          end.
+        source_name: interm.ai — Airbnb Product Designer portfolio review guide
+        source_url: https://interm.ai/solutions/airbnb-product-designer-portfolio-review-preparation.html

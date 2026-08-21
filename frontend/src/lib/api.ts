@@ -60,7 +60,19 @@ async function refreshAccessToken(): Promise<string | undefined> {
   if (!response.ok) return undefined;
 
   const tokens = await response.json();
-  await setSessionCookies(tokens);
+
+  // Persisting is best-effort: Next only allows cookie writes from a Server
+  // Action or Route Handler, and this also runs during Server Component
+  // renders, where the write throws. The fresh access token is returned either
+  // way, so the render succeeds — it just is not saved. Requests through the
+  // BFF proxy route (`/api/[...path]`) are Route Handlers and do persist it,
+  // which is where the great majority of calls go.
+  try {
+    await setSessionCookies(tokens);
+  } catch {
+    // Read-only cookie context. Nothing to do but carry on with the token.
+  }
+
   return tokens.access_token as string;
 }
 

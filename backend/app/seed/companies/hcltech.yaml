@@ -1,0 +1,565 @@
+company:
+  slug: hcltech
+  name: HCLTech
+  industry: IT Services (India)
+  hq: Noida, India
+  website: https://www.hcltech.com/careers
+  icon: Workflow
+  fetched_on: 2026-08-21
+  sort_order: 16
+  description: >-
+    India's fourth-largest IT services firm, and the one whose fresher
+    hiring looks least like its peers — a lightweight interview-led process
+    for degree holders, a 12th-pass earn-while-you-learn track called
+    TechBee, and a newer, thinly documented AI-specialist band.
+  hiring_process_md: |
+    HCLTech runs three fresher tracks that share almost nothing except the
+    company name.
+
+    **The standard track (degree holders)** is notably interview-heavy
+    compared to Infosys or TCS: several recent campus drives run just three
+    stages — a written test, a technical interview, and an HR interview —
+    with the group discussion and second written round that some sources
+    describe appearing only on certain drives, not every one.
+
+    **The shape of it, standard track:**
+
+    1. **Online written test** (~90–95 minutes, ~75–77 questions, adaptive,
+       no negative marking) — quant, verbal, logical reasoning, a Computer
+       Fundamentals block (DS/OOP/DBMS/OS/networking, rated the hardest
+       section), and a short coding block.
+    2. **Optional group discussion** — a general/social topic, run on some
+       drives and skipped on others.
+    3. **Document verification** — 10th/12th/degree marksheets checked
+       against the eligibility bar. This is a real gate: at least one
+       candidate reported clearing every interview round and still being
+       rejected here for an active backlog.
+    4. **Technical interview** — resume and project walkthrough first, then
+       DSA/DBMS/OOP/OS fundamentals and one or two live coding problems.
+    5. **HR interview** — fit, relocation, and a self-rating on
+       communication.
+
+    **Eligibility** is typically 60% across Class 10, 12 and degree, though
+    individual candidate accounts describe some drives applying a stricter
+    70% bar — check the live posting rather than assuming either number.
+    No active backlog at interview time; a maximum one-year gap after
+    Class 12 only (no gaps between degree semesters); a six-month cooldown
+    before reapplying if rejected.
+
+    **Service agreement.** Employee reports describe bond terms ranging from
+    a 15-month agreement with a ₹1.25 lakh exit penalty to a 12-month
+    agreement with a ₹50,000 surety — but neither figure appears on
+    HCLTech's own careers pages, so treat both as commonly reported rather
+    than officially confirmed. A roughly 12-month probation period is
+    similarly reported but not independently confirmed from a primary
+    source.
+
+    **TechBee** is a genuinely different program, not a lighter version of
+    the standard track: a 12-month early-career scheme for 12th-pass
+    candidates (any stream, 60%+, with Maths compulsory for IT roles),
+    combining classroom training with on-the-job work and a path to a
+    higher-education tie-up (IIT Guwahati, BITS Pilani and others) while
+    earning. Selection runs through an aptitude test (the "HCL CAT" — JEE
+    Mains 80th-percentile scorers can skip it), a Versant spoken-English
+    test, and a face-to-face interview.
+
+    **Elite AI** is a newer, higher band (₹18–22 LPA) for candidates with a
+    demonstrated AI/GenAI/data-engineering/cybersecurity project portfolio.
+    It's the least publicly documented of the three tracks — expect the same
+    core technical interview as the standard track, with an added layer on
+    your deployed projects and the LLM APIs or architectures you've actually
+    used.
+
+  resources:
+    - kind: careers
+      title: "HCLTech Careers — recruitment process"
+      url: https://www.hcltech.com/en-us/careers/recruitment-process-hcl-tech
+    - kind: careers
+      title: "HCLTech Careers portal"
+      url: https://careers.hcltech.com/
+    - kind: prep
+      title: "HCL recruitment process — Unstop"
+      url: https://unstop.com/blog/hcl-recruitment-process
+    - kind: prep
+      title: "HCL exam pattern and syllabus — PrepInsta"
+      url: https://prepinsta.com/hcl/
+    - kind: careers
+      title: "HCL TechBee — earn-while-you-learn program"
+      url: https://www.hcltechbee.com/earn-while-you-learn-ai-tech-career-programs-with-stipend-after-12th-by-hcl-techbee
+
+roles:
+  - slug: graduate-engineer-trainee
+    title: Graduate Engineer Trainee (GET)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://www.geeksforgeeks.org/interview-experiences/hcltech-interview-experience-graduate-engineer-trainee-get-on-campus-full-time/
+    description: >-
+      The standard fresher track for degree holders. Interview-heavy
+      relative to peers — several drives run only a written test, a
+      technical round and an HR round, with document verification enforced
+      strictly even after a strong interview.
+    focus_md: |
+      **Computer Fundamentals is the section candidates rate hardest, and
+      it's worth disproportionate prep time because of that.** It's 30
+      questions in 30 minutes covering data structures, OOP, DBMS, OS and
+      networking together — breadth under time pressure, not depth on any
+      one topic.
+
+      The technical interview opens with your resume and stays there longer
+      than at Infosys or TCS — one candidate reported being pushed hard on
+      their specific stack (React internals, promises vs callbacks) rather
+      than moving quickly to generic CS questions. Know your own project's
+      choices cold, because that's where the round actually lives.
+
+      **Document verification is a real gate, not a formality.** At least
+      one otherwise-successful candidate was rejected at this stage for an
+      active backlog discovered after every interview round had already
+      gone well — don't assume a strong interview overrides an eligibility
+      problem.
+    focus_areas:
+      - { label: "Quant, verbal & logical reasoning", weight: 4,
+          notes: "Standard aptitude topics, adaptive difficulty, no negative marking." }
+      - { concept: computer-science-data-structures, label: "Computer Fundamentals block", weight: 5,
+          notes: "DS + OOP + DBMS + OS + networking together, 30 questions/30 minutes. Rated the hardest section." }
+      - { concept: backend-relational-databases, label: "DBMS", weight: 4,
+          notes: "Constraints, ACID, normalisation, joins — all asked directly in the technical interview." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP concepts", weight: 4,
+          notes: "Abstraction vs encapsulation is a specific, recurring pairing." }
+      - { concept: devops-operating-system, label: "OS & deadlocks", weight: 3,
+          notes: "Threads, deadlock conditions and prevention, fragmentation, semaphores." }
+      - { label: "Project depth", weight: 4,
+          notes: "The technical interview stays on your resume stack longer than at most peer firms." }
+      - { label: "Eligibility & backlog verification", weight: 3,
+          notes: "Enforced strictly at document verification, even after a clean interview." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Quantitative aptitude
+        difficulty: medium
+        year: 2025
+        question: >-
+          Find the greatest number that divides 355, 54 and 103, leaving the
+          same remainder in each case.
+        answer_md: |
+          The trick: when a number leaves the *same* remainder against
+          several numbers, it must evenly divide every pairwise
+          *difference* between them. Take differences: 355−54=301,
+          355−103=252, 103−54=49. The answer is the HCF of those
+          differences: HCF(301, 252, 49) = **7**.
+
+          This "same remainder" phrasing is a specific signal to switch from
+          "find the HCF of the numbers themselves" to "find the HCF of their
+          differences" — recognising that switch is the entire question.
+        source_name: GeeksforGeeks — HCL placement paper, quantitative aptitude
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-placement-paper-quantitative-aptitude-set-1/
+
+      - kind: online-assessment
+        round: aptitude
+        topic: Time and work
+        difficulty: easy
+        year: 2025
+        question: >-
+          A can finish a job in 10 days, B in 15. If they work together for
+          3 days, what fraction of the job is left?
+        answer_md: |
+          Combined rate: 1/10 + 1/15 = 3/30 + 2/30 = 5/30 = 1/6 per day.
+          In 3 days: 3 × 1/6 = 1/2 of the job is done, so **1/2 (50%) is
+          left**.
+
+          Working in rates rather than converting to "days remaining"
+          directly is the habit that keeps these fast under time pressure.
+        source_name: GeeksforGeeks — HCL placement paper, quantitative aptitude
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-placement-paper-quantitative-aptitude-set-1/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What are constraints in SQL, and what are the main types?
+        answer_md: |
+          A constraint is a rule enforced on a column (or table) to keep the
+          data valid. The core set: `NOT NULL` (no empty values), `UNIQUE`
+          (no duplicates), `PRIMARY KEY` (unique + not null, identifies the
+          row), `FOREIGN KEY` (must match a value in another table),
+          `CHECK` (a custom condition, e.g. `age >= 18`), and `DEFAULT`
+          (a fallback value when none is supplied).
+
+          Follow-ups to expect in the same breath: ACID properties, what
+          normalisation solves, and when you'd reach for a join over a
+          subquery.
+        source_name: GeeksforGeeks — HCLTech GET interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-technologies-interview-experience-for-graduate-engineer-trainee/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: medium
+        question: >-
+          What's the difference between abstraction and encapsulation?
+        answer_md: |
+          Abstraction is about *what* a thing does — hiding implementation
+          behind an interface or abstract class so the caller only sees the
+          essential behaviour (a `Shape` interface with `area()`, regardless
+          of whether it's a circle or a square underneath).
+
+          Encapsulation is about *how* it's protected — bundling data and
+          the methods that operate on it together, and controlling access
+          with visibility modifiers (private fields, public getters) so
+          internal state can't be changed from outside except through
+          defined methods.
+
+          One line that ties them together: abstraction hides complexity,
+          encapsulation hides *data* — and a well-designed class usually
+          does both at once.
+        source_name: GeeksforGeeks — HCLTech GET interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-technologies-interview-experience-for-graduate-engineer-trainee/
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: hard
+        question: >-
+          What is a deadlock, and how do you avoid it?
+        answer_md: |
+          A deadlock is a set of processes each waiting on a resource held
+          by another process in the same set, so none of them can ever
+          proceed. It requires four conditions simultaneously (the Coffman
+          conditions): mutual exclusion, hold-and-wait, no preemption, and
+          circular wait.
+
+          Break any one of the four and you prevent it: impose a strict
+          global ordering on resource acquisition (breaks circular wait,
+          usually the cheapest fix in practice), require processes to
+          request all resources up front (breaks hold-and-wait), or allow
+          preemption of held resources. Mention a real example — two
+          threads locking two mutexes in opposite order — to show you've
+          actually hit this, not just memorised the definition.
+        source_name: GeeksforGeeks — HCLTech GET interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-technologies-interview-experience-for-graduate-engineer-trainee/
+
+      - kind: interview
+        round: technical
+        topic: Projects
+        difficulty: medium
+        question: >-
+          Walk me through your project's tech stack — why these choices?
+        answer_md: |
+          HCLTech interviewers reportedly stay on this longer than peers,
+          pushing specifically into framework internals for whatever stack
+          you list — one account was pressed on React's virtual DOM,
+          hoisting in JavaScript, and promises vs callbacks after mentioning
+          a MERN-stack project.
+
+          The practical prep: for whatever framework or library is on your
+          resume, be able to explain *one mechanism* underneath it (virtual
+          DOM diffing, an ORM's query generation, a build tool's bundling
+          step) — not just that you used it, but roughly how it works.
+        source_name: GeeksforGeeks — HCLTech GET on-campus interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcltech-interview-experience-graduate-engineer-trainee-get-on-campus-full-time/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Are you ready to relocate, and how would you rate your own
+          communication skills?
+        answer_md: |
+          Relocation is screened for directly — HCLTech places freshers
+          across delivery centres pan-India, and hedging on this question is
+          read as a soft no.
+
+          For the self-rating question, give a number and back it with
+          evidence (a presentation you gave, a client-facing internship
+          task) rather than either false modesty or overclaiming — the
+          interviewer is checking whether your self-assessment is honest and
+          calibrated, since that's what they'll be relying on once you're on
+          a client account.
+        source_name: GeeksforGeeks — HCLTech GET interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-technologies-interview-experience-for-graduate-engineer-trainee/
+
+  - slug: techbee
+    title: HCL TechBee
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 2
+    source_url: https://www.hcltechbee.com/earn-while-you-learn-ai-tech-career-programs-with-stipend-after-12th-by-hcl-techbee
+    description: >-
+      A 12-month earn-while-you-learn program for 12th-pass candidates —
+      classroom training plus on-the-job work, a reported stipend, and a
+      path to a higher-education tie-up while you're already working.
+    focus_md: |
+      **This is not a lighter version of the graduate track — it's a
+      different selection funnel built for candidates with no degree and
+      often no work history.** The HCL CAT is pitched at 12th-grade level
+      (general logic, basic C output-prediction, school-level quant), and a
+      Versant spoken-English test runs before you ever meet an interviewer.
+
+      The interview itself is unusually direct about testing communication
+      *live*, not just via the Versant score — one reported format hands you
+      a notebook, a topic like "your favourite book," and asks you to write
+      100 words on the spot while being watched, checking handwriting,
+      grammar and structured thought under pressure.
+
+      Expect a values question too: interviewers probe whether you've
+      actually weighed TechBee's earn-while-you-learn path against a
+      traditional full-time degree, not just accepted whichever offer came
+      first.
+    focus_areas:
+      - { label: "HCL CAT (school-level aptitude)", weight: 5,
+          notes: "General logic, basic C output-prediction, school-level quant — lighter than the graduate-track written test." }
+      - { label: "Versant spoken-English assessment", weight: 4,
+          notes: "Automated pronunciation/fluency check, taken before the interview." }
+      - { label: "Impromptu written communication", weight: 4,
+          notes: "A live, watched writing task — handwriting, grammar and structure under time pressure." }
+      - { label: "Program-fit reasoning", weight: 3,
+          notes: "Interviewers probe whether you've weighed the earn-while-you-learn path against a traditional degree." }
+      - { label: "Self-presentation without work history", weight: 3,
+          notes: "Lean on school projects and extracurriculars as evidence, since there's no internship to point to yet." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: HCL CAT
+        difficulty: easy
+        year: 2025
+        question: >-
+          How does the HCL CAT (TechBee's qualifying test) differ from the
+          written test degree-holders sit for the standard GET track?
+        answer_md: |
+          TechBee accepts any 12th-pass stream (with Maths compulsory only
+          for IT-role applicants), so the CAT is pitched accordingly:
+          general logical reasoning, basic C-style output-prediction
+          questions, and school-level quantitative aptitude — not the DBMS/
+          OOP/OS Computer Fundamentals block the graduate track's written
+          test includes.
+
+          If you scored 80th percentile or above in JEE Mains, you can skip
+          the CAT entirely and go straight to the Versant test.
+        source_name: HCL TechBee — selection process FAQ
+        source_url: https://www.hcltechbee.com/faq/what-is-the-selection-process-for-the-program/
+
+      - kind: interview
+        round: hr
+        topic: Self-introduction
+        difficulty: easy
+        question: >-
+          Tell us a little about yourself, and what do you want to be in the
+          future?
+        answer_md: |
+          Keep the self-introduction under two minutes: academic background,
+          why you're drawn to tech, and why TechBee specifically rather than
+          a traditional degree path.
+
+          For the future-goals half, name a concrete near-term role or skill
+          area and connect it explicitly to what TechBee's training track
+          actually teaches — a vague "I want to be successful" answer reads
+          as not having researched the program.
+        source_name: GeeksforGeeks — HCL TechBee interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-tech-interview-experience-hcl-tech-bee-program/
+
+      - kind: interview
+        round: technical
+        topic: Communication under pressure
+        difficulty: medium
+        question: >-
+          You're handed a notebook and asked to write 100 words about your
+          favourite book, on the spot, while the interviewer watches. What's
+          actually being graded?
+        answer_md: |
+          Not the book — your handwriting legibility, grammar accuracy, and
+          whether you can structure a short piece of writing (opening
+          point, two or three supporting details, a closing line) under
+          direct time pressure with someone watching.
+
+          The practical prep: practise writing a short, structured paragraph
+          on an unfamiliar topic in under five minutes, out loud to
+          yourself first if that helps, so the format isn't what trips you
+          up on the day.
+        source_name: GeeksforGeeks — HCL TechBee interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-tech-interview-experience-hcl-tech-bee-program/
+
+      - kind: interview
+        round: hr
+        topic: Program fit
+        difficulty: medium
+        question: >-
+          Why choose TechBee over a full-time degree?
+        answer_md: |
+          Interviewers are checking for a clear-eyed reason, not a rehearsed
+          one — candidates who've had to actually choose between TechBee and
+          a college seat give the most convincing answers here.
+
+          A strong structure: name the trade-off honestly (earning and
+          working sooner, versus the traditional campus experience), then
+          give your specific reason for weighting it the way you did —
+          financial independence, wanting hands-on experience earlier, or a
+          concrete interest in the higher-education tie-up TechBee offers
+          alongside work.
+        source_name: GeeksforGeeks — HCL TechBee interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-tech-interview-experience-hcl-tech-bee-program/
+
+      - kind: interview
+        round: hr
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          What's a weakness of yours, and are you willing to relocate?
+        answer_md: |
+          For the weakness question, name something real and specific, then
+          spend more words on what you're doing about it than on the
+          weakness itself — "I used to leave things to the last minute, so
+          I started breaking school projects into weekly checkpoints" reads
+          far better than a deflection disguised as a weakness.
+
+          Relocation is asked here too, for the same reason as the graduate
+          track: TechBee places trainees across locations, and an
+          unqualified "yes" keeps your options open.
+        source_name: GeeksforGeeks — HCL TechBee interview experience
+        source_url: https://www.geeksforgeeks.org/hcl-techbee-interview-experience/
+
+  - slug: elite-ai-engineer
+    title: Elite AI Engineer
+    level: mid
+    maps_to_role: ai-engineer
+    sort_order: 3
+    source_url: https://faceprep.in/article/hcl-recruitment-for-freshers-hcl-recruitment-process-face-prep/
+    description: >-
+      A newer, higher-paying band (₹18–22 LPA) for candidates with a real
+      AI/GenAI/data-engineering/cybersecurity project portfolio. Thinly
+      documented compared to the other two tracks — treat the interview
+      questions here as a reasonable extrapolation from the standard
+      track's core, not a confirmed fixed pattern.
+    focus_md: |
+      **Public interview write-ups for this track are genuinely scarce** —
+      it's new enough that GeeksforGeeks, PrepInsta and Unstop don't yet
+      carry dedicated interview-experience pages for it the way they do for
+      the standard GET track and TechBee. What's consistently reported is
+      the eligibility floor (the same 60%/no-backlog baseline as the
+      standard track) and the differentiator: this band is auto-routed from
+      resume signal rather than applied to separately, and the technical
+      screen extends the standard CS-fundamentals interview with a layer on
+      your deployed AI work specifically.
+
+      Prepare the standard track's DBMS/OOP/OS core as your baseline, then
+      add the one thing every source agrees this track adds: be ready to
+      justify architectural choices in a real project — why this vector
+      database, why this orchestration approach, why this model over a
+      cheaper or more capable alternative — rather than just describing that
+      you used an LLM API.
+    focus_areas:
+      - { concept: ai-engineer-fundamentals, label: "Working with LLM APIs", weight: 5,
+          notes: "Candidates are expected to have hands-on experience with at least one major LLM API, not just conceptual knowledge." }
+      - { concept: ai-engineer-ai-agents, label: "Project architecture defence", weight: 5,
+          notes: "Why this vector DB, why this orchestration approach — justify choices, don't just describe what was used." }
+      - { concept: backend-relational-databases, label: "DBMS core", weight: 4,
+          notes: "Same baseline as the standard GET track — normalisation, keys, joins." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP core", weight: 3 }
+      - { concept: devops-operating-system, label: "OS core", weight: 3 }
+      - { label: "Portfolio-driven screening", weight: 4,
+          notes: "Routed by resume signal rather than a separate application — a real, demonstrable AI/data/security project matters more than marks above the baseline." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: LLM APIs
+        difficulty: medium
+        question: >-
+          Describe a project where you used an LLM API. Why that model, and
+          what would break if you swapped it for a cheaper one?
+        answer_md: |
+          Structure the answer around a real trade-off, not a feature list:
+          name the task (summarisation, extraction, a chat agent), why you
+          picked the specific model tier (context window, latency, cost per
+          call, or a capability the cheaper tier lacked for your specific
+          task), and what you measured to confirm the choice — accuracy on
+          a held-out sample, latency under load, or simply cost at your
+          expected volume.
+
+          If you swapped to a cheaper model, the honest answer is usually
+          "some fraction of outputs would need a fallback or a retry
+          strategy" — say what that fraction was if you actually measured
+          it, and say you'd need to if you didn't.
+        source_name: FACE Prep — HCL recruitment for freshers
+        source_url: https://faceprep.in/article/hcl-recruitment-for-freshers-hcl-recruitment-process-face-prep/
+
+      - kind: interview
+        round: technical
+        topic: Architecture choices
+        difficulty: hard
+        question: >-
+          Why did you choose that vector database / orchestration approach
+          for your project?
+        answer_md: |
+          The interviewer is checking whether you can defend a design
+          decision under questioning, not whether you chose the "right"
+          tool. Have one concrete alternative you considered and rejected,
+          and the specific reason — a lighter-weight vector store because
+          your dataset was small enough that a full production-grade option
+          was overkill, or a heavier one because you needed metadata
+          filtering the lighter option didn't support.
+
+          The pattern that generalises: for every non-trivial tool choice in
+          your project, know the runner-up and why it lost.
+        source_name: FACE Prep — HCL recruitment for freshers
+        source_url: https://faceprep.in/article/hcl-recruitment-for-freshers-hcl-recruitment-process-face-prep/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What are ACID properties, and why do they matter for a
+          production system?
+        answer_md: |
+          Atomicity, Consistency, Isolation, Durability — the same baseline
+          the standard GET track is asked, since this track's technical
+          screen keeps the CS-fundamentals core and adds an AI-specific
+          layer on top of it rather than replacing it.
+
+          For an AI-adjacent system specifically, tie it to something
+          concrete: if you're logging model inputs/outputs for an audit
+          trail, durability is what guarantees that log survives a crash;
+          isolation is what stops two concurrent requests from corrupting a
+          shared cache of embeddings.
+        source_name: GeeksforGeeks — HCLTech GET interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-technologies-interview-experience-for-graduate-engineer-trainee/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: easy
+        question: >-
+          What's the difference between abstraction and encapsulation?
+        answer_md: |
+          Abstraction hides *what* a thing does behind an interface — a
+          `ModelClient` interface that works the same whether it's calling
+          OpenAI, Anthropic or a local model underneath. Encapsulation hides
+          *how* it's protected — bundling an API key and retry logic inside
+          the client class so nothing outside it can touch them directly.
+
+          Same core CS-fundamentals question as the standard track — this
+          band doesn't lower that bar, it adds to it.
+        source_name: GeeksforGeeks — HCLTech GET interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/hcl-technologies-interview-experience-for-graduate-engineer-trainee/
+
+      - kind: interview
+        round: hr
+        topic: Eligibility
+        difficulty: easy
+        question: >-
+          Do you meet the same 60% and no-active-backlog baseline as the
+          standard track — and are you willing to relocate?
+        answer_md: |
+          Yes — the Elite AI band doesn't relax HCLTech's academic
+          eligibility floor, it adds a portfolio bar on top of it. Marks
+          above the baseline aren't reported to matter much more here than
+          they do for the standard track; a demonstrable AI/data/security
+          project is the actual differentiator.
+
+          Answer the relocation question the same way you would for the
+          standard track: directly, since this band is auto-routed from a
+          resume signal rather than a separately named application, and the
+          same pan-India placement expectation applies.
+        source_name: FACE Prep — HCL recruitment for freshers
+        source_url: https://faceprep.in/article/hcl-recruitment-for-freshers-hcl-recruitment-process-face-prep/

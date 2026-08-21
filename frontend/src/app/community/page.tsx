@@ -30,7 +30,7 @@ export default async function CommunityPage({
   ]);
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'community' }}>
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6">

@@ -1,0 +1,649 @@
+# Zomato.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: zomato
+  name: Zomato
+  industry: Food delivery & quick commerce
+  hq: Gurugram, Haryana
+  website: https://www.zomato.com/careers
+  icon: UtensilsCrossed
+  fetched_on: 2026-08-21
+  sort_order: 22
+  description: >-
+    Restaurant discovery, food delivery, and — through Blinkit — quick
+    commerce, under parent company Eternal. Loop is a shorter, more
+    conversational version of the standard product-company pattern, with
+    scalability discussion woven into the coding rounds rather than isolated
+    in a single system-design round.
+  hiring_process_md: |
+    Zomato's loop is compact — often 4 rounds inside two to three weeks — and
+    distinctive in one way: interviewers reward candidates who bring up
+    **scale considerations unprompted** during ordinary coding rounds, not
+    just in a dedicated design round.
+
+    **The shape of it**
+
+    1. **Online assessment** — 2–4 questions (DSA plus debugging-style
+       problems) in 90–120 minutes, run on Intervue or HackerRank depending
+       on the drive.
+    2. **Technical rounds (2–3)** — DSA (arrays, trees, graphs, DP), live
+       coding in your language of choice, and — for SDE-1/2 — a system
+       design component folded into the same round rather than always split
+       out separately.
+    3. **Managerial round** — a senior engineer or eng lead from a different
+       team, deliberately outside your reporting line, covering project
+       depth and how you've handled disagreement or ambiguity.
+    4. **HR** — compensation, offer.
+
+    **What "reward scalability discussion" means in practice.** If a coding
+    round question can plausibly be a production system (a rate limiter, a
+    URL shortener, an order queue), interviewers are listening for whether
+    you mention caching, sharding, or a message queue as a natural extension
+    — even briefly — rather than stopping once the algorithm works. Frontend
+    candidates get an analogous version: after a correct implementation,
+    expect a question about how it'd hold up in a production React app
+    (re-render cost, memoization) rather than a separate round for it.
+  resources:
+    - kind: blog
+      title: "Zomato Technology — Engineering blog (Medium)"
+      url: https://medium.com/zomato-technology/tagged/engineering
+    - kind: careers
+      title: "Zomato Careers"
+      url: https://www.zomato.com/careers
+    - kind: prep
+      title: "Zomato Interview Experience for SDE-2 — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+    - kind: prep
+      title: "Zomato x Blinkit Interview Experience for SDE-I (On-Campus 2024) — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/zomato-x-blinkit-interview-experience-for-sde-i-on-campus-2024/
+    - kind: prep
+      title: "Zomato interview experiences — CodingKaro"
+      url: https://www.codingkaro.in/jobs-internships/leetcode-interview-experience/Zomato
+
+roles:
+  - slug: sde-1
+    title: SDE-1 (Software Development Engineer)
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.zomato.com/careers
+    description: >-
+      Entry engineering role covering DSA, core CS fundamentals, and a light
+      system-design component folded into the technical rounds rather than
+      a separate stage.
+    focus_md: |
+      Because Zomato blends design discussion into ordinary coding rounds
+      rather than isolating it, practice narrating scale considerations as
+      you solve — "this works for a small input, but at production volume
+      I'd cache this lookup" — even when not explicitly asked. It's a
+      cheap signal that reads as seniority beyond your level.
+
+      Core CS fundamentals (OOP concepts, DBMS indexing/paging, inheritance
+      mechanics) come up as standalone conceptual questions more often here
+      than at some peers, so don't treat them as "warm-up" — they're scored.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "Arrays, trees, graphs, DP — the OA and technical rounds both draw here." }
+      - { concept: computer-science-system-design, label: "Scale-aware coding", weight: 4,
+          notes: "Design isn't always a separate round — bring it up inside coding answers." }
+      - { concept: computer-science-databases, label: "DBMS fundamentals", weight: 4,
+          notes: "Indexing and paging come up as direct conceptual questions." }
+      - { concept: python-learn-the-basics, label: "One language, fluently", weight: 4 }
+      - { concept: backend-relational-databases, label: "Relational databases", weight: 3 }
+      - { concept: system-design-caching, label: "Caching", weight: 3 }
+      - { label: "Managerial round", weight: 3,
+          notes: "Project depth, and how you handle disagreement or ambiguity." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Arrays & debugging
+        difficulty: medium
+        year: 2025
+        question: >-
+          You're given a buggy function that's meant to find the maximum
+          subarray sum but returns the wrong answer on arrays containing all
+          negative numbers. Find and fix the bug, then state the algorithm's
+          complexity.
+        answer_md: |
+          The classic bug is initializing the running/best sum to `0` instead
+          of to the first element (or negative infinity) — with an
+          all-negative array, a running sum that starts at 0 never goes
+          negative internally in the way Kadane's algorithm expects, so it
+          incorrectly reports 0 (or the wrong subarray) instead of the actual
+          least-negative single element.
+
+          The fix: initialize both `currentSum` and `maxSum` to `arr[0]`,
+          then for each subsequent element take `currentSum =
+          max(arr[i], currentSum + arr[i])` and update `maxSum` if
+          `currentSum` exceeds it. O(n) time, O(1) space — Kadane's algorithm.
+          Debugging questions like this are checking whether you can reason
+          about an algorithm's invariants rather than just reproduce it from
+          memory.
+        source_name: GeeksforGeeks — Zomato SDE Interview Experience
+        source_url: https://www.geeksforgeeks.org/zomato-sde-interview-experience/
+
+      - kind: interview
+        round: technical
+        topic: OOP fundamentals
+        difficulty: easy
+        question: >-
+          Explain the constructor and destructor call order in an inheritance
+          chain: if class C extends B extends A, what happens when a C object
+          is created and destroyed?
+        answer_md: |
+          Construction runs base-to-derived: `A`'s constructor runs first,
+          then `B`'s, then `C`'s — each class needs its base fully
+          initialized before it can safely add its own state. Destruction
+          runs in exactly the reverse order: `C`'s destructor first, then
+          `B`'s, then `A`'s — you tear down the most-derived state before the
+          base state it might depend on.
+
+          The follow-up worth pre-empting: this is also why a base class
+          destructor should be `virtual` in C++ if you ever delete a derived
+          object through a base pointer — without it, only the base
+          destructor runs, leaking any resources the derived class's
+          destructor was meant to clean up.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-1-on-campus-2021/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          Explain indexing and paging in the context of a database serving a
+          restaurant-search query with filters.
+        answer_md: |
+          An index is a separate, sorted structure (typically a B-tree) built
+          on one or more columns that lets the database find matching rows
+          without scanning the whole table — critical for a filtered search
+          query hitting a large restaurant table, since a query filtering on
+          cuisine and city without an index degrades to a full table scan.
+
+          Paging (in the DBMS-internals sense, not UI pagination) is how the
+          database organises rows on disk into fixed-size pages that get read
+          into memory as a unit — an index tells the database *which* pages
+          to read, so a well-chosen index reduces disk I/O, not just CPU
+          comparison work. The connection worth making explicit: a composite
+          index on `(city, cuisine)` serves a query filtering on both far
+          better than two separate single-column indexes, because the
+          database can narrow the search on the leading column before even
+          considering the second.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        question: >-
+          Given a grid representing delivery zones where some cells are
+          blocked, find the shortest path from a restaurant cell to a
+          delivery address cell, then discuss how you'd make this work for
+          a production-scale map.
+        answer_md: |
+          BFS from the source cell, treating each unblocked neighbour as a
+          graph edge of equal weight — BFS guarantees shortest path in an
+          unweighted grid, O(rows × cols).
+
+          The scale-aware half of the answer is the part interviewers are
+          listening for: a real delivery map isn't a small grid, it's a
+          continuous road network, so the right structure is a proper graph
+          (roads as weighted edges by travel time) with Dijkstra or A*, and
+          — for production query volume — precomputed distances between
+          frequently-queried zone pairs, refreshed periodically, rather than
+          running shortest-path from scratch on every request. Mentioning
+          this extension without being asked is exactly the signal Zomato's
+          loop is designed to catch.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: online-assessment
+        round: coding
+        topic: Strings
+        difficulty: easy
+        question: >-
+          Given a string of digits representing an encoded message (where
+          'A'=1, 'B'=2, ... 'Z'=26), count the number of ways it can be
+          decoded.
+        answer_md: |
+          This is a DP counting problem, structurally similar to climbing
+          stairs. `dp[i]` = number of ways to decode the first `i`
+          characters. `dp[i] += dp[i-1]` if the single digit at position `i`
+          is valid (1–9, not '0'); `dp[i] += dp[i-2]` if the two-digit number
+          formed by positions `i-1` and `i` is valid (10–26).
+
+          The edge case that trips people up: a lone `'0'` is never valid on
+          its own (there's no encoding for 0), so a `'0'` can only be
+          "absorbed" as the second digit of a valid two-digit group (10 or
+          20) — a string like `"30"` has zero valid decodings, not one,
+          because 30 isn't in range and 0 alone is invalid. Explicitly
+          handling `dp[i] = 0` when neither condition is met is what separates
+          a correct solution from one that silently double-counts or crashes.
+        source_name: GeeksforGeeks — Zomato SDE Interview Experience
+        source_url: https://www.geeksforgeeks.org/zomato-sde-interview-experience/
+
+      - kind: interview
+        round: managerial
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          Describe a time you disagreed with a technical decision from
+          someone senior to you. What did you do?
+        answer_md: |
+          Since the managerial round is deliberately staffed by someone
+          outside your reporting line, they're specifically checking how you
+          handle disagreement with authority, not just disagreement in
+          general — a story where you silently complied, or one where you
+          simply overrode the decision, both read as weaker than one where
+          you raised a concrete, evidence-backed concern and then respected
+          the outcome either way.
+
+          Structure: what the decision was, the specific risk or cost you
+          saw, how you raised it (data, a prototype, a smaller ask — not just
+          an opinion), what was decided, and what you did next. If the
+          decision went against you and you executed it well anyway, say so —
+          that's often the stronger ending.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+  - slug: sde-2
+    title: SDE-2
+    level: mid
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://www.zomato.com/careers
+    description: >-
+      Same round structure as SDE-1 with a full system-design component and
+      harder DSA. Delivery-and-discovery-flavoured design prompts: caching
+      strategy, sharding, message queues, and circuit breakers for dependent
+      service failures are the recurring vocabulary.
+    focus_md: |
+      Zomato's SDE-2 loop specifically rewards candidates who bring up
+      resilience patterns — circuit breakers for a dependent service that's
+      slow or down — not just throughput patterns like caching and sharding.
+      That's a distinguishing detail worth preparing explicitly: know the
+      difference between a retry, a timeout, and a circuit breaker, and when
+      each is the right tool.
+
+      Design prompts lean toward the discovery-and-delivery domain: search
+      and ranking, order-and-delivery tracking, and notification fan-out
+      (a restaurant status change needs to reach potentially thousands of
+      subscribed users).
+    focus_areas:
+      - { concept: computer-science-system-design, label: "System design", weight: 5,
+          notes: "Caching, sharding, message queues, and circuit breakers — all explicitly rewarded." }
+      - { concept: system-design-reliability-patterns, label: "Resilience patterns", weight: 4,
+          notes: "Circuit breakers, retries, timeouts for dependent service failures." }
+      - { concept: system-design-caching, label: "Caching strategy", weight: 4 }
+      - { concept: backend-message-brokers, label: "Message queues & async fan-out", weight: 4,
+          notes: "Notification fan-out to thousands of subscribers is a recurring prompt." }
+      - { concept: backend-scaling-databases, label: "Database sharding", weight: 3 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3 }
+      - { label: "Managerial round", weight: 3 }
+    questions:
+      - kind: interview
+        round: system-design
+        topic: Resilience
+        difficulty: hard
+        year: 2025
+        question: >-
+          The restaurant-catalog service you depend on is intermittently slow.
+          How do you keep your own service healthy?
+        answer_md: |
+          Three mechanisms, and the interview is checking whether you
+          distinguish them rather than reaching for one generic answer.
+          A **timeout** bounds how long you'll wait for the slow dependency
+          so a hung call doesn't hang your own request thread indefinitely.
+          A **retry** (with backoff, and ideally jitter) helps for
+          transient failures but makes an *overloaded* dependency worse if
+          applied naively — retrying into an already-struggling service adds
+          load exactly when it can least handle it.
+
+          A **circuit breaker** is the one that actually protects you from a
+          persistently failing dependency: after enough consecutive failures,
+          it "opens" and stops sending requests to the dependency entirely
+          for a cooldown period, failing fast (or falling back to cached/
+          default data) instead of queueing up more doomed calls. The
+          strongest answers layer all three — timeout to bound each call,
+          limited retry with backoff for genuinely transient blips, circuit
+          breaker to stop calling entirely once the dependency is clearly
+          down — and explain why one alone isn't sufficient.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: interview
+        round: system-design
+        topic: Notifications
+        difficulty: hard
+        question: >-
+          Design a notification fan-out system: a restaurant goes offline,
+          and every user who has it in their cart or recently ordered from it
+          needs to be notified within seconds.
+        answer_md: |
+          The core shape is publish-fan-out-deliver: an event ("restaurant
+          X went offline") is published once to a message queue/stream, a
+          fan-out worker resolves the (potentially large) list of affected
+          users from a subscription/interest index, and per-user delivery
+          jobs go out through whichever channel each user prefers (push,
+          SMS, in-app), each independently retryable so one failed delivery
+          channel doesn't block the others.
+
+          The scale detail worth naming: resolving "every user who has this
+          restaurant in their cart" needs to be an indexed lookup (a
+          restaurant-to-interested-users index maintained incrementally as
+          carts change), not a scan over all active carts at notification
+          time — that's the difference between sub-second and multi-second
+          fan-out at real user volume. Batching the per-user delivery jobs
+          rather than firing them individually is the throughput lever most
+          candidates miss.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: online-assessment
+        round: coding
+        topic: Dynamic programming
+        difficulty: hard
+        year: 2025
+        question: >-
+          Given a list of past order values for a user, find the length of
+          the longest strictly increasing subsequence of order values.
+        answer_md: |
+          The O(n²) DP is the baseline: `dp[i]` = length of the longest
+          increasing subsequence ending at index `i`, computed as `1 +
+          max(dp[j])` over all `j < i` where `arr[j] < arr[i]`.
+
+          The O(n log n) improvement is the one worth having ready:
+          maintain an array `tails` where `tails[k]` is the smallest possible
+          tail value of an increasing subsequence of length `k+1`; for each
+          new element, binary-search `tails` for the first value ≥ it and
+          replace it (or append if it's larger than everything so far). The
+          final length of `tails` is the answer. It's a subtle algorithm —
+          `tails` isn't itself a valid subsequence, only its *length* is
+          meaningful — and stating that caveat unprompted shows real
+          understanding rather than memorised code.
+        source_name: GeeksforGeeks — Zomato SDE Interview Experience
+        source_url: https://www.geeksforgeeks.org/zomato-sde-interview-experience/
+
+      - kind: interview
+        round: technical
+        topic: Sharding
+        difficulty: medium
+        question: >-
+          Zomato's order table has grown to billions of rows. How would you
+          shard it, and what breaks?
+        answer_md: |
+          Shard by a key that keeps related data together and matches the
+          dominant query pattern — `user_id` or `restaurant_id` are both
+          reasonable depending on whether most queries look up "orders for
+          this user" or "orders for this restaurant"; sharding by `order_id`
+          alone spreads related lookups randomly across shards for no
+          benefit.
+
+          What breaks: any query that needs to aggregate across shards (total
+          orders city-wide today) now requires a scatter-gather across every
+          shard instead of a single-node query, and cross-shard joins (a
+          user's orders joined with restaurant details, if restaurants are
+          sharded differently) get expensive or need denormalization.
+          Naming the specific query pattern you're optimising for — and which
+          query pattern you're deliberately sacrificing — is the actual
+          answer; there's no shard key that's free.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: interview
+        round: coding
+        topic: Concurrency
+        difficulty: medium
+        question: >-
+          Explain the difference between multithreading and multiprocessing,
+          and when you'd choose one for an order-processing service.
+        answer_md: |
+          Multithreading shares memory space across threads within one
+          process — cheaper context switches, but requires explicit
+          synchronization (locks) to avoid race conditions on shared state,
+          and in Python specifically the GIL means threads don't give true
+          CPU parallelism for CPU-bound work.
+
+          Multiprocessing runs separate processes with isolated memory —
+          heavier to spin up and requires explicit IPC to share data, but
+          gets true parallelism across cores and process-level isolation (one
+          process crashing doesn't take down the others). For an
+          order-processing service, most of the work is I/O-bound (waiting on
+          database and downstream service calls), which favours
+          multithreading or, more commonly today, an async/event-loop model
+          — multiprocessing's isolation benefit matters more for CPU-bound
+          work like image processing, which isn't the order path's
+          bottleneck.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: interview
+        round: system-design
+        topic: Caching
+        difficulty: medium
+        question: >-
+          The restaurant details page (menu, ratings, photos) is read far
+          more often than it's written. How do you use caching, and what
+          invalidates it?
+        answer_md: |
+          This is a strong candidate for a read-through cache in front of
+          the database: on a cache miss, load from the database and populate
+          the cache; on subsequent reads, serve from cache directly. Given
+          the read:write ratio, even a moderately long TTL (minutes, not
+          seconds) captures most of the benefit, because restaurant details
+          change far less often than they're viewed.
+
+          Invalidation is the actual design question: a pure TTL-based
+          expiry means a restaurant that just updated its menu can show
+          stale data for the TTL window, which may be unacceptable for
+          something like "restaurant just went offline". The stronger design
+          combines a TTL as a safety net with active invalidation — on any
+          write to a restaurant's details, explicitly evict (or update) its
+          cache entry — so the TTL only matters for entries that were never
+          explicitly invalidated (a bug, a missed event) rather than being
+          the primary consistency mechanism. Naming "TTL as a safety net,
+          not a primary strategy" is the detail that separates a strong
+          answer here.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+  - slug: frontend-engineer
+    title: Frontend Engineer (React)
+    level: entry to mid
+    maps_to_role: frontend-developer
+    sort_order: 3
+    source_url: https://www.zomato.com/careers
+    description: >-
+      Zomato's consumer app is React-heavy, and its frontend loop is
+      distinctive for asking candidates to implement browser/JS internals
+      from scratch — polyfills for `bind`, `call`, `apply` — rather than
+      only framework usage.
+    focus_md: |
+      The polyfill-writing pattern is the single most distinctive thing about
+      this loop: be ready to implement `Function.prototype.bind` (or `call`,
+      `apply`, `debounce`, `throttle`) from first principles on a whiteboard
+      or shared editor, not just describe what they do. This is a direct
+      test of whether you understand JavaScript's `this` binding and closures
+      rather than having only used the built-ins.
+
+      On the React side, expect the "after it works, how does it scale"
+      follow-up consistent with the rest of Zomato's loop: re-render cost,
+      when to memoize, and why a naive implementation of a search-with-
+      filters UI re-renders more than it needs to.
+    focus_areas:
+      - { concept: javascript-using-this-keyword, label: "`this` binding & closures", weight: 5,
+          notes: "The polyfill questions (bind/call/apply) are really testing this." }
+      - { concept: javascript-functions, label: "JavaScript functions & polyfills", weight: 5,
+          notes: "Implement bind/call/apply/debounce/throttle from scratch, not just use them." }
+      - { concept: react-hooks, label: "React hooks & re-render behaviour", weight: 4 }
+      - { concept: react-state-management, label: "State management", weight: 3 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3,
+          notes: "The DSA bar isn't waived for frontend roles." }
+      - { concept: frontend-performance, label: "Frontend performance", weight: 3,
+          notes: "Memoization and re-render cost, asked as a follow-up after a working feature." }
+      - { label: "Managerial round", weight: 2 }
+    questions:
+      - kind: interview
+        round: coding
+        topic: JavaScript internals
+        difficulty: hard
+        question: >-
+          Implement `Function.prototype.myBind` from scratch, without using
+          the built-in `bind`.
+        answer_md: |
+          `bind` needs to return a new function that, when called, invokes
+          the original function with `this` set to the bound context and any
+          bound arguments prepended to the call-time arguments:
+
+          ```js
+          Function.prototype.myBind = function (context, ...boundArgs) {
+            const fn = this; // the function bind was called on
+            return function (...callArgs) {
+              return fn.apply(context, [...boundArgs, ...callArgs]);
+            };
+          };
+          ```
+
+          The subtlety interviewers probe for: `bind` must work correctly
+          even when the returned function is later invoked as a constructor
+          with `new` (a full polyfill checks `this instanceof boundFn` and
+          uses `new fn(...)` in that case instead of `apply`). Most
+          candidates get the basic closure-over-`fn`-and-`context` version
+          right and miss the `new` case — mentioning it even without coding
+          it fully is a strong signal.
+        source_name: GeeksforGeeks — JavaScript interview questions
+        source_url: https://www.geeksforgeeks.org/javascript/javascript-interview-questions/
+
+      - kind: interview
+        round: coding
+        topic: JavaScript internals
+        difficulty: medium
+        question: Implement a `debounce` function from scratch.
+        answer_md: |
+          Debounce delays invoking a function until a specified time has
+          passed *since the last call* — every new call within the window
+          resets the timer:
+
+          ```js
+          function debounce(fn, delay) {
+            let timer;
+            return function (...args) {
+              clearTimeout(timer);
+              timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+          }
+          ```
+
+          The follow-up worth pre-empting: this is distinct from `throttle`,
+          which guarantees the function runs at most once per interval
+          *regardless* of how many calls come in, rather than waiting for a
+          quiet period. For a search-box autocomplete, debounce is usually
+          right (wait until the user pauses typing); for a scroll-position
+          handler, throttle is usually right (you want periodic updates
+          during continuous scrolling, not just one at the end).
+        source_name: GeeksforGeeks — JavaScript interview questions
+        source_url: https://www.geeksforgeeks.org/javascript/javascript-interview-questions/
+
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: easy
+        question: >-
+          Given an array of restaurant ratings, find the two ratings that are
+          closest to each other in value.
+        answer_md: |
+          Sort the array (O(n log n)), then scan adjacent pairs in the sorted
+          order and track the minimum difference — the closest pair in value
+          is guaranteed to be adjacent once sorted, since any non-adjacent
+          pair has at least one closer element between them.
+
+          The trap: candidates sometimes reach for a nested O(n²) comparison
+          of every pair. Naming "sorting first turns this from O(n²) into
+          O(n log n)" unprompted, before writing the nested-loop version, is
+          the efficient path through this question.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-x-blinkit-interview-experience-for-sde-i-on-campus-2024/
+
+      - kind: interview
+        round: technical
+        topic: React performance
+        difficulty: medium
+        question: >-
+          You've built a restaurant search page with live filters (cuisine,
+          price, rating). It works, but typing in the price filter causes the
+          whole restaurant list to re-render on every keystroke. How do you
+          fix it?
+        answer_md: |
+          The likely cause is that the filter input's changing state lives in
+          the same component that renders the list, so every keystroke
+          re-renders both — even before the filter is actually applied (e.g.
+          if filtering happens on submit or after a debounce, not on every
+          keystroke).
+
+          Fixes, roughly in order of impact: debounce the filter input so
+          re-filtering only happens after the user pauses typing, not on
+          every keystroke; memoize the restaurant-list component with
+          `React.memo` so it only re-renders when its actual props (the
+          filtered list) change, not when unrelated parent state changes; and
+          derive the filtered list with `useMemo` so filtering itself isn't
+          recomputed on every render when the underlying data hasn't changed.
+          The strongest answers diagnose *why* the re-render is happening
+          (state colocated too high) before reaching for memoization as a
+          patch.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: interview
+        round: managerial
+        topic: Behavioural
+        difficulty: easy
+        question: >-
+          Tell me about a UI decision you made that a designer or PM
+          disagreed with. How did you resolve it?
+        answer_md: |
+          Frame it around the trade-off you were actually weighing —
+          performance vs. visual fidelity, accessibility vs. a specific
+          design ask, implementation time vs. polish — rather than "they
+          wanted X, I wanted Y". Interviewers are checking whether you can
+          articulate an engineering constraint in terms the other side
+          understands, not whether you "won" the disagreement.
+
+          A strong close names what you'd do differently next time — raising
+          the constraint earlier in the design process, for instance — which
+          shows the disagreement taught you something about how you work
+          with non-engineers, not just that you navigated one conversation.
+        source_name: GeeksforGeeks — Zomato interview experiences
+        source_url: https://www.geeksforgeeks.org/interview-experiences/zomato-interview-experience-for-sde-2/
+
+      - kind: online-assessment
+        round: coding
+        topic: JavaScript
+        difficulty: medium
+        question: >-
+          What is event delegation in the DOM, and why would you use it for a
+          list of restaurant cards with individual "favourite" buttons?
+        answer_md: |
+          Event delegation attaches a single listener to a common ancestor
+          (the list container) instead of one listener per child element,
+          relying on event bubbling — a click on any "favourite" button
+          bubbles up to the container, where the listener inspects
+          `event.target` to determine which card was clicked.
+
+          For a restaurant list, this matters for two reasons: it avoids
+          attaching hundreds of individual listeners (one per card) which
+          costs memory and setup time at render, and it automatically works
+          for cards added *after* the initial render (infinite scroll, newly
+          loaded results) without needing to re-attach listeners to new
+          elements — a common bug in the naive per-element approach.
+        source_name: GeeksforGeeks — JavaScript interview questions
+        source_url: https://www.geeksforgeeks.org/javascript/javascript-interview-questions/

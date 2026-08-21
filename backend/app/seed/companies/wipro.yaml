@@ -1,0 +1,580 @@
+company:
+  slug: wipro
+  name: Wipro
+  industry: IT Services (India)
+  hq: Bengaluru, India
+  website: https://careers.wipro.com/
+  icon: Sun
+  fetched_on: 2026-08-21
+  sort_order: 17
+  description: >-
+    A large Indian IT services employer running several parallel fresher
+    tracks at once — Elite, Turbo and the sponsored-degree WILP program —
+    each with its own online test, pay band and bar to clear.
+  hiring_process_md: |
+    Wipro doesn't run one fresher pipeline, it runs several, and which one
+    you land in changes what the online test actually contains.
+
+    **The tracks**
+
+    - **Elite (NTH)** — the main engineering-degree track. ₹6.5 LPA. The
+      online assessment includes a coding section.
+    - **Turbo** — a lighter, higher-volume entry track. ₹3.5 LPA. The online
+      assessment is aptitude and an essay, with no coding component reported.
+    - **Hexa** — a smaller, harder top band (₹10 LPA) with DSA and
+      system-design content, for candidates who want to push for it.
+    - **WILP (Work Integrated Learning Program)** — for B.Sc/BCA graduates.
+      Pays ₹2.5–3.5 LPA plus a reported ₹75,000 joining bonus, and bundles
+      the job with a Wipro-sponsored M.Tech pursued alongside live client
+      work, across five specialisations (IT Infrastructure, Testing, Project
+      Engineering, Digital Workspace Services, Cloud Services).
+
+    **The shape of it, Elite/Hexa track:**
+
+    1. **Online test** — quant, logical reasoning and verbal, plus a coding
+       section (2 problems, your choice of Java/C/C++/Python).
+    2. **Technical interview** — programming fundamentals, OOP, DBMS, OS, and
+       your resume project; sometimes live coding or debugging.
+    3. **HR interview** — self-intro, relocation, and comfort with the
+       service agreement.
+
+    **Turbo/WILP track** drops the coding section from the online test —
+    it's aptitude plus a timed essay — and WILP inserts an extra **Business
+    Discussion round** (a resume-and-behavioural panel) between the test and
+    the HR round.
+
+    **No source, including Wipro's own careers pages, publishes a negative
+    marking policy or sectional cutoffs for any of these tests** — treat
+    both as undisclosed rather than assume either exists.
+
+    **The service agreement is the one thing every track's HR round asks
+    about directly.** A 15-month bond is widely reported by candidates and
+    former employees, sometimes cited with a ₹75,000 exit penalty tied to
+    the cost of Wipro's 45–60 day structured training — but this figure
+    comes from candidate and employee reports rather than an official Wipro
+    page, so treat it as commonly reported rather than confirmed for the
+    current cycle. Whatever the number, expect the question, and answer it
+    honestly rather than agreeing reflexively.
+
+    **Eligibility** for 2026 typically runs 60% or 6.0 CGPA across Class 10,
+    12 and graduation for Elite/Turbo (some listings for Turbo specifically
+    cite 65%/6.5 — check the live posting), zero *active* backlogs at
+    joining, and a maximum academic gap of one year for Elite/Turbo (wider,
+    2–3 years, for WILP). Age limits are typically 28 for Elite/Turbo and 30
+    for WILP.
+
+  resources:
+    - kind: careers
+      title: "Wipro Careers — Elite NTH"
+      url: https://careers.wipro.com/elite/jobs
+    - kind: prep
+      title: "Wipro Elite NTH interview questions — Unstop"
+      url: https://unstop.com/blog/wipro-elite-national-talent-hunt-interview-questions
+    - kind: prep
+      title: "Wipro recruitment process — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/wipro-recruitment-process/
+    - kind: prep
+      title: "Wipro WILP technical interview questions — PrepInsta"
+      url: https://prepinsta.com/wipro-wilp/technical-interview-questions/
+    - kind: prep
+      title: "Wipro NLTH exam pattern and eligibility — FACE Prep"
+      url: https://faceprep.in/article/wipro-national-qualifier-test-2025-exam-dates-test-pattern-syllabus-eligibility-criteria/
+
+roles:
+  - slug: project-engineer-elite
+    title: Project Engineer (Elite NTH)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://unstop.com/blog/wipro-elite-national-talent-hunt-interview-questions
+    description: >-
+      The main engineering-degree fresher track, ₹6.5 LPA. The online test
+      includes a coding section, and the technical interview goes further
+      into DS, OOP, DBMS and OS than the lighter Turbo track does.
+    focus_md: |
+      **The coding section is what separates Elite from Turbo, so don't
+      skip it in prep just because "it's a Wipro test."** Two problems, 60
+      minutes, your choice of language — treat it like any other online
+      judge and get comfortable typing complete, compiling programs
+      including input parsing, not just algorithm sketches.
+
+      The technical interview leans on short, direct definitional questions
+      — swap two numbers without a temp variable, primary key vs foreign
+      key, overloading vs overriding — and it rewards a crisp answer over a
+      long one. One recurring pattern worth practising specifically: a
+      lightweight system-design prompt like "design a vending machine,"
+      where the interviewer wants states and a rough class breakdown, not a
+      formal architecture diagram.
+
+      For HR, the service-agreement question is not a formality here — it's
+      asked directly, and a hesitant answer is read as a real risk that you
+      won't complete the 45–60 day training investment.
+    focus_areas:
+      - { label: "Quantitative & logical aptitude", weight: 4,
+          notes: "Standard topics — no negative marking or cutoffs are publicly disclosed for this track." }
+      - { concept: python-learn-the-basics, label: "Coding round (2 problems)", weight: 5,
+          notes: "60 minutes, language of choice. Practise typing complete programs, not just logic sketches." }
+      - { concept: computer-science-data-structures, label: "Data structures", weight: 4 }
+      - { concept: backend-relational-databases, label: "DBMS basics", weight: 4,
+          notes: "Normalisation, primary vs foreign key, and a SQL query (second-highest salary is a recurring favourite)." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP concepts", weight: 3,
+          notes: "Overloading vs overriding is asked almost every cycle." }
+      - { concept: devops-operating-system, label: "Operating systems basics", weight: 3,
+          notes: "Paging and virtual memory come up specifically." }
+      - { label: "Service-agreement comfort", weight: 3,
+          notes: "HR asks directly whether you're comfortable with the bond period. Answer honestly." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Language fundamentals
+        difficulty: easy
+        year: 2025
+        question: >-
+          The Elite online test gives you a choice of Java, C, C++ or Python
+          for its two coding problems. How should that choice affect your
+          preparation?
+        answer_md: |
+          Pick the language you can write *fastest without a reference*, not
+          the one you're most impressed by. The problems themselves are
+          reported as easy-to-moderate array/string/pattern work — the
+          bottleneck is almost always syntax speed and handling input
+          parsing correctly, not algorithmic insight.
+
+          If you're equally fluent in two, prefer the one with terser syntax
+          for string/array manipulation (Python over C++, say) — with a
+          fixed time budget, less boilerplate directly translates into more
+          time to test edge cases.
+        source_name: TNP Officer — Wipro National Talent Hunt syllabus
+        source_url: https://tnpofficer.com/wipro-national-talent-hunt-syllabus/
+
+      - kind: interview
+        round: technical
+        topic: Programming fundamentals
+        difficulty: easy
+        question: >-
+          Swap two numbers without using a third variable.
+        answer_md: |
+          Arithmetic version: `a = a + b; b = a - b; a = a - b;` — after the
+          first line `a` holds the sum, so subtracting the original `b`
+          recovers the original `a`, and vice versa.
+
+          The XOR version is worth knowing too: `a ^= b; b ^= a; a ^= b;`,
+          which works because XOR-ing a value with itself cancels it out.
+          Mention the risk with the arithmetic version — `a + b` can
+          overflow for large integers — as the detail that shows you
+          understand *why* it works rather than having memorised the lines.
+        source_name: PrepInsta — Wipro NLTH technical interview questions
+        source_url: https://prepinsta.com/wipro-nlth/placement-papers/interview-questions/technical/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What's the difference between a primary key and a foreign key?
+        answer_md: |
+          A primary key uniquely identifies each row *within its own
+          table* — no nulls, effectively one per table. A foreign key lives
+          in one table but points at a primary key *in another table*, to
+          enforce that a relationship (like "this order belongs to this
+          customer") actually exists — it can repeat and, depending on the
+          schema, can be null.
+
+          The follow-up worth being ready for: normalisation — organising
+          tables so each fact lives in one place, removing the update and
+          delete anomalies that redundant data causes.
+        source_name: PrepInsta — Wipro NLTH technical interview questions
+        source_url: https://prepinsta.com/wipro-nlth/placement-papers/interview-questions/technical/
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: medium
+        question: >-
+          What is paging in virtual memory, and why does it help?
+        answer_md: |
+          The OS splits logical (program) memory into fixed-size pages and
+          physical RAM into equal-size frames, then maps pages to frames via
+          a page table. Because a process's pages don't need to sit next to
+          each other in physical memory, paging removes the external
+          fragmentation that plain contiguous allocation causes, and it lets
+          the OS load only the pages currently needed (demand paging) rather
+          than the whole program.
+
+          If pushed further: a page fault is what happens when a needed page
+          isn't in physical memory yet, and the OS has to fetch it from
+          disk — which is the performance cost paging trades for its
+          flexibility.
+        source_name: Unstop — Wipro Elite NTH interview questions
+        source_url: https://unstop.com/blog/wipro-elite-national-talent-hunt-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: Design basics
+        difficulty: medium
+        question: >-
+          Design a vending machine.
+        answer_md: |
+          At this level the interviewer wants states and a rough object
+          breakdown, not a formal design doc. States: idle → item selected →
+          payment pending → dispensing → idle (or an error/refund state if
+          payment fails or the item is out of stock). Objects: `Product`
+          (price, stock count), `Inventory` (tracks stock across slots),
+          `PaymentHandler` (accepts coins/card, validates amount, triggers
+          refund on failure).
+
+          Narrate the state machine out loud as you draw it — that's what
+          signals you're reasoning about the system, not reciting a
+          memorised answer.
+        source_name: Unstop — Wipro Elite NTH interview questions
+        source_url: https://unstop.com/blog/wipro-elite-national-talent-hunt-interview-questions
+
+      - kind: interview
+        round: hr
+        topic: Service agreement
+        difficulty: easy
+        question: >-
+          Are you comfortable with the service agreement period?
+        answer_md: |
+          Asked directly, and it's a real screening question, not small
+          talk — Wipro has just invested 45–60 days of structured training
+          before you touch client work, and a candidate who plans to leave
+          immediately is a bad bet for that investment.
+
+          Answer honestly. If you're genuinely committed, say so plainly
+          rather than qualifying it; if you have a real reservation, it's
+          better to surface it now than to accept and regret it later.
+        source_name: Unstop — Wipro Elite NTH interview questions
+        source_url: https://unstop.com/blog/wipro-elite-national-talent-hunt-interview-questions
+
+  - slug: project-engineer-turbo
+    title: Project Engineer (Turbo)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 2
+    source_url: https://faceprep.in/article/wipro-national-qualifier-test-2025-exam-dates-test-pattern-syllabus-eligibility-criteria/
+    description: >-
+      Wipro's highest-volume fresher track, ₹3.5 LPA. The online test drops
+      the coding section entirely — it's aptitude plus a timed essay — and
+      the technical bar is lighter than Elite's.
+    focus_md: |
+      **There is no coding section in the Turbo online test, so don't burn
+      prep time there — the essay is the part candidates underrate.** You
+      get a general topic and roughly ten minutes to write a few hundred
+      words; graders are checking structure, grammar and relevance, not
+      creativity. Practising against a clock matters more than practising
+      the writing itself.
+
+      The technical interview still expects working code, but at an easier
+      level than Elite — reverse a linked list, find the longest palindrome
+      in a string, print a numeric pattern. These are DS fundamentals
+      checks, not algorithm-design tests. DBMS shows up as a direct SQL
+      task (second-highest salary is a genuine recurring question), and OOP
+      as "explain classes, objects and inheritance with an example" rather
+      than abstract definitions.
+    focus_areas:
+      - { label: "Quantitative aptitude", weight: 5,
+          notes: "Percentages, profit/loss, time-and-work, ratios — roughly Class 10 difficulty per candidate reports." }
+      - { label: "Timed essay writing", weight: 4,
+          notes: "One topic, about ten minutes. Graded on structure and grammar, not creativity — practise against a timer." }
+      - { concept: computer-science-data-structures, label: "Basic data structures", weight: 4,
+          notes: "Linked-list reversal, palindrome checks, pattern printing — fundamentals, not algorithm design." }
+      - { concept: backend-relational-databases, label: "SQL basics", weight: 4,
+          notes: "Second-highest-salary query is a genuine recurring ask." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP basics", weight: 3,
+          notes: "Explain with a concrete example, not just a definition." }
+      - { label: "Shift & relocation flexibility", weight: 3,
+          notes: "This band is often support/service-desk-adjacent, so shift willingness is asked pointedly." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Test format
+        difficulty: easy
+        year: 2025
+        question: >-
+          The Turbo online test has no coding section. What does that change
+          about how you should prepare?
+        answer_md: |
+          It means the entire test is aptitude plus one timed essay, so the
+          highest-leverage prep is speed on standard topics — percentages,
+          profit/loss, time-and-work, ratios, averages — rather than
+          coding-judge practice you won't be tested on for this track.
+
+          Don't neglect the essay because it feels like an afterthought: it
+          is graded, on structure and grammar as much as content, and
+          candidates who skip practising it lose time they didn't expect to
+          lose on test day.
+        source_name: FACE Prep — Wipro NLTH exam pattern and eligibility
+        source_url: https://faceprep.in/article/wipro-national-qualifier-test-2025-exam-dates-test-pattern-syllabus-eligibility-criteria/
+
+      - kind: interview
+        round: coding
+        topic: Linked lists
+        difficulty: easy
+        question: >-
+          Reverse a singly linked list.
+        answer_md: |
+          Iterative pointer-reversal: keep three pointers — `prev` (starts
+          null), `curr` (starts at head), and `next`. At each node, save
+          `next = curr.next`, point `curr.next` back to `prev`, then advance
+          both `prev = curr` and `curr = next`. When `curr` is null, `prev`
+          is the new head. O(n) time, O(1) space.
+
+          This is the standard fresher DS check at this band — the
+          interviewer is confirming you can implement pointer manipulation
+          cleanly, not testing anything more advanced.
+        source_name: GeeksforGeeks — Wipro interview experience, junior software developer
+        source_url: https://www.geeksforgeeks.org/wipro-interview-experience-as-a-junior-software-developer/
+
+      - kind: interview
+        round: coding
+        topic: Strings
+        difficulty: medium
+        question: >-
+          Find the longest palindromic substring in a given string.
+        answer_md: |
+          For a fresher-level round, the expand-around-centre approach is a
+          fully acceptable answer: for every index (and every gap between
+          two indices, to catch even-length palindromes), expand outward
+          while the characters match, and track the longest span found.
+          O(n²) time, O(1) extra space.
+
+          Mention it's not the theoretically optimal answer — Manacher's
+          algorithm gets this to O(n) — but expand-around-centre is what
+          most interviewers expect you to derive live.
+        source_name: GeeksforGeeks — Wipro interview experience, junior software developer
+        source_url: https://www.geeksforgeeks.org/wipro-interview-experience-as-a-junior-software-developer/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          Write a SQL query to find the second-highest salary in an
+          employee table.
+        answer_md: |
+          The classic version: `SELECT MAX(salary) FROM emp WHERE salary <
+          (SELECT MAX(salary) FROM emp)` — it excludes the top value, so the
+          max of what's left is the second-highest.
+
+          Also be ready to write it with `DENSE_RANK()` (`SELECT salary FROM
+          (SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+          FROM emp) WHERE rnk = 2`), which generalises cleanly to "find the
+          Nth highest" if the interviewer changes the number on you — which
+          they often do.
+        source_name: GeeksforGeeks — Wipro interview experience, Project Engineer
+        source_url: https://www.geeksforgeeks.org/wipro-technologies-interview-experience-set-15-project-engineer/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: easy
+        question: >-
+          Explain classes, objects and inheritance with an example.
+        answer_md: |
+          A class is a blueprint (say, `Vehicle`, with fields like `speed`
+          and a method `move()`); an object is a concrete instance of it
+          (`myCar = new Vehicle()`). Inheritance lets a new class (`Car`)
+          reuse and extend `Vehicle`'s fields and methods rather than
+          rewriting them, and add its own (`numDoors`).
+
+          Interviewers at this level want the example alongside the
+          definition — reciting the three terms without one usually draws a
+          direct follow-up asking for it anyway, so lead with it.
+        source_name: GeeksforGeeks — Wipro interview experience 2023
+        source_url: https://www.geeksforgeeks.org/interview-experiences/wipro-interview-experience-2023/
+
+      - kind: interview
+        round: hr
+        topic: Shift flexibility
+        difficulty: easy
+        question: >-
+          Are you willing to relocate, and available for night shifts?
+        answer_md: |
+          This band skews toward support and service-desk-adjacent work
+          more than Elite does, so shift flexibility is asked pointedly
+          rather than as a formality.
+
+          Answer both parts directly. A flat "no" to either is treated as a
+          real constraint on which roles you can be placed into, not a
+          preference to be worked around later.
+        source_name: GeeksforGeeks — Wipro interview experience 2023
+        source_url: https://www.geeksforgeeks.org/interview-experiences/wipro-interview-experience-2023/
+
+  - slug: wilp-scholar-trainee
+    title: Scholar Trainee (WILP)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 3
+    source_url: https://www.placementpreparation.io/wipro-wilp/recruitment-process/
+    description: >-
+      For B.Sc/BCA graduates. Pairs an entry job with a Wipro-sponsored
+      M.Tech pursued alongside live client work, across five specialisations
+      — IT Infrastructure, Testing, Project Engineering, Digital Workspace
+      Services and Cloud Services.
+    focus_md: |
+      **This track adds a Business Discussion round the other two don't
+      have, and it's really testing something different from the technical
+      interview that follows it.** It's a panel covering your academic
+      background, projects and behaviour together, checking whether you can
+      operate on a live client project *while* studying for the sponsored
+      M.Tech — not just whether you know the syllabus.
+
+      The technical interview itself goes deeper on DBMS than either Elite
+      or Turbo — ACID properties, BCNF, UNION vs UNION ALL are all reported
+      as direct questions, not follow-ups. OS coverage is similarly explicit
+      about process states and virtual memory, and the C++ track leans on
+      constructor types (default, parameterised, copy) with a short code
+      sketch expected on the spot.
+    focus_areas:
+      - { label: "Quantitative & analytical ability", weight: 4,
+          notes: "80-minute OA split across quant, logical reasoning and a written-communication block." }
+      - { concept: backend-relational-databases, label: "DBMS depth", weight: 5,
+          notes: "ACID, BCNF, UNION vs UNION ALL — asked as direct questions, not follow-ups." }
+      - { concept: devops-operating-system, label: "OS fundamentals", weight: 4,
+          notes: "Virtual memory and the full process-state lifecycle (new → ready → running → waiting → terminated)." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "C++ / OOP constructs", weight: 3,
+          notes: "Constructor types specifically — default, parameterised, copy — with a code sketch." }
+      - { concept: python-learn-the-basics, label: "Basic coding", weight: 3,
+          notes: "A working palindrome-check program is a recurring ask." }
+      - { label: "Business Discussion round", weight: 4,
+          notes: "A resume-plus-behavioural panel distinct from the later HR round." }
+      - { label: "Program commitment", weight: 3,
+          notes: "HR probes willingness to balance the sponsored M.Tech with live project delivery over several years." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Test format
+        difficulty: easy
+        year: 2025
+        question: >-
+          The WILP online assessment runs about 80 minutes across three
+          blocks. What are they, and how should you split your prep time?
+        answer_md: |
+          Roughly 20 minutes each on Quantitative Ability (mathematical
+          reasoning and basic data interpretation), Analytical Ability
+          (logical reasoning and critical thinking), and Written
+          Communication (a timed essay).
+
+          Because the blocks are evenly split, don't over-invest in quant at
+          the expense of the essay — a strong quant score can't compensate
+          for a weak written-communication score the way it might on a
+          purely aptitude-weighted test.
+        source_name: Placement Preparation — Wipro WILP recruitment process
+        source_url: https://www.placementpreparation.io/wipro-wilp/recruitment-process/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          Explain the ACID properties of a database transaction.
+        answer_md: |
+          Atomicity — a transaction is all-or-nothing; if any part fails,
+          the whole thing rolls back. Consistency — a transaction moves the
+          database from one valid state to another, never leaving it
+          half-updated in a way that breaks its rules. Isolation —
+          concurrent transactions don't see each other's uncommitted
+          changes. Durability — once committed, the change survives even a
+          crash immediately after.
+
+          This is one of the most-asked WILP DBMS openers — have all four
+          ready with a one-line justification each, not just the acronym.
+        source_name: PrepInsta — Wipro WILP technical interview questions
+        source_url: https://prepinsta.com/wipro-wilp/technical-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          What is Boyce-Codd Normal Form (BCNF), and how is it stricter than
+          3NF?
+        answer_md: |
+          3NF only requires that non-key attributes depend on the whole key
+          and nothing but the key. BCNF adds a stronger condition: **every**
+          determinant in the table — not just the primary key — must be a
+          candidate key. A table can technically satisfy 3NF and still have
+          an anomaly that only shows up when there's more than one candidate
+          key with overlapping attributes; BCNF is what catches that case.
+        source_name: PrepInsta — Wipro WILP technical interview questions
+        source_url: https://prepinsta.com/wipro-wilp/technical-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: easy
+        question: >-
+          What are the different states a process can be in?
+        answer_md: |
+          New (being created) → Ready (waiting for CPU time) → Running
+          (executing on the CPU) → Waiting/Blocked (paused for I/O or an
+          event) → Terminated (finished).
+
+          Don't just list them — describe the transitions: Ready → Running
+          happens via the scheduler; Running → Waiting happens when the
+          process requests I/O; Waiting → Ready happens once that I/O
+          completes. The transitions are usually the actual follow-up
+          question.
+        source_name: PrepInsta — Wipro WILP technical interview questions
+        source_url: https://prepinsta.com/wipro-wilp/technical-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: medium
+        question: >-
+          What are the different types of constructors in C++?
+        answer_md: |
+          Default constructor — takes no arguments, initialises members to
+          default values. Parameterised constructor — takes arguments to
+          set initial values at creation time. Copy constructor —
+          initialises a new object as a copy of an existing object of the
+          same class (`ClassName obj2(obj1);`).
+
+          Be ready to sketch a short example of each live — this question is
+          usually followed by "write me a class with all three," not left as
+          a definitions-only exchange.
+        source_name: PrepInsta — Wipro WILP technical interview questions
+        source_url: https://prepinsta.com/wipro-wilp/technical-interview-questions/
+
+      - kind: interview
+        round: managerial
+        topic: Program fit
+        difficulty: medium
+        question: >-
+          WILP combines a live client project with a sponsored M.Tech over
+          several years. How do you plan to manage both?
+        answer_md: |
+          This is the Business Discussion round's real question, even when
+          it's not asked this directly — the panel is checking whether
+          you've actually thought through the workload, not just accepted a
+          scholarship offer.
+
+          A strong answer names a concrete time-management approach (fixed
+          study blocks, treating coursework deadlines like project
+          deadlines) and, ideally, a past example of juggling comparable
+          competing commitments — a part-time role alongside your degree, a
+          major project alongside coursework — rather than a general promise
+          to "manage it somehow."
+        source_name: Placement Preparation — Wipro WILP job roles
+        source_url: https://www.placementpreparation.io/wipro-wilp/job-roles/
+
+      - kind: interview
+        round: hr
+        topic: Academic history
+        difficulty: easy
+        question: >-
+          Do you have any academic gaps or backlogs?
+        answer_md: |
+          Answer honestly — this ties directly back to Wipro's stated
+          eligibility rule of zero *active* backlogs at joining, and it's
+          verified against your actual marksheets before an offer is
+          confirmed, not just asked and forgotten.
+
+          If you have a gap year or a historical backlog you've since
+          cleared, say so plainly along with the reason; a cleared backlog
+          doesn't disqualify you, but an undisclosed active one discovered
+          later can cost you the offer even after a strong interview.
+        source_name: Unstop — Wipro Elite NTH interview questions
+        source_url: https://unstop.com/blog/wipro-elite-national-talent-hunt-interview-questions

@@ -6,7 +6,6 @@ import { Clock, Coins, Gauge } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { Markdown } from '@/components/markdown';
 import { SiteHeader } from '@/components/site-header';
-import { TutorLauncher } from '@/components/tutor-launcher';
 import { CodeWorkspace } from '@/components/workspace/code-workspace';
 import { RUNTIME_LABELS } from '@/components/workspace/runtime-protocol';
 import { apiOrNull } from '@/lib/api';
@@ -36,7 +35,7 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'project', projectSlug: project.slug }}>
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
@@ -94,8 +93,6 @@ export default async function ProjectPage({
           <CodeWorkspace project={project} />
         </div>
       </main>
-
-      <TutorLauncher conceptSlug={project.concept_slug} />
     </AppShell>
   );
 }

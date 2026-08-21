@@ -3,12 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Briefcase,
   Building2,
   Compass,
+  FileText,
   Hammer,
   LayoutDashboard,
   MessagesSquare,
+  Mic,
   Route,
+  UserSquare,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -19,14 +23,26 @@ const ITEMS = [
   { href: '/projects', label: 'Build', icon: Hammer },
   { href: '/companies', label: 'Companies', icon: Building2 },
   { href: '/explore', label: 'Explore', icon: Compass },
+  // Career features. Listed up front so parallel work on each never contends
+  // on this file.
+  { href: '/resume', label: 'Résumé', icon: FileText },
+  { href: '/interviews', label: 'Mock interview', icon: Mic },
+  { href: '/applications', label: 'Applications', icon: Briefcase },
+  { href: '/portfolio', label: 'Portfolio', icon: UserSquare },
   { href: '/community', label: 'Community', icon: MessagesSquare },
 ];
+
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from '@/components/lightswind/sidebar';
 
 export function SidebarNav({ className }: { className?: string }) {
   const pathname = usePathname();
 
   return (
-    <nav className={cn('space-y-0.5', className)} aria-label="Main">
+    <SidebarMenu className={className} aria-label="Main">
       {ITEMS.map(({ href, label, icon: Icon }) => {
         // `/concepts/...` is part of the route the learner is following, so
         // "Your route" stays highlighted while reading a concept.
@@ -36,23 +52,17 @@ export function SidebarNav({ className }: { className?: string }) {
           (href === '/roadmap' && pathname.startsWith('/concepts'));
 
         return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={active ? 'page' : undefined}
-            className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-              active
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
-            )}
-          >
-            <Icon className={cn('h-4 w-4', active && 'text-primary')} />
-            {label}
-          </Link>
+          <SidebarMenuItem key={href} value={href}>
+            <SidebarMenuButton asChild isActive={active}>
+              <Link href={href}>
+                <Icon className={cn('h-4 w-4', active && 'text-primarylw')} />
+                <span>{label}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         );
       })}
-    </nav>
+    </SidebarMenu>
   );
 }
 

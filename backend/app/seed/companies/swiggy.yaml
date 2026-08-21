@@ -1,0 +1,633 @@
+# Swiggy.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (LeetCode's company tag), we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI shows
+#     it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: swiggy
+  name: Swiggy
+  industry: Food delivery & quick commerce
+  hq: Bengaluru, Karnataka
+  website: https://careers.swiggy.com/
+  icon: UtensilsCrossed
+  fetched_on: 2026-08-21
+  sort_order: 21
+  description: >-
+    On-demand food delivery and, through Instamart, quick commerce — both
+    real-time logistics problems at national scale. The loop is unusually
+    honest about which round actually filters: low-level design.
+  hiring_process_md: |
+    Swiggy's process is direct about what matters: DSA gets you in the door,
+    but the **low-level design round is where most rejections happen**, even
+    for candidates who cleared DSA cleanly. That's a structural signal worth
+    taking seriously if you're prepping.
+
+    **The shape of it**
+
+    1. **Online assessment** — typically three LeetCode-medium-equivalent
+       problems, plus language-fundamentals questions for backend roles
+       (Java/Spring Boot basics are common).
+    2. **DSA technical round(s)** — one to two rounds, live coding, standard
+       array/graph/DP territory.
+    3. **Low-level design round** — the filter round. A prompt like "design a
+       shopping cart with add/remove/apply-coupon" or "design a hotel room
+       booking system", graded on class structure, SOLID adherence, and
+       whether your design survives a requirement change introduced mid-round.
+    4. **Bar-raiser / managerial round** — a senior engineer from *outside*
+       your prospective team, explicitly there to catch anyone the earlier
+       rounds went soft on. Expect systems questions (networking, OS,
+       concurrency, databases) alongside behavioural ones.
+    5. **HR** — compensation and offer.
+
+    **What the LLD round actually grades.** Not whether you know design
+    patterns by name, but whether your first class diagram survives a
+    follow-up. A design where "add discount coupon types" requires touching
+    three existing classes instead of adding one new one is the failure mode
+    interviewers are trained to probe for.
+  resources:
+    - kind: blog
+      title: "Swiggy Bytes — Tech Blog"
+      url: https://bytes.swiggy.com/tagged/swiggy-engineering
+    - kind: careers
+      title: "Swiggy Careers"
+      url: https://careers.swiggy.com/
+    - kind: prep
+      title: "Swiggy Interview Experience for SDE-2 — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-sde-2/
+    - kind: prep
+      title: "Swiggy Interview Experience for SDE-3 — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-3/
+    - kind: prep
+      title: "Swiggy SDE-1 (Backend) interview experience — Medium"
+      url: https://medium.com/@iamabhishek229313/swiggy-sde-1-backend-interview-experience-f231bd1a1c54
+
+roles:
+  - slug: sde-1
+    title: SDE-1 (Backend)
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://careers.swiggy.com/
+    description: >-
+      Entry backend role. The OA and DSA rounds are table stakes; the
+      differentiator is whether you can turn a vague prompt into a class
+      design that survives a requirement change.
+    focus_md: |
+      Don't let DSA prep crowd out LLD prep — Swiggy's own filter data (as
+      reported by candidates) says the reverse mistake is the common one.
+      Practice designing small systems end to end: a shopping cart, a
+      calendar/meeting scheduler, a hotel booking system. In each case, get
+      to a class diagram in the first 15 minutes and then deliberately invent
+      a follow-up requirement for yourself ("now support group bookings") to
+      see if your design absorbs it cleanly.
+
+      For backend fundamentals, Java + Spring Boot basics come up often
+      enough in screening that treating them as "assumed knowledge, not
+      differentiator" is the wrong read — know dependency injection,
+      request lifecycle, and transaction annotations well enough to explain
+      them, not just use them.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "Arrays, matrices, string manipulation — the OA draws heavily from these." }
+      - { concept: computer-science-design-patterns, label: "Low-level design", weight: 5,
+          notes: "The filter round. Class structure that survives a follow-up requirement." }
+      - { concept: computer-science-common-uml-diagrams, label: "Class modelling", weight: 4 }
+      - { concept: java-learn-the-basics, label: "Java fundamentals", weight: 4 }
+      - { concept: java-spring-boot-is-recommended, label: "Spring Boot basics", weight: 3,
+          notes: "DI, request lifecycle, transactions — screening-round territory." }
+      - { concept: backend-relational-databases, label: "Databases", weight: 3 }
+      - { label: "Bar-raiser round", weight: 3,
+          notes: "OS, networking, concurrency fundamentals plus behavioural questions, from a senior engineer outside your team." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Strings & matrices
+        difficulty: easy
+        year: 2025
+        question: >-
+          Given a sentence, reverse the characters within each word while
+          keeping the word order unchanged.
+        answer_md: |
+          Split on whitespace, reverse each word's characters in place (two
+          pointers from each end of the word swapping inward), and rejoin
+          with single spaces. O(n) time, and the in-place reversal is the part
+          worth doing cleanly rather than allocating a new reversed string per
+          word — it's a small efficiency point but interviewers notice it.
+
+          The edge case worth naming out loud: multiple consecutive spaces or
+          leading/trailing whitespace in the input, which the "split on
+          whitespace" step needs to normalise away rather than silently
+          preserve as empty "words".
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-1
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-1-2/
+
+      - kind: online-assessment
+        round: coding
+        topic: Matrices
+        difficulty: medium
+        year: 2025
+        question: Rotate an N×N matrix 90 degrees clockwise, in place.
+        answer_md: |
+          Two standard approaches, both O(n²) time and O(1) extra space.
+          Layer-by-layer: for each of the outer `n/2` layers, cyclically swap
+          the four edge elements four at a time. Or the two-step version,
+          which is easier to get right under time pressure: transpose the
+          matrix (swap `matrix[i][j]` with `matrix[j][i]`), then reverse each
+          row.
+
+          The two-step version is worth defaulting to in an interview — it's
+          less error-prone to code live, and stating "transpose then reverse
+          rows gives clockwise; transpose then reverse columns gives
+          counter-clockwise" shows you understand *why* it works rather than
+          having memorised one direction.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-1
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-1-2/
+
+      - kind: interview
+        round: technical
+        topic: Low-level design
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a calendar/meeting scheduler: users can create meetings,
+          invite others, and accept or reject invitations, with conflict
+          detection.
+        answer_md: |
+          Core entities: `User`, `Meeting` (owner, time range, list of
+          `Invitation`s), and `Invitation` (invitee, status: pending/accepted/
+          rejected). Conflict detection is the actual design question —
+          store each user's accepted meetings in a structure sorted by start
+          time (or an interval tree if you want to show you know the
+          efficient version), and check a new meeting's time range against
+          overlapping intervals before allowing acceptance.
+
+          The follow-up that separates strong answers: what happens when an
+          invitee has a *pending* invitation that would conflict with a
+          meeting they later accept elsewhere? Most candidates only check
+          conflicts against *accepted* meetings — deciding (and stating) that
+          pending invitations don't block, but accepted ones do, is the kind
+          of explicit trade-off interviewers want to hear reasoned through,
+          not assumed.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-1
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-1-2/
+
+      - kind: interview
+        round: technical
+        topic: Spring Boot & backend basics
+        difficulty: medium
+        question: >-
+          What does `@Transactional` actually do in Spring Boot, and what's a
+          common way it silently fails to roll back?
+        answer_md: |
+          `@Transactional` wraps the annotated method in a database
+          transaction via a proxy — Spring intercepts the call, begins a
+          transaction, and commits or rolls back based on whether the method
+          throws.
+
+          The common silent failure: by default, Spring only rolls back on
+          unchecked exceptions (`RuntimeException` and its subclasses), not
+          checked exceptions — a method that throws a checked exception will
+          still commit whatever was written before the throw, unless you
+          explicitly configure `rollbackFor`. The second common failure is
+          self-invocation: calling a `@Transactional` method from another
+          method *within the same class* bypasses the proxy entirely, so the
+          transaction boundary silently doesn't apply. Both are the kind of
+          "works in the happy path, breaks in production" bug interviewers
+          use this question to probe for.
+        source_name: Swiggy SDE-1 (Backend) interview experience — Medium
+        source_url: https://medium.com/@iamabhishek229313/swiggy-sde-1-backend-interview-experience-f231bd1a1c54
+
+      - kind: interview
+        round: coding
+        topic: Trees & recursion
+        difficulty: medium
+        question: >-
+          Given a binary tree, determine if it is height-balanced (the
+          height of the two subtrees of every node never differs by more
+          than one).
+        answer_md: |
+          The naive approach recomputes height at every node, giving O(n²) in
+          the worst case (a skewed tree). The efficient version does it in
+          one pass: a recursive helper returns -1 as a sentinel the moment it
+          detects an imbalance anywhere in a subtree, which short-circuits
+          the rest of the recursion instead of computing a height that will
+          be thrown away.
+
+          Concretely: `height(node)` returns `-1` if either child's height
+          call returned `-1`, or if `abs(leftHeight - rightHeight) > 1`;
+          otherwise it returns `1 + max(leftHeight, rightHeight)`. O(n) time.
+          Interviewers usually start with the naive version accepted, then
+          ask "can you do better" — leading with the sentinel trick
+          unprompted is a strong signal.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-sde-2/
+
+      - kind: interview
+        round: hr
+        topic: Behavioural
+        difficulty: easy
+        question: Why Swiggy, and how do you handle ambiguous requirements?
+        answer_md: |
+          "Why Swiggy" answers that name something specific — the real-time
+          logistics problem, Instamart's dark-store scaling challenge, a
+          particular engineering blog post — land better than generic
+          "food delivery is interesting" answers, because they show you did
+          the reading rather than are interviewing everywhere with the same
+          script.
+
+          For ambiguous requirements, the strong pattern is: state the
+          assumption you're making explicitly, build toward it, and flag
+          where you'd go check with a PM or the requirement's owner rather
+          than either freezing (paralysis) or silently guessing and hoping
+          (overconfidence). Interviewers are checking whether you can make
+          forward progress under uncertainty without being reckless about it.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-1
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-1-2/
+
+  - slug: sde-2
+    title: SDE-2
+    level: mid
+    maps_to_role: senior-backend-engineer
+    sort_order: 2
+    source_url: https://careers.swiggy.com/
+    description: >-
+      LLD prompts scale up to real subsystems (hotel booking, cart-and-
+      checkout), and a system design round is added on top — real-time
+      logistics is Swiggy's hardest and most-asked design domain.
+    focus_md: |
+      The LLD round at SDE-2 tests the same skill as SDE-1 but on a bigger
+      canvas — a hotel room booking system with room types, availability
+      windows and cancellation policies, rather than a single-entity cart.
+      Budget for the requirement to change mid-round; that's the point.
+
+      System design questions at this level are consistently logistics-
+      flavoured: order assignment to delivery partners, real-time location
+      tracking, and ETA prediction under partner availability constraints.
+      Knowing generic system design (load balancers, caching, sharding) is
+      necessary but not sufficient — you need to reason about *matching
+      under real-time constraints*, which is a different shape of problem
+      than a typical CRUD-at-scale design.
+    focus_areas:
+      - { concept: computer-science-system-design, label: "System design", weight: 5,
+          notes: "Logistics-flavoured: order-to-partner matching, real-time tracking, ETA." }
+      - { concept: computer-science-design-patterns, label: "Low-level design", weight: 5,
+          notes: "Bigger prompts than SDE-1: full booking/checkout subsystems." }
+      - { concept: system-design-messaging, label: "Async & event-driven design", weight: 4,
+          notes: "Order state machines, partner location updates — inherently event streams." }
+      - { concept: system-design-caching, label: "Caching & real-time data", weight: 4 }
+      - { concept: backend-relational-databases, label: "Databases at scale", weight: 3 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 3 }
+      - { label: "Bar-raiser / OS & networking", weight: 3,
+          notes: "Concurrency, database abstraction levels, HTTP internals." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Low-level design
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a hotel room booking system: multiple room types, date-range
+          availability, and cancellation with a partial refund policy.
+        answer_md: |
+          Model availability as a per-room-type calendar of date ranges rather
+          than a single boolean flag — a `RoomInventory` that tracks booked
+          date ranges per room lets you answer "is this room type available
+          from X to Y" with an interval-overlap check instead of per-day
+          state.
+
+          Make `CancellationPolicy` an interface (e.g. `calculateRefund(
+          booking, cancellationDate)`) rather than hardcoding refund
+          percentages inside the booking class — this is the same strategy-
+          pattern move as Flipkart's pricing question, and it's what lets
+          "now add a non-refundable rate plan" be a five-line addition instead
+          of a rewrite. The double-booking race (two users booking the last
+          room in the same window simultaneously) is the follow-up almost
+          every interviewer asks — answer it the same way as an inventory
+          race: a conditional atomic update at the persistence layer, not an
+          application-level check-then-write.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-sde-2/
+
+      - kind: online-assessment
+        round: coding
+        topic: Arrays
+        difficulty: hard
+        year: 2025
+        question: >-
+          Repeatedly take the two largest elements from an array, combine
+          them by some cost function, and push the result back until one
+          element remains. Minimize the final value.
+        answer_md: |
+          This is the "minimum cost to combine" family solved with a max-heap
+          (or min-heap, depending on whether the combine cost rewards
+          combining small or large elements first — read the specific cost
+          function carefully, since Swiggy's SDE-2 OA variant asks for
+          *summing* the two largest and re-inserting, which actually wants
+          the two *smallest* pulled to minimize the running total, so double-
+          check which end of the heap the problem wants before coding).
+
+          Push all elements onto the appropriate heap, pop two, combine per
+          the given function, push the result back, and repeat until one
+          remains. O(n log n) — each of the n-1 combine steps does O(log n)
+          heap work. The habit that matters more than the algorithm: restate
+          which direction ("largest" vs "smallest" combined first) minimizes
+          the result *before* coding, because the two variants use the same
+          heap machinery but produce different answers.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-sde-2/
+
+      - kind: interview
+        round: system-design
+        topic: Real-time logistics
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the order-assignment system that matches a new food order to
+          an available delivery partner in real time.
+        answer_md: |
+          Frame it as continuous matching under constraints, not a one-shot
+          lookup: candidate partners are filtered by proximity (geohash or a
+          quadtree over live partner locations), availability status, and
+          current load (partners already carrying an order near capacity),
+          then ranked by a scoring function (distance, pickup ETA, partner
+          rating).
+
+          The architecture: partner locations stream in continuously (a
+          location-update topic, high write volume, short-lived data — a
+          natural fit for an in-memory geospatial index rather than a
+          relational table), while order assignment is triggered per new
+          order against a snapshot of that index. State the failure mode
+          explicitly: if assignment takes too long or the chosen partner
+          doesn't accept, you need a timeout-and-reassign loop, not a single
+          best-effort match — this is the detail that separates "read about
+          system design" from "thought about what breaks in production".
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-3
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-3/
+
+      - kind: interview
+        round: technical
+        topic: Databases
+        difficulty: medium
+        question: >-
+          When would you reach for a NoSQL document store over a relational
+          database for order data, and what do you give up?
+        answer_md: |
+          Order data has a natural document shape (an order plus its line
+          items plus its status history) that maps cleanly to a document
+          store, and write throughput during peak meal hours favours a store
+          that scales writes horizontally more easily than a single
+          relational primary.
+
+          What you give up: multi-document transactions are harder to reason
+          about (though modern document stores support them within limits),
+          and ad-hoc analytical queries across orders — "total revenue by
+          restaurant this week" — are naturally worse without joins, usually
+          pushing you toward a separate analytical pipeline (CDC into a
+          warehouse) rather than querying the operational store directly. The
+          strongest answers frame this as "operational store optimised for
+          write throughput and read-by-key, analytics happens elsewhere" —
+          not "NoSQL is faster".
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-3
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-3/
+
+      - kind: interview
+        round: managerial
+        topic: Ownership
+        difficulty: medium
+        question: >-
+          Tell me about a time your initial technical approach turned out to
+          be wrong once you got into implementation. What did you do?
+        answer_md: |
+          The bar-raiser round is explicitly there to catch overconfidence, so
+          the answer that scores well isn't "I was right eventually" — it's
+          recognising the signal that you were wrong (a failing edge case, a
+          performance number that didn't add up, feedback from a teammate)
+          promptly rather than defending the original approach past the point
+          the evidence turned against it.
+
+          Concrete structure: what you initially believed and why it seemed
+          reasonable, the specific signal that changed your mind, what you
+          did next, and — importantly — what you'd check earlier next time to
+          catch it sooner. That last part is what turns a "mistake story"
+          into a "judgment story", which is what a bar-raiser round is
+          actually evaluating.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-3
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-for-sde-3/
+
+      - kind: interview
+        round: coding
+        topic: Graphs
+        difficulty: medium
+        question: >-
+          Given a delivery zone map as a graph of connected localities, find
+          the shortest delivery route between two points with weighted edges
+          representing travel time.
+        answer_md: |
+          Dijkstra's algorithm with a min-heap: O((V + E) log V). Initialize
+          distances to infinity except the source (0), and repeatedly pop the
+          closest unvisited node, relaxing its neighbours' distances.
+
+          The framing worth adding unprompted: if edge weights can represent
+          *time-varying* traffic rather than fixed travel time, plain
+          Dijkstra's optimality guarantee (which assumes static, non-negative
+          weights) needs revisiting — you'd need to either re-run
+          periodically on updated weights or move to a time-dependent
+          shortest-path variant. Bringing this up shows you're connecting the
+          textbook algorithm to Swiggy's actual domain rather than reciting
+          it in isolation.
+        source_name: GeeksforGeeks — Swiggy Interview Experience for SDE-2
+        source_url: https://www.geeksforgeeks.org/interview-experiences/swiggy-interview-experience-sde-2/
+
+  - slug: data-scientist
+    title: Data Scientist
+    level: mid
+    maps_to_role: data-scientist
+    sort_order: 3
+    source_url: https://careers.swiggy.com/
+    description: >-
+      Swiggy's data science org owns demand forecasting, delivery-time
+      prediction, and pricing — all problems where the constraint is
+      real-time inference at logistics scale, not just model accuracy.
+    focus_md: |
+      Case rounds are operations-flavoured: "ETA predictions are consistently
+      off during rain" is a more likely prompt than an abstract ML-theory
+      question. Practice reasoning about *why* a model degrades in a specific
+      real-world condition, not just how to build it.
+
+      SQL is a hard filter — Swiggy's transaction and delivery-event tables
+      are the substrate of most take-home and live coding questions, so
+      window functions and multi-table joins over event data should be
+      fluent, not looked-up.
+    focus_areas:
+      - { concept: sql-advanced-sql, label: "Advanced SQL", weight: 5,
+          notes: "Window functions and joins over order/delivery-event tables." }
+      - { concept: data-analyst-statistical-analysis, label: "Statistics & causal reasoning", weight: 4 }
+      - { concept: data-analyst-popular-ml-algorithms, label: "Applied ML for forecasting & ETA", weight: 5,
+          notes: "Demand forecasting and delivery-time prediction are Swiggy's core ML problems." }
+      - { concept: data-analyst-data-visualisation, label: "Metric investigation", weight: 4 }
+      - { concept: python-learn-the-basics, label: "Python for analysis", weight: 3 }
+      - { concept: machine-learning-what-is-model-evaluation, label: "Model evaluation under drift", weight: 4,
+          notes: "Real-time systems degrade with conditions (weather, demand spikes) that models weren't trained on." }
+      - { label: "Product & operations sense", weight: 3 }
+    questions:
+      - kind: online-assessment
+        round: technical
+        topic: SQL
+        difficulty: medium
+        question: >-
+          Given an `orders` table and a `delivery_events` table (order_id,
+          event_type, event_time), write a query to compute the average
+          delivery time (accepted-to-delivered) per restaurant for the last
+          7 days.
+        answer_md: |
+          Self-join `delivery_events` to itself on `order_id` to pair
+          `event_type = 'accepted'` rows with `event_type = 'delivered'`
+          rows (or pivot with conditional aggregation:
+          `MAX(CASE WHEN event_type='delivered' THEN event_time END) -
+          MAX(CASE WHEN event_type='accepted' THEN event_time END)`), join to
+          `orders` for the restaurant id, filter to the last 7 days, and
+          `AVG()` grouped by restaurant.
+
+          The conditional-aggregation version is usually preferred in an
+          interview — it avoids a self-join's row-count blowup on tables with
+          many event types, and it's easier to extend if a third event type
+          (e.g. "picked up") gets added later. Naming that trade-off
+          unprompted is worth more than getting either version syntactically
+          perfect.
+        source_name: GeeksforGeeks — SQL interview questions
+        source_url: https://www.geeksforgeeks.org/sql/sql-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Applied ML
+        difficulty: hard
+        question: >-
+          Delivery-time predictions are consistently underestimating during
+          heavy rain. How do you diagnose and fix this?
+        answer_md: |
+          This is a distribution-shift problem, not a modelling-technique
+          problem, so start by confirming the diagnosis before touching the
+          model: pull predicted-vs-actual delivery time specifically on rainy
+          days and confirm the error is systematic (a consistent
+          underestimate) rather than just higher variance.
+
+          If confirmed, the likely cause is that "weather" either isn't a
+          feature at all, or is present but rain days are underrepresented in
+          training data (rain is seasonal and regional), so the model has
+          learned an averaged travel-time distribution that rarely reflects
+          rain conditions. Fixes in order of effort: add real-time weather as
+          a feature if it's missing; if it's present but underweighted,
+          check whether rain days need oversampling or a separate
+          weather-conditional model; and as a stopgap, apply a
+          weather-conditional multiplier on top of the base prediction while
+          the model is retrained. The key move is treating this as "which
+          data-generating assumption broke" rather than jumping straight to
+          "train a bigger model".
+        source_name: GeeksforGeeks — machine learning interview questions
+        source_url: https://www.geeksforgeeks.org/machine-learning/machine-learning-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Experiment design
+        difficulty: medium
+        question: >-
+          You want to test a new surge-pricing algorithm. Why is a standard
+          A/B test risky here, and what would you do instead?
+        answer_md: |
+          Surge pricing has network effects across the marketplace — pricing
+          shown to a user in a test group can affect delivery-partner supply
+          and order volume in ways that spill over into the control group's
+          experience in the same city (partners are a shared, limited
+          resource), which violates the independence assumption a standard
+          per-user A/B test relies on.
+
+          The standard fix is geographic or market-level randomization
+          instead of user-level: split by city or delivery zone so each
+          market experiences only one variant, avoiding the shared-resource
+          spillover. It costs statistical power (fewer independent units —
+          cities instead of users) but produces a valid estimate instead of
+          a biased one, which is the trade-off worth stating explicitly
+          rather than defaulting to a user-level test out of habit.
+        source_name: GeeksforGeeks — data science interview questions
+        source_url: https://www.geeksforgeeks.org/data-science/statistics-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Forecasting
+        difficulty: hard
+        question: >-
+          Design a demand-forecasting system for restaurant order volume that
+          needs to handle both regular days and festival spikes.
+        answer_md: |
+          Same regime-change problem as Flipkart's sale-day forecasting
+          question, applied to a different domain: a model trained only on
+          regular-day patterns will badly under-forecast festival demand
+          because festivals aren't a continuation of the regular trend.
+
+          Treat "is this a known high-demand event" as an explicit feature —
+          a calendar of festivals/events per region — rather than expecting
+          seasonality terms in a generic time-series model to capture it,
+          since festivals don't recur on a fixed weekly/monthly cycle the way
+          standard seasonality does. For genuinely novel spikes with no
+          historical precedent (a sudden viral trend), fall back to a
+          real-time anomaly-detection layer on top of the forecast that
+          flags when actual order volume is diverging from prediction early
+          enough to trigger operational response (surge staffing, delivery
+          partner incentives) rather than relying on the forecast alone.
+        source_name: GeeksforGeeks — machine learning interview questions
+        source_url: https://www.geeksforgeeks.org/machine-learning/machine-learning-interview-questions/
+
+      - kind: online-assessment
+        round: aptitude
+        topic: Probability
+        difficulty: medium
+        question: >-
+          If a delivery partner accepts an order with 80% probability
+          independent of prior orders, what's the probability the first
+          rejection happens on exactly the 4th offer?
+        answer_md: |
+          This is a geometric distribution question. P(first rejection on
+          trial k) = (success probability)^(k-1) × (failure probability) =
+          0.8³ × 0.2 = 0.512 × 0.2 = 0.1024, or about 10.24%.
+
+          The reasoning to state explicitly: the first three offers must all
+          be accepted (0.8 each, independent, so multiplied) and the fourth
+          must be rejected (0.2). Interviewers use this as a quick check that
+          you distinguish "probability of exactly the k-th trial being the
+          first failure" from "probability of at least one failure in k
+          trials" — a common mix-up under time pressure.
+        source_name: GeeksforGeeks — probability interview questions
+        source_url: https://www.geeksforgeeks.org/data-science/statistics-interview-questions/
+
+      - kind: interview
+        round: managerial
+        topic: Product sense
+        difficulty: medium
+        question: >-
+          Instamart wants to decide which SKUs to stock in a new dark store
+          with limited shelf space. How would you approach this as a data
+          problem?
+        answer_md: |
+          Frame it as a constrained optimization, not a ranking problem:
+          shelf space is the binding constraint, so the goal is maximizing
+          expected demand coverage per unit of space, not just stocking the
+          highest-selling SKUs city-wide — a bulky low-margin item that sells
+          well can be a worse use of space than several smaller
+          high-turnover items.
+
+          Concretely: estimate demand per SKU for the new store's specific
+          catchment (using nearby stores or city-level demand as a prior
+          since the new store has no history), weight by a space/volume cost
+          per SKU, and select the set maximizing covered demand under the
+          shelf-space budget — a knapsack-shaped problem. The follow-up worth
+          raising unprompted: cold-start stores need a feedback loop to
+          correct the initial demand estimate once real sales data comes in,
+          not a one-time stocking decision.
+        source_name: GeeksforGeeks — data analyst interview questions
+        source_url: https://www.geeksforgeeks.org/data-analytics/data-analyst-interview-questions/

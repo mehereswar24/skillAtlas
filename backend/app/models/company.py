@@ -11,16 +11,20 @@ and cite where the claim came from, and `fetched_on` records when that source
 was last checked so stale data is visible rather than silently trusted.
 """
 
-from datetime import date
+from datetime import date, datetime
 
 from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
     Date,
+    DateTime,
     Float,
     ForeignKey,
     Integer,
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,6 +40,16 @@ ROUNDS = (
     "system-design",
     "managerial",
     "hr",
+)
+
+# How a reviewer's own run at this company ended. `not-interviewed` covers
+# someone writing about working there rather than about getting hired.
+INTERVIEW_OUTCOMES = (
+    "offer",
+    "rejected",
+    "withdrew",
+    "pending",
+    "not-interviewed",
 )
 
 
@@ -64,6 +78,11 @@ class Company(Base):
         back_populates="company",
         cascade="all, delete-orphan",
         order_by="CompanyResource.sort_order",
+    )
+    reviews: Mapped[list["CompanyReview"]] = relationship(
+        back_populates="company",
+        cascade="all, delete-orphan",
+        order_by="CompanyReview.created_at.desc()",
     )
 
 
@@ -166,3 +185,98 @@ class CompanyResource(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     company: Mapped["Company"] = relationship(back_populates="resources")
+
+
+# --------------------------------------------------------------------------
+# member-submitted reviews
+#
+# Everything above this line is researched and source-cited: a `CompanyQuestion`
+# cannot exist without a `source_url`, and `Company.fetched_on` says when the
+# claim was last checked. A `CompanyReview` is the opposite kind of claim — one
+# person's account of their own experience, unverified by us. The two are kept
+# in separate tables, and the API and UI must keep saying which is which.
+# --------------------------------------------------------------------------
+
+
+class CompanyReview(Base):
+    """One member's account of interviewing at, or working for, a company.
+
+    One review per user per company, enforced by a unique constraint: a review
+    is a standing opinion the author edits, not a thread they post to.
+    """
+
+    __tablename__ = "company_reviews"
+    __table_args__ = (
+        UniqueConstraint("company_id", "user_id", name="uq_company_review_author"),
+        CheckConstraint("rating BETWEEN 1 AND 5", name="ck_company_review_rating"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE"), index=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    # A review is usually about interviewing for one specific role, but it does
+    # not have to be — and the seeder rebuilds `company_roles` wholesale, so
+    # this has to survive the role row going away.
+    company_role_id: Mapped[int | None] = mapped_column(
+        ForeignKey("company_roles.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+
+    rating: Mapped[int] = mapped_column(Integer)  # 1-5
+    title: Mapped[str] = mapped_column(String(200))
+    body_md: Mapped[str] = mapped_column(Text)
+    interview_outcome: Mapped[str] = mapped_column(
+        String(24), default="not-interviewed", index=True
+    )
+    interview_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # When set, the API withholds the author's display name. It never sends the
+    # email either way.
+    is_anonymous: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Seeded illustrative content, flagged so the UI can say out loud that it is
+    # a sample and not a real member's testimony.
+    is_sample: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Denormalised, like CommunityPost.upvotes, so a list page needs no
+    # aggregate subquery per row.
+    helpful_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    not_helpful_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    company: Mapped["Company"] = relationship(back_populates="reviews")
+    author = relationship("User", lazy="joined")
+    company_role = relationship("CompanyRole", lazy="joined")
+    votes: Mapped[list["ReviewVote"]] = relationship(
+        back_populates="review", cascade="all, delete-orphan"
+    )
+
+
+class ReviewVote(Base):
+    """One helpful/not-helpful vote per user per review, like ``PostVote``."""
+
+    __tablename__ = "review_votes"
+    __table_args__ = (
+        UniqueConstraint("review_id", "user_id", name="uq_review_vote"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    review_id: Mapped[int] = mapped_column(
+        ForeignKey("company_reviews.id", ondelete="CASCADE"), index=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    value: Mapped[int] = mapped_column(Integer, default=1)  # +1 helpful / -1 not
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    review: Mapped["CompanyReview"] = relationship(back_populates="votes")

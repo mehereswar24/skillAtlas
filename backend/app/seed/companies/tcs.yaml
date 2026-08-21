@@ -83,19 +83,19 @@ roles:
       justify one technology choice. Then revise OOP, DBMS and OS basics —
       that trio is asked more than anything else.
     focus_areas:
-      - { concept: quantitative-aptitude, label: "Quantitative aptitude & reasoning", weight: 5,
+      - { label: "Quantitative aptitude & reasoning", weight: 5,
           notes: "The Foundation section. A speed test as much as an ability test — practise against a timer." }
-      - { concept: programming-language-python, label: "One programming language", weight: 5,
+      - { concept: python-learn-the-basics, label: "One programming language", weight: 5,
           notes: "The coding section expects complete, compiling programs including input parsing." }
-      - { concept: data-structures-algorithms, label: "Basic data structures", weight: 4,
+      - { concept: computer-science-data-structures, label: "Basic data structures", weight: 4,
           notes: "Arrays, strings, recursion and simple patterns. Moderate difficulty, not competitive programming." }
-      - { concept: relational-databases-sql, label: "DBMS fundamentals", weight: 4,
+      - { concept: backend-relational-databases, label: "DBMS fundamentals", weight: 4,
           notes: "Normalisation, keys, joins and ACID come up in almost every technical round." }
-      - { concept: data-modeling, label: "OOP concepts", weight: 4,
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP concepts", weight: 4,
           notes: "Inheritance, polymorphism, abstraction — asked directly, often as definitions." }
-      - { concept: exam-strategy, label: "Exam technique", weight: 3,
+      - { label: "Exam technique", weight: 3,
           notes: "No negative marking but sectional cutoffs, so leave nothing blank." }
-      - { concept: internet-and-http, label: "Networking basics", weight: 2 }
+      - { concept: frontend-internet, label: "Networking basics", weight: 2 }
     questions:
       - kind: exam
         round: aptitude

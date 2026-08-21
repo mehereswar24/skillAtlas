@@ -75,17 +75,17 @@ roles:
       normalisation, why transformers scale — but they are the entry ticket
       rather than the differentiator.
     focus_areas:
-      - { concept: deep-learning-foundations, label: "Deep learning fundamentals", weight: 5,
+      - { concept: ai-data-scientist-deep-learning, label: "Deep learning fundamentals", weight: 5,
           notes: "Backpropagation by hand, optimisers, normalisation, why residual connections work." }
-      - { concept: pytorch-fundamentals, label: "PyTorch, below the API", weight: 5,
+      - { label: "PyTorch, below the API", weight: 5,
           notes: "Autograd, memory layout, where synchronisation points hide." }
-      - { concept: math-linear-algebra, label: "Linear algebra", weight: 4,
+      - { concept: machine-learning-linear-algebra, label: "Linear algebra", weight: 4,
           notes: "Matmul is the primitive everything reduces to. Know its cost and its memory pattern." }
-      - { concept: programming-language-python, label: "Python", weight: 4 }
-      - { concept: nlp-transformers, label: "Transformers", weight: 4,
+      - { concept: python-learn-the-basics, label: "Python", weight: 4 }
+      - { label: "Transformers", weight: 4,
           notes: "Attention's quadratic cost is the thing every optimisation question circles back to." }
-      - { concept: mlops-deployment, label: "Training and serving at scale", weight: 4 }
-      - { concept: model-evaluation, label: "Evaluation", weight: 3 }
+      - { concept: frontend-deployment, label: "Training and serving at scale", weight: 4 }
+      - { concept: machine-learning-what-is-model-evaluation, label: "Evaluation", weight: 3 }
       - { label: "GPU architecture & CUDA", weight: 5,
           notes: "Memory hierarchy, warps, occupancy, coalescing. The round that separates candidates." }
     questions:

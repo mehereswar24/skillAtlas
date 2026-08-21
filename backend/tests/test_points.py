@@ -21,21 +21,24 @@ def test_a_new_account_has_an_empty_ledger(client, auth):
 
 def test_completing_a_concept_writes_one_line(client, learner):
     headers, _, _ = learner
-    result = complete_concept(client, headers, "internet-and-http")
+    result = complete_concept(client, headers, "backend-introduction")
 
     events = _ledger(client, headers)
     assert len(events) == 1
     event = events[0]
     assert event["kind"] == "concept"
-    assert event["ref_slug"] == "internet-and-http"
+    assert event["ref_slug"] == "backend-introduction"
     assert event["points"] == result["xp_earned"]
-    assert "Internet" in event["label"]
+    # Against the concept's own name rather than a literal: the name is authored
+    # content and gets rewritten, the label's job is only to echo it.
+    name = client.get("/api/v1/concepts/backend-introduction").json()["name"]
+    assert name in event["label"]
 
 
 def test_the_ledger_sums_to_the_profile_total(client, learner):
     headers, _, _ = learner
-    complete_concept(client, headers, "internet-and-http")
-    complete_concept(client, headers, "git-version-control")
+    complete_concept(client, headers, "backend-introduction")
+    complete_concept(client, headers, "backend-version-control-systems")
 
     project = client.get(
         "/api/v1/projects/http-message-parser", headers=headers
@@ -64,9 +67,9 @@ def test_prior_knowledge_writes_nothing_to_the_ledger(client, auth):
     client.post(
         "/api/v1/roadmaps",
         json={
-            "track_slug": "backend-developer",
+            "track_slug": "backend",
             "pace": "steady",
-            "known_concept_slugs": ["internet-and-http"],
+            "known_concept_slugs": ["backend-introduction"],
         },
         headers=headers,
     )
@@ -95,11 +98,11 @@ def test_a_failed_project_pays_nothing(client, auth):
 
 def test_the_ledger_is_newest_first_and_limited(client, learner):
     headers, _, _ = learner
-    complete_concept(client, headers, "internet-and-http")
-    complete_concept(client, headers, "git-version-control")
+    complete_concept(client, headers, "backend-introduction")
+    complete_concept(client, headers, "backend-version-control-systems")
 
     events = _ledger(client, headers)
-    assert events[0]["ref_slug"] == "git-version-control"
+    assert events[0]["ref_slug"] == "backend-version-control-systems"
 
     limited = client.get("/api/v1/progress/points?limit=1", headers=headers).json()
     assert len(limited) == 1
@@ -107,7 +110,7 @@ def test_the_ledger_is_newest_first_and_limited(client, learner):
 
 def test_the_ledger_is_private(client, auth, learner):
     headers, _, _ = learner
-    complete_concept(client, headers, "internet-and-http")
+    complete_concept(client, headers, "backend-introduction")
 
     intruder, _ = auth()
     assert _ledger(client, intruder) == []

@@ -1,0 +1,641 @@
+# Palantir.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (a company's LeetCode tag, a Glassdoor thread),
+#     we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI
+#     shows it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: palantir
+  name: Palantir Technologies
+  industry: Data & Analytics Software
+  hq: Denver, Colorado
+  website: https://www.palantir.com/careers/
+  icon: Radar
+  fetched_on: 2026-08-21
+  sort_order: 14
+  description: >-
+    Foundry, Gotham and AIP. Palantir's loop is deliberately less algorithmic
+    than a typical Big Tech loop — it replaces one of the usual coding rounds
+    with an unscored-by-LeetCode "decomposition" round that most FAANG-style
+    prep does not touch.
+  hiring_process_md: |
+    Palantir's process is built around a belief the company states openly:
+    real engineering work is mostly ambiguous, and a candidate who can only
+    solve problems that already come pre-decomposed into a LeetCode prompt
+    is a false positive. That shapes almost every round.
+
+    **The shape of it**
+
+    1. **Recruiter screen** — background, motivation, which org (product
+       engineering vs. Forward Deployed).
+    2. **Technical screen (CodePair or Karat, ~60 min)** — one or two
+       algorithmic problems, similar in shape to the onsite coding round.
+    3. **Onsite / virtual onsite loop (three or four 60-minute rounds)** —
+       candidates get most, not all, of these four:
+       - **Coding** — data structures and algorithms, same format as the
+         screen.
+       - **Problem decomposition** — an intentionally underspecified,
+         real-world-shaped problem (build a parking system, model a chess
+         game) with **no single correct decomposition**. You mostly do not
+         write code; you're building a requirements → data model → API →
+         trade-off structure out loud.
+       - **Re-engineering** — you're handed existing (often deliberately
+         imperfect) code and asked to find and explain its bugs, then
+         improve it.
+       - **Learning** — the interviewer walks you through a new concept or
+         a small unfamiliar codebase, then has you apply it immediately.
+         This tests learning speed under real-time pressure, not prior
+         knowledge.
+    4. **Hiring manager conversation** — mission fit, for Forward Deployed
+       Engineer (FDE) roles this leans hard on "can you sit in front of a
+       customer and reason live."
+
+    **What is actually graded.** Interviewers score ambiguity handling,
+    structured thinking and communication as first-class criteria, not
+    tie-breakers — the decomposition round in particular eliminates strong
+    algorithmic candidates who can't structure a problem that doesn't arrive
+    pre-structured. Palantir is also explicit that AI tools are prohibited
+    throughout the process, screens included, which is a break from how
+    several peer companies now run their loops.
+  resources:
+    - kind: careers
+      title: "Palantir Careers"
+      url: https://www.palantir.com/careers/
+    - kind: blog
+      title: "Palantir Blog"
+      url: https://blog.palantir.com/
+    - kind: prep
+      title: "Palantir Forward Deployed Engineer interview guide — Exponent"
+      url: https://www.tryexponent.com/guides/palantir-forward-deployed-engineer-interview
+    - kind: prep
+      title: "Inside the Palantir engineering interview loop — techinterview"
+      url: https://www.techinterview.org/post/3233476805/palantir-interview-process/
+    - kind: prep
+      title: "Palantir SQL interview questions — DataLemur"
+      url: https://datalemur.com/blog/palantir-sql-interview-questions
+
+roles:
+  - slug: forward-deployed-software-engineer
+    title: Forward Deployed Software Engineer
+    level: entry to mid
+    maps_to_role: fullstack-engineer
+    sort_order: 1
+    source_url: https://www.tryexponent.com/guides/palantir-forward-deployed-engineer-interview
+    description: >-
+      Builds and ships directly against a live customer problem, embedded
+      with the customer rather than in a central product org. The loop
+      weighs judgement under ambiguity as heavily as raw coding speed.
+    focus_md: |
+      The single highest-leverage prep move for this role is practicing the
+      decomposition round specifically, because nothing in a standard
+      LeetCode grind maps onto it. The interviewer wants to watch you
+      *build* structure — ask who the users are, what data already exists,
+      what the ugliest edge case is — not present a structure you memorised.
+      A candidate who jumps straight to an architecture diagram without
+      first surfacing the ambiguity in the prompt reads as someone who will
+      build the wrong thing fast in front of a real customer.
+
+      Underneath that, the coding bar is real but not the whole story — SQL
+      and a general-purpose language (Python or Java, most often) both need
+      to be fluent, because FDEs are as likely to be untangling a customer's
+      messy dataset as writing a service.
+    focus_areas:
+      - { label: "Decomposing ambiguous problems", weight: 5,
+          notes: "The round that eliminates the most otherwise-strong candidates. Practice it as its own skill." }
+      - { concept: computer-science-system-design, label: "Systems thinking", weight: 4,
+          notes: "Requirements, data model, API surface and trade-offs — argued out loud, mostly without code." }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4,
+          notes: "The coding round and technical screen both still test this directly." }
+      - { concept: sql-join-queries, label: "SQL for data integration", weight: 4,
+          notes: "FDEs spend real time untangling a customer's existing, messy schemas." }
+      - { concept: backend-relational-databases, label: "Data modeling", weight: 3 }
+      - { concept: python-data-structures-algorithms, label: "Python or Java, fluently", weight: 3 }
+      - { label: "Client-facing communication", weight: 3,
+          notes: "Unlike most SWE loops, at least one round explicitly evaluates how you'd sound in front of a customer." }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Grid traversal
+        difficulty: medium
+        year: 2025
+        question: >-
+          You're given a grid maze with walls, a start cell, and several
+          treasure cells. Return the minimum number of steps to collect all
+          treasures and exit, or determine it's impossible.
+        answer_md: |
+          With a small number of treasures (the usual constraint), this is
+          BFS from every "interesting" cell (start, each treasure, exit) to
+          build a distance matrix between them, then a small traveling-
+          salesman-style search (bitmask DP over which treasures are
+          collected) over that reduced graph — far cheaper than searching
+          the raw grid for every ordering.
+
+          State it as two separate problems out loud before coding: "first
+          I need shortest paths between key cells, then I need the best
+          order to visit them" — that separation is the design insight the
+          interviewer is checking for, not just working code.
+        source_name: "Palantir coding interview questions — Verve AI"
+        source_url: https://www.vervecopilot.com/hot-blogs/palantir-coding-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: Problem decomposition
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a parking lot management system. There is no further spec —
+          figure out what "design" should mean here before you start.
+        answer_md: |
+          The trap is diving straight into class diagrams. Palantir's own
+          guidance on these open-ended prompts is that the problem is
+          intentionally underspecified, so the graded skill is how you move
+          toward a solution, not the polish of a final answer.
+
+          A strong path: clarify scope first (multiple lot types? reserved
+          spots? payment? EV charging?), name the entities and their
+          relationships (Lot, Level, Spot, Vehicle, Ticket), sketch the
+          state machine a Spot moves through (free → reserved → occupied →
+          free), then pick *one* thread — usually "how does a car find a
+          spot at scale" — and go deep on it rather than shallowly covering
+          everything. Depth on one thread, after showing you saw the whole
+          space, is what's being scored.
+        source_name: "Palantir SWE decomposition interview guide — Coditioning"
+        source_url: https://www.coditioning.com/blog/703/palantir-swe-decomposition-interview
+
+      - kind: interview
+        round: system-design
+        topic: Problem decomposition
+        difficulty: hard
+        year: 2025
+        question: >-
+          Model a game of chess. Again, no further spec — decide what to
+          build and defend the decision.
+        answer_md: |
+          The productive first move is stating what you're *not* building —
+          a rules-legal move validator is a very different scope than a
+          full engine with an AI opponent — and picking the smaller scope
+          explicitly rather than letting the interviewer assume the bigger
+          one.
+
+          From there: a `Board` as an 8×8 grid of nullable `Piece`
+          references, each `Piece` subtype implementing its own legal-move
+          rule (polymorphism over a giant switch statement is the design
+          signal worth stating), a `Game` that tracks turn order and
+          check/checkmate detection, and — the detail that separates
+          thorough answers — special-cases named up front: castling, en
+          passant, pawn promotion. Naming those before being asked shows you
+          scoped the real problem, not a simplified one.
+        source_name: "Inside the Palantir engineering interview loop — techinterview"
+        source_url: https://www.techinterview.org/post/3233476805/palantir-interview-process/
+
+      - kind: interview
+        round: technical
+        topic: Re-engineering / code review
+        difficulty: medium
+        year: 2025
+        question: >-
+          You're handed a working function that deduplicates a list of
+          customer records by email, case-sensitively. Find what's wrong
+          with it and fix it.
+        answer_md: |
+          The bug is almost always semantic, not syntactic — the function
+          "works" (compiles, returns a plausible result) but is wrong for
+          the actual data: emails should be compared case-insensitively
+          (`Foo@x.com` and `foo@x.com` are the same person), and often the
+          original also fails to normalise whitespace or a `+alias` suffix,
+          silently leaving duplicates in.
+
+          The re-engineering round is explicitly grading whether you find
+          this class of bug — one that no compiler or type checker catches
+          — by reasoning about what the data actually looks like, rather
+          than just re-reading the code for typos.
+        source_name: "Palantir Forward Deployed Engineer interview guide — Exponent"
+        source_url: https://www.tryexponent.com/guides/palantir-forward-deployed-engineer-interview
+
+      - kind: interview
+        round: technical
+        topic: Learning round
+        difficulty: medium
+        year: 2025
+        question: >-
+          The interviewer introduces an unfamiliar concept (e.g. a small DSL
+          or an API you haven't seen) and, minutes later, asks you to use it
+          to solve a new problem. What's actually being graded here?
+        answer_md: |
+          Not prior knowledge of the concept — everyone in the room knows
+          that. What's graded is how you build a mental model in real time:
+          do you ask clarifying questions about the new concept's edge
+          cases before using it, or do you start guessing at syntax; do you
+          test your understanding on a small example before applying it to
+          the harder one; do you notice and say out loud when your first
+          attempt reveals a misunderstanding, rather than silently patching
+          around it.
+
+          This round exists because FDEs are dropped into unfamiliar
+          customer systems constantly — it's a direct proxy for that, not
+          an abstract "smartness" test.
+        source_name: "Palantir Forward Deployed Engineer interview guide — DataInterview"
+        source_url: https://www.datainterview.com/blog/palantir-forward-deployed-engineer-interview
+
+      - kind: online-assessment
+        round: technical
+        topic: SQL for data integration
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an `orders` table and a `refunds` table, write a query
+          returning each customer's net revenue (orders minus refunds) for
+          customers whose net revenue is negative.
+        answer_md: |
+          Aggregate each table separately first rather than joining raw rows
+          — a direct join of orders to refunds before aggregating can
+          double-count when a customer has multiple orders and multiple
+          refunds. Sum `orders` grouped by customer, sum `refunds` grouped
+          by customer, `LEFT JOIN` the two aggregates (a customer might have
+          no refunds), coalesce the refund side to zero, subtract, then
+          filter with `HAVING` since the negative condition is on an
+          aggregate.
+
+          This shape — aggregate-then-join instead of join-then-aggregate —
+          is the recurring theme in Palantir's SQL questions, because it's
+          the mistake that produces a plausible-looking wrong number rather
+          than an obvious error.
+        source_name: "Palantir SQL interview questions — DataLemur"
+        source_url: https://datalemur.com/blog/palantir-sql-interview-questions
+
+      - kind: interview
+        round: managerial
+        topic: Client-facing judgement
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a time you had to push back on what a stakeholder
+          asked for, because you believed it wasn't actually what they
+          needed.
+        answer_md: |
+          FDEs sit directly across the table from the customer, so this is
+          scored on whether you can disagree productively with someone who
+          isn't an engineer and doesn't want a technical lecture. Strong
+          answers show you first understood the underlying goal behind
+          their literal ask, then proposed an alternative in terms of that
+          goal rather than in terms of "why your idea is technically wrong."
+
+          A story that ends with "and they were happy with the alternative"
+          is stronger than one that ends with "and I was right" — the
+          skill being graded is the relationship surviving the disagreement,
+          not the disagreement being won.
+        source_name: "Palantir Forward Deployed Software Engineer interview experience — Taro"
+        source_url: https://www.jointaro.com/interviews/companies/palantir/experiences/forward-deployed-software-engineer-united-states-november-9-2025-no-offer-negative-a89581e3/
+
+  - slug: software-engineer
+    title: Software Engineer, Core Platform
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 2
+    source_url: https://prepfully.com/interview-guides/palantir-software-engineer
+    description: >-
+      Builds Foundry and Gotham's platform internals rather than sitting
+      with a customer. Same decomposition and re-engineering rounds as the
+      FDE loop, with a system design round that goes deeper on distributed
+      data infrastructure.
+    focus_md: |
+      The platform loop keeps everything distinctive about Palantir's
+      process — decomposition, re-engineering — and adds a genuinely deep
+      system design round, because the systems being designed (Foundry's
+      data lineage, access control, pipeline orchestration) are themselves
+      the product, not a means to a customer deliverable. Expect the
+      interviewer to push on data-model correctness under concurrent writes
+      and access-control boundaries specifically, since Foundry's core
+      pitch is trustworthy, governed data at scale.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4 }
+      - { concept: computer-science-system-design, label: "Distributed data systems design", weight: 5,
+          notes: "Deeper than the FDE loop — data lineage, access control and pipeline orchestration are live topics." }
+      - { concept: computer-science-design-patterns, label: "Re-engineering / code review", weight: 4,
+          notes: "Given imperfect code, find and explain the bug, then fix it." }
+      - { concept: backend-architectural-patterns, label: "Architectural trade-offs", weight: 3 }
+      - { label: "Decomposing ambiguous problems", weight: 4 }
+      - { concept: python-data-structures-algorithms, label: "Python or Java, fluently", weight: 3 }
+    questions:
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a tree representing nested access-control groups (a group
+          can contain other groups), determine whether a given user, who
+          belongs to some leaf groups, has access granted by a specific
+          ancestor group.
+        answer_md: |
+          A single DFS/BFS from the ancestor group down: if the traversal
+          reaches any group the user is a direct member of, access is
+          granted. O(n) in the size of the subtree rooted at the ancestor.
+
+          The follow-up worth anticipating: what if access can also be
+          explicitly *denied* at some intermediate group, overriding an
+          inherited grant? That turns it into carrying the "most specific
+          rule wins" state down the traversal rather than a plain
+          reachability check — naming that distinction unprompted reads
+          well, since it's exactly the kind of correctness detail Foundry's
+          real access-control model has to get right.
+        source_name: "Palantir's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/palantir-interview-questions
+
+      - kind: interview
+        round: system-design
+        topic: Distributed data platform
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a system that tracks data lineage — for any dataset, you
+          need to answer "what upstream datasets and transforms produced
+          this," potentially many hops back.
+        answer_md: |
+          Model lineage as a directed acyclic graph: each dataset is a node,
+          each transform run is an edge (or a node itself, if the transform
+          has its own metadata worth querying — inputs, code version,
+          timestamp). "What produced this" is a traversal backward from the
+          node; "what does this affect downstream" is the same traversal
+          forward — both need to be fast, so the storage should support
+          efficient adjacency lookups in both directions, not just one.
+
+          At scale, the graph itself can get large enough that a full
+          traversal is expensive, so a common answer is materializing
+          reachability for hot queries (e.g., "all datasets affected by this
+          source") rather than recomputing the graph walk every time —
+          trading storage for query latency.
+        source_name: "Palantir's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/palantir-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Re-engineering / code review
+        difficulty: medium
+        year: 2025
+        question: >-
+          You're given a function that processes a queue of pipeline jobs
+          and retries failed ones. Find the concurrency bug.
+        answer_md: |
+          The usual planted bug: the retry counter (or the "in-progress"
+          marker) is read, incremented and written back as three separate
+          non-atomic steps, so two worker threads picking up the same job
+          near-simultaneously can both read the same starting count, both
+          increment, and both write back the same final value — silently
+          losing a retry attempt from the count, or worse, both threads
+          proceeding as if they alone own the job.
+
+          The fix is making the read-modify-write atomic (a compare-and-
+          swap, a database row lock, or a proper distributed lock depending
+          on where the state lives) rather than three separate operations
+          that another thread can interleave with.
+        source_name: "Palantir Forward Deployed Engineer interview guide — Exponent"
+        source_url: https://www.tryexponent.com/guides/palantir-forward-deployed-engineer-interview
+
+      - kind: interview
+        round: system-design
+        topic: Problem decomposition
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a system for scheduling and running data-transform
+          pipelines where transforms can depend on each other's output.
+        answer_md: |
+          This is a DAG scheduler at its core: each transform is a node,
+          each data dependency is an edge, and the scheduler needs a
+          topological ordering to know what's runnable. The decomposition
+          the interviewer wants surfaced explicitly: how do you detect a
+          transform is "ready" (all its input datasets are fresh), how do
+          you handle a transform that fails partway (retry the one node, or
+          roll back downstream nodes that already ran off stale input?),
+          and how do you avoid re-running the entire DAG when only one leaf
+          input changed.
+
+          The answer to that last point — incremental recomputation, only
+          re-running the subgraph reachable forward from the changed input
+          — is usually the detail that separates a pass from a near-miss
+          here.
+        source_name: "Palantir Technologies Software Engineer interview experience — Glassdoor"
+        source_url: https://www.glassdoor.com/Interview/Palantir-Technologies-Software-Engineer-Interview-Questions-EI_IE236375.0,21_KO22,39.htm
+
+      - kind: interview
+        round: managerial
+        topic: Mission fit
+        difficulty: easy
+        year: 2025
+        question: >-
+          Why Palantir, specifically, rather than another infrastructure or
+          data company?
+        answer_md: |
+          Generic "I like solving hard problems" answers underperform here
+          because they say nothing Palantir-specific. A stronger answer
+          engages with something concrete about Foundry or Gotham's actual
+          model — governed, lineage-tracked data access across
+          organizational boundaries is an unusual problem shape most
+          companies don't have to solve — and ties it to something specific
+          in your own background, rather than reciting mission language
+          back.
+        source_name: "Palantir's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/palantir-interview-questions
+
+      - kind: online-assessment
+        round: coding
+        topic: Algorithmic screen
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a list of overlapping time-bounded access grants for a
+          resource, determine the maximum number of grants active at any
+          single point in time.
+        answer_md: |
+          Convert each grant into two events — a +1 at the start time and a
+          -1 at the end time — sort all events by time, and sweep through
+          summing a running counter, tracking its maximum. O(n log n) for
+          the sort, O(n) for the sweep.
+
+          The edge case worth calling out unprompted: if a grant's end time
+          equals another's start time, decide whether they count as
+          overlapping — process end events before start events at the same
+          timestamp if a grant that ends at t=5 should not count as
+          overlapping with one that starts at t=5, since that ordering
+          choice changes the answer.
+        source_name: "Palantir Technologies Software Engineer interview experience & questions — Glassdoor"
+        source_url: https://www.glassdoor.com/Interview/Palantir-Technologies-Software-Engineer-Interview-Questions-EI_IE236375.0,21_KO22,39.htm
+
+  - slug: data-engineer
+    title: Data Engineer
+    level: entry to mid
+    maps_to_role: data-analyst
+    sort_order: 3
+    source_url: https://www.interviewquery.com/interview-guides/palantir-data-engineer
+    description: >-
+      Integrates and models messy customer datasets inside Foundry. SQL
+      fluency is treated as non-negotiable, not a nice-to-have, and the
+      decomposition-style rounds still apply, framed around data problems
+      instead of general systems.
+    focus_md: |
+      SQL here is graded at a higher bar than a typical analytics interview
+      — multi-join queries, window functions and CTEs are expected fluently,
+      not looked up. The second thing worth over-indexing on: because
+      Foundry's whole pitch is turning messy, real customer data into
+      something trustworthy, interviewers push on how you'd validate and
+      model data you don't fully trust yet, not just how you'd query clean
+      data once it's already modeled.
+    focus_areas:
+      - { concept: sql-join-queries, label: "SQL — joins, CTEs, window functions", weight: 5,
+          notes: "Treated as a baseline competency, tested at a genuinely medium-to-hard level." }
+      - { concept: data-analyst-data-cleanup, label: "Data cleaning & validation", weight: 4,
+          notes: "Foundry's whole premise is messy customer data made trustworthy." }
+      - { concept: backend-relational-databases, label: "Data modeling", weight: 4 }
+      - { concept: data-analyst-big-data-technologies, label: "Pipeline & ETL design at scale", weight: 4 }
+      - { concept: python-data-structures-algorithms, label: "Python for data manipulation", weight: 3 }
+      - { label: "Decomposing ambiguous data problems", weight: 3 }
+    questions:
+      - kind: online-assessment
+        round: technical
+        topic: SQL window functions
+        difficulty: hard
+        year: 2025
+        question: >-
+          Given a table of daily sales per store, write a query returning
+          each store's 7-day trailing average, using only the days that
+          store has been open (no padding with zeros for missing days).
+        answer_md: |
+          A window function with `ROWS BETWEEN 6 PRECEDING AND CURRENT ROW`,
+          partitioned by store and ordered by date, computes the trailing
+          average directly — but only if the underlying rows are one row per
+          store-day the store was actually open. If the source table has
+          gaps (closed days simply absent, not zero-valued), the window
+          naturally uses fewer than 7 rows near a gap, which is the correct
+          behaviour here, not a bug to fix.
+
+          The mistake candidates make is generating a synthetic calendar and
+          left-joining zeros for missing days first — that silently changes
+          the average by diluting it with zeros the question explicitly
+          says not to include.
+        source_name: "Palantir SQL interview questions — DataLemur"
+        source_url: https://datalemur.com/blog/palantir-sql-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: ETL pipeline design
+        difficulty: medium
+        year: 2025
+        question: >-
+          A customer sends you a daily CSV export of their inventory system
+          with inconsistent column names and occasional malformed rows. Design
+          the ingestion pipeline.
+        answer_md: |
+          Separate the pipeline into stages that fail independently:
+          schema-mapping (translate the customer's column names to your
+          canonical schema, versioned so a customer renaming a column
+          doesn't silently break ingestion), validation (quarantine
+          malformed rows into a dead-letter set rather than dropping them
+          silently or failing the whole batch), then load.
+
+          The design detail worth stating unprompted: make ingestion
+          idempotent on the same file (a re-run of yesterday's file
+          shouldn't double-count), typically by keying on a content hash or
+          a source file identifier rather than assuming "run once" discipline
+          holds operationally.
+        source_name: "Palantir Technologies Data Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/palantir-data-engineer
+
+      - kind: interview
+        round: system-design
+        topic: Data integration at scale
+        difficulty: hard
+        year: 2025
+        question: >-
+          A customer has a dozen internal systems, each with its own notion
+          of "customer ID," and wants one unified customer record. How do
+          you approach it?
+        answer_md: |
+          This is entity resolution, and the honest first answer is that
+          there's no exact key to join on — you're matching probabilistically
+          on name, email, address and other fuzzy signals, not doing a clean
+          SQL join. Blocking (grouping records that share a cheap signal,
+          like a normalized email domain, before doing expensive pairwise
+          comparison) keeps this tractable at scale, since naive
+          all-pairs comparison is quadratic.
+
+          Worth flagging as a genuine trade-off rather than a solved
+          problem: false merges (two different people combined into one
+          record) are usually worse than false splits (one person split
+          across two records), because merges are harder to undo later —
+          so the matching threshold should be tuned conservatively.
+        source_name: "Palantir Forward Deployed Engineer interview guide — DataInterview"
+        source_url: https://www.datainterview.com/blog/palantir-forward-deployed-engineer-interview
+
+      - kind: interview
+        round: coding
+        topic: Python data manipulation
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given two large datasets that can't both fit in memory at once,
+          write code to find the customer IDs present in one but not the
+          other.
+        answer_md: |
+          If both are already sorted (or can cheaply be sorted, e.g. via an
+          external merge sort), a single linear merge-style scan finds the
+          set difference in O(n + m) without holding either fully in
+          memory — advance whichever pointer is behind, and emit IDs from
+          the first dataset that never match during the scan.
+
+          If sorting isn't available, a Bloom filter built from the smaller
+          dataset lets you stream the larger one and cheaply test
+          membership with bounded false positives — worth naming as the
+          probabilistic alternative when an exact linear scan isn't
+          feasible, since Foundry-scale datasets don't always arrive
+          pre-sorted.
+        source_name: "Palantir Technologies Data Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/palantir-data-engineer
+
+      - kind: interview
+        round: managerial
+        topic: Customer-outcome-driven data work
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a time your data pipeline's output was technically
+          correct but still wrong for what the customer actually needed.
+        answer_md: |
+          The point of this question is separating "I shipped correct code"
+          from "I shipped the right thing." A strong answer names a real
+          mismatch — a definition of "active customer" that matched the
+          spec but not what the business team meant by it, for instance —
+          and how you found out (ideally before the customer did), not just
+          that you eventually fixed it.
+        source_name: "Palantir Technologies Data Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/palantir-data-engineer
+
+      - kind: online-assessment
+        round: coding
+        topic: Data structures for large datasets
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a huge stream of customer events, maintain the top-k most
+          frequent event types at any point, without storing every event.
+        answer_md: |
+          A min-heap of size k paired with a hash map of counts: increment
+          the count for the incoming event's type, and if it's not already
+          in the heap and its count now exceeds the heap's minimum,
+          swap it in. This keeps O(log k) work per event and O(k) memory
+          regardless of how many distinct event types or total events have
+          streamed through.
+
+          If exact counts aren't required and the number of distinct types
+          is very large, mention Count-Min Sketch as the approximate,
+          fixed-memory alternative — the honest trade-off being it can
+          overestimate counts for the sake of bounded memory, which is
+          often an acceptable trade for this kind of monitoring dashboard.
+        source_name: "Palantir SQL interview questions — Exponent"
+        source_url: https://www.tryexponent.com/questions?company=palantir&role=data-engineer&type=sql

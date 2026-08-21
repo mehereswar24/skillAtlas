@@ -1,0 +1,949 @@
+# Valid concept slugs for company focus_areas. Generated from the seeded DB.
+# Use ONLY slugs from this file, or omit `concept:` entirely.
+
+
+## ai-engineer
+ai-engineer-introduction  # Introduction
+ai-engineer-common-terminology  # Common Terminology
+ai-engineer-working-with-llms  # Working With LLMs
+ai-engineer-core-llm-elements  # Core LLM Elements
+ai-engineer-how-llms-work  # How LLMs Work
+ai-engineer-prompt-anatomy  # Prompt Anatomy
+ai-engineer-fundamentals  # Fundamentals
+ai-engineer-prompt-engineering  # Prompt Engineering
+ai-engineer-prompting-techniques  # Prompting Techniques
+ai-engineer-context-eng-techniques  # Context Eng. Techniques
+ai-engineer-context-engineering  # Context Engineering
+ai-engineer-model-interaction  # Model Interaction
+ai-engineer-ai-models  # AI Models
+ai-engineer-type-of-models  # Type of Models
+ai-engineer-tools-context-warehouses  # Tools & Context Warehouses
+ai-engineer-platforms-ecosystem  # Platforms & Ecosystem
+ai-engineer-closed-models  # Closed Models
+ai-engineer-hugging-face  # Hugging Face
+ai-engineer-choosing-the-right-model  # Choosing the Right Model
+ai-engineer-open-source-models  # Open Source Models
+ai-engineer-ollama  # Ollama
+ai-engineer-embeddings-vector-databases  # Embeddings & Vector Databases
+ai-engineer-lm-studio  # LM Studio
+ai-engineer-openrouter  # OpenRouter
+ai-engineer-apis-sdks  # APIs & SDKs
+ai-engineer-what-are-embeddings  # What are Embeddings
+ai-engineer-use-cases-for-embeddings  # Use Cases for Embeddings
+ai-engineer-embedding-models  # Embedding Models
+ai-engineer-proprietary-models  # Proprietary Models
+ai-engineer-popular-vector-dbs-pick-one  # Popular Vector DBs (pick one)
+ai-engineer-vector-databases  # Vector Databases
+ai-engineer-open-source-models-2  # Open Source Models
+ai-engineer-rags  # RAGs
+ai-engineer-implementing-vector-search  # Implementing Vector Search
+ai-engineer-what-are-rags  # What are RAGs?
+ai-engineer-implementing-rag  # Implementing RAG
+ai-engineer-ai-agents  # AI Agents
+ai-engineer-ai-agents-2  # AI Agents
+ai-engineer-ways-of-implementing-rag  # Ways of Implementing RAG
+ai-engineer-building-ai-agents  # Building AI Agents
+ai-engineer-model-context-protocol-mcp  # Model Context Protocol (MCP)
+ai-engineer-core-components  # Core Components
+ai-engineer-ai-safety-and-ethics  # AI Safety and Ethics
+ai-engineer-ai-safety-and-ethics-2  # AI Safety and Ethics
+ai-engineer-understanding-ai-safety-issues  # Understanding AI Safety Issues
+ai-engineer-evaluation-observabiity  # Evaluation & Observabiity
+ai-engineer-llm-observability  # LLM Observability
+ai-engineer-safety-best-practices  # Safety Best Practices
+ai-engineer-observability-tools  # Observability Tools
+ai-engineer-llm-evaluations  # LLM Evaluations
+ai-engineer-evaluation-types  # Evaluation Types
+ai-engineer-regression-testing  # Regression Testing
+ai-engineer-other-ai-applications  # Other AI Applications
+ai-engineer-evaluation-tools  # Evaluation Tools
+ai-engineer-multimodal-ai  # Multimodal AI
+ai-engineer-ai-assisted-coding-tools  # AI Assisted Coding Tools
+ai-engineer-multimodal-ai-tasks  # Multimodal AI Tasks
+ai-engineer-development-tools  # Development Tools
+ai-engineer-implementing-multimodal-ai  # Implementing Multimodal AI
+
+## android
+android-pick-a-language  # Pick a Language
+android-the-fundamentals  # The Fundamentals
+android-version-control  # Version Control
+android-vcs-hosting  # VCS Hosting
+android-app-components  # App Components
+android-interface-navigation  # Interface & Navigation
+android-layouts  # Layouts
+android-elements  # Elements
+android-ui-patterns  # UI Patterns
+android-navigation-state  # Navigation & State
+android-legacy-xml-views  # Legacy : XML Views
+android-design-architecture  # Design & Architecture
+android-storage  # Storage
+android-security  # Security
+android-asynchronism  # Asynchronism
+android-network  # Network
+android-firebase  # Firebase
+android-common-services  # Common Services
+android-linting  # Linting
+android-testing  # Testing
+android-debugging  # Debugging
+android-distribution  # Distribution
+android-ways-to-distribute  # Ways to distribute
+
+## api-design
+api-design-learn-the-basics  # Learn the Basics
+api-design-design-first  # Design First
+api-design-different-api-styles  # Different API Styles
+api-design-building-json-restful-apis  # Building JSON / RESTful APIs
+api-design-handling-data-requests  # Handling data & requests
+api-design-real-time-apis  # Real-time APIs
+api-design-traffic-control-error-handling  # Traffic control & Error handling
+api-design-api-authentication-and-authorization  # API Authentication and Authorization
+api-design-authentication-methods  # Authentication Methods
+api-design-authorization-methods  # Authorization Methods
+api-design-api-keys-management  # API Keys & Management
+api-design-api-documentation-tools  # API Documentation Tools
+api-design-api-security  # API Security
+api-design-api-performance  # API Performance
+api-design-api-integration-patterns  # API Integration Patterns
+api-design-api-testing  # API Testing
+api-design-observability  # Observability
+api-design-api-lifecycle-management  # API Lifecycle Management
+api-design-standards-and-compliance  # Standards and Compliance
+
+## aws
+aws-step-1-essentials  # Step 1 - Essentials
+aws-introduction  # Introduction
+aws-step-2-learn-these-next  # Step 2 - Learn these next
+aws-step-3-pick-these-after  # Step 3 - Pick these after
+aws-ec2  # EC2
+aws-vpc  # VPC
+aws-step-4-serverless  # Step 4 - Serverless
+aws-iam  # IAM
+aws-ses  # SES
+aws-s3  # S3
+aws-auto-scaling  # Auto-Scaling
+aws-route53  # Route53
+aws-storage-types  # Storage Types
+aws-cloudwatch  # Cloudwatch
+aws-rds  # RDS
+aws-dynamodb  # DynamoDB
+aws-elasticache  # ElastiCache
+aws-ecr  # ECR
+aws-cloudfront  # Cloudfront
+aws-eks  # EKS
+aws-ecs  # ECS
+aws-lambda  # Lambda
+
+## backend
+backend-introduction  # Introduction
+backend-frontend-basics  # Frontend Basics
+backend-pick-a-backend-language  # Pick a Backend Language
+backend-version-control-systems  # Version Control Systems
+backend-repo-hosting-services  # Repo Hosting Services
+backend-api-styles  # API Styles
+backend-relational-databases  # Relational Databases
+backend-learn-about-apis  # Learn about APIs
+backend-caching  # Caching
+backend-server-side  # Server Side
+backend-learn-about-web-servers  # Learn about Web Servers
+backend-hashing-algorithms  # Hashing Algorithms
+backend-ai-in-development  # AI in Development
+backend-learn-the-basics  # Learn the Basics
+backend-applications  # Applications
+backend-ai-assisted-coding  # AI Assisted Coding
+backend-ai-providers  # AI Providers
+backend-building-ai-powered-features  # Building AI-powered features
+backend-integration-patterns  # Integration Patterns
+backend-ci-cd  # CI / CD
+backend-advanced-backend  # Advanced Backend
+backend-more-about-databases  # More about Databases
+backend-testing  # Testing
+backend-containerization  # Containerization
+backend-message-brokers  # Message Brokers
+backend-container-orchestration  # Container Orchestration
+backend-architectural-patterns  # Architectural Patterns
+backend-search-engines  # Search Engines
+backend-real-time-data  # Real-Time Data
+backend-scaling-databases  # Scaling Databases
+backend-click-to-visit-the-roadmap  # Click to visit the roadmap
+backend-nosql-databases  # NoSQL Databases
+backend-building-for-scale  # Building For Scale
+
+## computer-science
+computer-science-pick-a-language  # Pick a Language
+computer-science-data-structures  # Data Structures
+computer-science-common-runtimes  # Common Runtimes
+computer-science-representation  # Representation
+computer-science-asymptotic-notation  # Asymptotic Notation
+computer-science-common-algorithms  # Common Algorithms
+computer-science-sorting  # Sorting
+computer-science-recursion  # Recursion
+computer-science-graphs  # Graphs
+computer-science-tree  # Tree
+computer-science-searching  # Searching
+computer-science-greedy-algorithms  # Greedy Algorithms
+computer-science-back-tracking  # Back Tracking
+computer-science-caches  # Caches
+computer-science-endianess  # Endianess
+computer-science-floating-point-math  # Floating Point Math
+computer-science-string-search-manipulations  # String Search & Manipulations
+computer-science-character-encodings  # Character Encodings
+computer-science-bitwise-operators  # Bitwise Operators
+computer-science-design-patterns  # Design Patterns
+computer-science-common-uml-diagrams  # Common UML Diagrams
+computer-science-basic-math-skills  # Basic Math Skills
+computer-science-complexity-classes  # Complexity Classes
+computer-science-tries  # Tries
+computer-science-np-complete  # NP Complete
+computer-science-databases  # Databases
+computer-science-system-design  # System Design
+computer-science-balanced-search-trees  # Balanced Search Trees
+computer-science-networking  # Networking
+computer-science-security  # Security
+computer-science-how-computers-work  # How Computers Work
+computer-science-processes-and-threads  # Processes and Threads
+
+## cyber-security
+cyber-security-ctfs-capture-the-flag  # CTFs (Capture the Flag)
+cyber-security-fundamental-it-skills  # Fundamental IT Skills
+cyber-security-certifications  # Certifications
+cyber-security-operating-systems  # Operating Systems
+cyber-security-learn-following-for-each  # Learn following for each
+cyber-security-ip-terminology  # IP Terminology
+cyber-security-common-virtualization-technologies  # Common Virtualization Technologies
+cyber-security-understand-the-terminology  # Understand the Terminology
+cyber-security-basics-of-virtualization  # Basics of Virtualization
+cyber-security-understand-these  # Understand these
+cyber-security-networking-knowledge  # Networking Knowledge
+cyber-security-functions-of-each  # Functions of each
+cyber-security-troubleshooting-tools  # Troubleshooting Tools
+cyber-security-network-topologies  # Network Topologies
+cyber-security-network-protocols  # Network Protocols
+cyber-security-authentication-methodologies  # Authentication Methodologies
+cyber-security-security-skills-and-knowledge  # Security Skills and Knowledge
+cyber-security-basics-of-cryptography  # Basics of Cryptography
+cyber-security-attack-types-and-differences  # Attack Types and Differences
+cyber-security-tools-for-incident-response-and-discovery  # Tools for Incident Response and Discovery
+cyber-security-understand-frameworks  # Understand Frameworks
+cyber-security-understand-common-standards  # Understand Common Standards
+cyber-security-common-distros-for-hacking  # Common Distros for hacking
+cyber-security-understand-the-following  # Understand the following
+cyber-security-using-tools-for-unintended-purposes  # Using tools for Unintended Purposes
+cyber-security-secure-vs-unsecure-protocols  # Secure vs Unsecure Protocols
+cyber-security-learn-how-to-find-and-use-these-logs  # Learn how to find and use these logs
+cyber-security-common-attacks  # Common Attacks
+cyber-security-understand-the-following-terms  # Understand the following Terms
+cyber-security-understand-hardening-concepts  # Understand Hardening Concepts
+cyber-security-understand-common-tools  # Understand Common Tools
+cyber-security-understand-the-incident-response-process  # Understand the Incident Response Process
+cyber-security-understand-audience  # Understand Audience
+cyber-security-understand-threat-classification  # Understand Threat Classification
+cyber-security-cloud-skills-and-knowledge  # Cloud Skills and Knowledge
+cyber-security-understand-cloud-services  # Understand Cloud Services
+cyber-security-cloud-models  # Cloud Models
+cyber-security-common-cloud-environments  # Common Cloud Environments
+cyber-security-common-cloud-storage  # Common Cloud Storage
+cyber-security-programming-skills  # Programming Skills
+
+## data-analyst
+data-analyst-introduction  # Introduction
+data-analyst-types-of-data-analytics  # Types of Data Analytics
+data-analyst-analysis-reporting-with-excel  # Analysis / Reporting with Excel
+data-analyst-learn-a-programming-lang  # Learn a Programming Lang.
+data-analyst-1  # 1
+data-analyst-data-manipulation-libraries  # Data Manipulation Libraries
+data-analyst-2  # 2
+data-analyst-learn-common-functions  # Learn Common Functions
+data-analyst-data-visualisation-libraries  # Data Visualisation Libraries
+data-analyst-3  # 3
+data-analyst-data-collection  # Data Collection
+data-analyst-data-cleanup  # Data Cleanup
+data-analyst-using-libraries-for-cleanup  # Using Libraries for Cleanup
+data-analyst-descriptive-analysis  # Descriptive Analysis
+data-analyst-data-visualisation  # Data Visualisation
+data-analyst-statistical-analysis  # Statistical Analysis
+data-analyst-learn-different-techniques  # Learn Different Techniques
+data-analyst-machine-learning-types  # Machine Learning Types
+data-analyst-machine-learning  # Machine Learning
+data-analyst-popular-ml-algorithms  # Popular ML Algorithms
+data-analyst-big-data-technologies  # Big Data Technologies
+data-analyst-deep-learning-optional  # Deep Learning (Optional)
+
+## datastructures-and-algorithms
+datastructures-and-algorithms-pick-a-language  # Pick a Language
+datastructures-and-algorithms-programming-fundamentals  # Programming Fundamentals
+datastructures-and-algorithms-what-are-data-structures  # What are Data Structures?
+datastructures-and-algorithms-why-are-data-structures-important  # Why are Data Structures Important?
+datastructures-and-algorithms-basic-data-structures  # Basic Data Structures
+datastructures-and-algorithms-algorithmic-complexity  # Algorithmic Complexity
+datastructures-and-algorithms-sorting-algorithms  # Sorting Algorithms
+datastructures-and-algorithms-search-algorithms  # Search Algorithms
+datastructures-and-algorithms-graph-data-structures  # Graph Data Structures
+datastructures-and-algorithms-tree-data-structures  # Tree Data Structures
+datastructures-and-algorithms-advanced-data-structures  # Advanced Data Structures
+datastructures-and-algorithms-complex-data-structures  # Complex Data Structures
+datastructures-and-algorithms-indexing  # Indexing
+datastructures-and-algorithms-problem-solving-techniques  # Problem Solving Techniques
+datastructures-and-algorithms-platforms-to-practice  # Platforms to Practice
+
+## devops
+devops-learn-a-programming-language  # Learn a Programming Language
+devops-scripting  # Scripting
+devops-operating-system  # Operating System
+devops-linux  # Linux
+devops-unix  # Unix
+devops-terminal-knowledge  # Terminal Knowledge
+devops-editors  # Editors
+devops-version-control-systems  # Version Control Systems
+devops-vcs-hosting  # VCS Hosting
+devops-containers  # Containers
+devops-what-is-and-how-to-setup-x  # What is and how to setup X ?
+devops-networking-protocols  # Networking & Protocols
+devops-web-server  # Web Server
+devops-cloud-providers  # Cloud Providers
+devops-serverless  # Serverless
+devops-email-protocols  # Email Protocols
+devops-configuration-management  # Configuration Management
+devops-provisioning  # Provisioning
+devops-ci-cd-tools  # CI / CD Tools
+devops-logs-management  # Logs Management
+devops-infrastructure-monitoring  # Infrastructure Monitoring
+devops-secret-management  # Secret Management
+devops-container-orchestration  # Container Orchestration
+devops-observability  # Observability
+devops-artifact-management  # Artifact Management
+devops-gitops  # GitOps
+devops-service-mesh  # Service Mesh
+devops-cloud-design-patterns  # Cloud Design Patterns
+
+## docker
+docker-introduction  # Introduction
+docker-underlying-technologies  # Underlying Technologies
+docker-linux-fundamentals  # Linux Fundamentals
+docker-just-get-the-basic-idea-of-these  # Just get the basic idea of these
+docker-installation-setup  # Installation / Setup
+docker-web-development  # Web Development
+docker-basics-of-docker  # Basics of Docker
+docker-using-3rd-party-container-images  # Using 3rd Party Container Images
+docker-data-persistence  # Data Persistence
+docker-container-registries  # Container Registries
+docker-running-containers  # Running Containers
+docker-building-container-images  # Building Container Images
+docker-docker-cli  # Docker CLI
+docker-container-security  # Container Security
+docker-networking  # Networking
+docker-developer-experience  # Developer Experience
+docker-deploying-containers  # Deploying Containers
+
+## frontend
+frontend-internet  # Internet
+frontend-html  # HTML
+frontend-css  # CSS
+frontend-javascript  # JavaScript
+frontend-version-control  # Version Control
+frontend-vcs-hosting  # VCS Hosting
+frontend-package-managers  # Package Managers
+frontend-css-frameworks  # CSS Frameworks
+frontend-learn-a-framework  # Learn a Framework
+frontend-ai-in-development  # AI in Development
+frontend-learn-the-basics  # Learn the Basics
+frontend-ai-assisted-coding  # AI Assisted Coding
+frontend-prompting-techniques  # Prompting Techniques
+frontend-agents  # Agents
+frontend-mcp  # MCP
+frontend-skills  # Skills
+frontend-implementing-ai  # Implementing AI
+frontend-advanced-frontend  # Advanced Frontend
+frontend-auth-strategies  # Auth Strategies
+frontend-module-bundlers  # Module Bundlers
+frontend-linters-formatters  # Linters & Formatters
+frontend-testing  # Testing
+frontend-web-apis  # Web APIs
+frontend-web-security  # Web Security
+frontend-react  # React
+frontend-vue-js  # Vue.js
+frontend-ssr  # SSR
+frontend-sveltekit  # SvelteKit
+frontend-deployment  # Deployment
+frontend-type-checkers  # Type Checkers
+frontend-ssg  # SSG
+frontend-design-systems  # Design Systems
+frontend-performance  # Performance
+frontend-web-components  # Web Components
+frontend-graphql  # GraphQL
+frontend-accessibility  # Accessibility
+frontend-pwas  # PWAs
+frontend-desktop-apps  # Desktop Apps
+frontend-mobile-apps  # Mobile Apps
+
+## full-stack
+full-stack-key-topics-to-learn  # Key topics to learn
+full-stack-project-ideas-and-suggestions  # Project ideas and suggestions
+full-stack-html  # HTML
+full-stack-css  # CSS
+full-stack-javascript  # JavaScript
+full-stack-npm  # npm
+full-stack-react  # React
+full-stack-tailwind-css  # Tailwind CSS
+full-stack-github  # GitHub
+full-stack-git  # Git
+full-stack-node-js  # Node.js
+full-stack-backend-starts-here  # Backend Starts here
+full-stack-postgresql  # PostgreSQL
+full-stack-redis  # Redis
+full-stack-jwt-auth  # JWT Auth
+full-stack-restful-apis  # RESTful APIs
+full-stack-devops-starts-here  # DevOps starts here
+full-stack-linux-basics  # Linux Basics
+full-stack-basic-aws-services  # Basic AWS Services
+full-stack-monit  # Monit
+full-stack-ansible  # Ansible
+full-stack-github-actions  # GitHub Actions
+full-stack-terraform  # Terraform
+
+## git-github
+git-github-learn-the-basics  # Learn the Basics
+git-github-repository-initialization  # Repository Initialization
+git-github-what-is-a-repository  # What is a Repository
+git-github-branching-basics  # Branching Basics
+git-github-intro-and-git-commands  # Intro and Git Commands
+git-github-git-remotes  # Git Remotes
+git-github-github-essentials  # GitHub Essentials
+git-github-merge-strategies  # Merge Strategies
+git-github-creating-pr  # Creating PR
+git-github-collaboration-on-github  # Collaboration on GitHub
+git-github-documentation  # Documentation
+git-github-commenting  # Commenting
+git-github-git-stash-basics  # Git Stash Basics
+git-github-github-projects  # GitHub Projects
+git-github-working-in-a-team  # Working in a Team
+git-github-history  # History
+git-github-undoing-changes  # Undoing Changes
+git-github-viewing-diffs  # Viewing Diffs
+git-github-rewriting-history  # Rewriting History
+git-github-submodules  # Submodules
+git-github-common-hooks  # Common Hooks
+git-github-git-patch  # Git Patch
+git-github-git-hooks  # Git hooks
+git-github-tagging  # Tagging
+git-github-github-actions  # GitHub Actions
+git-github-github-cli  # GitHub CLI
+git-github-creating-apps  # Creating Apps
+git-github-github-api  # GitHub API
+git-github-webhooks  # Webhooks
+git-github-github-copilot  # GitHub Copilot
+git-github-github-gists  # GitHub Gists
+git-github-github-models  # GitHub Models
+git-github-github-packages  # GitHub Packages
+git-github-github-pages  # GitHub Pages
+git-github-github-marketplace  # GitHub Marketplace
+git-github-github-codespaces  # GitHub Codespaces
+git-github-github-education  # GitHub Education
+git-github-github-security  # GitHub Security
+git-github-github-sponsors  # GitHub Sponsors
+
+## golang
+golang-introduction-to-go  # Introduction to Go
+golang-numeric-types  # Numeric Types
+golang-variables-constants  # Variables & Constants
+golang-data-types  # Data Types
+golang-commands-docs  # Commands & Docs
+golang-strings  # Strings
+golang-arrays  # Arrays
+golang-slices  # Slices
+golang-strings-2  # Strings
+golang-maps  # Maps
+golang-structs  # Structs
+golang-loops  # Loops
+golang-conditionals  # Conditionals
+golang-functions  # Functions
+golang-pointers  # Pointers
+golang-get-a-brief-overview  # Get a Brief Overview
+golang-methods-vs-functions  # Methods vs Functions
+golang-pointer-receivers  # Pointer Receivers
+golang-value-receivers  # Value Receivers
+golang-generics  # Generics
+golang-interfaces  # Interfaces
+golang-modules-dependencies  # Modules & Dependencies
+golang-packages  # Packages
+golang-package-import-rules  # Package Import Rules
+golang-using-3rd-party-packages  # Using 3rd Party Packages
+golang-concurrency  # Concurrency
+golang-goroutines  # Goroutines
+golang-publishing-modules  # Publishing Modules
+golang-channels  # Channels
+golang-worker-pools  # Worker Pools
+golang-context-package  # `context` Package
+golang-concurrency-patterns  # Concurrency Patterns
+golang-sync-package  # `sync` Package
+golang-race-detection  # Race Detection
+golang-standard-library  # Standard Library
+golang-building-clis  # Building CLIs
+golang-web-development  # Web Development
+golang-frameworks-optional  # Frameworks (Optional)
+golang-orms-db-access  # ORMs & DB Access
+golang-logging  # Logging
+golang-realtime-communication  # Realtime Communication
+golang-code-generation-build-tags  # Code Generation / Build Tags
+golang-code-quality-and-analysis  # Code Quality and Analysis
+golang-core-go-commands  # Core Go Commands
+golang-linters  # Linters
+golang-performance-and-debugging  # Performance and Debugging
+golang-security  # Security
+golang-deployment-tooling  # Deployment & Tooling
+golang-advanced-topics  # Advanced Topics
+
+## java
+java-learn-the-basics  # Learn the Basics
+java-basics-of-oop  # Basics of OOP
+java-exception-handling  # Exception Handling
+java-more-about-oop  # More about OOP
+java-lambda-expressions  # Lambda Expressions
+java-annotations  # Annotations
+java-modules  # Modules
+java-optionals  # Optionals
+java-collections  # Collections
+java-cryptography  # Cryptography
+java-dependency-injection  # Dependency Injection
+java-date-and-time  # Date and Time
+java-networking  # Networking
+java-regular-expressions  # Regular Expressions
+java-i-o-operations  # I/O Operations
+java-concurrency  # Concurrency
+java-file-operations  # File Operations
+java-spring-boot-is-recommended  # Spring Boot is recommended
+java-v  # v
+java-database-access  # Database Access
+java-web-frameworks  # Web Frameworks
+java-build-tools  # Build Tools
+java-functional-programming  # Functional Programming
+java-documentation  # Documentation
+java-logging-frameworks  # Logging Frameworks
+java-testing  # Testing
+java-behavior-testing  # Behavior Testing
+java-unit-testing  # Unit Testing
+java-integration-testing  # Integration Testing
+
+## javascript
+javascript-introduction-to-javascript  # Introduction to JavaScript
+javascript-all-about-variables  # All about Variables
+javascript-data-types  # Data Types
+javascript-primitive-types  # Primitive Types
+javascript-type-casting  # Type Casting
+javascript-data-structures  # Data Structures
+javascript-equality-comparisons  # Equality Comparisons
+javascript-value-comparison-operators  # Value Comparison Operators
+javascript-equality-algorithms  # Equality Algorithms
+javascript-loops-and-iterations  # Loops and Iterations
+javascript-expressions-operators  # Expressions & Operators
+javascript-control-flow  # Control Flow
+javascript-functions  # Functions
+javascript-dom-apis  # DOM APIs
+javascript-strict-mode  # Strict Mode
+javascript-using-this-keyword  # Using (this) keyword
+javascript-asynchronous-javascript  # Asynchronous JavaScript
+javascript-modules-in-javascript  # Modules in JavaScript
+javascript-iterators-and-generators  # Iterators and Generators
+javascript-classes  # Classes
+javascript-working-with-apis  # Working with APIs
+javascript-memory-management  # Memory Management
+javascript-using-browser-devtools  # Using Browser DevTools
+
+## kubernetes
+kubernetes-introduction  # Introduction
+kubernetes-containers  # Containers
+kubernetes-setting-up-kubernetes  # Setting up Kubernetes
+kubernetes-running-applications  # Running Applications
+kubernetes-configuration-management  # Configuration Management
+kubernetes-services-and-networking  # Services and Networking
+kubernetes-resource-management  # Resource Management
+kubernetes-security  # Security
+kubernetes-monitoring-and-logging  # Monitoring and Logging
+kubernetes-storage-and-volumes  # Storage and Volumes
+kubernetes-scheduling  # Scheduling
+kubernetes-autoscaling  # Autoscaling
+kubernetes-deployment-patterns  # Deployment Patterns
+kubernetes-cluster-operations  # Cluster Operations
+kubernetes-advanced-topics  # Advanced Topics
+
+## linux
+linux-navigation-basics  # Navigation Basics
+linux-editing-files  # Editing Files
+linux-shell-and-other-basics  # Shell and Other Basics
+linux-working-with-files  # Working with Files
+linux-text-processing  # Text Processing
+linux-process-management  # Process Management
+linux-server-review  # Server Review
+linux-user-management  # User Management
+linux-service-management-systemd  # Service Management (systemd)
+linux-package-management  # Package Management
+linux-disks-and-filesystems  # Disks and Filesystems
+linux-booting-linux  # Booting Linux
+linux-networking  # Networking
+linux-shell-programming  # Shell Programming
+linux-troubleshooting  # Troubleshooting
+linux-containerization  # Containerization
+
+## machine-learning
+machine-learning-pre-requisites  # Pre-requisites
+machine-learning-introduction  # Introduction
+machine-learning-calculus  # Calculus
+machine-learning-linear-algebra  # Linear Algebra
+machine-learning-discrete-mathematics  # Discrete Mathematics
+machine-learning-python  # Python
+machine-learning-probability  # Probability
+machine-learning-statistics  # Statistics
+machine-learning-object-oriented-programming  # Object Oriented Programming
+machine-learning-basic-syntax  # Basic Syntax
+machine-learning-essential-libraries  # Essential libraries
+machine-learning-data-sources  # Data Sources
+machine-learning-data-formats  # Data Formats
+machine-learning-preprocessing-techniques  # Preprocessing Techniques
+machine-learning-what-is-machine-learning  # What is Machine Learning?
+machine-learning-types-of-machine-learning  # Types of Machine Learning
+machine-learning-scikit-learn  # Scikit-learn
+machine-learning-what-is-supervised-learning  # What is Supervised Learning?
+machine-learning-classification  # Classification
+machine-learning-regression  # Regression
+machine-learning-what-is-unsupervised-learning  # What is Unsupervised Learning?
+machine-learning-clustering  # Clustering
+machine-learning-dimensionality-reduction  # Dimensionality Reduction
+machine-learning-what-is-reinforcement-learning  # What is Reinforcement Learning?
+machine-learning-what-is-model-evaluation  # What is Model Evaluation?
+machine-learning-why-is-it-important  # Why is it important?
+machine-learning-metrics-to-evaluate  # Metrics to Evaluate
+machine-learning-validation-techniques  # Validation Techniques
+machine-learning-neural-network-nn-basics  # Neural Network (NN) Basics
+machine-learning-deep-learning-libraries  # Deep Learning Libraries
+machine-learning-deep-learning-architectures  # Deep Learning Architectures
+machine-learning-convolutional-neural-network  # Convolutional Neural Network
+machine-learning-recurrent-neural-networks  # Recurrent Neural Networks
+machine-learning-applications-of-cnns  # Applications of CNNs
+machine-learning-attention-mechanisms  # Attention Mechanisms
+machine-learning-autoencoders  # Autoencoders
+machine-learning-generative-adversarial-networks  # Generative Adversarial Networks
+machine-learning-explainable-ai  # Explainable AI
+machine-learning-natural-language-processing  # Natural Language Processing
+
+## mongodb
+mongodb-mongodb-basics  # MongoDB Basics
+mongodb-data-model-data-types  # Data Model & Data Types
+mongodb-collections-methods  # Collections & Methods
+mongodb-query-operators  # Query Operators
+mongodb-array-operators  # Array Operators
+mongodb-projection-operators  # Projection Operators
+mongodb-creating-indexes  # Creating Indexes
+mongodb-comparison-operators  # Comparison Operators
+mongodb-element-operators  # Element Operators
+mongodb-logical-operators  # Logical Operators
+mongodb-performance-optimization  # Performance Optimization
+mongodb-aggregation  # Aggregation
+mongodb-common-operators  # Common Operators
+mongodb-transactions  # Transactions
+mongodb-mongodb-connectors  # MongoDB Connectors
+mongodb-developer-tools  # Developer Tools
+mongodb-backup-recovery  # Backup & Recovery
+mongodb-scaling-mongodb  # Scaling MongoDB
+mongodb-encryption  # Encryption
+mongodb-mongodb-security  # MongoDB Security
+
+## nodejs
+nodejs-introduction-to-node-js  # Introduction to Node.js
+nodejs-modules  # Modules
+nodejs-npm  # npm
+nodejs-error-handling  # Error Handling
+nodejs-installing-packages  # Installing Packages
+nodejs-async-programming  # Async Programming
+nodejs-types-of-errors  # Types of Errors
+nodejs-environment-variables  # Environment Variables
+nodejs-writing-async-code  # Writing Async Code
+nodejs-command-line-apps  # Command Line Apps
+nodejs-working-with-files  # Working with Files
+nodejs-taking-input  # Taking Input
+nodejs-opensource-packages  # Opensource Packages
+nodejs-authentication  # Authentication
+nodejs-building-consuming-apis  # Building & Consuming APIs
+nodejs-printing-output  # Printing Output
+nodejs-monitor-changes-dev  # Monitor Changes (Dev)
+nodejs-command-line-args  # Command line args
+nodejs-frameworks  # Frameworks
+nodejs-making-api-calls  # Making API Calls
+nodejs-template-engines  # Template Engines
+nodejs-working-with-databases  # Working with Databases
+nodejs-testing  # Testing
+nodejs-nosql-dbs  # NoSQL DBs
+nodejs-logging  # Logging
+nodejs-keep-app-running  # Keep app Running
+nodejs-threads  # Threads
+nodejs-streams  # Streams
+nodejs-relational  # Relational
+nodejs-debugging  # Debugging
+nodejs-common-built-in-modules  # Common Built-in Modules
+
+## postgresql-dba
+postgresql-dba-introduction  # Introduction
+postgresql-dba-basic-rdbms-concepts  # Basic RDBMS Concepts
+postgresql-dba-object-model  # Object Model
+postgresql-dba-high-level-database-concepts  # High Level Database Concepts
+postgresql-dba-relational-model  # Relational Model
+postgresql-dba-installation-and-setup  # Installation and Setup
+postgresql-dba-dml-queries  # DML Queries
+postgresql-dba-ddl-queries  # DDL Queries
+postgresql-dba-managing-postgres  # Managing Postgres
+postgresql-dba-learn-sql  # Learn SQL
+postgresql-dba-configuring  # Configuring
+postgresql-dba-advanced-topics  # Advanced Topics
+postgresql-dba-security  # Security
+postgresql-dba-infrastructure-skills  # Infrastructure Skills
+postgresql-dba-anonymization  # Anonymization
+postgresql-dba-3rd-party  # 3rd Party
+postgresql-dba-builtin-tools  # Builtin Tools
+postgresql-dba-upgrade-procedures  # Upgrade Procedures
+postgresql-dba-learn-to-automate  # Learn to Automate
+postgresql-dba-cluster-management  # Cluster Management
+postgresql-dba-replication  # Replication
+postgresql-dba-connection-pooling  # Connection Pooling
+postgresql-dba-configuration-management  # Configuration Management
+postgresql-dba-kubernetes-deployment  # Kubernetes Deployment
+postgresql-dba-monitoring  # Monitoring
+postgresql-dba-load-balancing-discovery  # Load Balancing / Discovery
+postgresql-dba-data-and-processing  # Data and Processing
+postgresql-dba-migrations  # Migrations
+postgresql-dba-queues  # Queues
+postgresql-dba-low-level-internals  # Low Level Internals
+postgresql-dba-workload-dependant-tuning  # Workload-Dependant Tuning
+postgresql-dba-query-analysis  # Query Analysis
+postgresql-dba-operating-system-tools  # Operating System Tools
+postgresql-dba-posgres-system-views  # Posgres System Views
+postgresql-dba-profiling-tools  # Profiling Tools
+postgresql-dba-log-analysis  # Log Analysis
+postgresql-dba-techniques  # Techniques
+postgresql-dba-posgres-tools  # Posgres Tools
+postgresql-dba-sql-query-patterns-anti-patterns  # SQL Query Patterns / Anti-patterns
+postgresql-dba-schema-design-patterns-anti-patterns  # Schema Design Patterns / Anti-patterns
+postgresql-dba-indexes-and-their-usecases  # Indexes and their Usecases
+postgresql-dba-get-involved-in-development  # Get Involved in Development
+
+## product-manager
+product-manager-introduction  # Introduction
+product-manager-product-identification  # Product Identification
+product-manager-market-analysis  # Market Analysis
+product-manager-user-research  # User Research
+product-manager-defining-communicating  # Defining & Communicating
+product-manager-positioning  # Positioning
+product-manager-vision-mission  # Vision & Mission
+product-manager-value-vs-features  # Value vs Features
+product-manager-strategic-thinking  # Strategic Thinking
+product-manager-value-proposition  # Value Proposition
+product-manager-defining-goals  # Defining Goals
+product-manager-goal-types  # Goal Types
+product-manager-product-requirements  # Product Requirements
+product-manager-product-roadmap  # Product Roadmap
+product-manager-backlog-management  # Backlog Management
+product-manager-release-strategies  # Release Strategies
+product-manager-ux-ui-design  # UX / UI Design
+product-manager-service-design  # Service Design
+product-manager-interaction-design  # Interaction Design
+product-manager-go-to-market-strategy  # Go-to-Market Strategy
+product-manager-user-testing  # User Testing
+product-manager-working-with-engineering-teams  # Working with Engineering Teams
+product-manager-agile-methodology  # Agile Methodology
+product-manager-key-product-metrics  # Key Product Metrics
+product-manager-data-driven-decision-making  # Data-Driven Decision Making
+product-manager-feedback-loops  # Feedback Loops
+product-manager-communication-skills  # Communication Skills
+product-manager-managing-stakeholders  # Managing Stakeholders
+product-manager-roadmapping-tools  # Roadmapping Tools
+product-manager-project-management-tools  # Project Management Tools
+product-manager-analytics-tools  # Analytics Tools
+product-manager-communication-tools  # Communication Tools
+product-manager-identifying-risks  # Identifying Risks
+product-manager-risk-mitigation  # Risk Mitigation
+product-manager-risk-assessment  # Risk Assessment
+product-manager-monitoring-and-controlling-risks  # Monitoring and Controlling Risks
+product-manager-scaling-products  # Scaling Products
+product-manager-advanced-analysis  # Advanced Analysis
+product-manager-portfolio-management  # Portfolio Management
+product-manager-leadership-and-influence  # Leadership and Influence
+
+## python
+python-learn-the-basics  # Learn the Basics
+python-data-structures-algorithms  # Data Structures & Algorithms
+python-modules  # Modules
+python-lambdas  # Lambdas
+python-decorators  # Decorators
+python-package-managers  # Package Managers
+python-iterators  # Iterators
+python-common-packages  # Common Packages
+python-regular-expressions  # Regular Expressions
+python-variable-scope  # Variable Scope
+python-configuration  # Configuration
+python-object-oriented-programming  # Object Oriented Programming
+python-list-comprehensions  # List Comprehensions
+python-generator-expressions  # Generator Expressions
+python-paradigms  # Paradigms
+python-context-manager  # Context Manager
+python-static-typing  # Static Typing
+python-learn-a-framework  # Learn a Framework
+python-concurrency  # Concurrency
+python-environments  # Environments
+python-code-formatting  # Code Formatting
+python-asynchronous  # Asynchronous
+python-synchronous  # Synchronous
+python-synchronous-asynchronous  # Synchronous + Asynchronous
+python-file-handling  # File Handling
+python-documentation  # Documentation
+python-testing  # Testing
+
+## qa
+qa-learn-the-fundamentals  # Learn the Fundamentals
+qa-sdlc-delivery-model  # SDLC Delivery Model
+qa-testing-methodologies  # Testing Methodologies
+qa-manual-testing  # Manual Testing
+qa-backend-automation  # Backend Automation
+qa-frontend-automation  # Frontend Automation
+qa-basic-introduction  # Basic Introduction
+qa-automation-frameworks  # Automation Frameworks
+qa-accessibility-tests  # Accessibility Tests
+qa-mobile-automation  # Mobile Automation
+qa-browser-addons  # Browser Addons
+qa-load-performance-testing  # Load & Performance Testing
+qa-security-testing  # Security Testing
+qa-email-testing  # Email Testing
+qa-testing-data-management  # Testing Data Management
+qa-monitoring-logs  # Monitoring & Logs
+qa-reporting  # Reporting
+qa-version-control-system  # Version Control System
+qa-repo-hosting-services  # Repo Hosting Services
+qa-repo-hosting-services-2  # Repo Hosting Services
+qa-ci-cd  # CI / CD
+qa-headless-testing  # Headless Testing
+
+## react
+react-cli-tools  # CLI Tools
+react-components  # Components
+react-rendering  # Rendering
+react-component-basics  # Component Basics
+react-basic-hooks  # Basic Hooks
+react-hooks  # Hooks
+react-common-hooks  # Common Hooks
+react-routers  # Routers
+react-state-management  # State Management
+react-writing-css  # Writing CSS
+react-component-libraries  # Component / Libraries
+react-graphql  # GraphQL
+react-headless-components  # Headless Components
+react-api-calls  # API Calls
+react-rest  # REST
+react-testing  # Testing
+react-forms  # Forms
+react-frameworks  # Frameworks
+react-types-validation  # Types & Validation
+react-advanced-topics  # Advanced Topics
+react-animation  # Animation
+react-error-boundaries  # Error Boundaries
+react-server-apis  # Server APIs
+react-suspense  # Suspense
+react-portals  # Portals
+react-mobile-applications  # Mobile Applications
+
+## sql
+sql-learn-the-basics  # Learn the Basics
+sql-basic-sql-syntax  # Basic SQL Syntax
+sql-data-definition-language-ddl  # Data Definition Language (DDL)
+sql-data-manipulation-language-dml  # Data Manipulation Language (DML)
+sql-statements  # Statements
+sql-aggregate-queries  # Aggregate Queries
+sql-data-constraints  # Data Constraints
+sql-different-types  # Different Types
+sql-subqueries  # Subqueries
+sql-join-queries  # JOIN Queries
+sql-advanced-functions  # Advanced Functions
+sql-numeric-functions  # Numeric Functions
+sql-string-functions  # String Functions
+sql-views  # Views
+sql-conditional  # Conditional
+sql-indexes  # Indexes
+sql-date-and-time  # Date and Time
+sql-stored-procedures-functions  # Stored Procedures & Functions
+sql-data-integrity-security  # Data Integrity & Security
+sql-transactions  # Transactions
+sql-performance-optimization  # Performance Optimization
+sql-advanced-sql  # Advanced SQL
+sql-query-optimization-techniques  # Query Optimization Techniques
+
+## system-design
+system-design-introduction  # Introduction
+system-design-performance-vs-scalability  # Performance vs Scalability
+system-design-ap-availability-partition-tolerance  # AP - Availability + Partition Tolerance
+system-design-cp-consistency-partition-tolerance  # CP - Consistency + Partition Tolerance
+system-design-latency-vs-throughput  # Latency vs Throughput
+system-design-availability-vs-consistency  # Availability vs Consistency
+system-design-consistency-patterns  # Consistency Patterns
+system-design-active-active  # Active - Active
+system-design-master-slave  # Master - Slave
+system-design-active-passive  # Active - Passive
+system-design-master-master  # Master - Master
+system-design-availability-patterns  # Availability Patterns
+system-design-99-9-availability-three-9s  # 99.9% Availability - three 9s
+system-design-99-99-availability-four-9s  # 99.99% Availability - four 9s
+system-design-availability-in-parallel-vs-sequence  # Availability in Parallel vs Sequence
+system-design-background-jobs  # Background Jobs
+system-design-domain-name-system  # Domain Name System
+system-design-content-delivery-networks  # Content Delivery Networks
+system-design-application-layer  # Application Layer
+system-design-load-balancers  # Load Balancers
+system-design-nosql  # NoSQL
+system-design-databases  # Databases
+system-design-caching  # Caching
+system-design-asynchronism  # Asynchronism
+system-design-rdbms  # RDBMS
+system-design-strategies  # Strategies
+system-design-communication  # Communication
+system-design-idempotent-operations  # Idempotent Operations
+system-design-performance-antipatterns  # Performance Antipatterns
+system-design-types-of-caching  # Types of Caching
+system-design-monitoring  # Monitoring
+system-design-cloud-design-patterns  # Cloud Design Patterns
+system-design-design-implementation  # Design & Implementation
+system-design-data-management  # Data Management
+system-design-messaging  # Messaging
+system-design-reliability-patterns  # Reliability Patterns
+system-design-availability  # Availability
+system-design-high-availability  # High Availability
+system-design-resiliency  # Resiliency
+system-design-security  # Security
+
+## ux-design
+ux-design-buzzwords-to-lookout-for  # Buzzwords to lookout for
+ux-design-frameworks  # Frameworks
+ux-design-human-decision-making  # Human Decision Making
+ux-design-behavior-change-strategies  # Behavior Change Strategies
+ux-design-classifying-behavior  # Classifying Behavior
+ux-design-cheating  # Cheating
+ux-design-existing-behavior  # Existing Behavior
+ux-design-make-or-change-habits  # Make or Change Habits
+ux-design-support-conscious-action  # Support Conscious Action
+ux-design-clarify-product  # Clarify Product
+ux-design-new-behavior  # New Behavior
+ux-design-understanding-the-product  # Understanding the Product
+ux-design-define-target-users  # Define Target Users
+ux-design-business-model  # Business Model
+ux-design-create-product-backlog  # Create Product Backlog
+ux-design-existing-business-model  # Existing Business Model
+ux-design-conceptual-design  # Conceptual Design
+ux-design-things-to-lookout-for  # Things to lookout for
+ux-design-new-business-model  # New Business Model
+ux-design-wireframing  # Wireframing
+ux-design-deliverables  # Deliverables
+ux-design-ux-patterns  # UX Patterns
+ux-design-prototyping  # Prototyping
+ux-design-when-attention-is-fleeting-and-scarce  # When attention is fleeting and scarce
+ux-design-getting-users-attention  # Getting Users Attention
+ux-design-ux-best-practices  # UX Best Practices
+ux-design-with-many-chances-to-influence-user  # with many chances to influence user
+ux-design-getting-positive-intuitive-reaction  # Getting Positive Intuitive Reaction
+ux-design-get-a-favorable-conscious-evaluation  # Get a favorable Conscious Evaluation
+ux-design-measuring-the-impact  # Measuring the Impact
+ux-design-testing  # Testing
+ux-design-make-sure-users-can-do-it-easily  # Make sure Users can do it Easily
+ux-design-creating-urgency-to-act-now  # Creating Urgency to Act Now

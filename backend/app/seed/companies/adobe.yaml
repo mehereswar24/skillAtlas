@@ -1,0 +1,643 @@
+# Adobe.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (a company's LeetCode tag, a Glassdoor thread),
+#     we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI
+#     shows it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: adobe
+  name: Adobe
+  industry: Creative & Digital Media Software
+  hq: San Jose, California
+  website: https://careers.adobe.com/us/en/
+  icon: Palette
+  fetched_on: 2026-08-21
+  sort_order: 12
+  description: >-
+    Photoshop, Creative Cloud, Document Cloud, Experience Platform and the
+    generative Firefly models. Adobe's loop leans unusually hard on raw
+    computer-science fundamentals — OS, DBMS and networking come up as
+    verbal and multiple-choice questions, not just as background for a
+    coding problem.
+  hiring_process_md: |
+    Adobe's process is genuinely inconsistent team to team — one candidate's
+    loop is frontend-heavy, another's is pure backend DSA, a third gets a
+    full system design round and nothing else — but a few things hold
+    across almost every report.
+
+    **The shape of it**
+
+    1. **Recruiter screen (30–45 min)** — background, role, logistics,
+       occasionally comp.
+    2. **Online assessment** — an aptitude section (verbal/analytical
+       reasoning) plus a technology section in C/C++/Java (objective and
+       subjective questions), often on HackerRank.
+    3. **Technical rounds (3–5, 45–60 min each)** — the mix varies by team,
+       but candidates consistently report CS-fundamentals questions (OS
+       process/thread models, DBMS normalization and indexing, networking —
+       DNS, load balancer types) asked directly, not just implied by a
+       coding problem. DSA, OOP design and, for senior candidates, system
+       design fill the rest.
+    4. **Onsite / final panel** — additional technical rounds plus a
+       behavioural conversation, sometimes including a short presentation.
+
+    **What's consistently graded, regardless of team:** interviewers care
+    more that you can explain your reasoning clearly than that you land on
+    a fully optimal answer immediately — a candidate who misses an edge
+    case but reasons about trade-offs out loud and writes clean, well-
+    structured code can still pass, while a silently-correct answer with no
+    narration reads worse than it should. The whole process typically runs
+    one to two and a half months end to end.
+  resources:
+    - kind: careers
+      title: "Adobe Careers"
+      url: https://careers.adobe.com/us/en/
+    - kind: blog
+      title: "Adobe Tech Blog"
+      url: https://blog.developer.adobe.com/
+    - kind: prep
+      title: "Adobe interview preparation — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/interview-experiences/adobe-interview-preparation/
+    - kind: prep
+      title: "Adobe's interview process & questions — interviewing.io"
+      url: https://interviewing.io/adobe-interview-questions
+    - kind: prep
+      title: "Adobe Software Engineer interview guide — InterviewQuery"
+      url: https://www.interviewquery.com/interview-guides/adobe-software-engineer
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer
+    level: entry to mid
+    maps_to_role: backend-developer
+    sort_order: 1
+    source_url: https://www.interviewquery.com/interview-guides/adobe-software-engineer
+    description: >-
+      The generalist backend role behind Document Cloud and Creative Cloud
+      services. The loop most consistently tests raw CS fundamentals
+      alongside DSA and OOP design.
+    focus_md: |
+      The distinguishing prep move for Adobe specifically: don't treat OS,
+      DBMS and networking as background knowledge you'll only need if a
+      coding problem happens to touch them — they show up as direct,
+      standalone questions ("explain paging," "what does a semaphore do
+      that a mutex doesn't," "what's the difference between a load balancer
+      operating at layer 4 vs layer 7"). Candidates who over-invest in DSA
+      grinding and under-invest in this direct-recall layer report losing
+      rounds they otherwise coded well.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5 }
+      - { concept: computer-science-design-patterns, label: "OOP design", weight: 4,
+          notes: "Class design and SOLID-style reasoning shows up as its own topic, not just inside coding rounds." }
+      - { concept: computer-science-processes-and-threads, label: "Operating systems", weight: 4,
+          notes: "Paging, semaphores, process vs. thread — asked directly, often verbally." }
+      - { concept: computer-science-databases, label: "DBMS fundamentals", weight: 4,
+          notes: "Indexing and normalization specifically, asked as standalone questions." }
+      - { concept: computer-science-networking, label: "Networking", weight: 3,
+          notes: "DNS resolution and load-balancer types are named as recurring 2025/2026 topics." }
+      - { concept: computer-science-system-design, label: "System design", weight: 3,
+          notes: "Weighted in for experienced candidates specifically." }
+      - { concept: java-basics-of-oop, label: "Java", weight: 3,
+          notes: "The most common language in the technology screen, alongside C/C++." }
+    questions:
+      - kind: online-assessment
+        round: technical
+        topic: Technology screen (C/C++/Java)
+        difficulty: easy
+        year: 2025
+        question: >-
+          The HackerRank technology test includes objective and subjective
+          questions in your chosen language before any human interview.
+          What kind of subjective question actually appears?
+        answer_md: |
+          Expect short-answer prompts like "what does this code snippet
+          output, and why" (testing whether you actually trace execution
+          rather than pattern-match), and small write-a-function prompts —
+          reverse a linked list, implement a basic stack — that are more
+          about clean, bug-free code under mild time pressure than
+          algorithmic cleverness. The objective half leans on OOP concepts
+          (what does `virtual` do, what's function overriding vs.
+          overloading) more than pure trivia.
+        source_name: "GeeksforGeeks — Adobe interview preparation"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/adobe-interview-preparation/
+
+      - kind: interview
+        round: coding
+        topic: Linked lists
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given two singly linked lists that may intersect at some node,
+          find the intersection node — without using extra space
+          proportional to either list's length.
+        answer_md: |
+          The two-pointer trick: walk a pointer down each list; when a
+          pointer hits the end of its list, redirect it to the head of the
+          *other* list and keep going. If the lists intersect, both
+          pointers will meet at the intersection node after at most
+          `lenA + lenB` steps, because each pointer ends up traveling the
+          same total distance (its own list's non-shared part plus the
+          other list's non-shared part plus the shared part).
+
+          If they don't intersect, both pointers reach `null` at the same
+          step, which doubles as the "no intersection" detection — no
+          separate check needed. O(m+n) time, O(1) space.
+        source_name: "GeeksforGeeks — Adobe interview experience, Set 41"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/adobe-interview-experience-set-41-software-engineer/
+
+      - kind: interview
+        round: technical
+        topic: Operating systems
+        difficulty: medium
+        year: 2025
+        question: >-
+          What's the difference between a mutex and a semaphore, and give a
+          scenario where only a semaphore, not a mutex, would work.
+        answer_md: |
+          A mutex is binary and owned — only the thread that locked it can
+          unlock it, and it protects exactly one critical section from
+          concurrent access. A semaphore holds a count and isn't
+          ownership-bound — any thread can signal it, and it can allow up
+          to N concurrent holders rather than just one.
+
+          The scenario that needs a semaphore specifically: a connection
+          pool with, say, 10 available connections. You want up to 10
+          threads to proceed concurrently and block the 11th until one is
+          released — a mutex only ever allows one thread through, so it
+          can't express "up to N concurrent," which is exactly what a
+          counting semaphore initialized to 10 does directly.
+        source_name: "Adobe's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/adobe-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: DBMS — indexing & normalization
+        difficulty: medium
+        year: 2025
+        question: >-
+          Why would a database team deliberately denormalize a schema that
+          was already in third normal form?
+        answer_md: |
+          Third normal form minimizes redundancy and update anomalies, but
+          it does so by spreading related data across more tables, which
+          means more joins to answer a common read query. If a specific
+          read pattern is hit heavily and joins across several normalized
+          tables are the measured bottleneck, deliberately duplicating some
+          data (e.g., storing a customer's name directly on an order row
+          instead of always joining to the customers table) trades a small
+          amount of write-time complexity and redundancy for a
+          meaningfully faster, join-free read path.
+
+          The honest caveat worth stating: denormalization should follow a
+          measured bottleneck, not precede one — doing it speculatively
+          just re-introduces the update-anomaly problems normalization
+          exists to prevent, without a proven performance win to justify
+          it.
+        source_name: "GeeksforGeeks — Adobe interview preparation"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/adobe-interview-preparation/
+
+      - kind: interview
+        round: system-design
+        topic: File versioning system
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the backend for a "version history" feature on a document
+          (think Creative Cloud files) — every save creates a restorable
+          version, potentially for large files.
+        answer_md: |
+          Storing a full copy of the file on every save is simple but
+          expensive at scale for large files with frequent saves; the
+          standard fix is storing the first version in full, then storing
+          each subsequent version as a diff (a binary delta) against the
+          previous version, reconstructing any specific version by
+          replaying deltas from the nearest earlier full snapshot.
+
+          The trade-off worth naming: pure delta chains make restoring an
+          old version slower (you replay many deltas), so a real design
+          periodically stores a full snapshot again (every N versions) to
+          bound how many deltas any single restore has to replay — a
+          direct trade between storage cost and restore latency.
+        source_name: "Adobe Software Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/adobe-software-engineer
+
+      - kind: interview
+        round: managerial
+        topic: Clean, explained code
+        difficulty: easy
+        year: 2025
+        question: >-
+          Tell me about a time you caught a bug in your own code after
+          shipping it. How did you find it, and what did you change in your
+          process afterward?
+        answer_md: |
+          Adobe's own reported interviewer preference is explaining
+          reasoning clearly over just landing on the correct answer, and
+          this question is the behavioural version of the same test:
+          candidates who describe *how* they noticed (a specific metric,
+          a customer report, a test they added afterward) score better
+          than ones who say "I just found it while reviewing," which
+          suggests luck rather than a repeatable practice.
+
+          Naming a concrete process change — a new test category, a
+          different code review checklist item — is what makes the answer
+          land as growth rather than a one-off story.
+        source_name: "Adobe's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/adobe-interview-questions
+
+      - kind: online-assessment
+        round: coding
+        topic: Trees
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a binary search tree, find two nodes whose values sum to a
+          given target k.
+        answer_md: |
+          An in-order traversal of a BST produces values in sorted order,
+          so the cleanest approach converts the tree to a sorted sequence
+          (or uses two BST iterators — one walking in-order for ascending
+          values, one walking reverse-in-order for descending) and applies
+          the standard two-pointer technique from both ends, moving inward
+          based on whether the current pair's sum is above or below k.
+
+          Doing this with two iterators instead of materializing the full
+          sorted array first is the space-optimized version worth
+          mentioning as a follow-up — O(h) space instead of O(n), where h
+          is the tree's height.
+        source_name: "GeeksforGeeks — Adobe interview questions and experience — CodingKaro"
+        source_url: https://www.codingkaro.in/jobs-internships/leetcode-interview-experience/Adobe
+
+  - slug: machine-learning-engineer
+    title: Machine Learning Engineer
+    level: mid
+    maps_to_role: machine-learning-engineer
+    sort_order: 2
+    source_url: https://www.interviewquery.com/interview-guides/adobe-machine-learning-engineer
+    description: >-
+      Ships ML into Adobe's actual products — Firefly's generative image
+      models, Sensei's personalization and Experience Platform's fraud and
+      recommendation systems. Graded on ML depth, coding, and product
+      intuition together, not any one in isolation.
+    focus_md: |
+      The distinguishing thread through this loop is that a correct model
+      is only half the answer — every design question expects you to also
+      cover the production path: how it's served, how it's evaluated
+      post-launch, and how failure is monitored. Given Firefly is a public
+      generative product, expect at least one question that isn't purely
+      technical: how you'd advocate for responsible-AI practices on a
+      generative feature, since Adobe is vocal about that publicly and asks
+      about it directly.
+    focus_areas:
+      - { concept: machine-learning-deep-learning-architectures, label: "Deep learning architectures", weight: 4 }
+      - { concept: machine-learning-convolutional-neural-network, label: "Computer vision / CNNs", weight: 4,
+          notes: "Directly relevant to Photoshop and Firefly's image models." }
+      - { concept: ai-engineer-multimodal-ai, label: "Multimodal / generative models", weight: 4,
+          notes: "Firefly is a text-to-image and generative-fill product; multimodal reasoning comes up directly." }
+      - { concept: machine-learning-metrics-to-evaluate, label: "Model evaluation & metrics", weight: 4 }
+      - { concept: machine-learning-validation-techniques, label: "Validation & monitoring in production", weight: 3 }
+      - { concept: ai-engineer-ai-safety-and-ethics, label: "Responsible AI", weight: 3,
+          notes: "Asked directly on generative-AI-facing roles, not just as a compliance checkbox." }
+      - { concept: computer-science-system-design, label: "ML system design", weight: 4 }
+    questions:
+      - kind: interview
+        round: technical
+        topic: CNN fundamentals
+        difficulty: medium
+        year: 2025
+        question: >-
+          Why do convolutional layers use far fewer parameters than a fully
+          connected layer would for the same image input, and what do you
+          give up by making that trade?
+        answer_md: |
+          A fully connected layer learns a separate weight for every
+          pixel-to-neuron connection, which explodes in parameter count for
+          any realistic image size. A convolutional layer instead learns a
+          small filter (say 3×3) that's *shared* across every spatial
+          position in the image — the same weights slide across the whole
+          input, which is both far fewer parameters and encodes an
+          assumption: that a useful local pattern (an edge, a texture) is
+          worth detecting the same way regardless of where in the image it
+          appears.
+
+          What you give up is exactly that assumption's cost: a CNN has no
+          built-in notion of absolute position, so tasks where *where*
+          something is matters as much as *what* it is need additional
+          structure (positional encoding, or later layers) to recover that
+          information.
+        source_name: "Adobe Machine Learning Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/adobe-machine-learning-engineer
+
+      - kind: interview
+        round: system-design
+        topic: Generative image pipeline
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design the serving pipeline for a text-to-image generation
+          feature like Firefly — a user submits a prompt and expects an
+          image back in a few seconds.
+        answer_md: |
+          Start with the latency budget, because it drives every downstream
+          choice: a diffusion model's iterative denoising is the dominant
+          cost, so the design has to pick a model/step-count trade-off
+          (fewer denoising steps, or a distilled faster model) that fits
+          the "few seconds" target rather than chasing maximum quality at
+          any latency.
+
+          Beyond the model itself: a request queue with GPU batching (group
+          concurrent requests onto the same GPU pass where possible), a
+          content-safety filter both on the prompt (block clearly unsafe
+          requests before spending GPU time) and on the output image before
+          it's returned, and a fallback path (a cached "generation failed,
+          try again" state) since generative inference has a real, non-zero
+          failure rate at scale.
+        source_name: "Adobe Machine Learning Engineer interview experience — Taro"
+        source_url: https://www.jointaro.com/interviews/companies/adobe/experiences/machine-learning-engineer-october-10-2025-declined-offer-positive-8cd590c4/
+
+      - kind: interview
+        round: technical
+        topic: Model evaluation
+        difficulty: medium
+        year: 2025
+        question: >-
+          A recommendation model has 95% offline accuracy but click-through
+          rate barely moved after launch. What do you check?
+        answer_md: |
+          This is the classic offline/online metric mismatch, and the first
+          thing to check is whether the offline metric is even measuring
+          the right thing — accuracy on historical data doesn't capture
+          whether the *top-ranked* recommendations (the only ones users
+          actually see first) are good, which is what click-through
+          actually depends on. A ranking metric like NDCG or precision@k
+          is usually more honest here than raw accuracy.
+
+          Beyond the metric mismatch: check for training/serving skew (is
+          the feature pipeline computing features identically online and
+          offline?), and check whether the offline evaluation set reflects
+          the live traffic distribution — a model trained and evaluated on
+          old user behavior can look great offline while being stale for
+          current users.
+        source_name: "Adobe Machine Learning Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/adobe-machine-learning-engineer
+
+      - kind: online-assessment
+        round: coding
+        topic: K-means from scratch
+        difficulty: medium
+        year: 2025
+        question: >-
+          Implement k-means clustering from scratch, and explain what
+          happens if you initialize all centroids to the same point.
+        answer_md: |
+          The core loop: assign each point to its nearest centroid
+          (Euclidean distance), recompute each centroid as the mean of its
+          assigned points, repeat until assignments stop changing or a
+          max-iteration cap is hit.
+
+          If every centroid starts at the same point, every point is
+          equidistant from all centroids (they're identical), so the first
+          assignment step ties every point to the same cluster, and the
+          recomputed centroids stay identical — the algorithm never
+          diverges into separate clusters and converges immediately to a
+          useless single-cluster result. This is exactly why k-means++
+          initialization (spreading initial centroids apart, weighted by
+          distance from already-chosen centroids) is used in practice
+          instead of naive random or identical starts.
+        source_name: "Adobe Machine Learning Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/adobe-machine-learning-engineer
+
+      - kind: interview
+        round: managerial
+        topic: Responsible AI
+        difficulty: medium
+        year: 2025
+        question: >-
+          Describe a time you raised a concern about how a model's output
+          could be misused, before or after launch.
+        answer_md: |
+          On a generative product like Firefly, this is asked directly
+          rather than folded into a generic ethics question. Strong
+          answers name a specific, concrete misuse scenario (not "bias in
+          general") — deepfake-style misuse, copyright-adjacent training
+          data, or a content-safety gap — and describe what you actually
+          did: a mitigation you proposed, a filter you helped build, or a
+          launch you helped delay, not just that you "flagged concerns" in
+          the abstract.
+        source_name: "Adobe Machine Learning Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/adobe-machine-learning-engineer
+
+      - kind: interview
+        round: technical
+        topic: Transformers
+        difficulty: hard
+        year: 2025
+        question: >-
+          Explain, at a mechanical level, what the attention mechanism in a
+          Transformer actually computes, and why it scales better for long
+          sequences than an RNN's approach.
+        answer_md: |
+          For each token, attention computes a weighted combination of
+          every other token's value vector, where the weights come from a
+          similarity score (dot product, scaled and softmaxed) between that
+          token's query vector and every other token's key vector — so
+          each token directly "looks at" every other token in one step,
+          rather than information having to flow through a chain of hidden
+          states.
+
+          An RNN processes tokens sequentially, so information from token 1
+          reaching token 1000 has to survive 999 sequential updates,
+          degrading with distance and preventing parallelization across the
+          sequence. Attention's direct, all-pairs comparison removes that
+          sequential dependency entirely, which is what makes Transformer
+          training parallelizable across the whole sequence — at the cost
+          of attention's compute scaling quadratically with sequence
+          length, which is the trade-off worth naming as the honest
+          downside.
+        source_name: "Adobe Machine Learning Engineer interview guide — InterviewQuery"
+        source_url: https://www.interviewquery.com/interview-guides/adobe-machine-learning-engineer
+
+  - slug: software-engineer-web
+    title: Software Engineer, Web
+    level: entry to mid
+    maps_to_role: frontend-developer
+    sort_order: 3
+    source_url: https://www.techprep.app/companies/adobe
+    description: >-
+      Builds the web surfaces of Creative Cloud and Adobe Express. Keeps
+      Adobe's CS-fundamentals bent but layers frontend-specific rounds —
+      rendering performance and browser behaviour — on top of it.
+    focus_md: |
+      Even on frontend-labeled loops, Adobe candidates report CS
+      fundamentals questions showing up directly rather than being replaced
+      by pure framework trivia — don't assume a "web" role means skipping
+      OS/networking prep entirely. On top of that baseline, expect concrete
+      performance questions: not "do you know what a reflow is" in the
+      abstract, but "here's a component that's janky, find why."
+    focus_areas:
+      - { concept: frontend-javascript, label: "JavaScript fundamentals", weight: 5 }
+      - { concept: frontend-performance, label: "Rendering performance", weight: 4,
+          notes: "Diagnosing a janky, real component is a more common prompt than reciting the concept." }
+      - { concept: frontend-web-apis, label: "Browser & Web APIs", weight: 3 }
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 4,
+          notes: "The DSA bar is not lowered for frontend candidates at Adobe." }
+      - { concept: frontend-accessibility, label: "Accessibility", weight: 3 }
+      - { concept: computer-science-networking, label: "Networking fundamentals", weight: 2 }
+      - { concept: react-hooks, label: "React", weight: 3,
+          notes: "The dominant framework across Adobe's web surfaces." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Rendering performance
+        difficulty: medium
+        year: 2025
+        question: >-
+          A list component re-renders every row whenever any single row's
+          data changes, and the page visibly jitters on a large list. Find
+          the cause and fix it.
+        answer_md: |
+          The usual cause is a parent component passing a new inline object
+          or callback to every child on every render, which breaks
+          reference-equality checks (`React.memo`, `shouldComponentUpdate`)
+          even when a given row's actual data hasn't changed — so every
+          child re-renders regardless of memoization because its props
+          "changed" by reference even though not by value.
+
+          The fix: memoize the callback (`useCallback`) and any object
+          props passed down, and wrap each row in `React.memo` so it only
+          re-renders when its own data actually changes. For very large
+          lists, windowing (rendering only the rows currently in the
+          viewport) is the complementary fix that avoids paying render cost
+          for off-screen rows at all.
+        source_name: "Adobe interview questions — Coding Interview"
+        source_url: https://www.codinginterview.com/guide/adobe-coding-interview-questions/
+
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a binary search tree, find two nodes such that their sum
+          equals a given value k.
+        answer_md: |
+          Same underlying technique regardless of "frontend" vs "backend"
+          labeling — Adobe doesn't lower the DSA bar for web roles. Convert
+          the BST to a sorted view via in-order traversal (or use two BST
+          iterators, one ascending and one descending, for an O(h)-space
+          version) and run the standard two-pointer sum search from both
+          ends.
+
+          Framing the language choice matters here too: doing this in
+          JavaScript is fine and expected — Adobe doesn't require Java/C++
+          for a web-track candidate, but the algorithmic reasoning bar is
+          identical either way.
+        source_name: "GeeksforGeeks — Adobe interview questions and experience — CodingKaro"
+        source_url: https://www.codingkaro.in/jobs-internships/leetcode-interview-experience/Adobe
+
+      - kind: interview
+        round: technical
+        topic: Browser fundamentals
+        difficulty: easy
+        year: 2025
+        question: >-
+          What's the difference between a DNS lookup, a TCP handshake and a
+          TLS handshake, in terms of what each one is actually establishing?
+        answer_md: |
+          DNS resolves a hostname to an IP address — nothing is connected
+          yet, it's a lookup. The TCP handshake (SYN, SYN-ACK, ACK)
+          establishes a reliable, ordered connection between client and
+          server at that IP — a transport-layer agreement to exchange
+          bytes reliably. The TLS handshake, layered on top of the now-open
+          TCP connection, negotiates encryption (cipher suite, key
+          exchange) and verifies the server's certificate, establishing a
+          secure channel before any application data (the actual HTTP
+          request) is sent.
+
+          The practical reason this order matters for a frontend engineer:
+          each of these adds a round trip before the first byte of your
+          page arrives, which is exactly why connection reuse (keep-alive,
+          HTTP/2) and DNS prefetching are real performance levers, not
+          just trivia.
+        source_name: "Top Adobe interview questions and answers — TechPrep"
+        source_url: https://www.techprep.app/companies/adobe
+
+      - kind: online-assessment
+        round: coding
+        topic: String parsing
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an array of stock prices by day, output for each day the
+          count of consecutive days (looking backward) with strictly
+          increasing prices.
+        answer_md: |
+          A monotonic stack does this in one pass: keep a stack of indices
+          whose prices are still "active" (haven't been beaten by a later
+          higher price in a way that resolves them). For each new day, pop
+          indices from the stack while the current price is higher than the
+          price at the stack's top index — each pop means "the streak ending
+          here extends back past that day" — and the answer for the current
+          day is its index minus the index now at the top of the stack
+          (or the streak count accumulates as you pop). Push the current
+          index.
+
+          Every index is pushed and popped at most once, so the whole pass
+          is O(n) despite the nested-looking pop loop — a detail worth
+          stating explicitly, since it's easy to misjudge this as O(n²) at
+          a glance.
+        source_name: "GeeksforGeeks — Salesforce interview experience"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/salesforce-interview-experience-set-1-for-sde-1/
+
+      - kind: interview
+        round: technical
+        topic: Accessibility
+        difficulty: medium
+        year: 2025
+        question: >-
+          A custom dropdown component works fine with a mouse but is
+          unusable with a keyboard alone. What's likely missing, and how do
+          you fix it?
+        answer_md: |
+          The usual gaps: the component isn't in the natural tab order
+          (missing `tabindex`, or built on a non-interactive element like a
+          `div` instead of a `button`), arrow-key navigation between
+          options isn't implemented, and there's no `aria-expanded` /
+          `role="listbox"` semantics telling assistive tech what the
+          control actually is.
+
+          The fix is building it on native interactive elements where
+          possible (a native `<select>`, or a `button` triggering a
+          `role="listbox"` with `role="option"` children), wiring arrow
+          keys and Escape explicitly, and managing focus so opening the
+          dropdown moves focus into it and closing it returns focus to the
+          trigger — accessibility here isn't a CSS afterthought, it's
+          keyboard event handling and ARIA semantics done deliberately.
+        source_name: "Adobe's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/adobe-interview-questions
+
+      - kind: interview
+        round: managerial
+        topic: Working across product/design/eng
+        difficulty: easy
+        year: 2025
+        question: >-
+          Tell me about a time a design you were asked to implement wasn't
+          technically feasible as specified. What did you do?
+        answer_md: |
+          The signal here is whether you brought a concrete alternative to
+          the design/product conversation rather than just a rejection —
+          "here's what's not feasible and here's the closest thing that
+          is" reads far better than "I told them it wasn't possible."
+          Naming how you explained the *technical reason* in terms the
+          designer could actually use (a performance budget, a browser API
+          limitation) rather than jargon shows the collaboration skill
+          being tested.
+        source_name: "Adobe's interview process & questions — interviewing.io"
+        source_url: https://interviewing.io/adobe-interview-questions

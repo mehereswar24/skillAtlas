@@ -1,0 +1,584 @@
+company:
+  slug: accenture
+  name: Accenture
+  industry: IT Services & Consulting
+  hq: Dublin, Ireland
+  website: https://www.accenture.com/in-en/careers
+  icon: Compass
+  fetched_on: 2026-08-21
+  sort_order: 18
+  description: >-
+    A global consultancy that hires more engineering graduates out of India
+    than almost anywhere else in the world. The online test now includes a
+    genuinely eliminating coding round, and how well you clear it decides
+    which of two starting packages you land in.
+  hiring_process_md: |
+    Accenture's fresher funnel runs five stages, and the newest change is the
+    one that matters most: **the coding round now eliminates**, where in
+    older cycles it sometimes didn't.
+
+    **The shape of it**
+
+    1. **Cognitive Ability Assessment** — increasingly delivered as short
+       "gamified" tasks (memory puzzles, pathfinding mazes, pattern
+       recognition) rather than plain MCQs, though the classic
+       verbal/analytical/numerical MCQ format still runs in parallel drives.
+    2. **Technical Assessment** — MCQs on pseudocode, common office/desktop
+       applications, and networking, cloud and security fundamentals.
+    3. **Coding round (45–60 min, 2–3 problems)** — your choice of
+       C/C++/Java/.NET/Python/JavaScript, or a SQL + frontend combination on
+       the more technical tracks. This is now an elimination round, and how
+       completely you clear it decides your package band.
+    4. **Communication assessment** — an AI-graded, Versant-style spoken
+       English test: read-aloud, sentence repeat, and story retelling. Mostly
+       non-eliminating, but it still shapes the offer you get.
+    5. **Final interview** — technical and HR questions merged into a single
+       25–45 minute virtual round with one or two panellists, built almost
+       entirely around your resume and your final-year project.
+
+    **The package split is decided inside the coding round, not after it.**
+    Clear both problems fully and you are in range for the higher-paying
+    Advanced Associate Software Engineer band; a partial clear on the second
+    problem keeps you on the standard Associate Software Engineer track.
+    Communication-assessment scores factor in too, so the spoken test is not
+    the formality it looks like.
+
+    **Eligibility** for the 2026 cycle: 60–65% or 6.5 CGPA across Class 10,
+    Class 12 and your degree, no *active* backlog at application or joining
+    (cleared backlogs are fine), no gap over a year after Class 10, and no
+    more than 11 months of prior work experience to still count as a
+    fresher. You cannot reapply within three months of a rejection.
+    Accenture's own hiring FAQ is explicit that its online assessments are
+    proctored and prohibit external AI tools — do not risk it.
+
+    No source, including Accenture's own careers pages, documents a formal
+    service bond for India fresher hires the way some other IT services
+    firms do; treat that as simply undocumented rather than absent.
+
+  resources:
+    - kind: careers
+      title: "Journey to Accenture — how the hiring process works"
+      url: https://www.accenture.com/us-en/careers/explore-careers/area-of-interest/journey-to-accenture
+    - kind: careers
+      title: "Accenture India Careers"
+      url: https://www.accenture.com/in-en/careers
+    - kind: prep
+      title: "Accenture recruitment process 2025/26 — PrepInsta"
+      url: https://prepinsta.com/accenture/recruitment-process/
+    - kind: prep
+      title: "Accenture recruitment process, in detail — Unstop"
+      url: https://unstop.com/blog/accenture-recruitment-process
+    - kind: prep
+      title: "Accenture's most-asked technical interview questions — GeeksforGeeks"
+      url: https://www.geeksforgeeks.org/accentures-most-asked-technical-interview-questions/
+
+roles:
+  - slug: associate-software-engineer
+    title: Associate Software Engineer (ASE)
+    level: entry
+    maps_to_role: junior-backend-developer
+    sort_order: 1
+    source_url: https://prepinsta.com/accenture/recruitment-process/
+    description: >-
+      The standard-package fresher role. Clears the cognitive and technical
+      assessments, gets through the coding round without necessarily
+      finishing both problems, and confirms on the final interview.
+    focus_md: |
+      **The cognitive round has changed shape, and your prep should follow
+      it.** Several 2025–26 drives replaced the plain aptitude MCQs with
+      short gamified tasks — memory puzzles, maze pathfinding, pattern
+      matching — that reward quick spatial and working-memory processing
+      more than memorised formulas. Practise timed puzzle apps alongside
+      standard quant drilling rather than instead of it, because some drives
+      still run the classic MCQ format.
+
+      The pseudocode section is genuinely pseudocode, not abstract logic: it
+      traces variable state through disguised C-like snippets — modulo
+      operations, nested conditionals, loop-based factorials. Read every
+      line as if you were executing it by hand rather than pattern-matching
+      the shape of the question.
+
+      For the final interview, expect the conversation to live almost
+      entirely inside your resume. Interviewers ask what tech stack you
+      chose and *why* — not just what you built — and a follow-up like "why
+      not explore backend, given your frontend focus" is testing openness to
+      breadth, not looking for a defensive answer.
+    focus_areas:
+      - { label: "Cognitive ability (gamified + MCQ)", weight: 5,
+          notes: "Memory, pathfinding and pattern tasks alongside classic verbal/analytical/numerical MCQs, depending on the drive." }
+      - { concept: python-learn-the-basics, label: "Pseudocode tracing", weight: 5,
+          notes: "Disguised C-like snippets. Trace variable state line by line rather than pattern-matching." }
+      - { concept: computer-science-data-structures, label: "Coding round fundamentals", weight: 5,
+          notes: "2 problems, 45-60 minutes, any major language. Now an elimination round." }
+      - { concept: backend-relational-databases, label: "DBMS", weight: 4,
+          notes: "Normal forms, keys, joins — asked directly in the technical interview." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP concepts", weight: 4,
+          notes: "The four pillars, plus overloading vs overriding." }
+      - { label: "Spoken communication assessment", weight: 3,
+          notes: "AI-graded read-aloud and sentence-repeat tasks. Non-eliminating but it shapes the offer." }
+      - { concept: computer-science-networking, label: "Networking basics", weight: 2,
+          notes: "OSI layers come up in the technical MCQ section." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: Numerical ability
+        difficulty: easy
+        year: 2025
+        question: >-
+          A shopkeeper sells an item for ₹600 and makes a 20% profit. What
+          was the cost price?
+        answer_md: |
+          Cost price = Selling price ÷ (1 + profit fraction) = 600 ÷ 1.20 =
+          **₹500**.
+
+          The Accenture numerical section leans on exactly this shape —
+          profit/loss, time-and-work, time-speed-distance, simple and
+          compound interest — dressed up in different numbers. The fast
+          route is always to convert the percentage to a multiplier first
+          rather than solving an equation from scratch each time.
+        source_name: FACE Prep — Accenture aptitude questions
+        source_url: https://faceprep.in/article/accenture-aptitude-questions-for-accenture-aptitude-test-2019-face-prep/
+
+      - kind: online-assessment
+        round: technical
+        topic: Pseudocode
+        difficulty: medium
+        year: 2025
+        question: >-
+          Trace this pseudocode: `a = 15, b = 6, c = 4`. Compute
+          `(b mod c) + (a mod c)`. What value does it print?
+        answer_md: |
+          `b mod c` = 6 mod 4 = 2. `a mod c` = 15 mod 4 = 3. Sum = **5** —
+          note the worked example in the source actually resolves to 3 for a
+          slightly different variable order, so always substitute the exact
+          values given rather than recalling a memorised answer.
+
+          The general method: write out each variable's value after every
+          line, the same way you'd single-step a debugger. Accenture's
+          pseudocode questions are graded on whether you got the trace right,
+          not on recognising the "type" of question.
+        source_name: Placement Preparation — Accenture pseudocode examples
+        source_url: https://www.placementpreparation.io/accenture/cognitive-assessment/pseudo-code/
+
+      - kind: online-assessment
+        round: coding
+        topic: Arrays & hashing
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an array of integers and a target, return the indices of two
+          numbers that sum to the target (the "Two Sum" pattern that shows up
+          in the Accenture coding round).
+        answer_md: |
+          Single pass with a hash map: for each value, check whether
+          `target - value` has already been seen; if not, store the current
+          value and its index and keep going. O(n) time, O(n) space.
+
+          This is one of two problems reported in the 45-minute coding
+          round, alongside a string-manipulation question. Getting both
+          fully correct — not just "working" — is what separates the
+          standard package from the advanced one.
+        source_name: GeeksforGeeks — Accenture ASE/AASE interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-for-ase-advanced-ase-role/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: easy
+        question: >-
+          What is BCNF, and how is it different from 3NF?
+        answer_md: |
+          Boyce-Codd Normal Form tightens 3NF's rule: in 3NF, non-key
+          attributes must depend only on the whole key; BCNF goes further and
+          requires that **every** determinant in the table — not just the
+          primary key — be a candidate key. A table can satisfy 3NF and still
+          have an anomaly that only BCNF catches, typically when there's more
+          than one candidate key with overlapping attributes.
+
+          Pair it with the standard follow-up: primary key vs unique key —
+          a primary key disallows NULLs and there's one per table by
+          convention, a unique key allows a single NULL and a table can have
+          several.
+        source_name: GeeksforGeeks — Accenture's most-asked technical interview questions
+        source_url: https://www.geeksforgeeks.org/accentures-most-asked-technical-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Projects
+        difficulty: medium
+        question: >-
+          Walk me through your final-year project. Why did you choose that
+          tech stack, and what would you improve?
+        answer_md: |
+          Accenture interviewers push past the pitch and into the choices:
+          candidates report being asked specifically "how did you improve
+          query performance" on DB-backed projects, and "why not explore
+          backend, given your frontend focus" on frontend-heavy ones.
+
+          Structure your answer as problem → architecture → the part you
+          personally built → one technology decision you can defend against
+          an alternative → one thing you'd change now. When pushed on
+          breadth ("why not backend"), the strong answer isn't a defence of
+          your specialism — it's evidence you're open to learning the rest.
+        source_name: GeeksforGeeks — Accenture ASE/AASE interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-for-ase-advanced-ase-role/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Are you comfortable relocating, and why Accenture?
+        answer_md: |
+          Answer relocation directly — Accenture staffs freshers across
+          delivery centres, and a hedge reads as a soft no.
+
+          For "why Accenture," anchor on something specific rather than
+          reciting the tagline: the breadth of industries and technologies
+          you'd be exposed to across client accounts, or a stated
+          professional-development track, tied back to what you personally
+          want next. A generic "great company culture" answer is the one
+          interviewers say they hear too often.
+        source_name: PrepInsta — Accenture HR interview questions
+        source_url: https://prepinsta.com/accenture-previous-papers/interview-questions/hr/
+
+  - slug: advanced-associate-software-engineer
+    title: Advanced Associate Software Engineer (AASE)
+    level: entry
+    maps_to_role: backend-developer
+    sort_order: 2
+    source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-for-aase-advanced-associate-software-engineer-2026-batch-on-campus/
+    description: >-
+      Same funnel as ASE, higher package. The gate is a full clear of the
+      coding round plus a strong communication-assessment score, and the
+      interview leans harder on database and networking depth.
+    focus_md: |
+      **You don't apply for AASE — you earn it inside the coding round.**
+      Recent drives run three problems instead of two: a SQL joins query
+      against a given schema, a "dynamic sliding window" DSA problem, and a
+      small frontend fix. Passing all test cases on the harder problems, not
+      just producing something that compiles, is what moves you into this
+      band.
+
+      The technical interview goes a layer deeper than the ASE track —
+      expect full OSI-layer recall, super key vs candidate key vs primary
+      key distinctions, and language-comparison questions (C vs C++ vs
+      Java, or HTML/CSS/JS fluency for frontend-leaning candidates) asked
+      with follow-ups rather than as one-shot definitions.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Coding round — full clear", weight: 5,
+          notes: "3 problems: SQL joins, a sliding-window DSA problem, and a frontend fix. Full clears gate this band." }
+      - { concept: backend-relational-databases, label: "DBMS — keys and joins", weight: 5,
+          notes: "Super key vs candidate key vs primary key; SQL joins written against a real schema." }
+      - { label: "Gamified cognitive round", weight: 3,
+          notes: "Memory, maze/pathfinding and pattern-recognition tasks — speed under a novel UI, not formula recall." }
+      - { concept: computer-science-networking, label: "Networking fundamentals", weight: 4,
+          notes: "OSI seven layers, named and described with a protocol example each." }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "Language & OOP fluency", weight: 3,
+          notes: "C vs C++ vs Java, or HTML/CSS/JS — asked with real follow-ups, not just definitions." }
+      - { label: "Spoken communication assessment", weight: 3 }
+      - { label: "Openness to breadth", weight: 3,
+          notes: "Interviewers test whether a specialist candidate is willing to move outside their comfort area." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: Databases
+        difficulty: medium
+        year: 2026
+        question: >-
+          Given an `employees` table and an `orders` table, write a query to
+          find all employees who have never placed an order.
+        answer_md: |
+          `SELECT e.* FROM employees e LEFT JOIN orders o ON e.id =
+          o.employee_id WHERE o.id IS NULL`.
+
+          The pattern to recognise: "rows in A with no matching row in B" is
+          always a LEFT JOIN from A followed by filtering where the joined
+          key is NULL — an INNER JOIN would silently drop exactly the rows
+          you're looking for.
+        source_name: GeeksforGeeks — Accenture AEH interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-aeh-advanced-application-engineering-analyst/
+
+      - kind: online-assessment
+        round: coding
+        topic: Sliding window
+        difficulty: hard
+        year: 2026
+        question: >-
+          Solve a "dynamic sliding window" problem, such as finding the
+          longest substring without repeating characters. Explain the jump
+          from brute force to the optimal solution.
+        answer_md: |
+          Brute force checks every substring: O(n³), or O(n²) carrying a
+          set. The sliding-window version tracks a map of character → last
+          seen index; advance the right edge, and when a repeat appears,
+          move the left edge to `max(left, last_seen_index + 1)` — the `max`
+          matters, because a repeat that's already behind the window
+          shouldn't drag it backwards. This runs in O(n).
+
+          Say the brute-force complexity out loud before optimising — it's
+          ten seconds spent and it demonstrates the improvement rather than
+          hiding it.
+        source_name: GeeksforGeeks — Accenture AASE 2026-batch interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-for-aase-advanced-associate-software-engineer-2026-batch-on-campus/
+
+      - kind: interview
+        round: technical
+        topic: Networking
+        difficulty: medium
+        question: >-
+          Name and describe the seven OSI layers.
+        answer_md: |
+          Physical (bits on the wire), Data Link (frames, MAC addressing —
+          e.g. Ethernet), Network (routing, IP), Transport (end-to-end
+          delivery — TCP/UDP), Session (managing connections), Presentation
+          (encoding/encryption — e.g. TLS, JPEG), Application (the protocol
+          the user-facing software speaks — HTTP, SMTP).
+
+          Give one protocol example per layer without being asked — that's
+          the difference between "I memorised the acronym" and "I understand
+          where each layer's job actually sits."
+        source_name: GeeksforGeeks — Accenture's most-asked technical interview questions
+        source_url: https://www.geeksforgeeks.org/accentures-most-asked-technical-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: DBMS
+        difficulty: medium
+        question: >-
+          What is the difference between a super key, a candidate key and a
+          primary key?
+        answer_md: |
+          A super key is any set of attributes that uniquely identifies a
+          row — it can include redundant columns. A candidate key is a
+          *minimal* super key: remove any attribute and it stops being
+          unique. A primary key is simply the candidate key the schema
+          designer chose to be the table's official identifier; any other
+          candidate keys become alternate/unique keys.
+
+          The hierarchy is the answer interviewers are checking for — most
+          candidates can define one of the three but not place them in
+          relation to each other.
+        source_name: GeeksforGeeks — Accenture's most-asked technical interview questions
+        source_url: https://www.geeksforgeeks.org/accentures-most-asked-technical-interview-questions/
+
+      - kind: interview
+        round: technical
+        topic: Data structures
+        difficulty: easy
+        question: >-
+          What's the difference between an array and a linked list, and
+          when would you choose one over the other?
+        answer_md: |
+          An array is contiguous, fixed-size (or amortised-growable) memory
+          with O(1) index access but O(n) insertion/deletion in the middle.
+          A linked list is node-based with O(1) insertion/deletion once
+          you're at the right node, but O(n) to get there since there's no
+          random access.
+
+          Choose the array when you read far more than you insert/delete and
+          need index access; choose the linked list when you're doing a lot
+          of insertion/deletion at known positions (e.g. implementing a
+          queue or an LRU cache's internal list) and don't need random
+          access.
+        source_name: GeeksforGeeks — Accenture Associate Software Engineer interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-associate-software-engineer-interview-experience/
+
+      - kind: interview
+        round: hr
+        topic: Self-assessment
+        difficulty: easy
+        question: >-
+          Share an insight from your internship, and tell me about your
+          least favourite subject in your degree.
+        answer_md: |
+          For the internship question, pick one concrete moment — a bug you
+          chased, a review comment that changed how you write code — rather
+          than a summary of your responsibilities.
+
+          The "least favourite subject" question is a self-awareness check,
+          not a trap: name a real subject honestly, then pivot immediately
+          to what you did about it — extra practice, a tutor, a project that
+          forced you to get competent anyway. Refusing to name one, or
+          turning it into a complaint about the professor, reads worse than
+          an honest answer.
+        source_name: GeeksforGeeks — Accenture ASE/AASE interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-for-ase-advanced-ase-role/
+
+  - slug: advanced-application-engineering-analyst
+    title: Advanced Application Engineering Analyst (AEH)
+    level: entry to mid
+    maps_to_role: fullstack-engineer
+    sort_order: 3
+    source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-aeh-advanced-application-engineering-analyst/
+    description: >-
+      Accenture's closest fresher analogue to a "digital" track. The coding
+      round bundles SQL, backend and frontend problems in one sitting instead
+      of two generic DSA questions, and the technical interview digs into
+      your GitHub and LeetCode profile as much as your resume.
+    focus_md: |
+      **This track's online round stacks more graded gates than the standard
+      one.** A non-eliminating gaming warm-up is followed by an eliminating
+      cognitive/aptitude test *and* an eliminating technical MCQ test, before
+      the coding round even starts — so pacing across a longer sitting
+      matters more here than depth on any single section.
+
+      The coding round itself is genuinely full-stack: a SQL query against a
+      schema, a backend logic problem candidates describe as "slightly
+      tough" (edge-case heavy rather than conceptually hard), and a
+      three-part frontend fix (HTML, then CSS, then JS). Being able to move
+      cleanly between the three in one sitting is the actual skill being
+      tested — not excellence at any one of them.
+
+      One notable pattern: at least one AEH candidate reported **no separate
+      HR round** at all — selection ran on the online assessment plus a
+      single ~40-minute technical interview. Don't assume every Accenture
+      track guarantees a distinct HR stage.
+    focus_areas:
+      - { concept: backend-relational-databases, label: "SQL against a real schema", weight: 5,
+          notes: "Joins-based queries. Identify the join type from the relationship described in the question." }
+      - { concept: computer-science-data-structures, label: "Backend logic problems", weight: 4,
+          notes: "Reported as edge-case-heavy rather than conceptually hard — passing 'most' test cases isn't enough." }
+      - { concept: frontend-javascript, label: "Frontend fix-up task", weight: 4,
+          notes: "Given HTML/CSS/JS, modify to spec across all three files in one sitting." }
+      - { label: "Stacked OA gates", weight: 4,
+          notes: "Gaming warm-up (non-eliminating) → cognitive test (eliminating) → technical MCQ (eliminating) → coding, all in one online sitting." }
+      - { label: "Spoken communication assessment", weight: 2 }
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP with real-world analogies", weight: 3,
+          notes: "Interviewers want encapsulation-as-a-capsule, inheritance-as-parent-child — not just textbook definitions." }
+      - { label: "Portfolio depth (GitHub / LeetCode)", weight: 3,
+          notes: "Interviewers reference your public profile directly and ask why you built what you built." }
+    questions:
+      - kind: online-assessment
+        round: coding
+        topic: SQL
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a schema with `students` and `enrollments` tables, write a
+          query to list every student along with the number of courses
+          they're enrolled in, including students with zero enrollments.
+        answer_md: |
+          `SELECT s.name, COUNT(e.course_id) AS course_count FROM students s
+          LEFT JOIN enrollments e ON s.id = e.student_id GROUP BY s.id,
+          s.name`.
+
+          The LEFT JOIN is what keeps zero-enrollment students in the
+          result; an INNER JOIN would silently exclude them, and `COUNT`
+          on the joined column (not `COUNT(*)`) is what correctly returns 0
+          rather than 1 for students with no matching row.
+        source_name: GeeksforGeeks — Accenture AEH interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-aeh-advanced-application-engineering-analyst/
+
+      - kind: online-assessment
+        round: coding
+        topic: Frontend
+        difficulty: easy
+        year: 2025
+        question: >-
+          Given a small HTML page with an unstyled form, apply the given CSS
+          spec, then wire up JavaScript so the submit button validates that
+          no field is empty before showing a success message.
+        answer_md: |
+          Work top to bottom: get the HTML structure matching the spec
+          first, apply CSS selectors precisely to the classes/IDs given
+          rather than inventing your own, then attach a `submit` event
+          listener that calls `preventDefault()`, checks each field's
+          trimmed value, and only then reveals the success message.
+
+          The three-part structure (HTML → CSS → JS) is deliberately
+          sequential — get the structure right before styling it, and style
+          it before scripting it, or you'll be debugging three layers of
+          change at once.
+        source_name: GeeksforGeeks — Accenture AEH interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-aeh-advanced-application-engineering-analyst/
+
+      - kind: online-assessment
+        round: aptitude
+        topic: Gamified cognitive round
+        difficulty: easy
+        year: 2025
+        question: >-
+          What kinds of tasks appear in Accenture's gamified cognitive round,
+          and how should you prepare differently for it than for a classic
+          aptitude test?
+        answer_md: |
+          Reported task types: short memory-recall puzzles, grid/maze
+          pathfinding, basic arithmetic under time pressure, and
+          pattern-recognition sequences — three tasks in roughly 20 minutes.
+
+          These reward quick spatial reasoning and working memory under an
+          unfamiliar interface more than formula recall. The useful practice
+          isn't more quant drilling — it's timed puzzle apps (Lumosity-style
+          memory and pathfinding games) so the *format* isn't a surprise on
+          test day, since losing time to figuring out the UI costs more than
+          any single wrong answer.
+        source_name: GeeksforGeeks — Accenture AASE 2026-batch interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-for-aase-advanced-associate-software-engineer-2026-batch-on-campus/
+
+      - kind: interview
+        round: technical
+        topic: Projects
+        difficulty: hard
+        question: >-
+          The interviewer opens your LeetCode profile and asks about your
+          final-year project's database design. How do you handle a
+          conversation that starts from your public profile rather than your
+          resume?
+        answer_md: |
+          Treat it as good news: they've already done diligence, so lead
+          with substance rather than a rehearsed pitch. For a database
+          design question specifically, be ready to justify your schema —
+          why you normalised (or deliberately denormalised) a given table,
+          what index you'd add if a particular query got slow, and what
+          you'd change if the dataset were 100x larger.
+
+          The wider lesson: keep your GitHub and LeetCode profile genuinely
+          representative of what you can discuss under questioning, because
+          for this track it *is* part of the interview material.
+        source_name: GeeksforGeeks — Accenture AEH interview experience
+        source_url: https://www.geeksforgeeks.org/interview-experiences/accenture-interview-experience-aeh-advanced-application-engineering-analyst/
+
+      - kind: interview
+        round: technical
+        topic: OOP
+        difficulty: medium
+        question: >-
+          Explain the four pillars of OOP using a real-world analogy for
+          each.
+        answer_md: |
+          Encapsulation: a medicine capsule — the active ingredient
+          (data) is hidden inside a shell (methods), and you interact with
+          it only through the shell. Abstraction: a car's accelerator — you
+          press it to go faster without knowing the combustion details
+          underneath. Inheritance: a parent-child relationship — a child
+          class gets the parent's traits (fields/methods) and can add or
+          override its own. Polymorphism: a single "speak" command
+          producing different sounds depending on which animal object
+          receives it.
+
+          Accenture's technical interviewers on this track explicitly ask
+          for analogies rather than textbook wording — it's a check that you
+          understand the concept rather than having memorised its
+          definition.
+        source_name: GeeksforGeeks — Accenture's most-asked technical interview questions
+        source_url: https://www.geeksforgeeks.org/accentures-most-asked-technical-interview-questions/
+
+      - kind: interview
+        round: hr
+        topic: Fit
+        difficulty: easy
+        question: >-
+          Why should we hire you?
+        answer_md: |
+          Anchor on one or two concrete, checkable pieces of evidence — a
+          skill you taught yourself and shipped in a project, a specific
+          improvement you made to something that existed before you touched
+          it — rather than a list of adjectives like "hardworking" or
+          "fast learner."
+
+          On this track especially, where the interviewer has often already
+          looked at your GitHub or LeetCode profile, an answer that matches
+          what they can already see is far stronger than one that doesn't.
+        source_name: PrepInsta — Accenture HR interview questions
+        source_url: https://prepinsta.com/accenture-previous-papers/interview-questions/hr/

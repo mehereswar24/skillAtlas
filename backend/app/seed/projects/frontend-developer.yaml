@@ -12,7 +12,7 @@
 
 projects:
   - slug: layout-without-hacks
-    concept: html-css-foundations
+    concept: frontend-html
     title: Build a card grid that holds up
     tagline: Semantic markup, grid, and a layout that survives a long word.
     runtime: web
@@ -114,7 +114,7 @@ projects:
       a container it does not know the width of.
 
   - slug: event-delegation-todo
-    concept: javascript-essentials
+    concept: frontend-javascript
     title: A to-do list with one event listener
     tagline: Delegation, the event object, and why you are not adding a listener per row.
     runtime: web
@@ -252,7 +252,7 @@ projects:
       the button and `target` would be that child.
 
   - slug: build-a-reconciler
-    concept: react-fundamentals
+    concept: frontend-react
     title: Build the diff that React does
     tagline: Render from state, diff, and patch — the whole idea, in 60 lines.
     runtime: web
@@ -435,7 +435,7 @@ projects:
       its entire subtree, including component state and DOM focus.
 
   - slug: observable-store
-    concept: frontend-state-and-data
+    concept: backend-frontend-basics
     title: A store with subscriptions
     tagline: One source of truth, immutable updates, and no stale renders.
     runtime: web
@@ -593,7 +593,7 @@ projects:
       makes a React component mysteriously not re-render.
 
   - slug: fix-the-form-accessibility
-    concept: web-accessibility
+    concept: frontend-accessibility
     title: Make a broken form usable
     tagline: Labels, roles, focus and error announcement — the things a mouse hides.
     runtime: web
@@ -694,7 +694,7 @@ projects:
       there is no native way to associate an arbitrary error with a field.
 
   - slug: measure-then-optimise
-    concept: web-performance
+    concept: frontend-performance
     title: Make a slow list fast
     tagline: Batch your DOM writes and stop reading layout in a loop.
     runtime: web

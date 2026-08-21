@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     : null;
 
   return (
-    <AppShell>
+    <AppShell tutorContext={{ page: 'dashboard' }}>
       <SiteHeader />
 
       <main className="flex-1 px-4 py-10 sm:px-6 lg:px-8">
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
                   stays empty until you start.
                 </p>
               </div>
-              <ButtonLink href="/onboarding" className="shrink-0">
+              <ButtonLink href="/explore" className="shrink-0">
                 <Sparkles />
                 Choose a destination
               </ButtonLink>

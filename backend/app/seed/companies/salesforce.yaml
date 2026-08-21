@@ -1,0 +1,632 @@
+# Salesforce.
+#
+# Sourcing rules for every file in this directory:
+#   * `source_url` is required on every question — the loader rejects one
+#     without it.
+#   * Questions are written in our own words from what the source describes.
+#     Nothing is copied out of a proprietary question bank; where the useful
+#     artefact *is* the bank (a company's LeetCode tag, a Glassdoor thread),
+#     we link to it instead.
+#   * `fetched_on` records when the sources were last checked, and the UI
+#     shows it, so stale data is visible rather than silently trusted.
+
+company:
+  slug: salesforce
+  name: Salesforce
+  industry: Enterprise Software / CRM
+  hq: San Francisco, California
+  website: https://www.salesforce.com/company/careers/
+  icon: Cloud
+  fetched_on: 2026-08-21
+  sort_order: 11
+  description: >-
+    CRM, Data Cloud and the Salesforce Platform (Apex, Lightning). Salesforce
+    is really several hiring orgs under one name — product engineering,
+    platform/cloud engineering, and consulting/implementation each run a
+    noticeably different loop, so "the Salesforce interview" is less uniform
+    than it looks from the outside.
+  hiring_process_md: |
+    The single most important thing to know before prepping for Salesforce
+    is *which org you're interviewing into*, because the loop genuinely
+    diverges from there.
+
+    **Product engineering (core platform, Slack, Tableau, Data Cloud)** runs
+    closest to a standard Big Tech loop: recruiter screen, a HackerRank
+    online assessment (10 MCQs on DSA/OS/DBMS plus two coding problems) that
+    gates everyone before a human sees the application, a hiring-manager
+    conversation, then two to three technical rounds mixing DSA-style coding
+    with system design, and a behavioural round.
+
+    **Platform / Apex-focused roles** weight production Salesforce
+    experience over algorithm puzzles — the loop probes Apex governor
+    limits, bulkification, Lightning Web Components and integration
+    patterns specifically, since a Trailhead-certified candidate with no
+    production scars is a fast reject here in a way they wouldn't be
+    elsewhere.
+
+    **Consulting / implementation roles** add a client-scenario round —
+    less "write code," more "a customer's org is misconfigured and slow,
+    diagnose it live."
+
+    **What's consistent across all three:** a HackerRank-gated DSA bar for
+    engineering roles specifically, a behavioural round assessed against
+    Salesforce's V2MOM planning framework and its stated "Trust" value, and
+    — a 2025 pattern several candidates independently reported — hiring
+    managers now routinely probing cross-functional influence, not just
+    individual output.
+  resources:
+    - kind: careers
+      title: "Salesforce Careers"
+      url: https://www.salesforce.com/company/careers/
+    - kind: blog
+      title: "Salesforce Engineering Blog"
+      url: https://engineering.salesforce.com/
+    - kind: blog
+      title: "5 things you really need to know for your technical interview — Salesforce Engineering Blog"
+      url: https://engineering.salesforce.com/5-things-you-really-need-to-know-for-your-technical-interview-from-a-lead-engineer-95c9f7cde3a9/
+    - kind: prep
+      title: "Trailhead — Salesforce's free learning platform"
+      url: https://trailhead.salesforce.com/
+    - kind: prep
+      title: "30 Salesforce Developer interview questions & answers — Salesforce Ben"
+      url: https://www.salesforceben.com/30-salesforce-developer-interview-questions-answers/
+
+roles:
+  - slug: software-engineer
+    title: Software Engineer (Member of Technical Staff)
+    level: entry to mid
+    maps_to_role: fullstack-engineer
+    sort_order: 1
+    source_url: https://engineering.salesforce.com/5-things-you-really-need-to-know-for-your-technical-interview-from-a-lead-engineer-95c9f7cde3a9/
+    description: >-
+      Core product engineering — the closest thing Salesforce has to a
+      generalist Big Tech loop, gated by a HackerRank screen before any
+      human interview happens.
+    focus_md: |
+      Salesforce's own engineering blog is unusually specific about what a
+      lead engineer there wants from a candidate, and it isn't "solve the
+      hardest problem" — it's "check your work." Interviewers explicitly
+      value a candidate who tests their own solution and talks through
+      edge cases out loud over one who arrives at a working answer faster
+      but silently. That's a real scoring signal, not just interview
+      etiquette.
+
+      The other habit worth building: be ready to describe the *whole*
+      system your past feature lived in, not just the function you wrote —
+      "explain the architecture, the components, and how your piece
+      integrated" is close to a direct quote from their own prep guidance.
+    focus_areas:
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
+          notes: "Gated by a HackerRank OA (MCQs + 2 coding problems) before a human sees you." }
+      - { concept: computer-science-system-design, label: "System design", weight: 4 }
+      - { concept: computer-science-databases, label: "Databases & DBMS fundamentals", weight: 3,
+          notes: "A recurring OA topic alongside DSA and OS." }
+      - { concept: backend-api-styles, label: "API & integration design", weight: 3,
+          notes: "Salesforce is an integration-heavy platform; most features touch an API surface." }
+      - { concept: computer-science-processes-and-threads, label: "OS fundamentals", weight: 2 }
+      - { label: "Cross-functional influence", weight: 3,
+          notes: "A 2025-reported pattern: hiring managers now ask directly how you've influenced outside your own team." }
+    questions:
+      - kind: online-assessment
+        round: aptitude
+        topic: DSA multiple-choice screen
+        difficulty: easy
+        year: 2025
+        question: >-
+          The HackerRank OA opens with roughly 10 multiple-choice questions
+          on data structures, algorithms, operating systems and DBMS before
+          the two coding problems. What kind of question actually shows up
+          there?
+        answer_md: |
+          Expect complexity-analysis questions ("what is the time complexity
+          of this loop"), OS questions on process vs. thread and
+          deadlock conditions, and DBMS questions on normalization and index
+          types — conceptual recall rather than code-reading. The practical
+          advice: these are fast points if you've reviewed fundamentals
+          recently, and burning too long on any single MCQ eats into the
+          coding-problem time, which is weighted more heavily.
+        source_name: "Salesforce Technical Interview Questions — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/gfg-academy/salesforce-interview-questions-for-technical-profiles/
+
+      - kind: online-assessment
+        round: coding
+        topic: Matrix manipulation
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an n×m matrix, return its elements in spiral order (outer
+          ring first, spiraling inward).
+        answer_md: |
+          Track four shrinking boundaries — top, bottom, left, right — and
+          traverse each side in turn (left-to-right along the top row,
+          top-to-bottom along the right column, and so on), moving the
+          corresponding boundary inward after each side. Stop when the
+          boundaries cross. O(n·m) time, O(1) extra space beyond the output.
+
+          The bug almost everyone hits first: forgetting to re-check that
+          `top <= bottom` and `left <= right` before each of the four
+          traversal legs, which double-counts a row or column on
+          non-square matrices.
+        source_name: "Salesforce Interview Experience — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/salesforce-interview-experience-set-1-for-sde-1/
+
+      - kind: interview
+        round: coding
+        topic: Trees
+        difficulty: medium
+        year: 2025
+        question: >-
+          Find the diameter of a binary tree, where the diameter is the
+          number of nodes on the longest path between any two leaves.
+        answer_md: |
+          The naive approach recomputes height at every node for every
+          candidate diameter check, which is O(n²) in the worst case. The
+          right approach computes height and diameter in one post-order
+          pass: at each node, the diameter through that node is
+          `1 + leftHeight + rightHeight`, and you return `1 +
+          max(leftHeight, rightHeight)` up to the parent while tracking the
+          maximum diameter seen anywhere in a variable closed over the
+          recursion. O(n) total.
+
+          Saying "I'll compute this bottom-up in a single pass instead of
+          recomputing height repeatedly" before coding is the signal
+          interviewers are listening for — it shows you saw the quadratic
+          trap before falling into it.
+        source_name: "Salesforce Interview Experience — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/salesforce-interview-experience-set-1-for-sde-1/
+
+      - kind: interview
+        round: system-design
+        topic: Real-time metrics
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a system that counts the number of views on a piece of
+          content in near real time, at a scale where a single database row
+          being incremented directly would become a write bottleneck.
+        answer_md: |
+          The core move is not writing straight to the source of truth on
+          every view. Buffer view events in a fast, ordered log (a message
+          queue), batch-aggregate counts over short windows (say, one
+          second) in a stream processor, then flush the aggregated deltas
+          to storage — this turns millions of tiny writes into far fewer,
+          larger ones.
+
+          For "near real time" reads, keep a fast approximate counter (an
+          in-memory or cache-backed running total, updated from the same
+          stream) that the UI reads, while the batched writes reconcile the
+          durable count on a short delay — trading strict real-time
+          accuracy for a write path that doesn't fall over under load.
+        source_name: "Salesforce system design interview questions — DesignGurus"
+        source_url: https://www.designgurus.io/answers/detail/what-are-the-top-system-design-interview-questions-for-salesforce-interview
+
+      - kind: interview
+        round: technical
+        topic: OOP fundamentals
+        difficulty: easy
+        year: 2025
+        question: >-
+          Why does a codebase benefit from object-oriented design over a
+          purely procedural one, and where does OOP actively make things
+          worse?
+        answer_md: |
+          The benefit case: encapsulation lets you change an implementation
+          without breaking callers, and polymorphism replaces branching
+          logic (a big switch on "type") with dispatch, which scales better
+          as the number of types grows.
+
+          The honest cost, which is the part interviewers are actually
+          checking whether you'll admit: deep inheritance hierarchies can
+          make control flow hard to trace, and OOP can over-abstract a
+          problem that a plain function would have solved more simply.
+          Composition over inheritance, and "not every problem needs a
+          class," are the answers that read as experienced rather than
+          textbook.
+        source_name: "Salesforce Interview Experience — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/salesforce-interview-experience-2023/
+
+      - kind: interview
+        round: managerial
+        topic: Cross-functional influence
+        difficulty: medium
+        year: 2025
+        question: >-
+          Describe a time you had to convince a team you don't manage — like
+          product or another engineering team — to prioritize something
+          your project needed.
+        answer_md: |
+          Weak answers describe escalating to a manager. What's being
+          probed is whether you built a case in terms the other team's
+          incentives cared about (their roadmap risk, their customer
+          impact) rather than yours, and whether you did it early enough
+          that it read as collaboration rather than a last-minute ask.
+
+          Naming a case where you *didn't* get full agreement but found a
+          workable middle path is often stronger than a story where the
+          other team simply agreed with everything you asked for.
+        source_name: "Salesforce interview process — Ophy AI"
+        source_url: https://ophyai.com/blog/company-guides/salesforce-interview-guide
+
+      - kind: interview
+        round: coding
+        topic: Subarray sums
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given an array of positive and negative integers, find all
+          contiguous subarrays whose sum is zero.
+        answer_md: |
+          Track a running prefix sum while scanning left to right, and keep
+          a hash map from prefix-sum value to the list of indices where
+          that value occurred. Whenever the current prefix sum has been
+          seen before, every stored index for that value marks the start of
+          a zero-sum subarray ending at the current index — because the sum
+          of the elements between those two positions is, by definition,
+          the difference of two equal prefix sums, which is zero.
+
+          A prefix sum of exactly zero at the current index is a subarray
+          starting from index 0, which is the edge case people forget to
+          seed the map with (`{0: [-1]}` before scanning starts).
+        source_name: "Salesforce Interview Experience — GeeksforGeeks"
+        source_url: https://www.geeksforgeeks.org/interview-experiences/salesforce-interview-experience-set-1-for-sde-1/
+
+  - slug: platform-developer
+    title: Platform Developer (Apex & Lightning)
+    level: mid
+    maps_to_role: backend-developer
+    sort_order: 2
+    source_url: https://www.salesforceben.com/30-salesforce-developer-interview-questions-answers/
+    description: >-
+      Builds on the Salesforce Platform itself — Apex, Lightning Web
+      Components, declarative + programmatic automation. Loop weights
+      production scars over Trailhead badges.
+    focus_md: |
+      This loop is where Salesforce diverges hardest from a generic
+      engineering interview. Governor limits — the hard per-transaction
+      ceilings the multi-tenant platform enforces on SOQL queries, DML
+      statements and CPU time — are not a trivia topic here; they're the
+      thing that separates a developer who's shipped in production from one
+      who's only built in a scratch org. Expect at least one question that
+      is really "why does this Apex trigger fail at scale" in disguise.
+    focus_areas:
+      - { label: "Apex governor limits & bulkification", weight: 5,
+          notes: "The single most-tested platform-specific topic. A trigger that isn't bulkified fails in production, not in a sandbox." }
+      - { concept: computer-science-design-patterns, label: "Trigger & automation design patterns", weight: 4,
+          notes: "One trigger per object, logic delegated to a handler class, is the expected pattern." }
+      - { concept: api-design-api-integration-patterns, label: "Integration patterns", weight: 4,
+          notes: "REST/SOAP callouts, platform events, and where async (queueable/batch) is required." }
+      - { concept: backend-relational-databases, label: "Data modeling on the platform", weight: 3,
+          notes: "Custom objects, relationship types, and when a formula field beats a trigger." }
+      - { concept: computer-science-security, label: "Sharing & security model", weight: 3,
+          notes: "Field-level security, sharing rules and 'with sharing' vs 'without sharing' come up directly." }
+      - { concept: backend-testing, label: "Testing on the platform", weight: 3,
+          notes: "75% code coverage is a deploy gate, not a best practice — and coverage without assertions doesn't count." }
+    questions:
+      - kind: interview
+        round: technical
+        topic: Governor limits & bulkification
+        difficulty: medium
+        year: 2025
+        question: >-
+          A trigger that queries related records inside a `for` loop works
+          fine in testing with one record, then fails in production when a
+          bulk data load inserts 500 records at once. Why, and how do you
+          fix it?
+        answer_md: |
+          Apex enforces per-transaction limits — a cap on SOQL queries and
+          DML statements issued in a single execution context. A query
+          inside a loop issues one SOQL call per loop iteration; with a
+          single test record that's one query and nothing trips, but a
+          500-record bulk insert processes as one trigger execution over
+          all 500 records, so the same code issues 500 queries and blows
+          past the limit.
+
+          The fix is bulkification: pull every ID you need up front with one
+          query outside the loop (`WHERE Id IN :idSet`), build an in-memory
+          map, then loop over the trigger's records doing map lookups
+          instead of queries. This is the platform's single most-tested
+          failure mode, precisely because it's invisible until a real bulk
+          operation exercises it.
+        source_name: "30 Salesforce Developer interview questions & answers — Salesforce Ben"
+        source_url: https://www.salesforceben.com/30-salesforce-developer-interview-questions-answers/
+
+      - kind: interview
+        round: technical
+        topic: Trigger design patterns
+        difficulty: medium
+        year: 2025
+        question: >-
+          Why does Salesforce recommend exactly one trigger per object,
+          with the actual logic living in a separate handler class rather
+          than in the trigger body?
+        answer_md: |
+          Trigger execution order across multiple triggers on the same
+          object is not guaranteed, so if logic is spread across several
+          triggers on the same object, you can't reliably reason about what
+          runs first — which matters when one piece of logic depends on
+          another having already run. A single trigger per object,
+          delegating immediately to a handler class, gives you one place to
+          control ordering explicitly.
+
+          It also makes the trigger itself trivially testable in isolation
+          from Apex's execution context quirks — the handler class's
+          methods can be unit tested directly, whereas testing a trigger's
+          logic in place means simulating DML every time.
+        source_name: "Apex interview questions guide — Utkrusht"
+        source_url: https://utkrusht.ai/blog/apex-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Sharing & security model
+        difficulty: medium
+        year: 2025
+        question: >-
+          What's the difference between `with sharing`, `without sharing`
+          and `inherited sharing` on an Apex class, and when would using the
+          wrong one be a security bug rather than just a style choice?
+        answer_md: |
+          `with sharing` enforces the running user's record-level access
+          (their sharing rules and role hierarchy); `without sharing` runs
+          with full object access regardless of the user's actual
+          permissions; `inherited sharing` takes on whatever sharing mode
+          the *calling* code was running under, which matters for utility
+          classes called from multiple contexts.
+
+          The security bug: a class left `without sharing` "to make it
+          easier to test" that ends up called from user-facing code lets a
+          user see or modify records their sharing rules should have hidden
+          from them — this is a real, reportable data-exposure bug, not a
+          style nit, and it's a direct question in platform-specific loops.
+        source_name: "20+ Apex interview questions and answers — s2 Labs"
+        source_url: https://s2-labs.com/blog/apex-interview-questions/
+
+      - kind: online-assessment
+        round: coding
+        topic: SOQL query design
+        difficulty: medium
+        year: 2025
+        question: >-
+          Write a SOQL query to find all Accounts that have more than 5
+          related Contacts, without pulling every Contact record into
+          memory to count them.
+        answer_md: |
+          A subquery relationship query with `HAVING` on an aggregate does
+          this in one round trip: `SELECT Id, (SELECT Id FROM Contacts)
+          FROM Account` would pull every contact, which is exactly what to
+          avoid. Instead, an aggregate query — `SELECT AccountId,
+          COUNT(Id) cnt FROM Contact GROUP BY AccountId HAVING COUNT(Id) >
+          5` — returns only the counts, letting the platform do the
+          counting rather than pulling rows to count client-side.
+
+          This distinction — aggregate query vs. relationship subquery — is
+          also a governor-limit question in disguise: pulling full child
+          record sets to count them client-side is the pattern that hits
+          heap-size and row-count limits on large orgs.
+        source_name: "110 Salesforce Apex interview questions — SFApps.info"
+        source_url: https://www.sfapps.info/100-salesforce-apex-interview-questions-and-answers/
+
+      - kind: interview
+        round: technical
+        topic: Async Apex
+        difficulty: hard
+        year: 2025
+        question: >-
+          You need to process 2 million records with logic too slow to run
+          synchronously in a trigger. What are your options and how do you
+          choose between them?
+        answer_md: |
+          Batch Apex (`Database.Batchable`) is built exactly for this: it
+          processes records in configurable chunks, each chunk getting its
+          own fresh governor-limit budget, so 2 million records don't have
+          to fit inside one transaction's limits. Queueable Apex is the
+          better fit for smaller async jobs that need to chain to another
+          job afterward; Future methods are the lightest-weight option but
+          can't take complex parameter types and can't be chained reliably.
+
+          The choice usually comes down to volume and chaining needs: batch
+          for genuinely large record volumes, queueable when you need
+          job-to-job chaining or complex inputs, future only for simple
+          fire-and-forget callouts.
+        source_name: "Apex interview questions guide — Utkrusht"
+        source_url: https://utkrusht.ai/blog/apex-interview-questions
+
+      - kind: interview
+        round: technical
+        topic: Testing on the platform
+        difficulty: medium
+        year: 2025
+        question: >-
+          A class has 90% code coverage but its test method never asserts
+          anything about the result. Why is that still a problem worth
+          fixing before a production deploy?
+        answer_md: |
+          Salesforce's 75% coverage gate measures *lines executed*, not
+          *behaviour verified* — a test that calls the method and asserts
+          nothing will happily execute every line and report high coverage
+          while silently passing even if the method's logic is completely
+          wrong. Coverage is a deploy gate, not a correctness signal.
+
+          A real test needs `System.assertEquals` (or the newer `Assert`
+          class) checks against expected outcomes, and should cover bulk
+          data (200 records, to catch bulkification bugs), the negative
+          case, and any governor-limit-relevant edge case — not just the
+          happy path with one record.
+        source_name: "30 Salesforce Developer interview questions & answers — Salesforce Ben"
+        source_url: https://www.salesforceben.com/30-salesforce-developer-interview-questions-answers/
+
+  - slug: data-cloud-engineer
+    title: Data Cloud Engineer
+    level: mid
+    maps_to_role: data-scientist
+    sort_order: 3
+    source_url: https://www.interviewquery.com/interview-guides/salesforce-data-engineer
+    description: >-
+      Builds the ingestion, harmonization and activation pipelines behind
+      Salesforce Data Cloud — unifying customer data across multiple source
+      systems into one queryable profile, at enterprise multi-tenant scale.
+    focus_md: |
+      This is the role where "Trust is our #1 value" stops being a slogan
+      and starts being an interview constraint: every design question
+      layers data governance and tenant isolation on top of the usual
+      scale question, because Data Cloud's whole product is making
+      customer data trustworthy for other systems to build on. A design
+      that would pass a generic system design round can still fail here if
+      it doesn't account for a customer's data staying provably isolated
+      from every other customer's.
+    focus_areas:
+      - { concept: system-design-databases, label: "Data pipeline & warehouse design", weight: 5 }
+      - { concept: sql-join-queries, label: "SQL — joins, aggregation, window functions", weight: 4 }
+      - { concept: system-design-security, label: "Multi-tenant isolation & governance", weight: 4,
+          notes: "A design that leaks or blends data across tenants is a fail here, not a nitpick." }
+      - { concept: backend-message-brokers, label: "Streaming vs. batch trade-offs", weight: 4,
+          notes: "Platform Events and real-time activation push toward streaming; historical harmonization stays batch." }
+      - { concept: data-analyst-data-cleanup, label: "Identity resolution & data harmonization", weight: 4,
+          notes: "Matching records for the same customer across CRM, commerce and marketing systems." }
+      - { concept: python-data-structures-algorithms, label: "Python/Java for pipeline logic", weight: 3 }
+    questions:
+      - kind: interview
+        round: system-design
+        topic: Tenant-isolated data layer
+        difficulty: hard
+        year: 2025
+        question: >-
+          Design a data ingestion and query layer that unifies a customer's
+          data from CRM, commerce and marketing sources into one profile —
+          and must guarantee one customer's data is never visible to
+          another tenant.
+        answer_md: |
+          Tenant ID needs to be a first-class part of the data model, not an
+          afterthought filter — every ingested record is tagged and
+          partitioned by tenant at write time, and every query path
+          (including any downstream cache or search index) enforces the
+          tenant scope at the storage layer, not just in application code,
+          because an application-layer-only check is one missed code path
+          away from a cross-tenant leak.
+
+          On top of isolation, unification is an identity-resolution
+          problem: the same real customer shows up with different keys in
+          each source system, so a matching step (deterministic on shared
+          keys like email, probabilistic on fuzzy signals otherwise) has to
+          run before the "one profile" abstraction is even meaningful.
+        source_name: "Salesforce system design interview — System Design Handbook"
+        source_url: https://www.systemdesignhandbook.com/guides/salesforce-system-design-interview/
+
+      - kind: interview
+        round: system-design
+        topic: Real-time activation
+        difficulty: hard
+        year: 2025
+        question: >-
+          A marketing team wants to trigger an email the moment a customer
+          abandons a cart — how does that change your pipeline design
+          compared to a nightly batch job that segments customers?
+        answer_md: |
+          Nightly batch segmentation tolerates latency and can afford to
+          reprocess the full dataset each run. A cart-abandonment trigger
+          can't — it needs an event-driven path: the abandonment event
+          publishes to a stream (Platform Event or equivalent), a stream
+          processor evaluates the trigger condition against just that
+          event plus recent context, and the activation (send email) fires
+          within seconds to minutes, not hours.
+
+          The trade-off worth naming explicitly: the batch pipeline and the
+          streaming pipeline usually have to coexist, because historical
+          segmentation for large campaigns still doesn't need sub-second
+          latency and re-doing that work as a stream would be needlessly
+          expensive.
+        source_name: "Salesforce Data Engineer interview guide — Dataford"
+        source_url: https://dataford.io/interview-guides/salesforce/data-engineer
+
+      - kind: online-assessment
+        round: technical
+        topic: SQL — joins & aggregation
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a `customers` table and an `orders` table, write a query
+          that returns customers who have never placed an order.
+        answer_md: |
+          A `LEFT JOIN` from customers to orders, filtering where the
+          order-side key is `NULL`, finds exactly this: every customer row
+          is kept regardless of whether it matched an order, and a `NULL`
+          on the orders side means no match existed. `NOT IN
+          (SELECT customer_id FROM orders)` gives the same logical result
+          but silently returns zero rows if any `customer_id` in the
+          subquery is `NULL` — a real footgun worth naming, since it fails
+          quietly rather than erroring.
+
+          `NOT EXISTS` is the safer subquery form if you don't want the
+          `LEFT JOIN`, because it doesn't have that `NULL`-comparison trap.
+        source_name: "Salesforce Data Engineer interview questions & guide — Dataford"
+        source_url: https://dataford.io/interview-guides/salesforce/data-engineer
+
+      - kind: interview
+        round: technical
+        topic: Identity resolution
+        difficulty: medium
+        year: 2025
+        question: >-
+          The same person appears as three different records: one from the
+          CRM (full name, phone), one from the e-commerce system (email
+          only), and one from the marketing tool (email, first name only).
+          How do you unify them into one profile?
+        answer_md: |
+          Deterministic matching first — an exact match on a high-confidence
+          key like email — merges the e-commerce and marketing records
+          immediately. The CRM record, with no email to match on, needs
+          probabilistic matching: normalized name plus phone against
+          whatever the other two records can supply once merged, scored
+          against a confidence threshold rather than treated as certain.
+
+          The design decision worth stating explicitly: false merges
+          (wrongly combining two different people) are usually more costly
+          than false splits (the same person staying as two profiles a bit
+          longer), because an incorrect merge is hard to detect and undo
+          once downstream systems have already acted on the unified
+          profile — so the matching threshold should lean conservative.
+        source_name: "Salesforce Data Engineer interview guide — Dataford"
+        source_url: https://dataford.io/interview-guides/salesforce/data-engineer
+
+      - kind: interview
+        round: coding
+        topic: Streaming aggregation
+        difficulty: medium
+        year: 2025
+        question: >-
+          Given a continuous stream of page-view events tagged with a
+          customer ID, maintain a rolling count of distinct customers seen
+          in the last hour, without storing every event indefinitely.
+        answer_md: |
+          An exact answer needs a time-bucketed structure: partition the
+          last hour into fixed buckets (e.g., one per minute), keep a
+          distinct-count structure (a set, or a HyperLogLog sketch if exact
+          isn't required) per bucket, and drop the oldest bucket as time
+          advances — the rolling count is the union (or sketch merge) across
+          currently-live buckets.
+
+          HyperLogLog is worth naming explicitly for this scale: it
+          estimates distinct counts in a small, fixed amount of memory with
+          bounded error, which matters when the true distinct-count set
+          would otherwise grow unbounded with traffic.
+        source_name: "Salesforce Data Engineer interview questions & guide — Dataford"
+        source_url: https://dataford.io/interview-guides/salesforce/data-engineer
+
+      - kind: interview
+        round: managerial
+        topic: Trust & data governance
+        difficulty: medium
+        year: 2025
+        question: >-
+          Tell me about a time you had to say no to a data request — from a
+          teammate, a stakeholder, or a customer — because of a governance
+          or privacy concern.
+        answer_md: |
+          This is scored on whether "Trust" is something you've actually
+          acted on under pressure, not just something you'd cite as a
+          value. Strong answers name the specific policy or risk (not a
+          vague "it felt wrong"), describe how you communicated the no in a
+          way that still moved the requester's actual goal forward — an
+          alternative that met the underlying need without the governance
+          risk — rather than a flat refusal.
+        source_name: "Salesforce interview process — Ophy AI"
+        source_url: https://ophyai.com/blog/company-guides/salesforce-interview-guide

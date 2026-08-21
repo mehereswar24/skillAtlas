@@ -76,13 +76,13 @@ roles:
       Also expect questions about **precision and correctness** — finance is
       one of the few domains where "close enough" has a legal meaning.
     focus_areas:
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5 }
-      - { concept: statistics-probability, label: "Probability & expected value", weight: 5,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5 }
+      - { concept: machine-learning-probability, label: "Probability & expected value", weight: 5,
           notes: "Asked conversationally. Set up the sample space out loud before computing." }
-      - { concept: data-modeling, label: "OOP and system modelling", weight: 4,
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP and system modelling", weight: 4,
           notes: "'Model a trade / an order book / a portfolio' is a recurring shape." }
-      - { concept: relational-databases-sql, label: "SQL and data modelling", weight: 4 }
-      - { concept: system-design-basics, label: "System design", weight: 4,
+      - { concept: backend-relational-databases, label: "SQL and data modelling", weight: 4 }
+      - { concept: computer-science-system-design, label: "System design", weight: 4,
           notes: "Latency and correctness constraints are stricter than in consumer products." }
       - { concept: backend-testing, label: "Correctness and testing", weight: 3,
           notes: "Floating point vs decimal for money is a live question, not a trivia one." }

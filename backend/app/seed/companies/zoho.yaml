@@ -80,17 +80,17 @@ roles:
       rather than definitions-by-rote, and it will ask about the code you wrote
       earlier in the process — so remember your own approach.
     focus_areas:
-      - { concept: programming-language-python, label: "Writing complete programs", weight: 5,
+      - { concept: python-learn-the-basics, label: "Writing complete programs", weight: 5,
           notes: "Historically C is expected in round one. Input parsing, edge cases, working end to end." }
-      - { concept: data-structures-algorithms, label: "Data structures & algorithms", weight: 5,
+      - { concept: computer-science-data-structures, label: "Data structures & algorithms", weight: 5,
           notes: "Strings, matrices, recursion and simulation more than graphs and DP." }
-      - { concept: quantitative-aptitude, label: "Aptitude & logical reasoning", weight: 4,
+      - { label: "Aptitude & logical reasoning", weight: 4,
           notes: "20 questions in 60 minutes: probability, time and work, profit and loss, puzzles, series." }
-      - { concept: data-modeling, label: "OOP and design", weight: 4,
+      - { concept: bi-analyst-data-modeling-for-bi, label: "OOP and design", weight: 4,
           notes: "The advanced round is often 'build a small application', which is a design question wearing a coding costume." }
-      - { concept: relational-databases-sql, label: "DBMS", weight: 3 }
-      - { concept: linux-and-shell, label: "Operating systems", weight: 3 }
-      - { concept: internet-and-http, label: "Computer networks", weight: 3 }
+      - { concept: backend-relational-databases, label: "DBMS", weight: 3 }
+      - { concept: devops-operating-system, label: "Operating systems", weight: 3 }
+      - { concept: frontend-internet, label: "Computer networks", weight: 3 }
     questions:
       - kind: online-assessment
         round: coding
