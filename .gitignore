@@ -50,3 +50,11 @@ frontend/qa/
 
 # Production secrets. deploy/.env.production.example is the committed template.
 deploy/.env
+
+# Quizzes generated from roadmap.sh prose, before scripts/strip_imported_prose.py
+# ran. Questions written from their text are derivative of it, and these cover
+# imported tracks whose bodies are now outline stubs anyway — so the "verified
+# against its own body" guarantee no longer holds for them either.
+# Quizzes for the authored tracks are ours and stay tracked.
+backend/app/seed/quizzes/data-analyst.yaml
+backend/app/seed/quizzes/full-stack.yaml
