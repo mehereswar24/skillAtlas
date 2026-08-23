@@ -58,3 +58,13 @@ deploy/.env
 # Quizzes for the authored tracks are ours and stay tracked.
 backend/app/seed/quizzes/data-analyst.yaml
 backend/app/seed/quizzes/full-stack.yaml
+
+# Anything `vercel env pull` writes, and Vercel's local project link.
+# These hold the production DATABASE_URL, SECRET_KEY and OPENROUTER_API_KEY.
+# Only `frontend/.env.local` and `backend/.env` were ignored before, so a pull
+# from the repository root landed a full set of production secrets in a
+# committable file — and something in this working tree commits on its own.
+.env
+.env.local
+.env.*.local
+.vercel/
