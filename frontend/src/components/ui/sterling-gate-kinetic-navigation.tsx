@@ -10,7 +10,23 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(CustomEase);
 }
 
-export function SterlingGateKineticNavigation() {
+/**
+ * `user` is null for a signed-out visitor, which is what the last menu entry
+ * keys off: signed out it offers Sign in, signed in it shows who you are and
+ * goes to the dashboard. Passed down from the page rather than fetched here —
+ * this is a client component, and the landing page already has the user.
+ */
+export function SterlingGateKineticNavigation({
+  user,
+}: {
+  user?: { display_name: string | null; email: string } | null;
+}) {
+  // Display name is nullable, so fall back to the local part of the email
+  // before falling back to a generic label — "Account" is a worse greeting
+  // than someone's own address.
+  const name =
+    user?.display_name?.trim() || user?.email?.split('@')[0] || 'Account';
+
   // We need a ref for the parent container to scope GSAP
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -214,7 +230,10 @@ export function SterlingGateKineticNavigation() {
           </button>
         </div>
 
-      <section className="fullscreen-menu-container absolute right-0 top-0 h-screen w-[400px] pointer-events-none">
+      {/* w-full capped at 400px: the previous fixed 400px was wider than a
+          390px phone viewport, so this panel was itself what made the landing
+          page scroll sideways. */}
+      <section className="fullscreen-menu-container absolute right-0 top-0 h-screen w-full max-w-[400px] pointer-events-none">
         <div data-nav="closed" className="nav-overlay-wrapper hidden h-full w-full relative pointer-events-auto">
           {/* Overlay must stay above or below depending on desired clickability. */}
           <div className="overlay fixed inset-0 bg-background/20 backdrop-blur-sm opacity-0" onClick={closeMenu}></div>
@@ -320,8 +339,14 @@ export function SterlingGateKineticNavigation() {
                   </a>
                 </li>
                 <li className="menu-list-item" data-shape="5">
-                  <a href="/login" className="nav-link block overflow-hidden" data-magnetic>
-                    <p className="nav-link-text transition-transform hover:translate-x-4 text-primary mt-8">Sign in</p>
+                  <a
+                    href={user ? '/dashboard' : '/login'}
+                    className="nav-link block overflow-hidden"
+                    data-magnetic
+                  >
+                    <p className="nav-link-text transition-transform hover:translate-x-4 text-primary mt-8">
+                      {user ? name : 'Sign in'}
+                    </p>
                   </a>
                 </li>
               </ul>

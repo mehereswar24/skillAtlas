@@ -22,6 +22,7 @@ export default async function Home() {
         tracks={tracks}
         conceptCount={conceptCount}
         featured={featured}
+        user={user}
       />
       {/* The landing page has no AppShell, so the helper is mounted directly.
           Signed out it answers through the rate-limited public endpoint. */}

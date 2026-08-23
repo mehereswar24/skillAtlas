@@ -52,7 +52,7 @@ export function RouteSwitcher({ routes }: { routes: RoadmapSummary[] }) {
         </h2>
         <Link
           href="/explore"
-          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+          className="inline-flex min-h-[24px] items-center gap-1 py-1 text-xs font-medium text-primary hover:underline"
         >
           <Plus className="h-3.5 w-3.5" />
           Add another
@@ -65,8 +65,15 @@ export function RouteSwitcher({ routes }: { routes: RoadmapSummary[] }) {
         {routes.map((route) => (
           <li
             key={route.id}
+            // min-w-0 is what stops this overflowing on a phone. A grid item
+            // defaults to `min-width: auto`, so it refuses to shrink below its
+            // content — a long track title then widened the whole row past the
+            // viewport (measured 517px on a 390px screen) and took the page's
+            // horizontal scrollbar with it. The inner `min-w-0` alone could not
+            // help, because the overflow was already decided one level up, and
+            // `truncate` never engaged for the same reason.
             className={cn(
-              'rounded-lg border p-3 transition-colors',
+              'min-w-0 rounded-lg border p-3 transition-colors',
               route.is_focused ? 'border-primary/60 bg-muted/40' : 'hover:border-primary/40',
             )}
           >
@@ -136,7 +143,7 @@ export function RouteSwitcher({ routes }: { routes: RoadmapSummary[] }) {
               <button
                 type="button"
                 onClick={() => setConfirming(route.id)}
-                className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
+                className="mt-2 inline-flex min-h-[24px] items-center gap-1 py-1 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
               >
                 <X className="h-3 w-3" />
                 Drop route

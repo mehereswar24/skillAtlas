@@ -27,7 +27,7 @@ import {
 import { ButtonLink } from '@/components/button-link';
 import GalleryHoverCarousel from '@/components/ui/gallery-hover-carousel';
 import { SlidingPuzzle } from '@/components/ui/sliding-puzzle';
-import type { Domain, TrackSummary } from '@/lib/types';
+import type { Domain, TrackSummary, User } from '@/lib/types';
 import { SterlingGateKineticNavigation } from '@/components/ui/sterling-gate-kinetic-navigation';
 
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -75,19 +75,26 @@ export function LandingPageInteractive({
   tracks,
   conceptCount,
   featured,
+  user,
 }: {
   domains: Domain[];
   tracks: TrackSummary[];
   conceptCount: number;
   featured: TrackSummary[];
+  /** Signed-in visitor, or null. Only the nav uses it, to greet by name
+   *  instead of offering a sign-in link they do not need. */
+  user?: User | null;
 }) {
   const { scrollYProgress } = useScroll();
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <SterlingGateKineticNavigation />
+    // overflow-x-hidden: the decorative hero glow is a fixed 820px wide and
+    // the footer nav does not wrap, so both push the document wider than a
+    // phone viewport and give the whole page a horizontal scrollbar.
+    <div className="flex min-h-screen flex-col overflow-x-hidden">
+      <SterlingGateKineticNavigation user={user} />
 
       <main className="flex-1 overflow-hidden">
         {/* --- hero ------------------------------------------------------ */}
@@ -382,17 +389,17 @@ export function LandingPageInteractive({
       <footer className="border-t bg-background/50">
         <div className="w-full flex flex-wrap items-center justify-between gap-4 px-8 py-10 text-sm text-muted-foreground md:px-16 lg:px-24">
           <p className="font-medium">© {new Date().getFullYear()} SkillAtlas</p>
-          <nav className="flex items-center gap-6" aria-label="Footer">
-            <Link href="/explore" className="hover:text-foreground transition-colors">
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Footer">
+            <Link href="/explore" className="inline-flex min-h-[24px] items-center hover:text-foreground transition-colors">
               Explore
             </Link>
-            <Link href="/companies" className="hover:text-foreground transition-colors">
+            <Link href="/companies" className="inline-flex min-h-[24px] items-center hover:text-foreground transition-colors">
               Companies
             </Link>
-            <Link href="/projects" className="hover:text-foreground transition-colors">
+            <Link href="/projects" className="inline-flex min-h-[24px] items-center hover:text-foreground transition-colors">
               Projects
             </Link>
-            <Link href="/community" className="hover:text-foreground transition-colors">
+            <Link href="/community" className="inline-flex min-h-[24px] items-center hover:text-foreground transition-colors">
               Community
             </Link>
             <div className="ml-4 pl-4 border-l border-border/50">
