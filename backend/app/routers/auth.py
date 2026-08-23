@@ -36,6 +36,12 @@ _INVALID_CREDENTIALS = HTTPException(
     detail="Incorrect email or password",
 )
 
+# A real bcrypt hash of a value nobody can log in with, used to spend the same
+# time on an unknown email as on a known one. Computed once at import — doing
+# it per request would add a `gensalt` to every failed login for no benefit,
+# and the cost that matters is the comparison, which is identical either way.
+_DUMMY_HASH = hash_password("not-a-real-password-timing-equaliser")
+
 
 def serialize_user(user: User, profile: UserProfile) -> UserOut:
     level, into_level, for_next = level_progress(profile.xp)
@@ -101,9 +107,17 @@ def signup(payload: SignupRequest, db: DbSession):
 @router.post("/login", response_model=AuthResponse)
 def login(payload: LoginRequest, db: DbSession):
     user = db.scalar(select(User).where(User.email == payload.email.lower().strip()))
-    # Same error and roughly the same work for "no such user" and "wrong
-    # password", so the response does not reveal which emails are registered.
-    if user is None or not verify_password(payload.password, user.password_hash):
+
+    # Same error *and* the same work for "no such user" and "wrong password".
+    # The identical error message alone was not enough: short-circuiting on
+    # `user is None` skipped bcrypt entirely, so an unregistered address came
+    # back in ~22ms against ~283ms for a registered one — a 12.8x gap, and a
+    # reliable oracle for testing whether any given email has an account here.
+    # Hashing against a dummy of the same cost keeps both paths equal.
+    if user is None:
+        verify_password(payload.password, _DUMMY_HASH)
+        raise _INVALID_CREDENTIALS
+    if not verify_password(payload.password, user.password_hash):
         raise _INVALID_CREDENTIALS
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This account is disabled")
