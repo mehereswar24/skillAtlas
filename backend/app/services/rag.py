@@ -70,12 +70,31 @@ def concept_chunks(concept: Concept) -> list[str]:
     return chunk_text(f"{header}\n\n{body}") if body else [header]
 
 
+def retrievable_concepts(db: Session) -> list[Concept]:
+    """Concepts the tutor may answer from.
+
+    Outline concepts are excluded. They carry a syllabus entry and links rather
+    than a lesson, and their body is the same boilerplate in all ~2,500 of
+    them — so they can answer no question, and including them lets identical
+    text crowd out the tracks that were actually written. The tutor saying "I
+    have no written material on that yet" is the correct answer for a topic
+    that is still an outline.
+    """
+    from app.services.publishing import DEPTH_OUTLINE, concept_depth
+
+    return [
+        concept
+        for concept in db.scalars(select(Concept)).unique().all()
+        if concept_depth(concept.content_md) != DEPTH_OUTLINE
+    ]
+
+
 def rebuild_embeddings(db: Session) -> int:
     """Re-embed every concept. Requires Ollama; returns the chunk count."""
     import anyio
 
     provider = get_provider()
-    concepts = db.scalars(select(Concept)).unique().all()
+    concepts = retrievable_concepts(db)
     payloads: list[tuple[int, int, str]] = []
     for concept in concepts:
         for index, chunk in enumerate(concept_chunks(concept)):
@@ -187,6 +206,13 @@ _STOPWORDS = frozenset(
 )
 
 
+# BM25 parameters. k1 controls how fast term frequency saturates and b how
+# strongly document length is normalised; these are the standard defaults and
+# there is no tuning set here to justify moving them.
+BM25_K1 = 1.5
+BM25_B = 0.75
+
+
 def _keyword_search(db: Session, query: str, k: int) -> list[Retrieved]:
     """Score concepts by rarity-weighted term overlap.
 
@@ -202,7 +228,7 @@ def _keyword_search(db: Session, query: str, k: int) -> list[Retrieved]:
     if not terms:
         return []
 
-    concepts = db.scalars(select(Concept)).unique().all()
+    concepts = retrievable_concepts(db)
     haystacks = {
         concept.id: f"{concept.name} {concept.summary} {concept.content_md}".lower()
         for concept in concepts
@@ -224,10 +250,15 @@ def _keyword_search(db: Session, query: str, k: int) -> list[Retrieved]:
         term: sum(1 for per_term in counts.values() if per_term[term]) for term in terms
     }
 
+    # Document lengths, for the normalisation below.
+    lengths = {cid: max(1, len(text.split())) for cid, text in haystacks.items()}
+    average_length = sum(lengths.values()) / len(lengths)
+
     scored: list[tuple[float, Concept]] = []
     for concept in concepts:
         per_term = counts[concept.id]
         name = names[concept.id]
+        length = lengths[concept.id]
         score = 0.0
         matched = 0
 
@@ -240,9 +271,21 @@ def _keyword_search(db: Session, query: str, k: int) -> list[Retrieved]:
             # word appearing in exactly one concept would score 1.0 and outrank
             # two genuinely relevant terms.
             idf = math.log(1 + total / (document_freq[term] or 1))
-            # Damped term frequency, so ten mentions beat one without a concept
-            # winning purely by being long.
-            tf = 1 + math.log(frequency)
+            # BM25 term frequency: saturating, and normalised by document
+            # length. Both halves matter here. Saturation means the tenth
+            # mention adds almost nothing, so a chapter cannot win by
+            # repetition. Length normalisation is what stops a long chapter
+            # that mentions a term in passing beating the short chapter that is
+            # *about* it — without it, the DNS chapter outranked the caching
+            # chapter for the query "caching", purely by being longer.
+            tf = (
+                frequency
+                * (BM25_K1 + 1)
+                / (
+                    frequency
+                    + BM25_K1 * (1 - BM25_B + BM25_B * length / average_length)
+                )
+            )
             # A hit in the title says the concept is *about* the term.
             score += tf * idf * (2 if term in name else 1)
 

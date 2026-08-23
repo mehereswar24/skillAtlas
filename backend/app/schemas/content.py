@@ -73,6 +73,12 @@ class ConceptSummary(ORMModel):
     est_hours: int
     difficulty: str
     domain_slug: str
+    # "written" (a real lesson) or "outline" (syllabus entry plus primary
+    # sources, no lesson yet). Computed from the body by
+    # app/services/publishing.py, so it cannot disagree with what is shown.
+    # The UI labels outlines rather than letting a learner discover the
+    # difference by opening one.
+    depth: str = "written"
 
 
 class ConceptDetail(ConceptSummary):

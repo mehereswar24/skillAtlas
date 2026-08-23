@@ -17,8 +17,20 @@ from app.services.llm.base import ChatMessage
 class RetrievalOnlyProvider:
     """Formats retrieved context into a useful answer without generating text."""
 
+    #: Required by the LLMProvider interface. Never surfaced while
+    #: `is_available()` is False — the status endpoints report `None` then —
+    #: but present so this class satisfies the protocol like the others.
+    chat_model = "retrieval-only"
+
     async def is_available(self) -> bool:
-        return True
+        """False: this provider retrieves, it does not generate.
+
+        Reporting True would be read by every status endpoint as
+        `mode="generative"` and would make `chat.py` take the generating
+        branch, where `stream_chat` yields one canned block instead of the
+        formatted retrieval answer the degraded branch produces.
+        """
+        return False
 
     async def stream_chat(
         self, messages: list[ChatMessage], options: dict | None = None

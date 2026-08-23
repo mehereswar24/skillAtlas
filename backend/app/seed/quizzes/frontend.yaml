@@ -9,6 +9,165 @@
 # app/seed/tracks/, which the roadmap.sh importer regenerates.
 
 concepts:
+  frontend-accessibility:
+    generated_by: nvidia/nemotron-3-super-120b-a12b:free
+    verified_at: '2026-08-23T12:12:17Z'
+    quiz:
+    - prompt: When should you avoid using a positive tabindex value on an element?
+      explanation: A positive tabindex jumps the element ahead of the entire document, breaking the logical
+        tab order defined by the DOM, so it should never be used when you intend to follow the natural
+        order.
+      options:
+      - text: When you want the element to receive focus only via script.
+      - text: When you want the element to be part of the natural tab order.
+        correct: true
+      - text: When you need to move focus to a dialog after it opens.
+      - text: When you want the element to be skipped entirely by keyboard navigation.
+    - prompt: Why is it problematic to add aria-label='Submit' to a button that already displays the visible
+        text 'Send'?
+      explanation: The accessible name algorithm gives aria-label higher priority than the button’s own
+        text, so the name becomes 'Submit' while the visible label stays 'Send'; voice‑control users who
+        say what they see will not activate the button.
+      options:
+      - text: Because aria-label is ignored when the element has inner text, so the label has no effect.
+      - text: Because the accessible name computed from aria-label overrides the visible text, causing
+          a mismatch for voice‑control users.
+        correct: true
+      - text: Because aria-label can only be used on elements that have no visible content.
+      - text: Because the button will lose its native role and become non‑focusable.
+    - prompt: According to the first rule of ARIA, what is the primary effect of adding ARIA attributes
+        to an element?
+      explanation: ARIA’s role is to describe the element (role, name, states) but does not alter its
+        inherent keyboard behavior; developers must still ensure the element is operable.
+      options:
+      - text: It changes both the element’s appearance and its keyboard behavior.
+      - text: It changes only how the element is described to assistive technology, not how it behaves.
+        correct: true
+      - text: It makes the element focusable regardless of its native tabindex value.
+      - text: It removes the need to provide an accessible name for interactive elements.
+    - prompt: What contrast ratio does WCAG 2.2 AA require for normal text and for large text (approximately
+        24 px or 18.66 px bold)?
+      explanation: AA specifies a minimum of 4.5:1 contrast for regular‑size text and 3:1 for large‑scale
+        text and UI component boundaries.
+      options:
+      - text: 4.5:1 for normal text and 3:1 for large text.
+        correct: true
+      - text: 3:1 for normal text and 4.5:1 for large text.
+      - text: 5:1 for both normal and large text.
+      - text: 7:1 for normal text and 5:1 for large text.
+    - prompt: Why should a developer not rely solely on an automated accessibility scanner to declare
+        a page accessible?
+      explanation: Automated tools are good at objective checks like contrast and missing attributes,
+        but they cannot judge logical focus sequence or whether alternative text truly conveys the image’s
+        purpose, which needs human review.
+      options:
+      - text: Because scanners can detect every WCAG 2.2 AA criterion, including focus order and meaningful
+          alt text.
+      - text: Because scanners reliably catch contrast, missing alt text, and missing names but cannot
+          assess focus order or the meaningfulness of alt text.
+        correct: true
+      - text: Because scanners require a mouse to be plugged in to function correctly.
+      - text: Because scanners only work with Chrome DevTools and not with Firefox or Safari.
+    interview:
+    - question: Explain why integrating accessibility considerations into the markup phase, rather than
+        treating them as a later audit, reduces overall development cost.
+      answer_md: When accessibility is addressed while writing HTML, the semantic elements already provide
+        correct roles, names, and keyboard behavior for free, so little extra work is needed. If you wait
+        until after the structure is set, you must retrofit attributes, tabindex, and ARIA, which often
+        requires changing already‑hardened DOM decisions and can introduce bugs. Early integration also
+        catches problems like missing labels or focus order before CSS and JavaScript are layered on,
+        reducing rework and testing effort. Consequently, the defect count is lower and the effort to
+        fix issues is far less than a post‑hoc audit.
+      difficulty: medium
+    - question: Describe how you would make a custom composite widget (like a tab panel) keyboard‑operable
+        using tabindex and focus management, including when to use tabindex='0' and tabindex='-1'.
+      answer_md: Place each tab in the natural tab order by giving it tabindex='0' so users can reach
+        them with Tab. When a tab is selected, use script to move focus to the associated panel, which
+        you keep out of the tab order with tabindex='-1' until it becomes visible. Inside the panel, manage
+        focus with arrow keys or Tab as appropriate, and when the panel hides, return focus to the triggering
+        tab. This approach ensures that keyboard users can navigate the widget predictably without getting
+        trapped.
+      difficulty: medium
+    - question: Summarize the five rules of ARIA and explain why the first rule—preferring native elements—is
+        considered the most important.
+      answer_md: 'The five rules are: 1) prefer a native element over ARIA; 2) do not change native semantics;
+        3) every ARIA control must be keyboard‑operable; 4) do not apply role=''presentation'' or aria-hidden=''true''
+        to a focusable element; 5) every interactive element needs an accessible name. The first rule
+        is most important because native HTML elements already have the correct role, name, states, and
+        built‑in keyboard behavior; using them avoids the risk of breaking behavior and reduces the amount
+        of ARIA you need to write and test.'
+      difficulty: medium
+  frontend-advanced-frontend:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:55:11Z'
+    quiz:
+    - prompt: What is the recommended approach for migrating from legacy code in a large frontend project?
+      explanation: The strangler pattern is recommended for migrating from legacy code, where one subtree
+        of the app is routed to the new implementation and migrated slice by slice. A big-bang rewrite
+        fails because it chases a moving target.
+      options:
+      - text: Big-bang rewrite
+      - text: Strangler pattern with route splitting
+        correct: true
+      - text: Feature flags without trunk-based development
+      - text: Complete reimplementation of the old system
+    - prompt: What is the primary benefit of using workspaces in a monorepo setup?
+      explanation: Workspaces enable atomic cross-package changes, but they can increase CI time if not
+        properly optimized.
+      options:
+      - text: Reducing dependencies between packages
+      - text: Enabling atomic cross-package changes and builds
+        correct: true
+      - text: Increasing CI time by rebuilding everything on every change
+      - text: Improving performance of individual applications
+    - prompt: In the context of micro-frontends, which scenario is an appropriate use case?
+      explanation: Micro-frontends are beneficial for independently staffed teams with separate release
+        trains, addressing an organizational constraint.
+      options:
+      - text: A single team working on a monolithic application
+      - text: Independent teams with separate release trains and organizational boundaries
+        correct: true
+      - text: Teams sharing the same codebase without any organizational changes
+      - text: Developing a new feature that requires minimal changes to existing code
+    - prompt: What is the main disadvantage of using a monorepo without task caching?
+      explanation: Without task caching, the monorepo setup can suffer from increased CI times as every
+        change rebuilds everything.
+      options:
+      - text: Increased build time and CI overhead
+        correct: true
+      - text: Reduced dependency between packages
+      - text: Improved performance of individual applications
+      - text: Better code organization
+    - prompt: Which approach is recommended for large-scale frontend migrations?
+      explanation: The strangler pattern, paired with codemods, is recommended for large-scale migrations
+        as it allows gradual adoption.
+      options:
+      - text: Big-bang rewrites to ensure consistency
+      - text: Codemods and a strangler pattern to route traffic gradually
+        correct: true
+      - text: Implementing micro-frontends immediately across the application
+      - text: Rebuilding the entire codebase from scratch
+    interview:
+    - question: Explain how you would use a monorepo with workspaces and task graphs in a large frontend
+        project.
+      answer_md: In a large frontend project, using a monorepo with workspaces can simplify dependency
+        resolution across packages. However, the primary challenge is managing CI time, which can be addressed
+        by implementing a task graph that hashes inputs and reuses outputs locally and shared across the
+        team and CI. This allows for faster builds when changes have been made to dependencies.
+      difficulty: medium
+    - question: Discuss the trade-offs between micro-frontends and a modular monolith with enforced boundaries.
+      answer_md: Micro-frontends are useful in scenarios where teams need to deploy independently of each
+        other, but they come with costs such as duplicated framework runtimes, version skew, cross-application
+        state management issues, and performance challenges. A modular monolith with enforced boundaries
+        can be more maintainable and easier to reason about, especially if the organisational constraints
+        that micro-frontends address are not present.
+      difficulty: hard
+    - question: How would you handle a large legacy codebase using the strangler pattern?
+      answer_md: The strangler pattern involves routing one subtree of the application to the new implementation,
+        running old and new versions side by side, migrating slices incrementally, and deleting the old
+        path once it is no longer used. This approach allows for controlled migration without disrupting
+        ongoing development. Codemods can be used to automate mechanical portions of the migration.
+      difficulty: hard
   frontend-agents:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:31:47Z'
@@ -197,6 +356,200 @@ concepts:
         can significantly improve performance and reduce memory usage. The direct manipulation also simplifies
         the development process as developers don't need to worry about managing a separate virtual DOM.
       difficulty: hard
+  frontend-async-javascript:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:50:21Z'
+    quiz:
+    - prompt: What is the correct order of execution for the following code snippet?
+      explanation: The correct order is A, B, C, D. `console.log('A')` runs first as a task, then the
+        microtask queue is drained, running `Promise.resolve().then(() => console.log('C'))`. Next, `callback()`
+        (which could be anything) runs and finally `setTimeout(() => console.log('D'), 0)` runs after
+        all pending microtasks.
+      options:
+      - text: console.log('A'); setTimeout(() => console.log('D'), 0); Promise.resolve().then(() => console.log('C'));
+          callback();
+      - text: callback(); console.log('A'); Promise.resolve().then(() => console.log('C')); setTimeout(()
+          => console.log('D'), 0);
+      - text: console.log('A'); callback(); Promise.resolve().then(() => console.log('C')); setTimeout(()
+          => console.log('D'), 0);
+      - text: console.log('A'); Promise.resolve().then(() => console.log('C')); callback(); setTimeout(()
+          => console.log('D'), 0)
+        correct: true
+    - prompt: What is the purpose of using `Promise.race` in asynchronous programming?
+      explanation: The purpose of `Promise.race` is to settle with the first promise that settles, whether
+        it's fulfilled or rejected. This allows for early termination and handling of the first result.
+      options:
+      - text: To run multiple promises concurrently and wait for all of them to resolve before proceeding.
+      - text: To execute a promise only after a specified timeout, even if it hasn't resolved yet.
+      - text: To handle partial failures by resolving with the status and value-or-reason of each input
+          promise.
+      - text: To settle with the first promise that settles in either direction (fulfilled or rejected),
+          allowing for early termination.
+        correct: true
+    - prompt: What is the expected output of this code snippet?
+      explanation: The correct order is A B C D because the console.log statements are synchronous, followed
+        by the microtask Promise.then call, and then the setTimeout callback.
+      options:
+      - text: A B C D
+        correct: true
+      - text: A D B C
+      - text: D A B C
+      - text: C B A D
+    interview:
+    - question: Explain how you would refactor a search box to ensure that stale responses are aborted
+        when new keystrokes arrive.
+      answer_md: To refactor a search box so that stale requests are aborted and only the most recent
+        request is processed, I would use an `AbortController` for each search query. When a user types
+        in the search box, I would create a new controller and pass it to the `fetch` call. If another
+        keystroke arrives before the current request completes, I would abort the previous request using
+        the old controller's signal. This ensures that only one request is active at any time, preventing
+        stale responses from overwriting fresh results.
+      difficulty: hard
+    - question: Why does `setTimeout(fn, 0)` not run immediately or before an already-queued `.then` callback?
+      answer_md: '`setTimeout(fn, 0)` schedules the function to be executed after all currently executing
+        tasks and microtasks have completed. The event loop first runs any pending tasks (like a `Promise.then`),
+        then drains the microtask queue. Therefore, `setTimeout(fn, 0)` cannot run immediately or before
+        an already-queued `.then` callback because it must wait for the current task to complete.'
+      difficulty: hard
+    - question: Describe how you would use `Promise.allSettled` in a scenario where partial failure is
+        acceptable but full success is not.
+      answer_md: '`Promise.allSettled` can be used when you need to know the status of all promises, even
+        if some fail. In a scenario where partial failure is acceptable but full success is not, `Promise.allSettled`
+        would be useful because it returns an array of objects with each promise''s status and value or
+        reason. You could then check for any rejections and handle them appropriately without the entire
+        operation being marked as failed.'
+      difficulty: medium
+  frontend-auth-strategies:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:54:08Z'
+    quiz:
+    - prompt: Which of the following is true regarding JWTs in a browser environment?
+      explanation: JWTs use base64url encoding for their payload, which means anyone holding the token
+        can read it. Therefore, no secret information should be included in JWT payloads.
+      options:
+      - text: JWTs are encrypted to prevent attackers from reading their contents.
+      - text: JWTs can be un-issued after they have been issued, making them revocable.
+      - text: JWT payloads should never contain any secret information as they are base64url encoded.
+        correct: true
+      - text: JWTs are preferred over server sessions because they do not require a database lookup.
+    - prompt: What is a critical security attribute to set on cookies to prevent them from being accessed
+        by JavaScript?
+      explanation: The HttpOnly attribute hides the cookie value from JavaScript, preventing it from being
+        read via `document.cookie`.
+      options:
+      - text: HttpOnly
+        correct: true
+      - text: Secure
+      - text: SameSite=Lax
+      - text: Domain
+    - prompt: Which OAuth flow is recommended for use in a browser environment?
+      explanation: The Authorization Code Flow with PKCE is recommended because it provides better security
+        by using a code verifier and challenge.
+      options:
+      - text: Implicit Flow
+      - text: Authorization Code Flow with PKCE
+        correct: true
+      - text: Client Credentials Grant
+      - text: Resource Owner Password Credentials Grant
+    - prompt: What is the main risk of storing an access token in `localStorage`?
+      explanation: Storing an access token in `localStorage` allows any script on the origin, including
+        dependencies or tag managers, to read it, posing a security risk.
+      options:
+      - text: It can be accessed by any script on the origin, including dependencies.
+        correct: true
+      - text: It requires additional server-side state to manage.
+      - text: It cannot be used with CSRF protection.
+      - text: It is not compatible with OAuth 2.0 flows.
+    - prompt: Why is it important to use `state` and `nonce` parameters in OAuth flows?
+      explanation: The `state` parameter binds the response to the original request, preventing CSRF attacks.
+        The `nonce` parameter ensures that the ID token is bound to the specific request.
+      options:
+      - text: To prevent CSRF attacks by binding the response to the original request.
+        correct: true
+      - text: To ensure that the user's password is not stored on the server.
+      - text: To encrypt the communication between the client and the authorization server.
+      - text: To provide a mechanism for revoking access tokens.
+    interview:
+    - question: Explain why storing an access token in `localStorage` is a poor default for browser-based
+        applications.
+      answer_md: Storing an access token in `localStorage` is a poor default because any script on the
+        origin, including dependencies or tag managers, can read it. This poses a significant security
+        risk as attackers could use this information to impersonate the user. An `HttpOnly` cookie with
+        appropriate attributes (such as `Secure`, `SameSite=Lax`, and no `Domain`) is generally considered
+        stronger because it hides the token from JavaScript and restricts its usage.
+      difficulty: hard
+    - question: Describe the implications of using a short-lived access token and a long-lived refresh
+        token in the context of browser-based authentication.
+      answer_md: Using a short-lived access token and a long-lived refresh token is a common strategy
+        to balance security and usability. The short-lived access token ensures that even if an attacker
+        gains possession of it, they cannot use it for long. The longer-lived refresh token can be tracked
+        server-side, allowing the server to invalidate the family of tokens when necessary. This approach
+        avoids the need for un-issuance of JWTs, which is not possible once issued.
+      difficulty: medium
+    - question: How does the `BroadcastChannel` or `storage` event help in managing session state across
+        multiple browser tabs?
+      answer_md: The `BroadcastChannel` or `storage` event can be used to notify other tabs that a user
+        has logged out. When a tab logs out, it can broadcast this information through a `BroadcastChannel`,
+        and other tabs listening for the channel will receive the notification and clear their local state.
+        This ensures that even if one tab is still showing a signed-in state, all other tabs are aware
+        of the logout event.
+      difficulty: hard
+  frontend-css:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:46:34Z'
+    quiz:
+    - prompt: Which of the following correctly describes the order in which CSS declarations are resolved
+        according to the cascade algorithm?
+      explanation: The correct order is origin and importance, cascade layers, specificity, and then order
+        of appearance. This ensures that the most important and specific rules are applied last.
+      options:
+      - text: Origin and importance, Cascade layers, Specificity, Order of appearance
+        correct: true
+      - text: Order of appearance, Origin and importance, Cascade layers, Specificity
+      - text: Specificity, Order of appearance, Origin and importance, Cascade layers
+      - text: Cascade layers, Specificity, Order of appearance, Origin and importance
+    - prompt: In CSS, which of these selectors would have higher specificity?
+      explanation: 'The selector with the highest specificity is #uniqueID .class1.class2, as it includes
+        an ID and two classes. :is(.card) .title has a class and pseudo-class which sum to (0,1,1), while
+        div > span has no IDs or elements.'
+      options:
+      - text: :is(.card) .title
+      - text: '#uniqueID .class1.class2'
+        correct: true
+      - text: .class1 .class2
+      - text: div > span
+    - prompt: Which of the following is true about custom properties in CSS?
+      explanation: Custom properties can be redefined within a component's subtree, allowing for more
+        specific overrides. This is useful for component-based styling.
+      options:
+      - text: Custom properties are not inherited by default
+      - text: Custom properties can be redefined within a component's subtree
+        correct: true
+      - text: Custom properties cannot be overridden by other selectors
+      - text: Custom properties only apply to inline elements
+    interview:
+    - question: Explain how the cascade algorithm works in CSS and why it's important to understand this
+        process.
+      answer_md: The cascade algorithm in CSS is a resolution mechanism that combines multiple declarations
+        for each property of an element. It starts with origin and importance, then considers cascade
+        layers, specificity, and finally order of appearance. Understanding this process helps avoid trial-and-error
+        debugging and allows developers to predict which rules will be applied, making it easier to manage
+        complex stylesheets.
+      difficulty: hard
+    - question: How can you ensure that a rule with `!important` is not overridden by another developer's
+        more specific `!important` declaration?
+      answer_md: To avoid being overridden by more specific `!important` declarations, one should use
+        CSS layers. By declaring rules in different `@layer` blocks and ordering them correctly, you can
+        control the cascade without relying on `!important`. This approach also helps maintain a clean
+        architecture.
+      difficulty: hard
+    - question: Describe a situation where margin collapsing could cause unexpected layout issues in your
+        design. How would you resolve it?
+      answer_md: 'Margin collapsing can cause unexpected layout issues when adjacent elements have overlapping
+        margins, especially between parent and child elements or siblings. To resolve this, one should
+        use the `overflow: hidden` property on a parent element to prevent margin collapse through the
+        parent. Alternatively, adding padding or borders can also help maintain desired spacing.'
+      difficulty: hard
   frontend-css-frameworks:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:28:16Z'
@@ -253,6 +606,147 @@ concepts:
       answer_md: Vue.js is known for its ease of use, flexibility, and speed. It can be added to projects
         bit by bit, making it a good choice for developers who want to gradually adopt a framework without
         a full rewrite. Additionally, its component-based architecture allows for organized code.
+      difficulty: hard
+  frontend-css-layout:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:47:40Z'
+    quiz:
+    - prompt: When would you choose to use flexbox over grid for a layout?
+      explanation: Flexbox is used for distributing items along one axis based on content size. Grid is
+        better suited for creating a two-dimensional structure that exists regardless of content, such
+        as a page skeleton or a grid layout where each item's width should follow its label.
+      options:
+      - text: For creating a responsive row of buttons where each button's width should follow its label.
+      - text: For arranging items in a two-dimensional structure that exists regardless of content.
+      - text: For distributing items along one axis, where the content should decide their size.
+        correct: true
+      - text: When you need to create a page skeleton with named regions.
+    - prompt: Which of these scenarios would require the use of grid over flexbox?
+      explanation: Grid is used for arranging items in a two-dimensional structure, such as a page skeleton
+        or a layout with multiple rows and columns that need to align. Flexbox is better suited for distributing
+        items along one axis based on content size.
+      options:
+      - text: Creating a responsive row of buttons where each button's width should follow its label.
+      - text: Arranging items in a two-dimensional structure that exists regardless of content, like a
+          page skeleton.
+        correct: true
+      - text: Distributing items along one axis based on their content size.
+      - text: Building a page layout with multiple rows and columns that need to align across different
+          sections.
+    - prompt: Which of the following is a correct reason to use flexbox over grid for layout?
+      explanation: Flexbox is ideal for distributing items along one axis, allowing content-driven sizing.
+        Grid, on the other hand, is designed for two-dimensional structures with fixed or flexible tracks.
+      options:
+      - text: To create a responsive two-dimensional structure with fixed size tracks
+      - text: When you need to distribute items along one axis based on their content width
+        correct: true
+      - text: For arranging items in a complex nested hierarchy where alignment across rows is required
+      - text: To ensure that all elements have the same minimum width
+    - prompt: What CSS property must be set to `0` to prevent a flex item from shrinking below its minimum
+        content size?
+      explanation: 'A flex item''s min-width computes to auto, so it will not shrink below its minimum
+        content size. Setting `min-width: 0` allows the item to shrink freely.'
+      options:
+      - text: flex-shrink
+      - text: min-width
+        correct: true
+      - text: max-width
+      - text: width
+    - prompt: Which of the following CSS properties is used to define explicit tracks in a grid layout?
+      explanation: The `grid-template-columns` and `-rows` properties are used to define explicit tracks
+        in a grid layout, which can be further adjusted by implicit tracks.
+      options:
+      - text: grid-template-columns
+        correct: true
+      - text: flex-basis
+      - text: justify-content
+      - text: align-items
+    interview:
+    - question: How does the `repeat(auto-fit, ...)` function work in a grid layout?
+      answer_md: The `repeat(auto-fit, ...)` function in CSS Grid creates as many tracks as fit within
+        its container. The `auto` keyword means that it will create as many tracks as possible while respecting
+        the minimum and maximum track sizes specified by the `minmax()` function or other units like `fr`.
+        If there is no space left for additional tracks, any remaining items will be placed in implicit
+        tracks with a size determined by `grid-auto-rows` or `grid-auto-columns`. This ensures that the
+        layout fills up as much space as possible while maintaining a consistent grid structure.
+      difficulty: hard
+    - question: 'What is the difference between using `position: relative` and `position: absolute` in
+        CSS?'
+      answer_md: 'Using `position: relative` offsets an element from its normal position but keeps it
+        in the flow of the document, creating a containing block for absolutely positioned children. On
+        the other hand, `position: absolute` removes an element from the normal flow and positions it
+        relative to the nearest positioned ancestor (or the viewport if no such ancestor exists). This
+        means that with `relative`, you can control the positioning of child elements while keeping the
+        parent''s layout intact, whereas with `absolute`, the element is removed from the document flow
+        and its position is based on a different reference point.'
+      difficulty: hard
+    - question: Explain how to diagnose an overflowing flex container.
+      answer_md: 'An overflowing flex container usually indicates that the total width or height of its
+        items exceeds the available space. This can happen due to several reasons, such as setting `min-width`
+        on each item without allowing them to shrink (`flex-shrink: 0`). To diagnose this issue, check
+        if any item has a non-zero `min-width`, and ensure that there is no fixed width set that might
+        cause overflow. Adding `min-width: 0` can help the items shrink beyond their content minimum size.'
+      difficulty: medium
+  frontend-data-fetching:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:53:01Z'
+    quiz:
+    - prompt: Which of the following is a state that real UIs need beyond the textbook set (idle, loading,
+        error, success)?
+      explanation: Real UIs also need a state called 'partial', where part of the data is loaded but not
+        all. This state helps in managing partial loading scenarios.
+      options:
+      - text: partial
+        correct: true
+      - text: race condition
+      - text: waterfall
+      - text: optimistic update
+    - prompt: What is the main issue with hand-rolled fetching like `useEffect(() => { fetch(url).then(setData)
+        }, [url])`?
+      explanation: Hand-rolled fetching can lead to race conditions and multiple requests for the same
+        data, which is a common issue that query libraries address.
+      options:
+      - text: It can lead to race conditions and multiple requests for the same data.
+        correct: true
+      - text: It automatically caches responses, leading to stale data issues.
+      - text: It does not support optimistic updates.
+      - text: It requires manual implementation of deduplication.
+    - prompt: What does the `queryKey` in a query library like TanStack Query represent?
+      explanation: A `queryKey` is a unique identifier for the request that ensures deduplication and
+        sharing of cache entries between components.
+      options:
+      - text: A unique identifier for the request, ensuring deduplication.
+        correct: true
+      - text: The URL of the API endpoint being fetched.
+      - text: The type of data being fetched (e.g., invoice, user).
+      - text: The function used to fetch the data.
+    interview:
+    - question: Explain the difference between `staleTime` and `garbageCollectionTime` in query caching.
+      answer_md: 'In query caching, `staleTime` refers to how long a cached value is considered fresh
+        before it needs to be refetched. For example, if you set `staleTime: 60000`, the cache will consider
+        data valid for one minute after the last fetch. On the other hand, `garbageCollectionTime` defines
+        how long an unused entry in the cache remains before being evicted. This means that even if a
+        query is not used for some time, it won''t be removed from the cache until this period has passed.
+        Misconfiguring these two can lead to stale data or unnecessary refetches.'
+      difficulty: medium
+    - question: Describe how optimistic updates work in the context of a UI update and what precautions
+        should be taken to ensure they are handled correctly.
+      answer_md: Optimistic updates involve writing the expected result into the cache immediately, even
+        before the actual server response is received. This can provide an immediate positive user experience,
+        such as showing a save confirmation message. However, it's crucial to have a rollback path in
+        case of failure. The UI should snapshot the previous state and revert to it if the optimistic
+        update fails. This ensures that the application remains consistent and doesn't show incorrect
+        or conflicting states.
+      difficulty: hard
+    - question: How would you handle loading UX for a list screen with multiple async states (idle, loading,
+        error, success, empty, stale, refetching)?
+      answer_md: For a list screen, each state should be handled appropriately. For example, when the
+        component is idle or has an error, show a relevant message or spinner. When data is being fetched
+        (`loading`), avoid showing a full-page spinner and instead use skeletons that occupy the final
+        layout to prevent layout shifts. If the response indicates no results (empty), display 'no results'
+        without showing a loading state. For stale data, you might want to visually indicate this with
+        a slight animation or tooltip. Refetching should be handled silently in the background to avoid
+        user confusion.
       difficulty: hard
   frontend-deployment:
     generated_by: qwen2.5:7b
@@ -424,6 +918,197 @@ concepts:
         custom rendering engines, making it ideal for developers who want consistent UI across multiple
         platforms.
       difficulty: hard
+  frontend-devtools-debugging:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:50:52Z'
+    quiz:
+    - prompt: When debugging an issue that only occurs on slow connections, which DevTools feature should
+        you use to simulate network throttling?
+      explanation: The Network panel's Throttle option simulates slow connections, allowing you to test
+        how your application behaves under network constraints.
+      options:
+      - text: The Console panel
+      - text: The Network panel's Throttle option
+        correct: true
+      - text: The Performance panel
+      - text: The Memory panel
+    - prompt: Which DevTools feature would help identify which function is holding the main thread for
+        a long period of time?
+      explanation: The Performance panel’s flame chart shows the call stack and task durations, making
+        it easy to identify which function is holding up the main thread.
+      options:
+      - text: The Elements panel
+      - text: The Performance panel's flame chart
+        correct: true
+      - text: The Sources panel
+      - text: The Console panel
+    - prompt: Which DevTools feature would you use to inspect changes to DOM elements and find out which
+        code is modifying them?
+      explanation: The Elements panel allows you to set DOM breakpoints, which pause execution when a
+        subtree or attribute changes, helping you find out which code is modifying the elements.
+      options:
+      - text: The Elements panel
+        correct: true
+      - text: The Console panel
+      - text: The Network panel
+      - text: The Sources panel
+    interview:
+    - question: Can you explain how the bisect method works in debugging?
+      answer_md: The bisect method involves halving the surface area of a problem space with each step.
+        For example, if you have a complex application and suspect that a bug is introduced by recent
+        changes, you can use `git bisect` to automatically narrow down the commit range where the issue
+        was introduced. By repeatedly dividing the codebase or change history in half, you can efficiently
+        pinpoint the exact cause of the problem.
+      difficulty: hard
+    - question: What are some common mistakes developers make when using DevTools for debugging, and how
+        can they be avoided?
+      answer_md: Common mistakes include relying on `console.log` extensively instead of setting up conditional
+        breakpoints, not shipping source maps, testing only in fast network environments, blaming the
+        framework without checking the Network panel first, and fixing symptoms rather than reproducing
+        the issue. To avoid these, developers should use DevTools features like the Performance panel,
+        ship source maps, test on various devices and networks, and focus on reproducing the issue before
+        making changes.
+      difficulty: hard
+    - question: How can you effectively use the Network panel to diagnose performance issues in a web
+        application?
+      answer_md: The Network panel is crucial for diagnosing performance issues. You should first disable
+        caching and throttle network requests to simulate real-world conditions. By examining the waterfall
+        diagram, you can identify which requests are taking longer than expected or being blocked by others.
+        The Timing breakdown provides insights into where time is spent (e.g., DNS resolution, server
+        response). Additionally, using the Initiator column helps trace back to the source of each request,
+        allowing you to optimize critical assets and reduce unnecessary network calls.
+      difficulty: hard
+  frontend-dom-events:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:49:09Z'
+    quiz:
+    - prompt: Which method should you use to safely inject user-generated content into the DOM without
+        risking XSS attacks?
+      explanation: textContent writes a text node, ensuring that any markup in the string is treated as
+        literal characters and not executed.
+      options:
+      - text: innerHTML
+      - text: textContent
+        correct: true
+      - text: innerText
+      - text: innerTextContent
+    - prompt: Which of these statements about event delegation is true?
+      explanation: Event delegation allows a single listener to handle multiple elements, making it more
+        efficient in terms of memory and setup time. It can also handle dynamically added elements automatically.
+      options:
+      - text: It requires adding multiple listeners to each element.
+      - text: It can handle dynamically added elements automatically.
+        correct: true
+      - text: It only works with mouse events, not keyboard or touch events.
+      - text: It increases memory usage and setup time.
+    - prompt: What is the correct way to prevent both the default action and stop propagation for an event?
+      explanation: Both `preventDefault()` and `stopPropagation()` need to be called separately. `stopImmediatePropagation()`
+        stops the current handler from running but does not stop propagation.
+      options:
+      - text: event.preventDefault(); event.stopPropagation();
+        correct: true
+      - text: event.stopImmediatePropagation();
+      - text: event.preventDefault();
+      - text: event.stopPropagation();
+    - prompt: Which of these is a good practice when dealing with layout-dependent properties in loops?
+      explanation: Batching reads and writes of layout-dependent properties is a good practice to avoid
+        forced synchronous layouts, which can cause jank. Reading such properties inside a loop without
+        batching will lead to performance issues.
+      options:
+      - text: Reading and writing layout-dependent properties inside a loop without batching.
+      - text: Batching reads and writes of layout-dependent properties to avoid forced synchronous layouts.
+        correct: true
+      - text: Using `getComputedStyle()` for every element in the loop.
+      - text: Reading `offsetHeight` or similar properties multiple times within a single loop.
+    - prompt: What is the purpose of using `DocumentFragment` when inserting many nodes?
+      explanation: Using `DocumentFragment` allows you to build nodes into a single object that can be
+        appended to the document tree in one operation, reducing the number of times the tree is touched
+        and optimizing performance.
+      options:
+      - text: To improve memory usage by creating multiple DOM trees.
+      - text: To reduce the number of times the tree is touched, optimizing performance.
+        correct: true
+      - text: To increase the complexity of the DOM structure for better styling.
+      - text: To make it easier to add and remove elements dynamically.
+    interview:
+    - question: Explain why using `offsetHeight` inside a loop that also writes styles can cause layout
+        thrashing.
+      answer_md: Using `offsetHeight` inside a loop that also writes styles can cause layout thrashing
+        because it forces the browser to flush any pending style changes and compute layout right now.
+        This is a forced synchronous layout, which can be expensive if done repeatedly within a loop.
+        It's better to batch these reads and writes together to avoid forcing multiple layouts.
+      difficulty: hard
+    - question: How does event delegation work in the context of handling dynamically added elements?
+      answer_md: Event delegation works by attaching a single listener to a parent element that can handle
+        events for all its child nodes, including those that are added or removed later. This is done
+        using `event.target.closest(
+      difficulty: medium
+    - question: 'What are the implications of passing `{ passive: true }` when adding event listeners
+        for scroll, wheel, and touch events?'
+      answer_md: 'Passing `{ passive: true }` to `addEventListener` for scroll, wheel, and touch events
+        tells the browser that you will not call `preventDefault()`. This allows the compositor to run
+        more efficiently because it does not need to wait to see whether you will prevent the default
+        action. However, this can also mean that some event handlers might not be able to cancel the default
+        behavior if needed.'
+      difficulty: medium
+  frontend-forms-and-validation:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:53:33Z'
+    quiz:
+    - prompt: When should you validate form fields on a signup page?
+      explanation: Validating only on every keystroke can be overwhelming for users. The recommended approach
+        is to validate on blur, validate everything on submit, and re-validate on change after a failed
+        submit.
+      options:
+      - text: On every keystroke to give instant feedback
+      - text: Only on submit and after a failed attempt to re-validate on change
+        correct: true
+      - text: Both A and B are correct
+      - text: Immediately when the user starts typing
+    - prompt: What is the purpose of using `setCustomValidity(message)` in form validation?
+      explanation: '`setCustomValidity(message)` marks a field as invalid with custom text and blocks
+        native submission until cleared, providing more control over error messages.'
+      options:
+      - text: To mark a field as invalid with custom text and prevent native submission
+        correct: true
+      - text: To enable browser autofill for all fields
+      - text: To set the default value of an input field
+      - text: To automatically submit the form if validation fails
+    - prompt: What is the difference between controlled and uncontrolled inputs in form handling?
+      explanation: Controlled inputs have their value in framework state and update it with `onChange`,
+        while uncontrolled inputs read their value from the DOM on submit. This distinction affects re-render
+        costs.
+      options:
+      - text: Controlled inputs have their value in framework state and are updated with `onChange`, while
+          uncontrolled inputs read their value from the DOM
+        correct: true
+      - text: Uncontrolled inputs use `useState` to manage input values, while controlled inputs rely
+          on native input events
+      - text: Controlled inputs are always faster than uncontrolled inputs
+      - text: There is no difference; both terms refer to the same concept
+    - prompt: Why is it important to use schema validation both client-side and server-side?
+      explanation: Client-side validation enhances UX by providing immediate feedback, while server-side
+        validation acts as a security boundary to prevent malicious submissions.
+      options:
+      - text: To ensure consistent data format across the application
+      - text: Client-side validation improves user experience, while server-side validation ensures security
+        correct: true
+      - text: Server-side validation alone is sufficient for security
+      - text: Client-side validation is only necessary for performance
+    interview:
+    - question: Can you explain the difference between controlled and uncontrolled inputs in React forms?
+      answer_md: Controlled inputs have their value managed by React state or props, with an `onChange`
+        handler that updates this state. Uncontrolled inputs use native DOM properties to manage their
+        values, which are read on submit via a ref or `FormData`. Controlled inputs re-render more frequently
+        due to every keystroke update, while uncontrolled inputs only update on form submission.
+      difficulty: medium
+    - question: What are some common mistakes people make when implementing form validation, and how can
+        they be avoided?
+      answer_md: Common mistakes include validating only on the client side, using placeholders as labels,
+        and wiping the whole form after a server error. To avoid these issues, always validate on both
+        sides (client and server), use proper labels for accessibility, and persist multi-step form data
+        to prevent loss of input.
+      difficulty: hard
   frontend-graphql:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:43:05Z'
@@ -482,6 +1167,61 @@ concepts:
       answer_md: Apollo Server includes tools for schema management, performance monitoring, and developer
         tooling. These features help in creating robust and performant GraphQL APIs with better development
         experience.
+      difficulty: hard
+  frontend-html:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:45:10Z'
+    quiz:
+    - prompt: What happens when you use an `<h3>` tag inappropriately, such as to control the font size?
+      explanation: Using `<h3>` for font size control disrupts the document outline, making it harder
+        for screen readers and keyboard navigation. It should be used only for headings.
+      options:
+      - text: It creates a new section with a heading level 3.
+      - text: The browser ignores it and does not render anything.
+      - text: It disrupts the document outline and can cause accessibility issues.
+        correct: true
+      - text: It automatically converts to an `<h1>` tag.
+    - prompt: Which of these is a correct way to use an image in HTML?
+      explanation: The correct use of `alt` is to provide a meaningful description. An empty `alt` attribute
+        (`alt=''`) should be used for decorative images.
+      options:
+      - text: <img src='logo.png' alt=''>
+      - text: <img src='logo.png' alt='Logo'>
+        correct: true
+      - text: <img src='logo.png' alt='A decorative logo'>
+      - text: <img src='logo.png' alt='A red, circular logo'>
+    - prompt: Why might using `<div>` elements extensively throughout your HTML structure lead to problems?
+      explanation: Using `<div>` elements extensively without semantic meaning can lead to a lack of landmarks
+        and headings, making navigation difficult for screen readers and keyboard users.
+      options:
+      - text: It can cause issues with the document outline and landmarks.
+        correct: true
+      - text: It increases the file size of your HTML pages.
+      - text: It makes it harder to style with CSS.
+      - text: It prevents JavaScript from functioning properly.
+    interview:
+    - question: Explain why it's important to use semantic HTML elements like `<header>`, `<nav>`, and
+        `<main>` instead of just using `<div>` tags.
+      answer_md: Using semantic HTML elements is crucial because they provide meaningful structure that
+        can be understood by screen readers, assistive technologies, and the browser. For example, a `<header>`
+        element tells a screen reader that this section contains introductory or navigational information,
+        which helps users navigate the page more effectively.
+      difficulty: medium
+    - question: How does the HTML parser handle errors in your markup to ensure consistent rendering across
+        browsers?
+      answer_md: The HTML parser is designed to be fully specified and robust against errors. It tokenizes
+        the input, constructs a DOM tree according to insertion-mode rules, and ensures that even broken
+        or malformed markup is parsed consistently by all browsers. This means that while you might not
+        get exactly what you typed, the browser will still build a usable document structure.
+      difficulty: hard
+    - question: Discuss the implications of using `<div>` for everything in your HTML structure and how
+        it affects accessibility and keyboard navigation.
+      answer_md: Using `<div>` for everything can lead to a lack of semantic meaning, making it difficult
+        for screen readers and assistive technologies to understand the document's structure. This can
+        result in poor navigation experiences for users who rely on these tools. Additionally, keyboard
+        navigation might be less intuitive because there are no landmarks or headings that provide context.
+        It’s important to use appropriate semantic elements like `<header>`, `<nav>`, and `<main>` to
+        ensure a better user experience.
       difficulty: hard
   frontend-implementing-ai:
     generated_by: qwen2.5:7b
@@ -1052,6 +1792,77 @@ concepts:
         options, for its extremely fast performance. This makes it ideal for development environments
         where speed is prioritized over fine-grained control.
       difficulty: hard
+  frontend-package-managers:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:51:26Z'
+    quiz:
+    - prompt: Which of the following is a reason why pnpm's layout prevents phantom dependencies?
+      explanation: Pnpm's layout uses symlinks for declared dependencies only, preventing phantom dependencies
+        from being created when a version bump changes the hoisting.
+      options:
+      - text: It uses symlinks for declared dependencies only.
+      - text: It stores packages in a content-addressed store and hard-links them into node_modules/.pnpm.
+        correct: true
+      - text: It does not support hoisting at all.
+      - text: It requires explicit declaration of every dependency.
+    - prompt: What is the primary purpose of committing a lockfile in your repository?
+      explanation: Committing a lockfile ensures that CI runs exactly the same as local development, preventing
+        differences in resolved versions due to npm's resolution algorithm.
+      options:
+      - text: To ensure that CI runs exactly the same as local development.
+        correct: true
+      - text: To allow for different npm versions to be used during development and production.
+      - text: To store the package.json file with version numbers.
+      - text: To keep track of which packages were installed by users.
+    - prompt: Which of the following is NOT a recommended practice for managing dependencies?
+      explanation: Running `npm install` in CI can lead to different resolutions and rewrite the lockfile,
+        whereas `npm ci` ensures reproducibility by installing exactly what is specified in the lockfile.
+      options:
+      - text: Using caret ranges like ^1.2.3.
+      - text: Running `npm install` in CI instead of `npm ci`.
+        correct: true
+      - text: Committing the lockfile to version control.
+      - text: Checking the date of the last release before adding a new dependency.
+    - prompt: What is a potential risk of using caret ranges like ^1.2.3 for dependencies?
+      explanation: Caret ranges like ^1.2.3 allow anything below `2.0.0`, which can include breaking changes
+        within minor versions, as semver is a promise made by humans and not a guarantee.
+      options:
+      - text: It may allow breaking changes within minor versions.
+        correct: true
+      - text: It guarantees that only exact version numbers will be installed.
+      - text: It restricts the range too tightly, preventing any updates.
+      - text: It ensures compatibility with all Node.js versions.
+    - prompt: Which of the following practices helps mitigate supply-chain risk?
+      explanation: Committing the lockfile to version control helps mitigate supply-chain risk by ensuring
+        that CI runs exactly the same as local development, preventing differences in resolved versions
+        due to npm's resolution algorithm.
+      options:
+      - text: Using wildcard ranges like * for dependencies.
+      - text: Adding `--ignore-scripts` to your npm install command.
+      - text: Committing the lockfile to version control.
+        correct: true
+      - text: Running `npm install` in CI instead of `npm ci`.
+    interview:
+    - question: Explain why committing a lockfile is crucial for reproducibility in your CI pipeline.
+      answer_md: Committing a lockfile ensures that the exact versions of all dependencies are recorded
+        and can be installed consistently across different environments. This prevents discrepancies between
+        local development and CI builds, ensuring that the same codebase is tested and deployed.
+      difficulty: medium
+    - question: How does pnpm's layout prevent phantom dependencies, and what are the implications of
+        this for dependency management?
+      answer_md: Pnpm uses a content-addressed store to store packages and hard-links them into a hidden
+        `node_modules/.pnpm` directory. Only declared dependencies are symlinked into `node_modules`,
+        preventing phantom dependencies from being created when version bumps change hoisting behavior.
+        This ensures that undeclared imports fail immediately, leading to more predictable and secure
+        dependency resolution.
+      difficulty: hard
+    - question: Discuss the potential risks of using caret ranges like ^1.2.3 for dependencies in your
+        project.
+      answer_md: Using caret ranges can introduce risks because semver is a promise made by humans, not
+        a guarantee. A patch release that changes a default or fixes a bug you had relied on could break
+        your build within the letter of semver. This highlights the importance of carefully considering
+        dependency versions and understanding the implications of different range types.
+      difficulty: medium
   frontend-performance:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:42:10Z'
@@ -1302,6 +2113,76 @@ concepts:
         maintainability. Additionally, this approach promotes a more organized development process, making
         it simpler to understand and debug complex applications.
       difficulty: medium
+  frontend-responsive-design:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:48:36Z'
+    quiz:
+    - prompt: Which CSS property is used to apply inline-size containment in container queries?
+      explanation: The `container-type` property with the value `inline-size` is used to apply inline-size
+        containment in container queries.
+      options:
+      - text: 'container-type: block-size'
+      - text: 'container-type: inline-size'
+        correct: true
+      - text: 'container-type: block'
+      - text: 'container-type: inline'
+    - prompt: What does the `clamp()` function allow you to do?
+      explanation: The `clamp()` function allows you to create a responsive value that scales but cannot
+        escape its bounds, making it ideal for creating flexible type sizes.
+      options:
+      - text: Set a fixed font size for all screen sizes
+      - text: Create a responsive font size that scales but stays within bounds
+        correct: true
+      - text: Define the exact width of an image in pixels
+      - text: Specify the minimum and maximum values for a media query
+    - prompt: Why is the `<meta name='viewport' content='width=device-width, initial-scale=1'>` tag important
+        in responsive design?
+      explanation: The `<meta name='viewport' content='width=device-width, initial-scale=1'>` tag is crucial
+        because it ensures media queries match correctly on mobile devices by setting the viewport to
+        the device width.
+      options:
+      - text: It ensures media queries match correctly on mobile devices
+        correct: true
+      - text: It sets a fixed width for all screens
+      - text: It enables pinch zooming on mobile devices
+      - text: It hides the address bar on mobile browsers
+    - prompt: What should you do when serving images for responsive design?
+      explanation: When serving images, you should use `srcset` with `w` descriptors and `sizes` attribute
+        to provide different resolutions based on the layout width.
+      options:
+      - text: Use `srcset` with `w` descriptors and `sizes` attribute
+        correct: true
+      - text: Serve all images at full resolution regardless of their size in the layout
+      - text: Avoid using `<picture>` and `<source>` tags altogether
+      - text: Set no intrinsic dimensions to let the browser handle image sizing
+    - prompt: Which of these is a correct way to ensure responsive images do not cause layout shifts?
+      explanation: Adding intrinsic dimensions ensures space is reserved before the image decodes. The
+        other options can cause layout shifts.
+      options:
+      - text: Using <picture> with multiple <source> elements for different image formats
+      - text: Adding 'loading=lazy' to all images, including the largest above-the-fold one
+      - text: Providing intrinsic dimensions (width and height) or an aspect-ratio in CSS
+        correct: true
+      - text: Serving images without width, height, or aspect ratio
+    interview:
+    - question: How can you ensure Cumulative Layout Shift is minimized when using responsive images?
+      answer_md: To minimize Cumulative Layout Shift, always give images intrinsic dimensions with `width`
+        and `height` attributes or an `aspect-ratio` in CSS. This reserves the correct space before the
+        image decodes. Additionally, add `loading='lazy'` to images below the fold, but never to your
+        largest above-the-fold image, which would delay it.
+      difficulty: medium
+    - question: Explain the difference between media queries and container queries in responsive design.
+      answer_md: Media queries are used to apply styles based on device width or screen size, while container
+        queries allow you to target a component's layout based on an ancestor element's size. This makes
+        container queries more suitable for components that need to adapt their layout relative to other
+        elements within the page, rather than just the overall viewport.
+      difficulty: medium
+    - question: How can you ensure responsive images do not cause Cumulative Layout Shift (CLS)?
+      answer_md: To prevent CLS, provide intrinsic dimensions for your images using `width` and `height`
+        attributes or an `aspect-ratio` in CSS. This reserves the correct space before the image decodes,
+        ensuring the layout does not shift as the image loads. Additionally, use 'loading=lazy' on images
+        below the fold to defer their loading until they are needed.
+      difficulty: hard
   frontend-skills:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:33:10Z'
@@ -1503,6 +2384,76 @@ concepts:
       answer_md: Tanstack Start simplifies the process by providing tools and conventions for routing,
         data fetching, and deployment. This allows developers to focus on building features rather than
         configuring infrastructure, streamlining the development workflow for React-based SSR applications.
+      difficulty: hard
+  frontend-state-management:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:52:25Z'
+    quiz:
+    - prompt: What is a key advantage of using the URL for state management?
+      explanation: The URL is a real state store with free persistence and free history, making it useful
+        for bookmarking, sharing or reaching the same state.
+      options:
+      - text: It provides free persistence and history navigation
+        correct: true
+      - text: It allows for complex state transitions
+      - text: It reduces re-renders by memoizing slices
+      - text: It simplifies global state management
+    - prompt: Which of these scenarios would justify using an external state management library like Redux?
+      explanation: External stores like Redux are justified when global state is frequently updated and
+        read by many components.
+      options:
+      - text: When you need to frequently update global state that is read by many components
+        correct: true
+      - text: When you have a simple form with local state in each component
+      - text: When you want to store user preferences for the current session only
+      - text: When you are implementing a multi-step flow like checkout
+    - prompt: Which of these is an example of client UI state?
+      explanation: Client UI state is ephemeral and locally owned. The currently selected tab in a navigation
+        bar can be toggled, but it does not need invalidation or revalidation since it's local to the
+        user interface.
+      options:
+      - text: The currently selected tab in a navigation bar.
+        correct: true
+      - text: A user's profile picture fetched from an API.
+      - text: The list of products returned by a server query.
+      - text: The search filters applied to a product listing.
+    - prompt: Why should URL state be used for filters in a product listing?
+      explanation: URL state allows users to bookmark, share or reach a specific view with the back button.
+        Using URL state for filters ensures that the user can return to their exact search criteria after
+        refreshing or navigating away and coming back.
+      options:
+      - text: To avoid re-rendering components unnecessarily.
+      - text: To ensure the user can bookmark their current view.
+        correct: true
+      - text: To make sure the state is only visible to the component that needs it.
+      - text: To simplify the state management logic.
+    - prompt: What is the primary reason to avoid using local state in React components when a sibling
+        component needs access to it?
+      explanation: Using local state in React components can lead to unnecessary re-renders if a sibling
+        component needs access to it. Lifting state up to a common parent or using context is more efficient
+        and avoids prop drilling.
+      options:
+      - text: It leads to unnecessary re-renders of unrelated components.
+        correct: true
+      - text: It makes debugging more difficult due to global state.
+      - text: It complicates the state management logic unnecessarily.
+      - text: It violates the principle of least privilege.
+    interview:
+    - question: Can you explain the difference between client UI state and form state?
+      answer_md: Client UI state is ephemeral and locally owned, such as a dropdown's open flag or the
+        selected tab. Form state, on the other hand, is draft data with its own lifecycle, like touched,
+        dirty, valid, and submitting. Draft values are not application state until submitted.
+      difficulty: medium
+    - question: Why might you choose to use URL state for certain pieces of information?
+      answer_md: URL state is useful for anything a user should be able to bookmark, share or reach with
+        the back button. It provides free persistence and history navigation, making it ideal for filters,
+        sort order, page number, or the currently open record.
+      difficulty: medium
+    - question: What are some common mistakes developers make when managing state in React applications?
+      answer_md: Common mistakes include putting fetched server data directly into Redux without proper
+        cache invalidation, using global state for a value one component uses, which makes it impossible
+        to unmount cleanly, and keeping filters and pagination in memory, so a refresh or shared link
+        loses them. These practices can lead to stale data, unnecessary re-renders, and user frustration.
       difficulty: hard
   frontend-sveltekit:
     generated_by: qwen2.5:7b

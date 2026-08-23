@@ -1,0 +1,88 @@
+# Production stack: Postgres, the API, and the Next BFF.
+#
+#   cp deploy/.env.production.example deploy/.env
+#   # edit deploy/.env — SECRET_KEY and POSTGRES_PASSWORD must be changed
+#   docker compose -f deploy/compose.prod.yml --env-file deploy/.env up -d --build
+#
+# First boot only, to load content:
+#   docker compose -f deploy/compose.prod.yml run --rm -e SEED_ON_START=true api true
+#
+# Deliberately *not* included: a TLS terminator. Put this behind whatever you
+# already run — Caddy, nginx, a cloud load balancer — and set TRUST_PROXY_HEADERS
+# so rate limiting sees real client addresses rather than the proxy's.
+
+name: skillatlas
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-skillatlas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-skillatlas}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # `pg_isready` alone returns true before recovery finishes; naming the
+      # database makes it a real check.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-skillatlas} -d ${POSTGRES_DB:-skillatlas}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # No published port: only the API needs it, and it reaches it over the
+    # compose network. Exposing 5432 to the host is how databases end up on
+    # the internet.
+    expose:
+      - "5432"
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: ../deploy/Dockerfile.backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      # The production guard in app/config.py refuses to start without a real
+      # key, so a missing value fails loudly here rather than silently shipping
+      # forgeable tokens.
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-skillatlas}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-skillatlas}
+      # Behind the compose network the only caller is the web service, so the
+      # forwarded address is trustworthy.
+      TRUST_PROXY_HEADERS: "true"
+      CORS_ORIGINS: ${CORS_ORIGINS:-["https://localhost"]}
+      RUN_MIGRATIONS: "true"
+      SEED_ON_START: ${SEED_ON_START:-false}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-4}
+      # The tutor degrades to deterministic retrieval when this is unreachable,
+      # so leaving it unset is a supported configuration.
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    expose:
+      - "8000"
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: ../deploy/Dockerfile.frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      # The only variable this app reads. Server-side only: the browser never
+      # sees it, because every call goes through the BFF on this same origin.
+      # Sessions need no secret here — the JWT is minted by the API and the BFF
+      # only stores it in an HttpOnly cookie.
+      API_BASE_URL: http://api:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  postgres_data:

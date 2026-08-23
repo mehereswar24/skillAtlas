@@ -24,6 +24,18 @@ _TMP_DIR = Path(tempfile.mkdtemp(prefix="skillatlas-test-"))
 _TMP_DB = _TMP_DIR / "skillatlas_test.db"
 os.environ["DATABASE_URL"] = f"sqlite:///{_TMP_DB.as_posix()}"
 os.environ["SECRET_KEY"] = "test-secret-key-not-used-anywhere-real"
+# Every request in the suite arrives from the same TestClient address, so the
+# per-client limits would see the whole suite as one abusive caller and 429
+# most of it. The limiter is covered directly in tests/test_production.py,
+# including an end-to-end test that builds an app around the middleware.
+os.environ["RATE_LIMIT_ENABLED"] = "false"
+# Pin the tutor to the local provider. `llm_provider` defaults to "auto", which
+# resolves to OpenRouter whenever OPENROUTER_API_KEY is set — and Settings reads
+# backend/.env, so a developer's real key would silently turn the whole suite
+# into a series of billed network calls, rate-limited and non-deterministic.
+# "ollama" is what the suite exercised before the hosted provider existed: it is
+# either running locally, or unreachable and the retrieval-only fallback answers.
+os.environ["LLM_PROVIDER"] = "ollama"
 
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402

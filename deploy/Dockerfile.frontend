@@ -1,0 +1,75 @@
+# SkillAtlas web app (Next.js 16 BFF).
+#
+# Build from the repository root:
+#   docker build -f deploy/Dockerfile.frontend -t skillatlas-web ./frontend
+#
+# Three stages. The point of the split is that `node_modules` for a Next build
+# is roughly a gigabyte and almost none of it is needed at runtime — the
+# standalone output traces the modules actually imported and copies only those.
+
+# ------------------------------------------------------------- deps stage
+FROM node:22-alpine AS deps
+WORKDIR /app
+
+# Lockfile and manifest only, so this layer survives every source edit.
+#
+# Not `package-lock.json*`: the glob makes the lockfile optional, and a missing
+# one then surfaces hundreds of lines later as an npm usage error rather than
+# as "file not found" here. `npm ci` cannot work without it, so require it.
+COPY package.json package-lock.json ./
+
+# The project's own postinstall (`scripts/copy-wasm-assets.mjs`) lifts the
+# Pyodide and sql.js runtimes out of node_modules, so it has to be present
+# before `npm ci` runs its lifecycle scripts. Copied on its own rather than
+# with the rest of the source, which would defeat the layer caching this stage
+# exists for.
+COPY scripts ./scripts
+
+# `npm ci` for a reproducible install: it installs exactly the lockfile and
+# fails if package.json disagrees, which is what you want in a build.
+RUN npm ci
+
+# ------------------------------------------------------------- build stage
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Next inlines NEXT_PUBLIC_* at build time, so anything the browser needs must
+# be present now rather than at run time.
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production
+
+RUN npm run build
+
+# ------------------------------------------------------------- runtime stage
+FROM node:22-alpine AS runtime
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+
+# node:alpine ships a `node` user at uid 1000; use it rather than root.
+RUN apk add --no-cache curl
+
+# `public/` carries the Pyodide and sql.js runtimes (~14MB) that projects
+# execute in the browser. They are served as static assets, not bundled, so
+# they must be copied explicitly — standalone tracing does not see them.
+COPY --from=builder --chown=node:node /app/public ./public
+
+# The traced server bundle, plus the static chunks it references.
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+
+USER node
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:3000/ || exit 1
+
+# standalone emits its own minimal server; `next start` is not used and is not
+# even installed in this image.
+CMD ["node", "server.js"]

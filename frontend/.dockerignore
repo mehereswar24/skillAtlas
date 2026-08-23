@@ -1,0 +1,33 @@
+# The build needs package.json, the lockfile, src/, public/ and the config
+# files. Everything below is bulk or local state.
+
+# --- secrets ----------------------------------------------------------------
+# API_BASE_URL is supplied by compose at run time. A local .env.local pointing
+# at 127.0.0.1 would be actively wrong inside a container.
+.env
+.env.*
+
+# --- dependencies and build output ------------------------------------------
+# node_modules is installed inside the image by `npm ci`, from the lockfile.
+# Copying the host's would be ~1GB of context and can carry platform-specific
+# binaries that do not run on Alpine.
+node_modules/
+.next/
+out/
+build/
+
+# --- QA scratch --------------------------------------------------------------
+# Playwright probes and their captures, written during local QA passes.
+.qa/
+.qa-cross/
+qa/
+test-results/
+playwright-report/
+*.log
+
+# --- vcs and editor ---------------------------------------------------------
+.git/
+.gitignore
+.vscode/
+.idea/
+*.tsbuildinfo

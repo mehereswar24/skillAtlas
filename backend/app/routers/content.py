@@ -23,6 +23,8 @@ from app.schemas.content import (
 )
 from app.services.graph import ConceptGraph
 
+from app.services.publishing import concept_depth
+
 router = APIRouter(tags=["content"])
 
 
@@ -40,6 +42,7 @@ def concept_summary(concept: Concept) -> ConceptSummary:
         est_hours=concept.est_hours,
         difficulty=concept.difficulty,
         domain_slug=concept.domain.slug,
+        depth=concept_depth(concept.content_md),
     )
 
 

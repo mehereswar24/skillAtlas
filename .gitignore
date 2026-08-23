@@ -42,3 +42,11 @@ frontend/.qa-cross/
 frontend/qa/
 .pyodiag.txt
 .runtimes.txt
+
+# Snapshot taken before scripts/strip_imported_prose.py removed roadmap.sh's
+# prose. It is the material we may not redistribute, so it must never be
+# committed — it exists only so the strip is reversible on this machine.
+.backup-preprose/
+
+# Production secrets. deploy/.env.production.example is the committed template.
+deploy/.env

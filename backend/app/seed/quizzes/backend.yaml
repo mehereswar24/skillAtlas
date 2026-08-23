@@ -9,6 +9,57 @@
 # app/seed/tracks/, which the roadmap.sh importer regenerates.
 
 concepts:
+  backend-advanced-backend:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:43:40Z'
+    quiz:
+    - prompt: What is a key reason for using structured logs over unstructured ones?
+      explanation: Structured logs can be filtered and aggregated, making it easier to analyze large volumes
+        of data.
+      options:
+      - text: To make them easier to read by humans
+      - text: To allow filtering and aggregation of log data
+        correct: true
+      - text: To ensure that every log line contains the same correlation id
+      - text: To increase the verbosity of logging
+    - prompt: Why should you alert on symptoms rather than causes?
+      explanation: Alerting on symptoms ensures that only users who experience the problem get notified,
+        reducing unnecessary paging.
+      options:
+      - text: Because users care about the underlying cause of an issue
+      - text: To reduce pager fatigue and ensure alerts are actionable
+        correct: true
+      - text: To make it easier to debug issues in production
+      - text: Because causes can be easily determined from logs
+    - prompt: What is a cardinality issue in metrics?
+      explanation: High cardinality can lead to an explosion in the number of time series, making it difficult
+        for the metrics system to handle.
+      options:
+      - text: When you have too many unique values for a label
+        correct: true
+      - text: When your metrics system runs out of memory
+      - text: When you use too many different types of metrics
+      - text: When your metric aggregation is not accurate
+    - prompt: What should be the first question asked when starting an incident?
+      explanation: The first question should be about whether there was a recent deployment, as most incidents
+        are caused by new code.
+      options:
+      - text: What is the root cause of the issue?
+      - text: Did this start with a deploy?
+        correct: true
+      - text: Why are users experiencing issues?
+      - text: How can we fix it quickly?
+    interview:
+    - question: Can you explain the difference between logs, metrics, and traces in observability?
+      answer_md: Logs provide discrete events with context, while metrics offer cheap numeric aggregates
+        over time. Traces connect the work of one request across services. Logs are structured to allow
+        filtering and aggregation, metrics help monitor performance, and traces show where time is spent.
+      difficulty: hard
+    - question: How can you ensure your observability setup is usable in an incident?
+      answer_md: Ensure there are links from alerts to service dashboards, exemplar traces of failing
+        requests, and logs for specific requests. Version and deploy markers on dashboards help identify
+        changes that might have caused the issue.
+      difficulty: hard
   backend-ai-assisted-coding:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:17:11Z'
@@ -409,6 +460,74 @@ concepts:
         consistently across different environments, making it more portable and easier to manage in a
         cloud setting.'
       difficulty: hard
+  backend-background-jobs:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:42:02Z'
+    quiz:
+    - prompt: What is the primary reason for using background jobs instead of executing tasks within user
+        requests?
+      explanation: Background jobs are used to move slow or resource-intensive tasks out of the user request
+        path, improving response time and scalability.
+      options:
+      - text: To reduce database load by deferring writes
+      - text: To improve response time and scalability by offloading long-running operations from request
+          paths
+        correct: true
+      - text: To simplify code by centralizing all work in one place
+      - text: To make the application more complex
+    - prompt: Which strategy is recommended for handling retries in background job processing?
+      explanation: Exponential backoff with jitter and a maximum number of attempts is recommended to
+        avoid thundering herds and ensure retries are not retried too frequently.
+      options:
+      - text: Immediate retry with exponential backoff
+      - text: Exponential backoff with jitter and a maximum number of attempts
+        correct: true
+      - text: Linear backoff without any jitter or ceiling
+      - text: Randomly retrying jobs at different intervals
+    - prompt: Why is idempotency crucial in background job processing?
+      explanation: Idempotency ensures that retrying a job does not cause duplicate side effects, such
+        as charging a customer's card twice.
+      options:
+      - text: To ensure that jobs can be safely retried without causing duplicate side effects
+        correct: true
+      - text: To make sure that each job is processed exactly once, even if it fails and retries
+      - text: To allow for easier debugging of failed jobs
+      - text: To reduce the amount of data stored in the queue
+    - prompt: How should long-running jobs be designed to handle interruptions during deployment?
+      explanation: Long-running jobs should be designed to handle `SIGTERM` by finishing or abandoning
+        the current job within the shutdown grace period, allowing for safe interruptions during deployment.
+      options:
+      - text: By pausing the job and restarting it after deployment
+      - text: By saving progress periodically and handling SIGTERM signals to finish or abandon safely
+        correct: true
+      - text: By terminating the job immediately without saving any state
+      - text: By ignoring SIGTERM signals and continuing execution
+    interview:
+    - question: Explain how you would design a background job system that handles retries with backoff
+        and jitter.
+      answer_md: To handle retries with backoff and jitter, I would implement an exponential backoff strategy
+        where the initial delay is one second, doubling each time until reaching a maximum. Jitter can
+        be added to randomize the retry intervals slightly to avoid thundering herds. This approach ensures
+        that jobs are retried in a controlled manner without overwhelming the system during transient
+        failures.
+      difficulty: medium
+    - question: Describe how you would ensure idempotency for a background job that charges a customer's
+        card.
+      answer_md: To ensure idempotency, I would use an idempotency key to guard the charge operation.
+        Each request would include a unique identifier (e.g., a UUID) in the payload or headers. The worker
+        would check if this key already exists before performing the charge. If it does, the job would
+        be skipped, preventing duplicate charges. Additionally, I would use a transactional write to record
+        the success of the charge, ensuring that even if the job is retried, the customer's card is only
+        charged once.
+      difficulty: medium
+    - question: How would you handle scheduled work in a distributed system where multiple instances could
+        potentially fire jobs at the same time?
+      answer_md: To handle scheduled work in a distributed system, I would use a scheduler that enqueues
+        one job onto a shared queue. This approach leverages existing retry and visibility mechanisms
+        for background jobs. The workers then process these jobs according to their normal semantics,
+        ensuring that only one instance of the job runs at a time even if multiple instances are running.
+        This method reuses the infrastructure already in place for handling retries and dead-letter jobs.
+      difficulty: hard
   backend-building-ai-powered-features:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:18:31Z'
@@ -582,6 +701,224 @@ concepts:
         For example, if the cache does not get updated when the original source changes, users might receive
         incorrect information. This can affect the reliability and accuracy of the application's responses.
       difficulty: hard
+  backend-ci-cd:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:42:34Z'
+    quiz:
+    - prompt: Which of the following best describes Continuous Integration?
+      explanation: Continuous Integration means everyone's work is merged and verified against the trunk
+        many times a day. It ensures frequent feedback loops and helps catch issues early.
+      options:
+      - text: A process where code is merged into a shared repository several times a day and automatically
+          verified.
+        correct: true
+      - text: The practice of deploying new versions of software to production without human intervention.
+      - text: A strategy for managing database migrations during deployments.
+      - text: An approach to testing that focuses on integration tests before unit tests.
+    - prompt: What is the primary reason for using blue-green deployment?
+      explanation: Blue-green deployment runs two full environments and switches traffic at the load balancer.
+        It allows for instantaneous rollback with double capacity during the switch.
+      options:
+      - text: To reduce the amount of code that needs to be tested.
+      - text: To allow for gradual traffic migration between two fully functional environments.
+        correct: true
+      - text: To speed up the initial deployment time.
+      - text: To ensure that all database migrations are performed in a single step.
+    - prompt: Which of the following is NOT a recommended practice in continuous delivery pipelines?
+      explanation: Flaky tests should be quarantined and fixed as real bugs. Allowing them to run unchecked
+        can lead to a broken pipeline signal.
+      options:
+      - text: Running expensive tests only where relevant.
+      - text: Using caching to speed up the build process.
+      - text: Allowing flaky tests to run without quarantine.
+        correct: true
+      - text: Splitting tests across parallel runners.
+    - prompt: In the context of continuous deployment, what does 'build once, deploy many' mean?
+      explanation: The artefact is built one time and promoted through environments unchanged, configured
+        from outside. This ensures consistency and reduces the risk of errors during deployment.
+      options:
+      - text: Build the codebase once for each environment.
+      - text: Deploy the same built artefact through multiple environments without recompiling.
+        correct: true
+      - text: Compile and build the code in parallel across different environments.
+      - text: Create a new build for every deployment to ensure freshness.
+    - prompt: Why should migrations be run as an explicit pipeline step before deploying new code?
+      explanation: Running migrations as an explicit step ensures they are compatible with both old and
+        new code, preventing issues during the rollout. Running them at startup can lead to race conditions
+        among replicas.
+      options:
+      - text: To ensure that the migration is tested in isolation.
+      - text: To allow for automatic rollback if the migration fails.
+      - text: Because running them at application start-up can cause race conditions during deployment.
+        correct: true
+      - text: To speed up the overall deployment process.
+    interview:
+    - question: Explain how blue-green deployment works and why it is beneficial.
+      answer_md: Blue-green deployment involves running two full environments (blue and green) in parallel.
+        Traffic is switched between the environments at a load balancer, allowing for an instantaneous
+        rollback if needed. This method ensures that both versions of the application are fully functional
+        before switching traffic, reducing downtime and risk during deployments.
+      difficulty: hard
+    - question: Discuss the importance of feature flags in continuous delivery and provide an example
+        scenario where they would be useful.
+      answer_md: Feature flags decouple code deployment from feature release. They allow for gradual rollouts,
+        enabling internal testing before public release. For instance, a new feature can be deployed to
+        a small percentage of users first (canary release) to monitor error rates and latency. If the
+        feature performs well, it can then be rolled out fully. Feature flags also facilitate quick rollbacks
+        if issues arise by allowing the flag to be turned off immediately without redeploying code.
+      difficulty: hard
+  backend-click-to-visit-the-roadmap:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:44:35Z'
+    quiz:
+    - prompt: When facing a behavior that you are unsure of in your application's dependencies, what is
+        the recommended approach?
+      explanation: Reading the relevant part of the dependency's source code or tests is recommended because
+        these sources provide a specification of what the library promises, often clearer than its documentation.
+      options:
+      - text: Guessing based on the documentation
+      - text: Reading the relevant part of the dependency's source code or tests
+        correct: true
+      - text: Checking Stack Overflow for similar issues
+      - text: Ignoring the behavior and hoping it resolves itself
+    - prompt: Why should you read postmortems from companies operating at scale?
+      explanation: 'Reading postmortems from companies operating at scale is valuable because it describes
+        failures that only appear at a scale you have not reached, and the interesting content is never
+        the root cause but the chain: which safeguard was missing, which alert did not fire, why the obvious
+        fix made things worse, how long detection took and why.'
+      options:
+      - text: To understand the root causes of common bugs
+      - text: To get detailed steps on how to deploy your application
+      - text: To learn about failure modes that only appear at a larger scale and the chain of events
+          leading up to them
+        correct: true
+      - text: To find out what specific technologies they use
+    - prompt: What is the key advice given about reading RFCs?
+      explanation: The key advice is that RFCs are more readable than their reputation suggests, and they
+        answer questions no blog post will. When you need to know the exact behavior or meaning of a protocol
+        feature, the normative statement in an RFC is unambiguous.
+      options:
+      - text: RFCs are hard to read and rarely useful
+      - text: RFCs should be used as a primary source for understanding protocols
+        correct: true
+      - text: RFCs are only useful when written by large companies
+      - text: RFCs should be avoided in favor of more modern standards
+    - prompt: What is the benefit of reimplementing a tiny version of something you use?
+      explanation: Reimplementing a tiny version of something you use teaches more about the real thing
+        than a month of reading, and it converts a black box into something whose failure modes you can
+        predict.
+      options:
+      - text: It takes less time than reading about it
+      - text: It helps understand the real-world failure modes and predict them better
+        correct: true
+      - text: It ensures that your implementation will be exactly the same as the original
+      - text: It is only useful for learning new technologies
+    interview:
+    - question: Can you give an example from your experience where reading the source code or documentation
+        helped resolve a complex issue?
+      answer_md: Certainly. When I was working on a project that required integrating with a third-party
+        API, the official documentation did not provide enough detail about certain behaviors. By reading
+        through the source code of the library, I found specific implementation details that were crucial
+        for understanding how to handle edge cases and optimize performance.
+      difficulty: medium
+    - question: How would you approach learning a new open-source project without any documentation?
+      answer_md: I would start by reading the source code, focusing on the entry points and key functions.
+        I would also look at the tests to understand expected behaviors and edge cases. Additionally,
+        I would check the issue tracker for common issues and feedback from other users, which can provide
+        valuable insights into real-world usage.
+      difficulty: hard
+    - question: What are some of the mistakes you have seen engineers make when learning new technologies
+        or systems?
+      answer_md: One common mistake is relying too heavily on top search results without verifying their
+        accuracy. Another issue is learning only the surface-level features of a framework instead of
+        understanding the underlying protocols and databases, which can lead to knowledge expiration with
+        updates in the framework. Lastly, not writing down key insights or creating summaries can hinder
+        long-term retention and application of new knowledge.
+      difficulty: hard
+  backend-container-orchestration:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:43:11Z'
+    quiz:
+    - prompt: Which of the following best describes Kubernetes' reconciliation model?
+      explanation: The reconciliation model in Kubernetes involves continuously comparing desired state
+        with actual state to ensure consistency. Users do not issue imperative commands; instead, they
+        edit the desired state and controllers act to close the gap.
+      options:
+      - text: Kubernetes continuously compares desired state with actual state to ensure consistency.
+        correct: true
+      - text: Kubernetes allows users to issue imperative commands to manage pods and services.
+      - text: Kubernetes only schedules pods on nodes that have sufficient resources but does not manage
+          their lifecycle.
+      - text: Kubernetes automatically scales the number of replicas based on user-defined metrics without
+          any configuration.
+    - prompt: What is the primary purpose of a liveness probe in Kubernetes?
+      explanation: A liveness probe tests whether *this process* is wedged and restarts the container
+        when it fails, ensuring the process is still running. It does not control traffic or give time
+        to slow-booting applications.
+      options:
+      - text: To test whether a pod should receive traffic from services.
+      - text: To restart a container when it fails to respond to health checks, ensuring the process is
+          still running.
+        correct: true
+      - text: To give slow-booting applications time before they are considered unhealthy.
+      - text: To schedule pods on nodes with sufficient resources.
+    - prompt: Which of the following scenarios would most likely cause an outage due to misconfigured
+        probes?
+      explanation: Pointing a liveness probe at a database that occasionally blips can cause an outage.
+        When the database blips, every replica fails the liveness check simultaneously, leading to a restart
+        storm and potential data loss or unavailability.
+      options:
+      - text: Pointing a liveness probe at a database that occasionally blips.
+        correct: true
+      - text: Using resource requests and limits appropriately for all containers.
+      - text: Setting up a startup probe for slow-booting applications.
+      - text: Implementing graceful shutdown with `SIGTERM` and a short `preStop` sleep.
+    - prompt: What is the main difference between resource requests and limits in Kubernetes?
+      explanation: Resource requests determine what the scheduler reserves and guarantees for each container;
+        exceeding these is not fatal but may cause throttling. Limits define the hard ceiling that cannot
+        be exceeded, and exceeding them can result in the container being killed by the kernel.
+      options:
+      - text: Requests are what the scheduler reserves and guarantees; limits are the hard ceiling that
+          cannot be exceeded.
+        correct: true
+      - text: Limits determine where pods can run, while requests control how many replicas should be
+          deployed.
+      - text: Requests set the maximum resources a pod can use, while limits guarantee minimum resource
+          availability.
+      - text: Limits ensure pods receive traffic, while requests control when they are terminated.
+    - prompt: In which scenario would you NOT need Kubernetes or similar orchestration tools?
+      explanation: For a small service running on a few VMs behind a load balancer, the operational surface
+        is minimal and may not require Kubernetes. Larger deployments with multiple services, teams, or
+        multi-tenancy would benefit from orchestration tools like Kubernetes.
+      options:
+      - text: Running a small service with a few VMs behind a load balancer.
+        correct: true
+      - text: Deploying multiple services across different teams and environments.
+      - text: Managing many services with real multi-tenancy requirements.
+      - text: Optimizing resource usage by bin-packing containers on nodes.
+    interview:
+    - question: Explain how Kubernetes' reconciliation model works in detail.
+      answer_md: Kubernetes uses a declarative reconciliation approach where you define the desired state
+        of your application, such as the number of replicas and their configurations. Controllers continuously
+        monitor the actual state of the cluster to ensure it matches the desired state. If there is a
+        mismatch, controllers take corrective actions like starting new pods or terminating old ones.
+        This process ensures that the cluster always reflects the intended configuration.
+      difficulty: medium
+    - question: Describe the potential issues with misconfiguring liveness and readiness probes in Kubernetes.
+      answer_md: Misconfiguring liveness and readiness probes can lead to outages. For example, pointing
+        a liveness probe at a database that occasionally blips can cause all replicas to fail simultaneously,
+        leading to a restart storm. Misconfiguring both probes to point at the same health endpoint can
+        also result in unnecessary pod restarts when only one of them should be active. Additionally,
+        using these probes incorrectly can mask real issues and make troubleshooting more difficult.
+      difficulty: hard
+    - question: Discuss the trade-offs between using resource requests and limits in Kubernetes.
+      answer_md: Resource requests set minimum guarantees for resources that pods will receive. Setting
+        them too low can lead to pods being scheduled on crowded nodes, causing evictions when those nodes
+        become busy. Setting them too high can result in wasted resources. Limits define the maximum amount
+        of resources a pod can use and are enforced by the Kubernetes scheduler. Exceeding these limits
+        is fatal for containers, potentially leading to `OOMKill` events. The trade-off lies in balancing
+        resource utilization with avoiding outages.
+      difficulty: hard
   backend-containerization:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:20:44Z'
@@ -702,6 +1039,72 @@ concepts:
         particularly MySQL. One of the major platforms that extensively use PHP is WordPress, which powers
         millions of websites worldwide due to its flexibility and robustness.
       difficulty: medium
+  backend-hashing-algorithms:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:41:24Z'
+    quiz:
+    - prompt: Which of the following is true about password hashing functions like Argon2id?
+      explanation: Argon2id is designed to be tunably slow and memory-hard, making offline brute force
+        attacks expensive after a database leak. It can be tuned to support the slowest hardware you must
+        support.
+      options:
+      - text: They are designed to be fast for efficiency.
+      - text: They can be tuned to be slow and memory-hard, making offline brute force attacks expensive.
+        correct: true
+      - text: They do not require salts or peppers for security.
+      - text: They should use SHA-256 as the default algorithm.
+    - prompt: What does a salt do in password hashing?
+      explanation: A salt makes sure that even if two users choose the same password, their hashes will
+        be different. This defeats rainbow tables and hides the fact that two users chose the same password.
+      options:
+      - text: It makes all passwords harder to crack by adding complexity.
+      - text: It ensures that two users with the same password have different hashes, making rainbow tables
+          ineffective.
+        correct: true
+      - text: It is a secret value mixed into the hash for every user.
+      - text: It encrypts the password before hashing.
+    - prompt: What is the purpose of a pepper in password hashing?
+      explanation: A pepper is a secret value identical for all users that is mixed in with the password
+        during hashing. It complicates rotation but provides an additional layer of security by being
+        stored outside the database.
+      options:
+      - text: To make all passwords harder to crack by adding complexity.
+      - text: To ensure that two users with the same password have different hashes, making rainbow tables
+          ineffective.
+      - text: To be a secret value mixed into the hash for every user and stored outside the database.
+        correct: true
+      - text: To encrypt the password before hashing.
+    - prompt: Which hash function should be used for integrity checks where cryptographic strength is
+        not required?
+      explanation: For non-cryptographic purposes, BLAKE3 and xxHash are much faster while still providing
+        sufficient collision resistance. SHA-256 is the safe default for cryptographic strength.
+      options:
+      - text: SHA-256
+      - text: BLAKE3 or xxHash
+        correct: true
+      - text: MD5
+      - text: HMAC
+    interview:
+    - question: Explain why using a fast hash function like SHA-256 to store passwords is insecure.
+      answer_md: Using a fast hash function like SHA-256 to store passwords is insecure because it makes
+        offline brute force attacks feasible. Modern hardware can compute billions of hashes per second,
+        making it easy for attackers to try many possible passwords quickly. Password hashing functions
+        are designed to be slow and memory-hard to make such attacks impractical.
+      difficulty: hard
+    - question: How does a salt differ from a pepper in password hashing?
+      answer_md: A salt is a unique random value stored alongside each hash, making it so that even if
+        two users choose the same password, their hashes will be different. This defeats rainbow tables
+        and hides the fact that two users chose the same password. A pepper, on the other hand, is a secret
+        value identical for all users that is mixed in with the password during hashing but stored outside
+        the database. It provides an additional layer of security by complicating rotation.
+      difficulty: medium
+    - question: Why is it important to use HMAC instead of just hashing `secret + message`?
+      answer_md: Using a plain hash of `secret + message` is not secure because it can be vulnerable to
+        length-extension attacks. HMAC (Hash-based Message Authentication Code) is the correct construction
+        for authenticating messages, as it ensures that only someone who knows the secret key can produce
+        valid signatures. This prevents an attacker from extending the message and generating a valid
+        hash.
+      difficulty: hard
   backend-integration-patterns:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:19:00Z'
@@ -1181,6 +1584,96 @@ concepts:
         isolated from each other through these mechanisms, allowing for consistent updates even when multiple
         operations occur simultaneously.
       difficulty: medium
+  backend-nosql-databases:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:40:51Z'
+    quiz:
+    - prompt: Which of the following is a key characteristic of a document store like MongoDB?
+      explanation: Document stores like MongoDB store nested JSON-ish documents in a way that allows for
+        hierarchical data and flexible schema. While they offer some flexibility, they do not guarantee
+        strong consistency across all nodes at all times, use exact keys to partition data, or are optimized
+        for time-ordered, append-heavy workloads.
+      options:
+      - text: It stores nested JSON-ish documents in a way that allows for hierarchical data and flexible
+          schema.
+        correct: true
+      - text: It guarantees strong consistency across all nodes at all times.
+      - text: It uses exact keys to partition data, making it easy to shard the database.
+      - text: It is optimized for time-ordered, append-heavy workloads with built-in aggregation.
+    - prompt: What is the primary trade-off when choosing a wide-column store like Cassandra?
+      explanation: Wide-column stores like Cassandra offer enormous write throughput and linear scale-out
+        but require you to model tables per query, duplicating data across several tables for performance
+        reasons. This is the primary trade-off in using such a store.
+      options:
+      - text: The ability to maintain relationships between documents within the database.
+      - text: The need to model tables per query and duplicate data across several tables for performance
+          reasons.
+        correct: true
+      - text: The requirement to use exact keys for partitioning, which can lead to hot partitions if
+          not carefully chosen.
+      - text: The necessity of running a distributed database as a single node to simplify operations.
+    - prompt: Why might a team choose eventual consistency over strong consistency?
+      explanation: Teams might choose eventual consistency over strong consistency to avoid the latency
+        introduced by waiting for all replicas to be updated before acknowledging a write. This can improve
+        performance at the cost of potentially seeing stale data on reads.
+      options:
+      - text: To avoid the latency introduced by waiting for all replicas to be updated before acknowledging
+          a write.
+        correct: true
+      - text: To ensure that every read operation returns the most up-to-date data available.
+      - text: To simplify the application code by removing the need for dual-writes between databases.
+      - text: To guarantee that writes are immediately visible to all nodes in the network.
+    - prompt: Which scenario would most likely require a graph database like Neo4j?
+      explanation: A social media platform where users follow each other and posts are linked to users
+        would most likely require a graph database like Neo4j, as it involves traversals of arbitrary
+        depth which are the primary query pattern for such databases. The other options are better suited
+        to different types of data storage.
+      options:
+      - text: A social media platform where users follow each other and posts are linked to users.
+        correct: true
+      - text: A financial transaction system that needs to ensure every write is immediately visible to
+          all nodes.
+      - text: A time-series monitoring system for IoT devices with frequent updates.
+      - text: A document management system where documents can have nested hierarchical structures.
+    - prompt: What is the main disadvantage of using a key-value store like Redis?
+      explanation: The main disadvantage of using a key-value store like Redis is that it does not support
+        querying by anything other than the exact key used for retrieval. This can be limiting if your
+        application requires more complex queries or relationships between data.
+      options:
+      - text: It cannot handle large volumes of writes due to its partitioning strategy.
+      - text: It requires complex schema management, which can be error-prone and difficult to maintain.
+      - text: It does not support querying by anything other than the exact key used for retrieval.
+        correct: true
+      - text: It is unable to provide eventual consistency across replicas.
+    interview:
+    - question: Can you explain why choosing eventual consistency over strong consistency might be a good
+        trade-off in certain scenarios?
+      answer_md: Choosing eventual consistency over strong consistency can be beneficial when the application
+        can tolerate some level of stale data. For example, in a read-heavy workload where the occasional
+        delay in seeing the latest write is acceptable, or in distributed systems where network partitions
+        are rare and the cost of maintaining strong consistency is high. Eventual consistency allows for
+        more relaxed replication strategies, which can improve performance and reduce latency.
+      difficulty: medium
+    - question: How would you advise a team to choose between a relational database and a document store
+        like MongoDB?
+      answer_md: The choice between a relational database and a document store depends on the specific
+        requirements of the application. If the data is naturally hierarchical, has varying shapes between
+        records, or if the read pattern is 'fetch this entire object,' then a document store might be
+        more appropriate due to its flexibility in schema and ease of querying whole aggregates. However,
+        if the application requires complex joins, ACID transactions, or a well-defined schema, a relational
+        database like PostgreSQL would be a better fit. It's important to consider whether the benefits
+        of a document store outweigh the potential complexity of managing schema across all code paths.
+      difficulty: hard
+    - question: What are some common mistakes people make when adopting eventual consistency in their
+        systems?
+      answer_md: Some common mistakes include not properly understanding what 'eventual' means, leading
+        to user frustration when changes do not appear immediately. Another mistake is treating a cache
+        as the authoritative source of truth, which can lead to inconsistencies between the cache and
+        the database. Additionally, teams might adopt eventual consistency without fully considering the
+        impact on the user experience, such as showing a partially updated state after a save operation.
+        It's crucial to have clear communication with users about when they should expect their changes
+        to be visible, and to implement appropriate mechanisms for dual-writes between databases.
+      difficulty: hard
   backend-pick-a-backend-language:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:09:43Z'
@@ -1349,6 +1842,63 @@ concepts:
         it might not be the best choice for very large datasets or complex queries that require more robust
         database management capabilities.
       difficulty: hard
+  backend-repo-hosting-services:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:39:10Z'
+    quiz:
+    - prompt: Which of the following is NOT a benefit of trunk-based development over long-lived branches?
+      explanation: Trunk-based development reduces merge and semantic conflicts by integrating small changes
+        frequently, rather than accumulating many changes over time. Increased semantic conflicts are
+        a downside of long-lived branches.
+      options:
+      - text: Reduced merge conflicts
+      - text: Immediate integration of small changes
+      - text: Increased semantic conflicts
+        correct: true
+      - text: Faster feedback cycles
+    - prompt: Why might a code review fail if it exceeds a few hundred changed lines?
+      explanation: Review quality falls off sharply past a few hundred changed lines because reviewers
+        tend to skim and approve rather than thoroughly review large changes.
+      options:
+      - text: Reviewers may not have enough time to thoroughly test the changes
+      - text: The codebase becomes too large for effective management
+      - text: Review quality falls off as reviewers skim and approve rather than deeply reviewing
+        correct: true
+      - text: It increases the likelihood of semantic conflicts
+    - prompt: What is the role of CODEOWNERS files in code review?
+      explanation: CODEOWNERS files route reviews automatically to the people who will maintain the code,
+        ensuring that changes are reviewed by those responsible for maintaining the relevant parts.
+      options:
+      - text: Automatically approving pull requests
+      - text: Routing reviews to maintainers of specific parts of the codebase
+        correct: true
+      - text: Enforcing branch protection rules
+      - text: Managing feature flags
+    interview:
+    - question: Explain how branch protection rules can enforce a review workflow in a shared codebase.
+      answer_md: Branch protection rules enforce a review workflow by requiring certain conditions to
+        be met before changes can be merged. These rules can mandate that pull requests must pass automated
+        tests, require multiple approvals from specific team members, and ensure the source branch is
+        up-to-date with the target branch. Without these rules, it's difficult to verify if 'we review
+        everything' is actually happening.
+      difficulty: medium
+    - question: Discuss the trade-offs between trunk-based development and long-lived branches in terms
+        of integration pain.
+      answer_md: Trunk-based development integrates small changes frequently, which reduces both merge
+        conflicts and semantic conflicts. However, it requires more frequent integration and can be less
+        suitable for projects with complex dependencies or release cycles that require longer-term planning.
+        Long-lived branches accumulate changes over time, leading to higher merge and semantic conflicts
+        when finally integrated, but they allow for extended development without immediate integration
+        pain.
+      difficulty: hard
+    - question: Describe a scenario where the default branch might go red (i.e., fail automated tests)
+        and why this is problematic.
+      answer_md: The default branch might go red if it accumulates untested or broken changes over time.
+        This can happen when developers frequently force-push to the main branch without thorough testing,
+        or when long-lived branches are merged into the default branch with unresolved issues. When the
+        default branch goes red, it becomes a less reliable indicator of code quality and can lead to
+        a culture where team members ignore CI signals, undermining the purpose of continuous integration.
+      difficulty: hard
   backend-scaling-databases:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:24:09Z'
@@ -1407,6 +1957,80 @@ concepts:
         choice depends on your application''s requirements: synchronous replication is suitable for applications
         that prioritize data integrity over speed, while asynchronous replication is better for high-throughput
         scenarios where occasional data loss can be tolerated.'
+      difficulty: hard
+  backend-schema-migrations:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:40:11Z'
+    quiz:
+    - prompt: Which of the following best describes the 'expand' phase in schema migrations without downtime?
+      explanation: The 'expand' phase involves making additive changes that both old and new code can
+        tolerate. This includes adding a nullable column, creating a new table, or adding an index concurrently.
+      options:
+      - text: Dropping a column or constraint that is no longer needed
+      - text: Adding a new nullable column; creating a new table; adding an index concurrently
+        correct: true
+      - text: Renaming a column in one step to avoid downtime
+      - text: Updating all existing rows with the new schema
+    - prompt: Why is it important to backfill existing rows in batches during the migration phase?
+      explanation: Backfilling in batches prevents a single statement touching many rows from holding
+        locks, generating large write-ahead logs, and being unable to be interrupted safely.
+      options:
+      - text: To avoid generating enormous write-ahead log volume
+        correct: true
+      - text: To ensure that all data is immediately visible to both old and new code
+      - text: To prevent long-running transactions from queuing behind DDL statements
+      - text: To make sure the migration can be interrupted safely
+    - prompt: What is the risk of adding a `NOT NULL` column with a non-volatile default during DDL operations?
+      explanation: Adding a `NOT NULL` column with a non-volatile default can take an `ACCESS EXCLUSIVE`
+        lock on the table, which can cause outages if other transactions are running.
+      options:
+      - text: It can cause an outage due to an `ACCESS EXCLUSIVE` lock
+        correct: true
+      - text: It will not add any locks on the table
+      - text: It will be too fast and cause performance issues
+      - text: It will only affect read operations, not write operations
+    - prompt: What is the recommended approach to handle DDL operations that require locks in PostgreSQL?
+      explanation: Setting a short `lock_timeout` before DDL and retrying the operation can help mitigate
+        the risk of long-running queries queuing behind DDL statements.
+      options:
+      - text: Use long-running queries to queue behind the DDL operation
+      - text: Set a short `lock_timeout` before DDL and retry the operation if it fails
+        correct: true
+      - text: Run all DDL operations during peak hours for maximum impact
+      - text: Avoid using DDL statements altogether
+    - prompt: Why should migrations be run as a separate step in the deploy pipeline rather than at application
+        start-up?
+      explanation: Running migrations as a separate step in the deploy pipeline prevents race conditions
+        where multiple instances might try to run them at once, ensuring deterministic and safe execution.
+      options:
+      - text: To ensure that all instances run them simultaneously
+      - text: To avoid race conditions and multiple instances running them concurrently
+        correct: true
+      - text: To make sure they are only run during peak hours
+      - text: To increase the complexity of the deployment process
+    interview:
+    - question: How can you mitigate the risk of long-running queries queuing behind DDL operations in
+        PostgreSQL?
+      answer_md: To mitigate the risk of long-running queries queuing behind DDL operations, I would set
+        a short `lock_timeout` before performing any DDL statements and retry the operation if it fails.
+        This approach ensures that the migration fails fast instead of forming a queue, reducing the potential
+        for outages.
+      difficulty: hard
+    - question: Explain how you would handle adding a `NOT NULL` column to an existing table without causing
+        downtime.
+      answer_md: To add a `NOT NULL` column to an existing table without downtime, I would follow the
+        expand/contract discipline. First, I would add the new nullable column with a default value that
+        allows nulls. Then, I would write code to both read from and write to this new column in batches
+        using small loops and resumable cursors. After ensuring all data is migrated, I would switch reads
+        exclusively to the new column for some time, then finally drop the old column.
+      difficulty: hard
+    - question: What are the risks of performing DDL operations like `CREATE INDEX` or `ALTER TABLE` during
+        peak hours?
+      answer_md: Performing DDL operations such as `CREATE INDEX` or `ALTER TABLE` during peak hours can
+        hold an `ACCESS EXCLUSIVE` lock, which blocks all other transactions on the table. This can lead
+        to a total outage if there are long-running queries running at the same time. Additionally, these
+        operations generate large write-ahead logs and can consume significant resources, potentially
+        causing performance issues for other concurrent operations.
       difficulty: hard
   backend-search-engines:
     generated_by: qwen2.5:7b

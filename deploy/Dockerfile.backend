@@ -1,0 +1,88 @@
+# SkillAtlas API.
+#
+# Build from the repository root:
+#   docker build -f deploy/Dockerfile.backend -t skillatlas-api ./backend
+#
+# Two stages so the compiler toolchain needed to build wheels never reaches the
+# runtime image: psycopg2 and bcrypt both compile, and shipping gcc in a
+# public-facing container hands an attacker a build environment.
+
+# ---------------------------------------------------------------- build stage
+FROM python:3.13-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# libpq-dev and gcc are for psycopg2; both are dropped from the final image.
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y gcc libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Requirements first: this layer is cached until the file changes, so an
+# application edit does not reinstall the dependency tree.
+COPY requirements.txt .
+RUN python -m venv /opt/venv \
+ && /opt/venv/bin/pip install --upgrade pip \
+ && /opt/venv/bin/pip install -r requirements.txt \
+ # Postgres driver and a production server. Deliberately not in
+ # requirements.txt: that file describes the SQLite development stack, and
+ # pinning a compiled driver there would break `pip install` on a machine
+ # without libpq.
+ && /opt/venv/bin/pip install "psycopg2-binary==2.9.10" "gunicorn==23.0.0"
+
+# -------------------------------------------------------------- runtime stage
+FROM python:3.13-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    ENVIRONMENT=production \
+    DEBUG=false
+
+# libpq5 is the runtime half of libpq-dev. curl is for the container
+# healthcheck; without it HEALTHCHECK has nothing to call.
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y libpq5 curl \
+ && rm -rf /var/lib/apt/lists/*
+
+# Never run as root. A container escape is a different class of problem when
+# the process inside is unprivileged.
+RUN useradd --create-home --uid 10001 skillatlas
+
+COPY --from=builder /opt/venv /opt/venv
+
+WORKDIR /app
+COPY --chown=skillatlas:skillatlas . .
+
+# Writable location for a SQLite file when someone runs this without Postgres.
+# With DATABASE_URL pointing at Postgres nothing is written here.
+RUN mkdir -p /data && chown skillatlas:skillatlas /data
+
+# Lives in backend/ rather than deploy/ because the build context is backend/ —
+# COPY cannot reach outside it, and widening the context to the repo root would
+# drag the frontend's node_modules in with it.
+COPY --chown=skillatlas:skillatlas docker-entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+USER skillatlas
+EXPOSE 8000
+
+# Readiness, not liveness: this asks whether the instance can actually serve,
+# which is what an orchestrator should gate traffic on.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:8000/health/ready || exit 1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Uvicorn workers under gunicorn: gunicorn supervises and restarts workers,
+# uvicorn speaks ASGI. Worker count is set by the entrypoint from WEB_CONCURRENCY.
+CMD ["gunicorn", "app.main:app", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--bind", "0.0.0.0:8000", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--graceful-timeout", "30", \
+     "--timeout", "120"]

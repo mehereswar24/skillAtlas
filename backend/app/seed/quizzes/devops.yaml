@@ -61,6 +61,84 @@ concepts:
         and integration with popular CI/CD pipelines. These features help streamline the artifact management
         process.
       difficulty: hard
+  devops-backup-and-recovery:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T16:00:18Z'
+    quiz:
+    - prompt: Which of the following statements best describes the difference between a snapshot and point-in-time
+        recovery?
+      explanation: A volume snapshot gives you the state at one instant, and restores put you back to
+        that instant — your RPO is the time since the last snapshot. This means that a snapshot does not
+        provide continuous protection like point-in-time recovery can.
+      options:
+      - text: Snapshots provide a full backup, while point-in-time recovery only backs up new data.
+      - text: Snapshots are immutable and outside the blast radius, whereas point-in-time recovery is
+          not.
+      - text: Snapshots give you the state at one instant, but restores put you back to that instant —
+          your RPO is the time since the last snapshot.
+        correct: true
+      - text: Snapshots protect against hardware failure, while point-in-time recovery protects against
+          errors and malice.
+    - prompt: Why should an organization test its restore procedures regularly?
+      explanation: Testing restores regularly is crucial to ensure that the recovery procedures meet the
+        RPO and RTO objectives during a real incident. This helps identify any issues with the restore
+        process before an actual data loss event occurs.
+      options:
+      - text: To ensure the backup job is running without errors.
+      - text: To verify the RPO and RTO objectives are met during a real incident.
+        correct: true
+      - text: To check that the encryption keys for backups are still valid.
+      - text: To confirm that the backup storage classes are sufficient.
+    - prompt: Why are snapshots not considered point-in-time recovery?
+      explanation: Snapshots provide a state at one instant but do not allow restoration to any moment,
+        which is why they are not considered point-in-time recovery.
+      options:
+      - text: Because they provide a state at one instant but do not allow restoration to any moment
+        correct: true
+      - text: Because they can be easily deleted by mistake
+      - text: Because they require manual intervention to restore data
+      - text: Because they are less secure than point-in-time recovery
+    - prompt: What modern addition should be made to the traditional 3-2-1 backup strategy to protect
+        against ransomware?
+      explanation: At least one copy must be immutable and outside the blast radius of your primary credentials,
+        which means it should be in a separate account or project with separate credentials.
+      options:
+      - text: Adding a fourth copy of data
+      - text: Ensuring at least one immutable and off-account copy exists
+        correct: true
+      - text: Increasing the number of storage classes
+      - text: Expanding the retention period
+    - prompt: What is an important reason for regularly testing backups?
+      explanation: Regularly testing backups is important because it confirms that the restore process
+        works as expected and measures the actual RTO, which is often longer than assumed.
+      options:
+      - text: To ensure data integrity
+      - text: To confirm that the backup process works as expected and to measure RTO
+        correct: true
+      - text: To comply with regulatory requirements
+      - text: To prevent unauthorized access
+    interview:
+    - question: How would you derive recovery point objective (RPO) and recovery time objective (RTO)
+        from business requirements?
+      answer_md: To derive the RPO and RTO, I would first identify critical data stores and their importance
+        to the business. For example, the payments database might require a very short RPO due to financial
+        transactions, while an analytics warehouse could have a longer RPO as losing some historical data
+        is less critical. Then, I would consult with stakeholders to understand the impact of data loss
+        at different time intervals and determine the acceptable downtime for each system. This process
+        involves cost-benefit analysis to balance the recovery requirements with budget constraints.
+      difficulty: medium
+    - question: Explain the difference between RPO and RTO.
+      answer_md: RPO (Recovery Point Objective) is how much data you can afford to lose, measured in time.
+        For example, an RPO of 24 hours means a nightly dump is acceptable. RTO (Recovery Time Objective)
+        is how long your organization can be down without impacting business operations. It's important
+        to note that these are not engineering preferences but business decisions with associated costs.
+      difficulty: medium
+    - question: Why is it important to have immutable and off-account copies in a backup strategy?
+      answer_md: Immutable and off-account copies are crucial because they protect against ransomware
+        or other malicious activities. If the primary credentials are compromised, having backups in separate
+        accounts with different credentials ensures that even if your production environment is deleted,
+        the backups remain intact.
+      difficulty: medium
   devops-ci-cd-tools:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:54:44Z'
@@ -440,6 +518,153 @@ concepts:
         each other. Containers can help with rapid deployment, scaling, and resource utilization optimization,
         making them ideal for modern DevOps practices.
       difficulty: hard
+  devops-cost-and-capacity:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T16:01:19Z'
+    quiz:
+    - prompt: Which of the following practices is essential for making cloud spend visible and actionable?
+      explanation: Tagging resources by team, service, and environment from day one allows for accurate
+        attribution of costs.
+      options:
+      - text: Tagging all resources by team, service, and environment from day one
+        correct: true
+      - text: Retrofitting tags across an untagged estate after initial deployment
+      - text: Assigning a single owner to manage overall cloud spending
+      - text: Monitoring only the monthly invoice for cost anomalies
+    - prompt: What is a common mistake in cloud architecture that can significantly increase data transfer
+        costs?
+      explanation: Ignoring data transfer costs can lead to significant increases in cloud spend, especially
+        for cross-zone and egress traffic.
+      options:
+      - text: Using cross-zone and egress data transfer
+      - text: Ignoring data transfer costs entirely
+        correct: true
+      - text: Implementing storage lifecycle policies
+      - text: Right-sizing instances based on actual demand
+    - prompt: In autoscaling, which of the following interactions can lead to incidents due to the dependency
+        chain?
+      explanation: Horizontal scaling depends on the availability of nodes, which is managed by the cluster
+        autoscaler. If the cluster autoscaler is unavailable, horizontal scaling will wait, leading to
+        incidents.
+      options:
+      - text: Horizontal scaling waits on cluster scaling
+        correct: true
+      - text: Cluster scaling waits on vertical scaling
+      - text: Vertical scaling waits on load balancer health
+      - text: Load balancer health waits on horizontal scaling
+    - prompt: Which of the following is a common mistake in managing cloud costs?
+      explanation: Right-sizing once and not revisiting is a common mistake. Costs can change over time,
+        so it's important to regularly review and adjust instance sizes.
+      options:
+      - text: Right-sizing instances once and never revisiting
+        correct: true
+      - text: Scaling on queue depth for CPU-bound workloads
+      - text: Using spot or preemptible capacity for batch jobs
+      - text: Tagging everything by team, service, and environment from day one
+    - prompt: What is the primary reason for alerting on cost anomalies in cloud environments?
+      explanation: Cost anomalies can indicate misconfigured jobs or runaway retry loops that multiply
+        spend within hours. Early detection is crucial to prevent unexpected costs.
+      options:
+      - text: To ensure compliance with budget limits
+      - text: To manage user expectations about service reliability
+      - text: To detect and correct misconfigurations or runaway processes quickly
+        correct: true
+      - text: To avoid manual intervention by finance teams
+    interview:
+    - question: How would you design a cost optimization strategy for a microservices-based application
+        running on Kubernetes?
+      answer_md: To optimize costs for a microservices-based application running on Kubernetes, I would
+        start by implementing proper resource tagging to ensure that each service is billed accurately.
+        Next, I would perform thorough load testing to understand the true demand and set appropriate
+        autoscaling thresholds based on queue depth or requests-in-flight rather than CPU usage. Additionally,
+        I would leverage committed-use discounts for steady-state workloads and use spot instances for
+        batch jobs where downtime can be tolerated. Regularly reviewing and adjusting storage lifecycle
+        policies would help reduce costs associated with data retention. Finally, setting up cost alerts
+        to detect anomalies early would prevent unexpected spikes in spending.
+      difficulty: hard
+    - question: Can you explain why autoscaling on CPU usage is a poor choice for queue-backed workloads?
+      answer_md: Autoscaling on CPU usage can be problematic for queue-backed workloads because it acts
+        as a lagging signal. When the workload experiences a sudden spike, the CPU utilization might not
+        reflect this immediately. By the time the CPU threshold is breached and scaling occurs, the system
+        may already be under significant load, leading to increased latency and potential service degradation.
+        In contrast, monitoring queue depth or requests-in-flight provides a more immediate indication
+        of when additional resources are needed, allowing for faster and more effective scaling.
+      difficulty: hard
+    - question: What is the primary reason for implementing cross-zone and egress data transfer optimizations
+        in cloud architectures?
+      answer_md: Cross-zone and egress data transfer optimizations are crucial because they can significantly
+        impact overall costs. In architecture diagrams, these costs are often overlooked as they do not
+        appear prominently but can be one of the largest lines on the bill. By optimizing cross-zone replication
+        and minimizing egress traffic, you can reduce unnecessary data movement charges, leading to more
+        efficient use of resources and lower cloud spend.
+      difficulty: hard
+  devops-deployment-strategies:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:58:02Z'
+    quiz:
+    - prompt: Which deployment strategy involves gradually increasing traffic to a new version of your
+        application?
+      explanation: The canary strategy sends a small fraction of traffic to the new version and decides
+        based on measured behavior whether to continue. This is the only strategy that gives you evidence
+        rather than hope.
+      options:
+      - text: Recreate
+      - text: Rolling
+      - text: Blue/green
+      - text: Canary
+        correct: true
+    - prompt: What does the expand-contract discipline ensure during schema changes?
+      explanation: The expand-contract pattern ensures that every change must be compatible with the version
+        before it, in both directions, for the duration of the rollout. This prevents breaking the old
+        version during the transition.
+      options:
+      - text: That both versions can read from a shared database
+      - text: That the new version can be rolled back without breaking the old one
+        correct: true
+      - text: That all traffic is directed to the new version immediately
+      - text: That the deployment can be done in a single step
+    - prompt: Which deployment strategy is best suited for an application where downtime is not acceptable?
+      explanation: The rolling strategy replaces instances a few at a time, ensuring no downtime. It runs
+        both versions simultaneously and is the default in most orchestrators.
+      options:
+      - text: Recreate
+      - text: Rolling
+        correct: true
+      - text: Blue/green
+      - text: Canary
+    - prompt: Why is it important to have feature flags when deploying changes?
+      explanation: Feature flags separate shipping code from turning behavior on. They enable gradual
+        rollouts, allowing internal users to test and providing a way to turn off features quickly without
+        redeploying.
+      options:
+      - text: To ensure that all users see the new version immediately
+      - text: To allow gradual rollouts and easy rollback of features
+        correct: true
+      - text: To prevent any deployment from causing downtime
+      - text: To make sure that the database schema can be changed safely
+    interview:
+    - question: Explain the expand-contract discipline for handling schema changes during a deployment.
+      answer_md: The expand-contract discipline is a three-step process used to safely introduce new database
+        columns or fields. First, you add the new column as nullable with a default value and update the
+        API to include this field. Then, in a separate deployment, you backfill existing rows with data
+        for the new field, switch reads to use the new field, and verify that everything works correctly.
+        Finally, you stop writing to the old field and drop it in a later deployment. This process ensures
+        compatibility between versions and allows for safe rollbacks.
+      difficulty: hard
+    - question: How does the canary release strategy differ from rolling updates?
+      answer_md: Canary releases send a small fraction of traffic to the new version, allowing you to
+        measure its behavior before fully deploying it. This provides evidence-based decisions about whether
+        to continue with the rollout. Rolling updates replace instances one at a time without downtime
+        but run both versions simultaneously, which can lead to deployment surprises and require compatibility
+        between versions.
+      difficulty: hard
+    - question: What are some common mistakes in deploying changes that you should avoid?
+      answer_md: Some common mistakes include deploying schema changes and code changes together, performing
+        canary analysis by eye rather than using automated metrics, not having a traffic-splitting mechanism
+        for 'canary' deployments, failing to clean up unused feature flags, setting `maxUnavailable` too
+        aggressively during rolling updates, and scheduling deployments at inopportune times like 5pm
+        on Fridays. These mistakes can lead to downtime, data loss, or difficulty in rollback.
+      difficulty: hard
   devops-editors:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:47:49Z'
@@ -651,6 +876,82 @@ concepts:
         uses version control systems like Git for managing changes. This approach ensures that all changes
         are traceable and auditable, reducing the risk of human error in deployments.
       difficulty: medium
+  devops-incident-response:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:59:14Z'
+    quiz:
+    - prompt: During an incident, what is the most important action to take in the first ten minutes?
+      explanation: The most important action is to assess the customer impact and communicate early. This
+        sets the direction of the incident response and prevents unnecessary duplication of effort among
+        team members.
+      options:
+      - text: Start debugging the issue immediately.
+      - text: Assess customer impact and communicate early with a timestamped status update.
+        correct: true
+      - text: Restart all services involved in the outage.
+      - text: Wait for more information before taking any action.
+    - prompt: What role does the Incident Commander play during an incident?
+      explanation: The Incident Commander owns the incident, keeps the timeline, decides what to try next,
+        and assigns tasks explicitly. They do not type commands during an outage to prevent coordination
+        issues.
+      options:
+      - text: They are responsible for making all technical decisions.
+      - text: They own the incident, keep the timeline, decide what to try next, and assign tasks explicitly
+          by name.
+        correct: true
+      - text: They only handle external communications with customers.
+      - text: They focus on writing the postmortem report.
+    - prompt: Why is it important to write a blameless postmortem?
+      explanation: A blameless postmortem identifies systemic issues rather than individual mistakes,
+        which helps in improving the system. Assigning responsibility can lead to a culture of fear and
+        reduced transparency.
+      options:
+      - text: To assign responsibility for the incident.
+      - text: To ensure that everyone involved feels better after the incident.
+      - text: To identify systemic issues rather than individual mistakes and improve the system.
+        correct: true
+      - text: To publicly shame the engineers who made errors.
+    - prompt: What is the recommended approach for mitigating an incident?
+      explanation: The recommended approach is to mitigate by rolling back recent changes or reverting
+        to a known good state. Understanding the root cause comes later, after service has been restored.
+      options:
+      - text: Investigate the root cause before taking any action.
+      - text: Roll back recent changes or revert to a known good state if possible.
+        correct: true
+      - text: Wait for more information before making any decisions.
+      - text: Continue debugging until you fully understand the issue.
+    - prompt: What should be included in a postmortem report?
+      explanation: A postmortem should include a factual timeline with timestamps, quantified customer
+        impact, contributing factors, and action items. It should not focus on individual blame but rather
+        systemic issues.
+      options:
+      - text: A list of individuals who made mistakes during the incident.
+      - text: The timeline with timestamps, customer impact, contributing factors, and action items.
+        correct: true
+      - text: Only the technical details of what went wrong without context.
+      - text: An analysis of the blameless culture within the organization.
+    interview:
+    - question: How would you handle an incident where multiple engineers are trying to fix the same issue
+        simultaneously?
+      answer_md: To prevent duplication of effort and ensure clear communication, I would assign explicit
+        roles and tasks. One person should act as the Incident Commander who owns the timeline and assigns
+        tasks by name. Operations would make changes, Communications would handle status updates, and
+        a Scribe would keep the timeline. This structured approach ensures that everyone is working towards
+        the same goals without conflicting actions.
+      difficulty: medium
+    - question: Can you explain why it's important to have a blameless postmortem?
+      answer_md: A blameless postmortem is crucial because it shifts focus from individual mistakes to
+        systemic issues. By identifying and addressing the underlying problems, teams can improve their
+        processes and prevent similar incidents in the future. Blaming individuals often leads to a culture
+        of fear, where engineers are less likely to report issues or share critical information.
+      difficulty: medium
+    - question: What steps should be taken to ensure that action items from a postmortem are effective
+        and not just a formality?
+      answer_md: To make sure action items are effective, they should have clear owners and specific completion
+        dates. The organization should track the progress of these actions like any other work item. Regular
+        reviews of completion rates can help identify if improvements are being made or if additional
+        support is needed to address the issues identified in the postmortem.
+      difficulty: hard
   devops-infrastructure-monitoring:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T15:00:28Z'
@@ -755,6 +1056,84 @@ concepts:
       answer_md: Go's efficiency in managing low-level resources reliably makes it suitable for cloud-native
         applications. Its fast compilation, built-in concurrency support with goroutines and channels,
         and robust standard library contribute to its ability to handle high-traffic services efficiently.
+      difficulty: hard
+  devops-linux:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:56:53Z'
+    quiz:
+    - prompt: Which tool would you use to check if a Linux box is experiencing high disk saturation?
+      explanation: iostat -xz 1 provides per-device await and queue depth, which are crucial for identifying
+        disk saturation.
+      options:
+      - text: iostat -xz 1
+        correct: true
+      - text: top
+      - text: vmstat 1
+      - text: dmesg
+    - prompt: Which tool would you use to check if the disk is causing performance issues due to high
+        queue depth?
+      explanation: The `iostat -xz 1` tool provides per-device await and queue depth, which can indicate
+        if the disk is causing performance issues due to high queue depth.
+      options:
+      - text: top
+      - text: iostat -xz 1
+        correct: true
+      - text: vmstat 1
+      - text: ss -ltn
+    - prompt: What would you use to determine if a process is stuck in a syscall or experiencing a hang?
+      explanation: '''/proc/<pid>/stack'' can be used to inspect the stack trace of a process, which helps
+        in determining if it is stuck in a syscall or experiencing a hang.'
+      options:
+      - text: /proc/<pid>/stack
+        correct: true
+      - text: df -i
+      - text: ss -s
+      - text: dmesg
+    - prompt: Which command would you run to check for out-of-memory (OOM) kills on a Linux system?
+      explanation: '''dmesg -T | grep -i oom'' is used to check for out-of-memory (OOM) kills on a Linux
+        system, which can indicate if the memory resources are exhausted.'
+      options:
+      - text: dmesg -T | grep -i oom
+        correct: true
+      - text: free -m
+      - text: vmstat 1
+      - text: ss -s
+    - prompt: When using `top`, why might you see high CPU usage but not necessarily performance issues?
+      explanation: High CPU usage in `top` can indicate that the process is blocked on I/O or performing
+        kernel overhead, as indicated by high 'System' (sys) time. This does not necessarily mean there
+        are performance issues; it could just be waiting for I/O to complete.
+      options:
+      - text: The process is likely in user mode.
+      - text: The process may be blocked on I/O or performing kernel overhead, indicated by high 'System'
+          time.
+        correct: true
+      - text: High CPU usage always indicates a performance issue.
+      - text: The system is under heavy memory pressure.
+    interview:
+    - question: How would you approach debugging a Linux box that keeps freezing and showing high CPU
+        utilization but no specific process stands out?
+      answer_md: First, I would use `top` or `htop` to get an overview of the system's CPU usage. If `top`
+        shows high `sy` (system) time, it might indicate kernel overhead or context switching issues.
+        Next, I would run `iostat -xz 1` to check disk I/O and ensure there are no saturation issues.
+        Then, I would use `ss -s` to get a summary of sockets and look for any unusual patterns like high
+        TIME_WAIT counts. If the issue persists, I might consider using `strace -f -p <pid>` on key processes
+        to trace their system calls and identify potential bottlenecks.
+      difficulty: hard
+    - question: What would you do if a process is hanging and you suspect it's due to a syscall issue?
+      answer_md: If I suspect a process is hanging due to a syscall issue, I would use `strace -f -p <pid>`
+        to trace the syscalls made by that process. This tool provides detailed information about system
+        calls and their arguments, which can help identify where the process might be stuck or experiencing
+        issues. Additionally, if the process is critical, I would take a thread dump using `/proc/<pid>/stack`
+        to get more context on what the process is doing at the moment of hanging.
+      difficulty: hard
+    - question: Explain how you would use `iostat -xz 1` to diagnose a disk-related issue on a Linux system.
+      answer_md: To diagnose a disk-related issue using `iostat -xz 1`, you would first run the command
+        to get detailed I/O statistics. The `-x` option provides extra information, and the `-z` option
+        shows queue depth. By checking the 'await' column, which represents the average time (in milliseconds)
+        that a request is queued or served, you can determine if there are performance bottlenecks due
+        to high wait times. Additionally, the 'r/s' and 'w/s' columns show read and write operations per
+        second, while the 'rrq-s' and 'wrq-s' columns indicate the average queue length for reads and
+        writes. If these values are unusually high, it suggests that the disk is a potential bottleneck.
       difficulty: hard
   devops-logs-management:
     generated_by: qwen2.5:7b
@@ -1078,6 +1457,78 @@ concepts:
         like reproducibility and scalability. However, it may require additional learning and tooling
         to manage effectively, which could be a barrier for teams not familiar with these practices.
       difficulty: hard
+  devops-scripting:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:57:28Z'
+    quiz:
+    - prompt: What does the `-e` option in `set -euo pipefail` do?
+      explanation: It aborts on an unhandled non-zero exit instead of continuing execution. This prevents
+        scripts from continuing after encountering errors, which can lead to silent failures.
+      options:
+      - text: It enables extended globbing.
+      - text: It aborts on an unhandled non-zero exit instead of continuing execution.
+        correct: true
+      - text: It turns unset variables into empty strings.
+      - text: It makes a pipeline fail only if the last command fails.
+    - prompt: Why is it important to use arrays for argument lists in shell scripts?
+      explanation: To avoid issues with word splitting and globbing when arguments contain spaces. Using
+        `@` in arrays ensures correct handling of arguments, especially those containing spaces.
+      options:
+      - text: To make the script shorter and more readable.
+      - text: To avoid issues with word splitting and globbing when arguments contain spaces.
+        correct: true
+      - text: To ensure that functions can be called without parameters.
+      - text: To enable easier debugging of the script.
+    - prompt: What is a key benefit of using the `trap` command for cleanup in shell scripts?
+      explanation: It guarantees that certain commands are executed on normal exit, error, and Ctrl-C.
+        The `trap` command ensures resources like temporary files are cleaned up properly in various scenarios.
+      options:
+      - text: It allows you to create temporary files without worrying about permissions.
+      - text: It guarantees that certain commands are executed on normal exit, error, and Ctrl-C.
+        correct: true
+      - text: It prevents your script from being interrupted by user input.
+      - text: It automatically backs up the script before running it.
+    interview:
+    - question: Explain why `set -euo pipefail` is a critical part of a shell script's safety preamble.
+      answer_md: The `set -euo pipefail` command in the safety preamble is essential because it sets several
+        important flags that enhance script reliability and security. `-e` ensures the script exits immediately
+        if any command returns a non-zero status, preventing silent failures. `-u` causes the script to
+        exit if an undefined variable is referenced, avoiding potential bugs where variables are accidentally
+        left unset. The `pipefail` option makes sure that a pipeline of commands fails as soon as one
+        of them fails, not just the last one in the chain. Together, these flags make shell scripts more
+        robust and less prone to errors or security vulnerabilities.
+      difficulty: hard
+    - question: Describe how you would use `trap` to ensure a temporary directory is cleaned up after
+        your script exits normally or on error.
+      answer_md: 'To ensure that a temporary directory created by the script is cleaned up, I would use
+        the `mktemp -d` command to create a unique temporary directory and then set up a trap for the
+        EXIT signal. Here''s an example of how you might do this in your shell script:
+
+
+        ```bash
+
+        trap ''rm -rf $tmpdir'' EXIT
+
+
+        tmpdir=$(mktemp -d)
+
+        # Your script logic here
+
+        ```
+
+
+        This ensures that the temporary directory is removed when the script exits, either normally or
+        due to an error. The `trap` command sets up a handler for the EXIT signal, which runs the specified
+        cleanup command (`rm -rf $tmpdir`) before the script terminates.'
+      difficulty: hard
+    - question: Why is it important to avoid using `[ ]` for string comparison in shell scripts and what
+        should be used instead?
+      answer_md: Using `[ ]` (also known as `test` or `[-]`) for string comparisons can lead to subtle
+        bugs, especially when dealing with spaces or special characters. The preferred alternative is
+        the `[[ ]]` construct, which provides more robust string comparison capabilities and better error
+        handling. For example, if you need to check whether a variable contains a specific substring,
+        using `[[ $var == *substring* ]]` is safer than `[
+      difficulty: hard
   devops-secret-management:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T15:01:01Z'
@@ -1262,6 +1713,71 @@ concepts:
         your applications directly, while AWS handles the underlying infrastructure. This makes it a serverless
         option compared to ECS, which requires managing nodes in a cluster.
       difficulty: hard
+  devops-supply-chain-security:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:58:38Z'
+    quiz:
+    - prompt: What is the primary purpose of generating an SBOM (Software Bill of Materials) at build
+        time?
+      explanation: The primary purpose is to list every component and version in an artefact, enabling
+        quick vulnerability assessments. Without SBOMs, identifying affected components can take weeks.
+      options:
+      - text: To ensure that the application runs efficiently.
+      - text: To list every component and version in an artefact, facilitating quick vulnerability assessments.
+        correct: true
+      - text: To provide a historical record of the development process.
+      - text: To comply with regulatory requirements.
+    - prompt: Why should you continuously scan images and dependencies after the build process?
+      explanation: Continuous scanning is necessary because vulnerabilities can be discovered after shipping.
+        Without it, you may miss newly announced vulnerabilities that affect your artefacts.
+      options:
+      - text: To ensure that all dependencies are up-to-date.
+      - text: Because vulnerabilities are discovered after shipping, necessitating ongoing monitoring.
+        correct: true
+      - text: To comply with security policies.
+      - text: To improve the performance of your application.
+    - prompt: What is the recommended approach for signing artefacts in terms of verification?
+      explanation: The recommended approach is to sign artefacts at publish time and verify signatures
+        at deploy time. Signing without verification provides no security benefit, as the value lies in
+        enforcing that only signed images can run.
+      options:
+      - text: Sign artefacts at publish time but do not verify them.
+      - text: Verify signatures only when the artefact is first published, then sign it again before deployment.
+      - text: Sign artefacts at publish time and verify signatures at deploy time.
+        correct: true
+      - text: Sign artefacts at runtime to ensure they are tamper-proof.
+    interview:
+    - question: How would you design a process for generating and managing SBOMs to ensure they are useful
+        in a real-world scenario?
+      answer_md: 'To generate and manage SBOMs effectively, I would follow these steps: First, integrate
+        an SBOM generation tool into the build pipeline that creates an SBOM at build time. This ensures
+        the SBOM reflects the exact dependencies used during the build process. Second, store the SBOM
+        alongside the artefact in a version-controlled repository to maintain its integrity and traceability.
+        Third, implement automated scanning tools to continuously monitor for new vulnerabilities and
+        update the SBOMs accordingly. Finally, establish a triage process where security teams prioritize
+        findings based on severity and impact, focusing on high-risk issues while documenting low-impact
+        ones.'
+      difficulty: hard
+    - question: What are some common pitfalls to avoid when implementing dependency pinning in your CI/CD
+        pipeline?
+      answer_md: Some common pitfalls to avoid include using floating tags for dependencies, which can
+        lead to silent security vulnerabilities if the upstream repository is compromised. Another pitfall
+        is not configuring package managers to scope internal names explicitly to private registries,
+        allowing attackers to publish malicious packages with the same name. Additionally, relying solely
+        on version pinning without also verifying integrity hashes (via digests) can leave your pipeline
+        vulnerable to tampering. Lastly, failing to enforce strict permissions and access controls for
+        CI/CD runners and workflows can expose sensitive secrets.
+      difficulty: hard
+    - question: How does the SLSA framework contribute to supply chain security, and what are some key
+        practices it promotes?
+      answer_md: 'The SLSA (Software Supply Chain Security) framework contributes to supply chain security
+        by providing a set of guidelines for building trustworthy software. It promotes several key practices:
+        first, pinning dependencies by both version and integrity hash via lockfiles; second, using signed
+        attestations that record the source commit, builder, and inputs used in creating an artefact;
+        third, ensuring provenance is generated by the build platform rather than asserted by individuals.
+        These practices help prevent supply chain attacks by verifying the authenticity and integrity
+        of software components throughout the development lifecycle.'
+      difficulty: hard
   devops-terminal-knowledge:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:47:18Z'
@@ -1329,6 +1845,69 @@ concepts:
         listings and customizable views. By combining these tools, you can gain comprehensive insights
         into your system''s performance and identify potential bottlenecks.'
       difficulty: hard
+  devops-unix:
+    generated_by: qwen2.5:7b
+    verified_at: '2026-08-22T15:55:46Z'
+    quiz:
+    - prompt: What is a plausible reason for a service to drop in-flight requests during deployment?
+      explanation: A well-behaved service should catch SIGTERM and stop accepting new work. If it does
+        not receive the signal or fails to handle it properly, it may drop in-flight requests during deployment.
+      options:
+      - text: The service did not receive SIGTERM and ignored SIGKILL.
+      - text: The service received SIGTERM but failed to handle it properly.
+        correct: true
+      - text: The service was running with too many open files, causing an OOM kill.
+      - text: The service had a configuration error in its environment variables.
+    - prompt: Why is `sh -c` often considered a bad practice when running services in containers?
+      explanation: Using `sh -c` without `exec` runs a shell wrapper as PID 1, which can swallow SIGTERM
+        signals. This is why it's often recommended to use `exec` in entrypoint scripts or run a tiny
+        init that forwards signals.
+      options:
+      - text: It increases the number of open file descriptors.
+      - text: It can cause the service to ignore SIGTERM signals.
+        correct: true
+      - text: It automatically reap zombies and leaks descriptors.
+      - text: It makes it harder to manage environment variables.
+    - prompt: What does an exit code of 143 indicate about the service termination?
+      explanation: An exit code of 143 indicates that the service was terminated normally by SIGTERM.
+        This is because 143 = 128 + 15, which is the standard way signals are reported as exit codes.
+      options:
+      - text: The service was terminated by SIGTERM.
+        correct: true
+      - text: The service was terminated by SIGKILL.
+      - text: The service exited with an error during initialization.
+      - text: The service completed successfully.
+    - prompt: How does PID 1's special signal handling affect services running inside containers?
+      explanation: PID 1 in a container has special signal semantics and does not get default signal dispositions.
+        This means it may not receive or pass on signals like SIGTERM, leading to improper shutdowns if
+        the main process is wrapped in a shell script.
+      options:
+      - text: PID 1 receives all signals and handles them as expected.
+      - text: PID 1 ignores SIGTERM but passes on SIGKILL.
+      - text: PID 1 forwards signals to the main process, ensuring proper shutdown.
+      - text: PID 1 does not receive default signal dispositions, potentially missing SIGTERM.
+        correct: true
+    interview:
+    - question: How would you ensure that your service handles SIGTERM correctly during deployment?
+      answer_md: To ensure that your service handles SIGTERM correctly during deployment, you should make
+        sure it catches the signal and gracefully stops accepting new work. The service should finish
+        in-flight requests, close connections, and exit cleanly. This can be achieved by using an entrypoint
+        script with `exec` to become PID 1, which will properly forward signals from the init system or
+        container runtime.
+      difficulty: medium
+    - question: What are some common signs that a service is leaking file descriptors, and how would you
+        diagnose it?
+      answer_md: Common signs of descriptor leaks include 'too many open files' errors, slow performance,
+        and unexpected crashes. To diagnose the issue, you can use tools like `lsof` or inspect `/proc/<pid>/fd`.
+        These commands will show which file descriptors are still open even after the service has supposedly
+        exited, helping identify where the leak is occurring.
+      difficulty: hard
+    - question: Can a service handle SIGKILL? If not, what should be done to ensure proper shutdown?
+      answer_md: A service cannot handle SIGKILL; it is an uncatchable signal designed for immediate termination.
+        To ensure proper shutdown, the service must catch and handle SIGTERM first. This allows the service
+        to perform necessary cleanup tasks before exiting. Orchestrators like Kubernetes use this mechanism
+        by sending SIGTERM followed by SIGKILL after a grace period.
+      difficulty: medium
   devops-vcs-hosting:
     generated_by: qwen2.5:7b
     verified_at: '2026-08-21T14:48:51Z'

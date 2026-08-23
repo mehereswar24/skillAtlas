@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { API_BASE_URL } from '@/lib/api';
+import { apiBaseUrl } from '@/lib/api';
 
 /**
  * BFF route for the anonymous helper.
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}/api/v1/chat/public`, {
+    response = await fetch(`${apiBaseUrl()}/api/v1/chat/public`, {
       method: 'POST',
       headers,
       body: await request.text(),

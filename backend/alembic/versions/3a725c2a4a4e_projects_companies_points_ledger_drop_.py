@@ -200,16 +200,26 @@ def upgrade() -> None:
     with op.batch_alter_table('project_tests', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_project_tests_project_id'), ['project_id'], unique=False)
 
-    op.drop_table('assessment_questions')
-    with op.batch_alter_table('assessment_results', schema=None) as batch_op:
-        batch_op.drop_index('ix_assessment_results_user_id')
-
-    op.drop_table('assessment_results')
+    # Child before parent. `assessment_options.question_id` references
+    # `assessment_questions.id`, so dropping the parent first is refused by any
+    # engine that enforces foreign keys:
+    #
+    #     cannot drop table assessment_questions because other objects depend
+    #     on it — constraint assessment_options_question_id_fkey
+    #
+    # Alembic's autogenerate emitted them parent-first and SQLite accepted it,
+    # so this stayed invisible until the first Postgres deploy tried to run the
+    # same migration. Do not reorder these back.
     with op.batch_alter_table('assessment_options', schema=None) as batch_op:
         batch_op.drop_index('ix_assessment_options_category')
         batch_op.drop_index('ix_assessment_options_question_id')
 
     op.drop_table('assessment_options')
+    with op.batch_alter_table('assessment_results', schema=None) as batch_op:
+        batch_op.drop_index('ix_assessment_results_user_id')
+
+    op.drop_table('assessment_results')
+    op.drop_table('assessment_questions')
     with op.batch_alter_table('user_profiles', schema=None) as batch_op:
         # server_default backfills existing profiles; the column is NOT NULL,
         # and every one of them was already on the 2h/day default.

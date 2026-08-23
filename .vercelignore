@@ -1,0 +1,60 @@
+# What never gets uploaded to Vercel.
+#
+# A Git deployment only sends tracked files, so most of this is already absent
+# there. It matters for `vercel deploy` from a laptop, which uploads the working
+# tree as it finds it — including a 161MB venv, a 50MB SQLite file and the
+# roadmap.sh prose backup that must not leave this machine.
+#
+# The function bundle is trimmed separately, by `excludeFiles` in vercel.json:
+# this file controls what is *uploaded*, that one controls what is *bundled*.
+
+# --- Python local environment -------------------------------------------
+backend/venv/
+**/__pycache__/
+**/*.pyc
+backend/.pytest_cache/
+
+# --- Local database ------------------------------------------------------
+# SQLite is the development store. Production is Postgres, and shipping a
+# 50MB db file would both bloat the upload and invite someone to point at it.
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+
+# --- Secrets -------------------------------------------------------------
+# .env holds SECRET_KEY and OPENROUTER_API_KEY. Vercel's own environment
+# variables are the supported way in; a file would silently outrank them.
+backend/.env
+frontend/.env.local
+deploy/.env
+
+# --- Licence-encumbered material -----------------------------------------
+# roadmap.sh's prose, kept only so the strip is reversible locally. It is the
+# one thing in this tree that may not be redistributed.
+backend/.backup-preprose/
+backend/.backup-preroadmapsh/
+
+# --- Authoring and QA scratch --------------------------------------------
+backend/.authoring/
+backend/.frag/
+backend/.qa/
+backend/qa/
+frontend/.qa/
+frontend/qa/
+frontend/.qa-cross/
+
+# --- Frontend build artefacts and dependencies ---------------------------
+# Vercel installs and builds these itself; uploading them wastes minutes.
+frontend/node_modules/
+frontend/.next/
+
+# --- Docker deployment ---------------------------------------------------
+# The compose/VM path, irrelevant to a Vercel build.
+deploy/
+
+# --- Logs ----------------------------------------------------------------
+*.log
+.backend.out.log
+.backend.err.log
+.frontend.out.log
+.frontend.err.log

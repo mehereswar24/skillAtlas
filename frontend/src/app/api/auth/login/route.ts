@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { API_BASE_URL } from '@/lib/api';
+import { apiBaseUrl } from '@/lib/api';
 import { setSessionCookies } from '@/lib/session';
 
 /**
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ detail: 'Email and password are required' }, { status: 400 });
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+  const response = await fetch(`${apiBaseUrl()}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: body.email, password: body.password }),

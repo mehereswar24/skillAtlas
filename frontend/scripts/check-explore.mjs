@@ -52,15 +52,24 @@ try {
     expected,
   );
 
-  // Open Backend — the densest domain, 20 routes.
+  // Open Backend — the densest domain.
   await page.locator('button:has(h3:text-is("Backend"))').first().click();
   const dialog = page.getByRole('dialog');
   await dialog.waitFor({ state: 'visible', timeout: 15000 });
   check('route picker opens', true, (await dialog.locator('h2').innerText()));
 
+  // Against the API, not a hard-coded number, for the same reason as the header
+  // check above. This was pinned at 20 and went stale the moment the authoring
+  // pass re-curated api-design out of Backend and into Architecture — which is
+  // a content decision the picker should follow, not a regression.
+  const backendRoutes = apiTracks.filter((t) => t.domain_slug === 'backend').length;
   const routes = dialog.locator('ul > li');
   const routeCount = await routes.count();
-  check('lists every route in the domain', routeCount === 20, `${routeCount} routes`);
+  check(
+    'lists every route in the domain',
+    routeCount === backendRoutes,
+    `${routeCount} routes, API says ${backendRoutes}`,
+  );
 
   // Expand one route and start it.
   const first = routes.first();

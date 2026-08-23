@@ -9,13 +9,44 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.config import settings
 
-connect_args = {"check_same_thread": False} if settings.is_sqlite else {}
+if settings.is_sqlite:
+    connect_args: dict = {"check_same_thread": False}
+    pool_kwargs: dict = {}
+else:
+    # Postgres, which in practice means a serverless function talking to a
+    # managed database over the network. Three settings matter there and none
+    # of them do locally:
+    #
+    # `pool_size`/`max_overflow` are small on purpose. Every warm instance
+    # holds its own pool, so the connection count the database sees is
+    # (instances x pool). Managed Postgres free tiers cap connections in the
+    # low hundreds, and a pool sized for one big server exhausts that as soon
+    # as the platform scales out. Point DATABASE_URL at the *pooled* endpoint
+    # (PgBouncer, the `-pooler` host on Neon) and let it do the real pooling.
+    #
+    # `pool_recycle` is below the idle timeout managed providers use to reap
+    # connections. Without it a warm-but-quiet instance keeps a handle the
+    # server has already closed, and the next request fails once before
+    # pre-ping opens a fresh one.
+    #
+    # `connect_timeout` stops a network problem from consuming the whole
+    # function budget before the client sees anything.
+    connect_args = {"connect_timeout": settings.db_connect_timeout_sec}
+    pool_kwargs = {
+        "pool_size": settings.db_pool_size,
+        "max_overflow": settings.db_max_overflow,
+        "pool_recycle": settings.db_pool_recycle_sec,
+    }
 
 engine = create_engine(
     settings.database_url,
     connect_args=connect_args,
+    # Verifies a pooled connection is alive before handing it over, at the cost
+    # of one round trip. Load-bearing against a database that can close
+    # connections underneath an idle instance.
     pool_pre_ping=True,
     future=True,
+    **pool_kwargs,
 )
 
 if settings.is_sqlite:

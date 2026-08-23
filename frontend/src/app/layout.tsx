@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Outfit, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
+import { SmoothScroll } from "@/components/smooth-scroll";
 import { ThemeScript } from "@/components/theme-toggle";
 import "./globals.css";
 
@@ -32,11 +34,17 @@ export const metadata: Metadata = {
 
 import { MagneticCursor } from "@/components/ui/magnetic-cursor";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The nonce `src/proxy.ts` minted for this request. Reading a header here
+  // also opts the whole app into dynamic rendering, which nonce-based CSP
+  // requires anyway: a page prerendered at build time has no request to take a
+  // nonce from, so its inline scripts would be blocked at runtime.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="en"
@@ -47,9 +55,10 @@ export default function RootLayout({
       className={`${outfit.variable} ${jakarta.variable} ${geistMono.variable} h-full`}
     >
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
       </head>
       <body className="flex min-h-full flex-col">
+        <SmoothScroll />
         <MagneticCursor
           magneticFactor={0.55}
           blendMode="exclusion"

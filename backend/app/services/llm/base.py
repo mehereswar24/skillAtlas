@@ -25,7 +25,21 @@ class LLMProvider(Protocol):
     ``app.services.llm.get_provider`` — nothing in the routers has to change.
     """
 
-    async def is_available(self) -> bool: ...
+    #: Which model answers, reported to clients through the tutor, interview
+    #: and résumé status endpoints. Part of the interface rather than an
+    #: implementation detail: those three routers read it off the provider, so
+    #: a provider that spells it differently 500s every page that asks.
+    chat_model: str
+
+    async def is_available(self) -> bool:
+        """Whether this provider can *generate*.
+
+        False does not mean the feature is dead — callers fall back to
+        deterministic retrieval — so a provider that cannot generate must
+        answer False rather than True-because-it-can-respond. The status
+        endpoints turn this straight into "generative" vs "retrieval-only".
+        """
+        ...
 
     async def stream_chat(
         self, messages: list[ChatMessage], options: dict | None = None

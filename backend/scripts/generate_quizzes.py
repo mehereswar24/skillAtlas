@@ -38,6 +38,13 @@ first): four distinct options, exactly one marked correct, a real explanation,
 no "all of the above", and no vocabulary-recall prompts such as "what does REST
 stand for" — which a 7B model reaches for constantly and which test nothing.
 
+Outline concepts are skipped outright. Since `strip_imported_prose.py` replaced
+the imported tracks' prose with a syllabus stub (marked
+`<!-- skillatlas:outline -->`, the same rule `app/services/publishing.py`
+applies), most of the corpus has no lesson for a question to be grounded in.
+An outline is ~600 characters of boilerplate that clears the length floor, so
+it is excluded by its marker rather than its size.
+
 Output
 ------
 Authored YAML under ``app/seed/quizzes/<track>.yaml``, keyed by concept slug,
@@ -90,6 +97,11 @@ from app.database import SessionLocal  # noqa: E402
 from app.models.company import CompanyFocus  # noqa: E402
 from app.models.content import Concept, Track, TrackConcept  # noqa: E402
 from app.models.project import Project  # noqa: E402
+# The same rule the API applies when it labels a concept `outline`. An outline
+# is a syllabus entry plus links — there is no lesson in front of it to ground
+# a question on, and generating one anyway would be exactly the invention the
+# verification pass exists to catch.
+from app.services.publishing import OUTLINE_MARKER  # noqa: E402
 
 OUT_DIR = BACKEND / "app" / "seed" / "quizzes"
 
@@ -405,6 +417,152 @@ class Ollama:
                 self.tokens += int(body.get("eval_count") or 0)
                 return json.loads(body["message"]["content"])
             except (httpx.HTTPError, json.JSONDecodeError, KeyError, ModelError) as exc:
+                last = exc
+                if attempt + 1 < attempts:
+                    time.sleep(2 * (attempt + 1))
+        raise ModelError(f"model call failed after {attempts} attempts: {last}")
+
+
+def _strict_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Return `schema` with `additionalProperties: false` on every object.
+
+    Ollama takes a bare JSON Schema. OpenAI-style structured outputs, which
+    OpenRouter implements, additionally require every object to forbid extra
+    properties before it will accept `strict: true` — and `strict` is the whole
+    point, because it is what makes the sampler follow the grammar rather than
+    merely be asked to.
+    """
+    node = dict(schema)
+    if node.get("type") == "object":
+        node["additionalProperties"] = False
+        if "properties" in node:
+            node["properties"] = {
+                key: _strict_schema(value)
+                for key, value in node["properties"].items()
+            }
+    if "items" in node and isinstance(node["items"], dict):
+        node["items"] = _strict_schema(node["items"])
+    return node
+
+
+class OpenRouter:
+    """Blocking chat client against OpenRouter, same contract as `Ollama`.
+
+    Exists because production has no GPU, and because a hosted model answers a
+    verification call in seconds where a local 9B model takes a minute. The
+    catch is quota rather than capability: free models allow 20 requests a
+    minute and 50 a day on an account with no credits, and one concept costs
+    nine calls (one to generate, then one per question to verify). That is four
+    or five concepts a day. `check()` says so up front rather than letting a
+    long run die a third of the way through.
+
+    No `models` fallback list here, deliberately, though the tutor uses one:
+    the fallbacks do not support structured outputs, so a fallback would
+    silently return prose where the caller is about to `json.loads` it.
+    """
+
+    #: Free-tier daily cap, used only to warn before a run that cannot finish.
+    FREE_DAILY_CALLS = 50
+
+    def __init__(self, api_key: str, model: str, base_url: str, timeout: float = 300.0):
+        self.api_key = api_key
+        self.model = model
+        self.base_url = base_url.rstrip("/")
+        self.client = httpx.Client(timeout=timeout)
+        self.calls = 0
+        self.tokens = 0
+
+    def close(self) -> None:
+        self.client.close()
+
+    def check(self) -> None:
+        if not self.api_key:
+            raise ModelError(
+                "OPENROUTER_API_KEY is not set. Put it in backend/.env "
+                "(which is gitignored) or pass --provider ollama."
+            )
+        try:
+            response = self.client.get(
+                f"{self.base_url}/key",
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                timeout=10.0,
+            )
+        except httpx.HTTPError as exc:
+            raise ModelError(f"OpenRouter is not reachable ({exc}).") from None
+        if response.status_code in (401, 403):
+            raise ModelError("OpenRouter rejected the API key.")
+        response.raise_for_status()
+        data = response.json().get("data", {})
+        if data.get("is_free_tier") and self.model.endswith(":free"):
+            print(
+                f"      note: free tier — {self.FREE_DAILY_CALLS} model calls a "
+                f"day, and a concept costs {ASK_QUIZ + ASK_INTERVIEW + 1}. "
+                f"Expect roughly {self.FREE_DAILY_CALLS // (ASK_QUIZ + ASK_INTERVIEW + 1)} "
+                f"concepts before the cap.",
+                flush=True,
+            )
+
+    def json_chat(
+        self,
+        system: str,
+        user: str,
+        schema: dict[str, Any],
+        *,
+        temperature: float,
+        attempts: int = 3,
+    ) -> dict[str, Any]:
+        payload = {
+            "model": self.model,
+            "stream": False,
+            "temperature": temperature,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            # The counterpart of Ollama's `format`: constrain the sampler to the
+            # grammar so a malformed reply is impossible rather than unlikely.
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "quiz_payload",
+                    "strict": True,
+                    "schema": _strict_schema(schema),
+                },
+            },
+        }
+        last: Exception | None = None
+        for attempt in range(attempts):
+            try:
+                response = self.client.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                )
+                if response.status_code == 429:
+                    # Out of quota, not a transient blip. Retrying burns the
+                    # backoff and fails anyway, so stop the run cleanly and let
+                    # what is already on disk stand.
+                    raise ModelError(
+                        "OpenRouter rate limit reached (20/min, 50/day on a "
+                        "free account with no credits). Everything finished so "
+                        "far is saved; re-run tomorrow or add credits."
+                    )
+                response.raise_for_status()
+                body = response.json()
+                if body.get("error"):
+                    raise ModelError(str(body["error"]))
+                message = body["choices"][0]["message"]
+                self.calls += 1
+                self.tokens += int(
+                    (body.get("usage") or {}).get("completion_tokens") or 0
+                )
+                return json.loads(message["content"])
+            except ModelError:
+                raise
+            except (httpx.HTTPError, json.JSONDecodeError, KeyError, IndexError) as exc:
                 last = exc
                 if attempt + 1 < attempts:
                     time.sleep(2 * (attempt + 1))
@@ -869,6 +1027,32 @@ def _filter(
     return picked
 
 
+def _build_model(args) -> "Ollama | OpenRouter":
+    """Pick a client from --provider, defaulting to whatever is configured.
+
+    `auto` mirrors `settings.llm_provider`: a key means the hosted provider,
+    no key means the local one. Model and base URL default per provider rather
+    than globally, so `--model` never has to be passed just to undo a default
+    that belonged to the other one.
+    """
+    from app.config import settings  # noqa: PLC0415 — CLI-only, keeps import cost off the app
+
+    provider = args.provider
+    if provider == "auto":
+        provider = "openrouter" if settings.openrouter_api_key else "ollama"
+
+    if provider == "openrouter":
+        return OpenRouter(
+            api_key=settings.openrouter_api_key,
+            model=args.model or settings.openrouter_model,
+            base_url=args.base_url or settings.openrouter_base_url,
+        )
+    return Ollama(
+        args.base_url or settings.ollama_base_url or DEFAULT_BASE_URL,
+        args.model or settings.ollama_chat_model or DEFAULT_MODEL,
+    )
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Generate and verify concept quizzes with a local Ollama model."
@@ -879,8 +1063,15 @@ def main(argv: Iterable[str] | None = None) -> int:
                         help="generate for this concept only; repeatable")
     parser.add_argument("--concepts", type=Path, metavar="FILE",
                         help="file of concept slugs, one per line (# comments ok)")
-    parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
+    parser.add_argument(
+        "--provider", choices=["auto", "ollama", "openrouter"], default="auto",
+        help="auto picks openrouter when OPENROUTER_API_KEY is set (default: auto)",
+    )
+    parser.add_argument(
+        "--model", default=None,
+        help="defaults to the chosen provider's configured chat model",
+    )
+    parser.add_argument("--base-url", default=None)
     parser.add_argument("--attempts", type=int, default=2,
                         help="generation passes per concept before giving up")
     parser.add_argument("--force", action="store_true",
@@ -908,11 +1099,15 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     queue: list[Target] = []
     skipped_short: list[str] = []
+    skipped_outline: list[str] = []
     for target in targets:
         if target.slug in covered and not args.force:
             continue
         if len(target.body) < MIN_BODY_CHARS:
             skipped_short.append(target.slug)
+            continue
+        if OUTLINE_MARKER in target.body:
+            skipped_outline.append(target.slug)
             continue
         queue.append(target)
         if len(queue) >= args.limit:
@@ -920,6 +1115,7 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     print(f"{len(targets)} concepts in the target set, "
           f"{len(covered)} already covered, "
+          f"{len(skipped_outline)} skipped as outlines (no lesson to ground on), "
           f"{len(skipped_short)} skipped as too short to ground a question.")
     print(f"Queue: {len(queue)} concepts.")
     if args.dry_run:
@@ -929,7 +1125,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     if not queue:
         return 0
 
-    model = Ollama(args.base_url, args.model)
+    model = _build_model(args)
     model.check()
 
     tally = Tally()

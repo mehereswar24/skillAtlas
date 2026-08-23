@@ -16,6 +16,11 @@ python-dotenv==1.2.2
 # --- database ---
 SQLAlchemy==2.0.51
 alembic==1.14.1
+# Postgres driver. Required in any deployment: SQLite lives on a local disk,
+# and a serverless function has no durable one — every write would vanish with
+# the instance. Harmless locally, where DATABASE_URL still points at SQLite and
+# this is simply never imported.
+psycopg2-binary==2.9.12
 
 # --- auth ---
 # bcrypt is used directly (not via passlib, which is unmaintained and
@@ -40,6 +45,5 @@ pytest-asyncio==0.25.2
 
 # NOTE: neo4j, redis and celery were removed. The knowledge graph is stored
 # relationally and traversed in Python (app/services/graph.py); there is no
-# broker available on this machine. Postgres support is retained through
-# SQLAlchemy — set DATABASE_URL and install psycopg2-binary to switch.
-# psycopg2-binary==2.9.12
+# broker available on this machine. Switching to Postgres is now just a matter
+# of setting DATABASE_URL — the driver above is installed either way.

@@ -15,8 +15,13 @@ const STORAGE_KEY = 'skillatlas-theme';
  * This runs as a blocking inline script in <head>. Doing it in an effect
  * instead would render the light theme first and then swap — the flash of
  * wrong theme that every dark-mode implementation is judged by.
+ *
+ * `nonce` is required by the CSP that `src/proxy.ts` sets. Next nonces the
+ * scripts it emits itself, but this one is hand-written, so the root layout
+ * reads `x-nonce` off the request and passes it down. Without it the theme
+ * simply never applies and every visitor gets the light theme.
  */
-export function ThemeScript() {
+export function ThemeScript({ nonce }: { nonce?: string }) {
   const script = `
 (function () {
   try {
@@ -29,7 +34,19 @@ export function ThemeScript() {
   } catch (e) {}
 })();`.trim();
 
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+  // suppressHydrationWarning: browsers deliberately hide the `nonce` content
+  // attribute from the DOM once the document is parsed, so that an injected
+  // CSS selector cannot read it back out. React therefore sees `nonce=""` on
+  // the client against the real value in the server HTML and reports a
+  // mismatch it cannot patch. The script has already run by then; the warning
+  // is about an attribute nobody reads.
+  return (
+    <script
+      nonce={nonce}
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{ __html: script }}
+    />
+  );
 }
 
 function apply(theme: Theme) {

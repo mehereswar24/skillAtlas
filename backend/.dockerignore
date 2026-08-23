@@ -1,0 +1,54 @@
+# Everything here is either a secret, a local artefact, or bulk that would slow
+# the build and bloat the image. The image needs app/, alembic/, scripts/ and
+# requirements.txt — nothing else.
+
+# --- secrets, first and most important -------------------------------------
+# The Dockerfile does `COPY . .`, so without this line the development
+# SECRET_KEY is baked into every layer of the image and travels with it to any
+# registry it is pushed to. Configuration comes from the environment at run
+# time; it must never be built in.
+.env
+.env.*
+!.env.example
+
+# --- local Python environment ----------------------------------------------
+# The image builds its own venv from requirements.txt. This one also carries
+# Windows binaries that cannot execute in a Linux container.
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- local databases --------------------------------------------------------
+# A SQLite file from development, plus its WAL sidecars. Production uses
+# Postgres, and shipping a database full of test accounts would be worse than
+# useless.
+*.db
+*.db-wal
+*.db-shm
+
+# --- content backups --------------------------------------------------------
+# .backup-preprose/ is the pre-strip corpus — that is precisely the
+# roadmap.sh material we may not redistribute. It must never enter an image.
+.backup-preprose/
+.backup-preroadmapsh/
+
+# --- authoring and QA scratch ----------------------------------------------
+.authoring/
+.frag/
+.qa/
+qa/
+.quizgen.log
+*.log
+
+# --- tests -------------------------------------------------------------------
+# Not run inside the runtime image; the entrypoint only migrates and serves.
+tests/
+
+# --- vcs ---------------------------------------------------------------------
+.git/
+.gitignore

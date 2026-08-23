@@ -10,7 +10,35 @@ import { getAccessToken, getRefreshToken, setSessionCookies } from '@/lib/sessio
  * surfaces as a random logout.
  */
 
-export const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:8010';
+/**
+ * Where the FastAPI backend lives, as seen from the Next.js server.
+ *
+ * A function rather than a module-level constant, and that is load-bearing on
+ * Vercel. The API runs as a private second service and its URL arrives through
+ * a service binding, which Vercel injects **at runtime only** — bindings do not
+ * resolve during builds. Resolving this eagerly at import time would therefore
+ * throw during `next build`, before the variable it is complaining about could
+ * possibly exist.
+ *
+ * The localhost default is a development convenience and must not survive into
+ * production. Unset on a hosted deployment, it would leave every server render
+ * quietly dialling a port on the rendering host itself: not a failure at boot,
+ * but a 500 on each data-backed page once real traffic arrives, and only then.
+ * Throwing on first use turns that into one legible error instead.
+ */
+export function apiBaseUrl(): string {
+  const configured = process.env.API_BASE_URL;
+  if (configured) return configured.replace(/\/+$/, '');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'API_BASE_URL is not set. The Next.js server needs the address of the ' +
+        'FastAPI backend. On Vercel this comes from the `api` service binding ' +
+        'declared in vercel.json; elsewhere set it to the API origin, for ' +
+        'example https://api.example.com.',
+    );
+  }
+  return 'http://localhost:8010';
+}
 
 export class ApiError extends Error {
   constructor(
@@ -51,7 +79,7 @@ async function refreshAccessToken(): Promise<string | undefined> {
   const refreshToken = await getRefreshToken();
   if (!refreshToken) return undefined;
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+  const response = await fetch(`${apiBaseUrl()}/api/v1/auth/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -78,7 +106,7 @@ async function refreshAccessToken(): Promise<string | undefined> {
 
 /** Raw call to the backend, returning the untouched `Response`. */
 export async function apiRaw(path: string, init: ApiInit = {}): Promise<Response> {
-  const url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  const url = `${apiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
   const token = await getAccessToken();
 
   let response = await fetch(url, buildInit(init, token));
@@ -116,12 +144,26 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
   return (await response.json()) as T;
 }
 
-/** Like `api`, but returns `null` instead of throwing on 401/404. */
+/**
+ * Like `api`, but returns `null` instead of throwing for the failures a page
+ * is expected to survive: not signed in, not found, or throttled.
+ *
+ * 429 belongs in that list for the same reason the other two do. Pages call
+ * this for optional panels, several in one `Promise.all`; a server component
+ * that throws takes the whole route down to a 500 error page. Losing one panel
+ * to a rate limit is a degraded page, which is the point of this helper —
+ * losing the route is not. This is not hypothetical: `GET /resume/uploads` was
+ * being charged to the hourly *upload* budget, so around thirty views of
+ * /resume in an hour turned it into a 500.
+ */
 export async function apiOrNull<T>(path: string, init: ApiInit = {}): Promise<T | null> {
   try {
     return await api<T>(path, init);
   } catch (error) {
-    if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
+    if (
+      error instanceof ApiError &&
+      (error.status === 401 || error.status === 404 || error.status === 429)
+    ) {
       return null;
     }
     throw error;
