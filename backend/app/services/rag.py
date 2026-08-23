@@ -147,15 +147,30 @@ def _normalise(matrix: np.ndarray) -> np.ndarray:
 
 
 async def retrieve(db: Session, query: str, k: int = 4) -> list[Retrieved]:
-    """Best-matching chunks: vector search when indexed, keyword search otherwise."""
-    rows = db.scalars(select(ConceptEmbedding)).all()
-    if rows:
+    """Best-matching chunks: vector search when indexed, keyword search otherwise.
+
+    Order matters here, and it is not cosmetic. This used to load every
+    `ConceptEmbedding` row *before* asking the provider to embed the query, and
+    then discard them all when that raised. With a hosted provider that cannot
+    embed at all — OpenRouter brokers chat, not embeddings — the raise is not an
+    edge case, it is every single call: ~7,400 rows and some 23MB fetched and
+    thrown away per tutor question. Invisible against local SQLite, seconds of
+    latency against a managed database over a network.
+
+    So: check cheaply that an index exists, embed the query, and only then pay
+    for the rows, once they are certain to be used.
+    """
+    indexed = db.scalar(select(ConceptEmbedding.id).limit(1)) is not None
+    if indexed:
         try:
             vectors = await get_provider().embed([query])
-            return _vector_search(db, rows, vectors[0], k)
         except (LLMUnavailable, NotImplementedError):
-            # Embeddings exist but Ollama is down; keyword search still works.
-            pass
+            # Either the local model is down or the provider has no embeddings
+            # endpoint. Keyword search covers both.
+            return _keyword_search(db, query, k)
+        rows = db.scalars(select(ConceptEmbedding)).all()
+        if rows:
+            return _vector_search(db, rows, vectors[0], k)
     return _keyword_search(db, query, k)
 
 
