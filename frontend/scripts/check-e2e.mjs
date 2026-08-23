@@ -143,7 +143,16 @@ try {
             '').trim().slice(0, 40) || `#${i}`;
         if (SKIP_LABEL.test(label)) continue;
         await control.click({ timeout: 5000, force: false });
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(400);
+        // Every route is dynamic, so a click usually lands on the loading.tsx
+        // skeleton first. Those carry almost no text on purpose, so measuring
+        // straight away reads a real page mid-load as "blank". Wait for the
+        // skeleton to clear — it marks itself with aria-busy — before judging.
+        await page
+          .waitForFunction(() => !document.querySelector('[aria-busy="true"]'), {
+            timeout: 15000,
+          })
+          .catch(() => {});
         clicked++;
         // A click must not throw, and must not blank the page.
         const after = (await page.locator('body').innerText().catch(() => '')).trim();

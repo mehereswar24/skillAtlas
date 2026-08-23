@@ -84,6 +84,14 @@ try {
   await page.waitForURL('**/roadmap', { timeout: 180000 });
   check('starting a route navigates to /roadmap', true, page.url());
 
+  // The URL changes before the content does: every route is dynamically
+  // rendered, so /roadmap shows its loading.tsx skeleton first. Reading `main`
+  // at this point measures the skeleton, which deliberately has no text.
+  await page
+    .waitForFunction(() => !document.querySelector('[aria-busy="true"]'), {
+      timeout: 60000,
+    })
+    .catch(() => {});
   const roadmapText = await page.locator('main').innerText();
   const hasWeeks = /Week\s*1/i.test(roadmapText);
   check('roadmap has a real weekly plan', hasWeeks, roadmapText.slice(0, 90).replace(/\n/g, ' | '));
